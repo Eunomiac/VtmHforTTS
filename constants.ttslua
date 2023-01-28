@@ -1,0 +1,43 @@
+local C = {}
+
+C.Clans = {
+    "Brujah", "Gangrel", "Lasombra", "Malkavian", "Nosferatu", "Toreador", "Tremere", "Tzimisce", "Ventrue"
+}
+
+C.Colors = {"Red", "Yellow", "Blue"}
+
+C.Names = {
+    Red = "Gaius Marcellus",
+    Yellow = "Baron Samedi",
+    Blue = "Jalan-Aayav"
+}
+
+C.MoralityTokens = {
+  Brujah = "M",
+  Gangrel = "M",
+  Lasombra = "C",
+  Malkavian = "C",
+  Nosferatu = "C",
+  Toreador = "C",
+  Tremere = "C",
+  Tzimisce = "M",
+  Ventrue = "C"
+}
+
+C.CameraAngles = {
+  ZoomCard = {position = {x=-0.5,y=-2,z=4.75},pitch = 70.72,yaw = 0,distance = 11},
+  ZoomPlayerOne = {position = {x=-27,y=1,z=-14}, pitch = 75, yaw = 0, distance = 17.5},
+  ZoomPlayerTwo = {position = {x=0,y=1,z=-14}, pitch = 75, yaw = 0, distance = 17.5},
+  ZoomPlayerThree = {position = {x=27,y=1,z=-14}, pitch = 75, yaw = 0, distance = 17.5},
+  ZoomQueue = {position = {x=-0.5,y=1,z=3}, pitch = 70.72, yaw = 0, distance = 1},
+  ZoomBattlegrounds = {position = {x=0,y=5,z=10}, pitch = 76.43, yaw = 0, distance = 18},
+  WideAngle = {position = {x=0,y=10,z=-15}, pitch = 35, yaw = 0, distance = 50},
+  ZoomPlayerOneWide = {position = {x=-27,y=10,z=-25}, pitch = 45, yaw = 10, distance = 10},
+  ZoomPlayerTwoWide = {position = {x=0,y=10,z=-25}, pitch = 45, yaw = 0, distance = 10},
+  ZoomPlayerThreeWide = {position = {x=27,y=10,z=-25}, pitch = 45, yaw = 350, distance = 10},
+  ZoomQueueWide = {position = {x=0,y=5,z=5}, pitch = 56.43, yaw = 0, distance = 25},
+  ZoomBattlegroundsWide = {position = {x=0,y=5,z=5}, pitch = 56.43, yaw = 0, distance = 25},
+  WideAngleWide = {position = {x=0,y=10,z=-15}, pitch = 35, yaw = 0, distance = 100}
+}
+
+return C

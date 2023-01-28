@@ -1,0 +1,47 @@
+
+
+local S = {}
+
+local mData = {
+    stagger = 0.5,
+    subtitle_1 = "Chapter I",
+    title_2 = "Rhodes",
+    subtitle_3 = "<i>1306 - 1315</i>",
+    body_1 = "The Knights Hospitaller aim to conquer Rhodes, and carve out a kingdom of their own ..."
+}
+
+function S.showInSequence(messageData, panelID)
+    panelID = panelID or "dispPanel_UpperCenter"
+    local stagger = 0
+    local absTime = 0.5
+    for key,val in ipairs(messageData) do
+        if (key == "stagger") then
+            stagger = val
+        else
+            local elemID = panelID .. "_" .. key
+            -- dispPanel_UpperCenter_subtitle_1
+            UI.setValue(elemID, val)
+            Wait.time(function() UI.show(elemID) end, absTime)
+            absTime = absTime + stagger
+        end
+    end
+end
+
+-- <Panel id="dispPanel_1" class="sequencer">
+--     <Text id="dispPanel_1_title_1" class="title fade pos1"></Text>
+--     <Text id="dispPanel_1_title_2" class="title fade pos2"></Text>
+--     <Text id="dispPanel_1_title_3" class="title fade pos3"></Text>
+--     <Text id="dispPanel_1_title_4" class="title fade pos4"></Text>
+--     <Text id="dispPanel_1_subtitle_1" class="subtitle fade pos1"></Text>
+--     <Text id="dispPanel_1_subtitle_2" class="subtitle fade pos2"></Text>
+--     <Text id="dispPanel_1_subtitle_3" class="subtitle fade pos3"></Text>
+--     <Text id="dispPanel_1_subtitle_4" class="subtitle fade pos4"></Text>
+--     <Text id="dispPanel_1_body_1" class="body fade pos1"></Text>
+--     <Text id="dispPanel_1_body_2" class="body fade pos2"></Text>
+--     <Text id="dispPanel_1_body_3" class="body fade pos3"></Text>
+--     <Text id="dispPanel_1_body_4" class="body fade pos4"></Text>
+-- </Panel>
+
+
+
+return S

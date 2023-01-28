@@ -1,0 +1,22 @@
+local H = require("huicontrol")
+
+local battleground = {}
+local bgLocation
+
+function battleground.init(bgLoc)
+    bgLocation = bgLoc
+end
+
+function battleground.highlight()
+  if (bgLocation) then
+    H.setHighlighter("BGIndicator", "active", bgLocation)
+  end
+end
+
+function battleground.dim()
+  if (bgLocation) then
+    H.setHighlighter("BGIndicator", "inactive", bgLocation)
+  end
+end
+
+return battleground

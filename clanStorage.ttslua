@@ -1,0 +1,65 @@
+local U = require("utilities")
+local clanStorage = {}
+
+local localPositions = {bTokens = {
+        {x = -0.4, y = 10, z = 0},
+        {x = -0.4, y = 30, z = 0},
+        {x = -0.4, y = 50, z = 0}},
+    pToken = {x = -0.4, y = 6, z = -0.3},
+    schemeDeck = {x = 0.1, y = 30, z = 0},
+    refCard = {x = 0.37, y = 1.9, z = 0},
+    leaderCard = {x = -0.17, y = 1.9, z = 0}
+}
+
+function clanStorage.prepareClanStorage(storageObj)
+    local storedTiles = U.findAboveObject(storageObj, "Tile") or {}
+    local storedDecks = U.findAboveObject(storageObj, "Deck") or {}
+    local storedCards = U.findAboveObject(storageObj, "Card") or {}
+
+    if (not (storedTiles[4] and storedDecks[1] and storedCards[2])) then return end
+
+    local clanIdentity
+    local storedPoliticsToken, storedReferenceCard, storedLeaderCard, storedSchemeDeck
+
+    local storedBoons = {}
+    for _, tile in ipairs(storedTiles) do
+        if (tile.getCustomObject().type) then
+            storedPoliticsToken = tile
+        else
+            table.insert(storedBoons, tile)
+        end
+    end
+
+    if (storedCards[1] and storedCards[1].hasAnyTag()) then
+        storedReferenceCard = storedCards[1]
+        storedLeaderCard = storedCards[2]
+    elseif (storedCards[2] and storedCards[2].hasAnyTag()) then
+        storedReferenceCard = storedCards[2]
+        storedLeaderCard = storedCards[1]
+    end
+
+    storedSchemeDeck = storedDecks[1]
+    storedSchemeDeck.randomize()
+
+    clanIdentity = storedReferenceCard.getTags()[1]
+    storedPoliticsToken.setTags({clanIdentity, "PoliticsToken"})
+
+    for i, tile in ipairs(storedBoons) do
+        tile.setPosition(storageObj.positionToWorld(localPositions.bTokens[i]))
+        tile.setRotation({x = 0, y = 180, z = 0})
+    end
+
+    storedReferenceCard.setPosition(storageObj.positionToWorld(localPositions.refCard))
+    storedReferenceCard.setRotation({x = 0, y = 180, z = 0})
+    storedSchemeDeck.setPosition(storageObj.positionToWorld(localPositions.schemeDeck))
+    storedSchemeDeck.setRotation({x = 0, y = 180, z = 180})
+    storedLeaderCard.setPosition(storageObj.positionToWorld(localPositions.leaderCard))
+    storedLeaderCard.setRotation({x = 0, y = 180, z = 0})
+    storedPoliticsToken.setPosition(storageObj.positionToWorld(localPositions.pToken))
+    storedPoliticsToken.setRotation({x = 0, y = 180, z = 0})
+
+    self.setName(clanIdentity .. " Storage")
+
+end
+
+return clanStorage

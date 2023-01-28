@@ -1,0 +1,247 @@
+
+local U = require("utilities")
+local C = require("constants")
+local G = require("guids")
+local H = require("huicontrol")
+local clanLeaderSlot = {}
+
+local _playerColor = nil
+local _stagingPos = nil
+
+local isSelecting = false
+
+function clanLeaderSlot.onLoad(thisObj)
+  for _, tag in pairs(thisObj.getTags()) do
+    if (tag == "Red" or tag == "Yellow" or tag == "Blue") then
+      _playerColor = tag
+      break
+    end
+  end
+  _stagingPos = thisObj.getPosition()
+  _stagingPos.z = _stagingPos.z + 3
+end
+
+function clanLeaderSlot.onCollisionEnter(collision_info)
+    if (isSelecting) then return end
+    local round, turn = H.getRoundAndTurn()
+    if (round != 0) then return end
+    if (H.getNextPlayer() != _playerColor) then return end
+    local colObj = collision_info.collision_object
+    if not colObj.hasTag("ClanToken") then return end
+    isSelecting = true
+    Wait.time(function() isSelecting = false end, 0.5)
+    return handleClanToken(collision_info)
+end
+
+function handleClanToken(collision_info)
+    local colObjName = collision_info.collision_object.getName()
+    local clanName = string.gsub(colObjName, " Clan Token", "")
+    self.addTag(clanName)
+    setupPlayerSpace(_playerColor, clanName, collision_info.collision_object)
+end
+
+function setupPlayerSpace(color, clan, politicsToken)
+    local waitTime = 0
+    local waitStep = 0.35
+    local guids = G.playerSpaces[color]
+    local mainStorage = getObjectFromGUID(G.mainStorage.id)
+    local clanStorageGUID = G.mainStorage.clanStorage[clan]
+    local stagingPositions = {
+        Red = {x = -51.5, y = -0.14, z = 33.5},
+        Yellow = {x = -51.5, y = -0.14, z = 30.5},
+        Blue = {x = -51.5, y = -0.14, z = 27.5}
+    }
+    H.setHighlighter("TurnIndicator", "inactive", color)
+
+    -- Extract clan box from main storage
+    mainStorage.takeObject({
+      guid = clanStorageGUID,
+      position = stagingPositions[color],
+      callback_function = function(clanContainer)
+        Wait.time(function()
+            H.assignClan(clan, color)
+            local leaderPos = getObjectFromGUID(guids.leaderCard).getPosition()
+            leaderPos.y = leaderPos.y + 1
+            local positions = {
+                clanLeader = leaderPos,
+                clanScheme = getObjectFromGUID(guids.schemeDeck).getPosition(),
+                clanMorality = G.tableSpots.clanMorality[color],
+                clanPolitics = G.tableSpots.clanPolitics[color]
+            }
+            positions.clanLeader.y = positions.clanLeader.y + 0.5
+            positions.clanScheme.y = positions.clanScheme.y + 0.5
+            positions.clanMorality.y = positions.clanMorality.y + 0.5
+            positions.clanPolitics.y = positions.clanPolitics.y + 0.5
+            local clanBoonPos = {
+                x = leaderPos.x + 1,
+                y = leaderPos.y,
+                z = leaderPos.z
+            }
+            positions.clanBoons = {
+                {x = clanBoonPos.x, y = clanBoonPos.y, z = clanBoonPos.z - 1},
+                {x = clanBoonPos.x, y = clanBoonPos.y, z = clanBoonPos.z },
+                {x = clanBoonPos.x, y = clanBoonPos.y, z = clanBoonPos.z + 1}
+            }
+
+            local powerBox = getObjectFromGUID(G.tokenSources.power);
+
+            local numBoons = 0
+            politicsToken.setPosition(positions.clanPolitics)
+            politicsToken.setScale({x = 0.24, y = 1, z = 0.24})
+
+            local clanLeadersPlaced = 0
+            for _, containedObject in ipairs(clanContainer.getObjects()) do
+              -- log(containedObject)
+                waitTime = waitTime + waitStep
+                if (containedObject.name == clan .. " Morality") then
+                    Wait.time(function() clanContainer.takeObject({
+                        guid = containedObject.guid,
+                        smooth = false,
+                        position = positions.clanMorality,
+                        rotation = {x = 0, y = 180, z = 0}
+                    }) end, waitTime)
+                elseif (containedObject.name == clan .. " Boon") then
+                    numBoons = numBoons + 1
+                    local boonPos = positions.clanBoons[numBoons]
+                    Wait.time(function() clanContainer.takeObject({
+                        guid = containedObject.guid,
+                        smooth = false,
+                        position = boonPos,
+                        rotation = {x = 0, y = 180, z = 0}
+                    }) end, waitTime)
+                elseif (U.isIn("ClanLeader", containedObject.tags)) then
+                  local pos = positions.clanLeader
+                  if (clanLeadersPlaced > 0) then
+                    pos = {
+                      x = pos.x - (2.5 * clanLeadersPlaced),
+                      y = pos.y,
+                      z = pos.z
+                    }
+                  end
+                  clanLeadersPlaced = clanLeadersPlaced + 1
+                  Wait.time(function() clanContainer.takeObject({
+                      guid = containedObject.guid,
+                      smooth = false,
+                      position = pos,
+                      rotation = {x = 0, y = 180, z = 0}
+                  }) end, waitTime)
+                  waitTime = waitTime + waitStep
+                  if (clanLeadersPlaced == 1) then
+                    local powerPos = {
+                        {
+                            x = positions.clanLeader.x + 0.1,
+                            y = positions.clanLeader.y + 2,
+                            z = positions.clanLeader.z - 0.1
+                        },
+                        {
+                            x = positions.clanLeader.x - 0.1,
+                            y = positions.clanLeader.y + 2,
+                            z = positions.clanLeader.z - 0.1
+                        },
+                        {
+                            x = positions.clanLeader.x,
+                            y = positions.clanLeader.y + 2,
+                            z = positions.clanLeader.z + 0.1
+                        }
+                    }
+                    Wait.time(function() powerBox.takeObject({
+                        index = 1,
+                        smooth = false,
+                        position = powerPos[1]
+                    }) end, waitTime)
+                    waitTime = waitTime + (0.5 * waitStep)
+                    Wait.time(function() powerBox.takeObject({
+                        index = 1,
+                        smooth = false,
+                        position = powerPos[2]
+                    }) end, waitTime)
+                    waitTime = waitTime + (0.5 * waitStep)
+                    Wait.time(function() powerBox.takeObject({
+                        index = 1,
+                        smooth = false,
+                        position = powerPos[3]
+                    }) end, waitTime)
+                  end
+                elseif (containedObject.name == "Deck") then
+                    Wait.time(function() clanContainer.takeObject({
+                        guid = containedObject.guid,
+                        smooth = false,
+                        position = positions.clanScheme,
+                        rotation = {x = 0, y = 180, z = 180}
+                    }) end, waitTime)
+                else
+                    -- log(JSON.encode_pretty(containedObject));
+                end
+            end
+        end, 0.5)
+
+
+      end})
+
+    -- local clanContainer = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+
+end
+-- end
+
+function populate_queue()
+    local charCards = U.findOnObject(self, "Card", charQueueCast)
+
+    local charCardData = {}
+    for _, card in ipairs(charCards) do
+        local cardData = {
+            card = card,
+            position = U.pFloat(self.positionToLocal(card.getPosition()).x),
+            facing = "FaceDown"
+        }
+        if (card.getRotation().z < 90) then
+            cardData.facing = "FaceUp"
+        end
+        cardData.snapSlot = U.findSnapPoint(charQueueSnapPoints, {x = cardData.position, z = nil})
+        table.insert(charCardData, cardData)
+    end
+
+    function cardPosCompare(a,b) return a.position < b.position end
+    table.sort(charCardData, cardPosCompare)
+
+    local waitTime = 0
+    local curSlot = 5
+
+    while (curSlot > 0) do
+        local thisSnapPoint = charQueueSnapPoints[curSlot]
+        if (U.count(charCardData) > 0) then
+            local thisCard = table.remove(charCardData, 1)
+            if (thisCard.snapSlot != curSlot) then
+                Wait.time(function() shiftCardQueue(thisCard.card.setPositionSmooth(
+                    self.positionToWorld(thisSnapPoint.position), false, false
+                )) end, waitTime)
+                waitTime = waitTime + 0.25
+            end
+        else
+            Wait.time(function() dealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
+            waitTime = waitTime + 0.25
+        end
+        curSlot = curSlot - 1
+    end
+end
+
+function dealCardQueue(position)
+    position = self.positionToWorld(position)
+    characterDeck.takeObject({
+        position = position,
+        flip = true
+    })
+end
+
+    -- Reference Card
+
+    -- Scheme Deck, Shuffle
+
+    -- Boons Laid Out
+
+    -- 3x Power
+
+    -- Clan Leader
+
+    -- Morality Token on Battleground
+
+return clanLeaderSlot
