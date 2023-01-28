@@ -2,7 +2,7 @@
 local U = require("utilities")
 local C = require("constants")
 local G = require("guids")
-local H = require("huicontrol")
+local M = require("main")
 local clanLeaderSlot = {}
 
 local _playerColor = nil
@@ -23,24 +23,24 @@ end
 
 function clanLeaderSlot.onCollisionEnter(collision_info)
     if (isSelecting) then return end
-    local round, turn = H.getRoundAndTurn()
-    if (round != 0) then return end
-    if (H.getNextPlayer() != _playerColor) then return end
+    local round, turn = M.getRoundAndTurn()
+    if (round ~= 0) then return end
+    if (M.getNextPlayer() ~= _playerColor) then return end
     local colObj = collision_info.collision_object
     if not colObj.hasTag("ClanToken") then return end
     isSelecting = true
     Wait.time(function() isSelecting = false end, 0.5)
-    return handleClanToken(collision_info)
+    return HandleClanToken(collision_info)
 end
 
-function handleClanToken(collision_info)
+function HandleClanToken(collision_info)
     local colObjName = collision_info.collision_object.getName()
     local clanName = string.gsub(colObjName, " Clan Token", "")
     self.addTag(clanName)
-    setupPlayerSpace(_playerColor, clanName, collision_info.collision_object)
+    SetupPlayerSpace(_playerColor, clanName, collision_info.collision_object)
 end
 
-function setupPlayerSpace(color, clan, politicsToken)
+function SetupPlayerSpace(color, clan, politicsToken)
     local waitTime = 0
     local waitStep = 0.35
     local guids = G.playerSpaces[color]
@@ -51,7 +51,7 @@ function setupPlayerSpace(color, clan, politicsToken)
         Yellow = {x = -51.5, y = -0.14, z = 30.5},
         Blue = {x = -51.5, y = -0.14, z = 27.5}
     }
-    H.setHighlighter("TurnIndicator", "inactive", color)
+    M.setHighlighter("TurnIndicator", "inactive", color)
 
     -- Extract clan box from main storage
     mainStorage.takeObject({
@@ -59,7 +59,7 @@ function setupPlayerSpace(color, clan, politicsToken)
       position = stagingPositions[color],
       callback_function = function(clanContainer)
         Wait.time(function()
-            H.assignClan(clan, color)
+            M.assignClan(clan, color)
             local leaderPos = getObjectFromGUID(guids.leaderCard).getPosition()
             leaderPos.y = leaderPos.y + 1
             local positions = {
@@ -200,7 +200,7 @@ function populate_queue()
         table.insert(charCardData, cardData)
     end
 
-    function cardPosCompare(a,b) return a.position < b.position end
+    local function cardPosCompare(a,b) return a.position < b.position end
     table.sort(charCardData, cardPosCompare)
 
     local waitTime = 0
@@ -210,21 +210,21 @@ function populate_queue()
         local thisSnapPoint = charQueueSnapPoints[curSlot]
         if (U.count(charCardData) > 0) then
             local thisCard = table.remove(charCardData, 1)
-            if (thisCard.snapSlot != curSlot) then
+            if (thisCard.snapSlot ~= curSlot) then
                 Wait.time(function() shiftCardQueue(thisCard.card.setPositionSmooth(
                     self.positionToWorld(thisSnapPoint.position), false, false
                 )) end, waitTime)
                 waitTime = waitTime + 0.25
             end
         else
-            Wait.time(function() dealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
+            Wait.time(function() DealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
             waitTime = waitTime + 0.25
         end
         curSlot = curSlot - 1
     end
 end
 
-function dealCardQueue(position)
+function DealCardQueue(position)
     position = self.positionToWorld(position)
     characterDeck.takeObject({
         position = position,

@@ -1,6 +1,6 @@
-local guids = {}
+local G = {}
 
-guids.decks = {
+G.decks = {
     characterSpot = "20e59b",
     characterDiscardSpot = "083e88",
     strandOfTimeSpot = "d7029a",
@@ -20,7 +20,7 @@ guids.decks = {
     }
 }
 
-guids.playerSpaces = {
+G.playerSpaces = {
     Red = {
         schemeDeck = "ce178f",
         schemeDiscard = "0f4771",
@@ -64,18 +64,18 @@ guids.playerSpaces = {
         }
 }}
 
-guids.zones = {
+G.zones = {
     charQueueArea = "04917a",
     charQueue = {"c8faa5", "af0603", "f1ec56", "4b7d04", "558327"},
     clearZones = {"72a2cd", "c0c9cc", "69b32b", "c50ff9"}
 }
 
-guids.playerCards = {
+G.playerCards = {
   Red = "7f82f3",
   Yellow = "ba1cde",
   Blue = "f9ff56"
 }
-guids.mainStorage = {
+G.mainStorage = {
     id = "1c0050",
     clanStorage = {
         Brujah      = "98a6cc",
@@ -90,14 +90,14 @@ guids.mainStorage = {
     }
 }
 
-guids.tokenSources = {
+G.tokenSources = {
     power = "8b6a8b",
     infamy = "0f088a",
     exhaustion = "74fa00",
     torpor = "74fa00"
 }
 
-guids.battlegrounds = {
+G.battlegrounds = {
     a = "d34811",
     b = "a2cf25",
     c = "265535",
@@ -107,7 +107,7 @@ guids.battlegrounds = {
     g = nil
 }
 
-guids.tableSpots = {
+G.tableSpots = {
     clanMorality = {
         Red = {x = 10.96, y = 3.5, z = 15.36},
         Yellow = {x = 11.94, y = 3, z = 14.55},
@@ -181,11 +181,11 @@ guids.tableSpots = {
     }
 }
 
-guids.chapterDecksStorage = "b6bddf"
-guids.victoryBoard = "593a8d"
-guids.victoryTable = "e157b5"
+G.chapterDecksStorage = "b6bddf"
+G.victoryBoard = "593a8d"
+G.victoryTable = "e157b5"
 
-guids.highlighters = {
+G.highlighters = {
     clanSelection = "2e6007",
     turnIndicator = {
         Red = "210fad",
@@ -199,7 +199,7 @@ guids.highlighters = {
     }
 }
 
-guids.lockedObjects = {
+G.lockedObjects = {
     "a97528", -- BG Riser Front
     "bcc1e6", -- BG Riser Main
     "142de3", -- Table Main
@@ -207,15 +207,15 @@ guids.lockedObjects = {
     "6cc1dc" -- Chaoters Lectern
 }
 
-guids.invisObjects = {
-    guids.highlighters.clanSelection,
-    guids.highlighters.turnIndicator.Red,
-    guids.highlighters.turnIndicator.Yellow,
-    guids.highlighters.turnIndicator.Blue,
-    guids.highlighters.bgIndicator.left,
-    guids.highlighters.bgIndicator.center,
-    guids.highlighters.bgIndicator.right,
-    guids.victoryTable
+G.invisObjects = {
+    G.highlighters.clanSelection,
+    G.highlighters.turnIndicator.Red,
+    G.highlighters.turnIndicator.Yellow,
+    G.highlighters.turnIndicator.Blue,
+    G.highlighters.bgIndicator.left,
+    G.highlighters.bgIndicator.center,
+    G.highlighters.bgIndicator.right,
+    G.victoryTable
 }
 
-return guids
+return G

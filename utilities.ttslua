@@ -1,18 +1,18 @@
-local utilities = {}
+local U = {}
 
-function utilities.pFloat(num)
+function U.pFloat(num)
     if (num) then
         return math.ceil(num * 100) / 100
     else
         return 0
     end
 end
-function utilities.pAngle(num, interval)
+function U.pAngle(num, interval)
   if not interval then interval = 45 end
   return math.floor((num / interval) + 0.5) * interval
 end
 -- ISDEBUGGING = true
-function utilities.findAboveObject(obj, type)
+function U.findAboveObject(obj, type)
     local objBounds = obj.getBounds()
     objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) - 2.5
     objBounds.size.y = 5
@@ -25,21 +25,21 @@ function utilities.findAboveObject(obj, type)
         debug = (ISDEBUGGING or false)
     }
 
-    local objList = utilities.findOnObject(obj, type, castParams)
+    local objList = U.findOnObject(obj, type, castParams)
     return objList
 end
 
-function utilities.transferContents(fromObj, toObj)
+function U.transferContents(fromObj, toObj)
     for _, containedObject in ipairs(fromObj.getObjects()) do
         toObj.putObject(fromObj.takeObject({smooth = false}))
     end
 end
 
-function utilities.mutateObjects(containerObj, mutateFunc)
+function U.mutateObjects(containerObj, mutateFunc)
   local stagingPos = {
     x = containerObj.getPosition().x,
-    x = containerObj.getPosition().y + 5,
-    x = containerObj.getPosition().z
+    y = containerObj.getPosition().y + 5,
+    z = containerObj.getPosition().z
   }
   for _, objRef in ipairs(containerObj.getObjects()) do
     containerObj.takeObject({
@@ -53,13 +53,13 @@ function utilities.mutateObjects(containerObj, mutateFunc)
   end
 end
 
-function utilities.findOnObject(baseObj, type, cast)
+function U.findOnObject(baseObj, type, cast)
     local hitList = Physics.cast(cast)
     if (not hitList) then return end
     local refinedList = {}
     for _, obj in ipairs(hitList) do
         -- log({baseObj, obj})
-        if (obj.hit_object.guid != baseObj.guid and (type == nil or obj.hit_object.type == type)) then
+        if (obj.hit_object.guid ~= baseObj.guid and (type == nil or obj.hit_object.type == type)) then
             table.insert(refinedList, obj.hit_object)
         end
     end
@@ -78,7 +78,7 @@ function checkSnapPoint(snapPoint, axis, coordsFilter)
     return false
 end
 
-function utilities.getSnapPoints(board, coordsFilter, sortAxis)
+function U.getSnapPoints(board, coordsFilter, sortAxis)
     local snapPoints = {}
     for _, point in ipairs(board.getSnapPoints()) do
         local isValid = true
@@ -99,20 +99,20 @@ function utilities.getSnapPoints(board, coordsFilter, sortAxis)
     return snapPoints
 end
 
-function utilities.getSnapPointPositions(board, coordsFilter, sortAxis)
-    return utilities.map(utilities.getSnapPoints(board, coordsFilter, sortAxis), function(snap) return snap.position end)
+function U.getSnapPointPositions(board, coordsFilter, sortAxis)
+    return U.map(U.getSnapPoints(board, coordsFilter, sortAxis), function(snap) return snap.position end)
 end
 
-function utilities.findSnapPoint(snapPoints, pos, fuzziness)
+function U.findSnapPoint(snapPoints, pos, fuzziness)
     fuzziness = fuzziness or 0.1
     for slot, snap in ipairs(snapPoints) do
         if (snap.position) then
           snap = snap.position
         end
-        local xPos = utilities.pFloat(pos.x)
-        local zPos = utilities.pFloat(pos.z)
-        local xSnap = utilities.pFloat(snap.x)
-        local zSnap = utilities.pFloat(snap.z)
+        local xPos = U.pFloat(pos.x)
+        local zPos = U.pFloat(pos.z)
+        local xSnap = U.pFloat(snap.x)
+        local zSnap = U.pFloat(snap.z)
         local isXOkay = false
         local isZOkay = false
         if (pos.x == nil) then
@@ -131,8 +131,8 @@ function utilities.findSnapPoint(snapPoints, pos, fuzziness)
     end
 end
 
-function utilities.makeRing(objs, centerPos, radius, params)
-    local angleStep = 360 / utilities.count(objs)
+function U.makeRing(objs, centerPos, radius, params)
+    local angleStep = 360 / U.count(objs)
     local angleTable = {}
     local nameTable = {}
     for _, obj in pairs(objs) do table.insert(nameTable, obj.getName()) end
@@ -157,13 +157,13 @@ function utilities.makeRing(objs, centerPos, radius, params)
     end
 end
 
-function utilities.count(T)
+function U.count(T)
   local count = 0
   for _ in pairs(T) do count = count + 1 end
   return count
 end
 
-function utilities.split(inputstr, sep)
+function U.split(inputstr, sep)
     if sep == nil then
       sep = "%s"
     else
@@ -176,13 +176,13 @@ function utilities.split(inputstr, sep)
     return t
 end
 
-function utilities.forEach(table, func)
+function U.forEach(table, func)
   for k,v in pairs(table) do
     func(v,k)
   end
 end
 
-function utilities.map(table, func)
+function U.map(table, func)
   local new_table = {}
   for k,v in pairs(table) do
     new_table[k] = func(v,k)
@@ -190,7 +190,7 @@ function utilities.map(table, func)
   return new_table
 end
 
-function utilities.filter(tb, func)
+function U.filter(tb, func)
   local new_table = {}
   local index = 0
   for k,v in pairs(tb) do
@@ -206,26 +206,26 @@ function utilities.filter(tb, func)
   return new_table
 end
 
-function utilities.concat(t1,t2)
+function U.concat(t1,t2)
     for i=1,#t2 do
         t1[#t1+1] = t2[i]
     end
     return t1
 end
 
-function utilities.find(tb, func)
+function U.find(tb, func)
   for k,v in pairs(tb) do
     if (func(v,k)) then return v end
   end
   return nil
 end
 
-function utilities.compact(table)
+function U.compact(table)
 
 
 end
 
-function utilities.reverse(table)
+function U.reverse(table)
     local rev = {}
     for i = #table, 1, -1 do
     	rev[#rev+1] = table[i]
@@ -233,7 +233,7 @@ function utilities.reverse(table)
     return rev
 end
 
-function utilities.isIn(elem, table)
+function U.isIn(elem, table)
   for _, value in pairs(table) do
     if value == elem then
       return true
@@ -242,8 +242,8 @@ function utilities.isIn(elem, table)
   return false
 end
 
-function utilities.isFlipped(obj)
-  local zRot = utilities.pAngle(obj.getRotation().z, 90)
+function U.isFlipped(obj)
+  local zRot = U.pAngle(obj.getRotation().z, 90)
   return zRot == 180
 end
 
@@ -271,18 +271,18 @@ function SplashMessageTo(visibilityTargets, messageData, delay)
     end
 end
 local isSplashActive = false
-function utilities.splashMessage(title, subtitle, body)
+function U.splashMessage(title, subtitle, body)
     if (isSplashActive) then
         Wait.time(
             function()
-                utilities.splashMessage(title, subtitle, body)
+                U.splashMessage(title, subtitle, body)
             end,
         1.5)
     else
         UI.hide("splashMessage")
         isSplashActive = true
         UI.setValue("splashMessageTitle", title or "")
-        UI.setValue("splashMessageSubtitle", subTitle or "")
+        UI.setValue("splashMessageSubtitle", subtitle or "")
         UI.setValue("splashMessageBody", body or "")
         UI.show("splashMessage")
         Wait.time(
@@ -299,20 +299,20 @@ function utilities.splashMessage(title, subtitle, body)
         5)
     end
 end
-function utilities.splashUIElement(elemID, duration, delay)
+function U.splashUIElement(elemID, duration, delay)
   if (duration == nil) then duration = 5 end
   if (delay == nil or delay == 0) then
     UI.show(elemID)
     Wait.time(function() UI.hide(elemID) end, duration)
   else
-    Wait.time(function() utilities.splashUIElement(elemID, duration, 0) end, delay)
+    Wait.time(function() U.splashUIElement(elemID, duration, 0) end, delay)
   end
 end
-function utilities.alertGM(message)
+function U.alertGM(message)
   broadcastToColor(message, "Red")
 end
 
-function utilities.findClanTag(obj)
+function U.findClanTag(obj)
     if (obj.hasTag("Brujah")) then return "Brujah" end
     if (obj.hasTag("Gangrel")) then return "Gangrel" end
     if (obj.hasTag("Lasombra")) then return "Lasombra" end
@@ -325,14 +325,14 @@ function utilities.findClanTag(obj)
     return nil
 end
 
-function utilities.findColorTag(obj)
+function U.findColorTag(obj)
     if (obj.hasTag("Red")) then return "Red" end
     if (obj.hasTag("Yellow")) then return "Yellow" end
     if (obj.hasTag("Blue")) then return "Blue" end
     return nil
 end
 
-function utilities.getHost()
+function U.getHost()
   return Player.Red
   -- for _, player in ipairs(Player.getPlayers()) do
   --   if (player.host) then
@@ -341,17 +341,17 @@ function utilities.getHost()
   -- end
 end
 
-function utilities.try(fn, ...)
-  local arg = {...}
-  return xpcall(
-    -- function wrapper to pass function arguments
-    function(...) return fn(unpack(arg)) end,
-    -- error function
-    function(msg) return error(msg, 3) end
-  )
-end
+-- function U.try(fn, ...)
+--   local arg = {...}
+--   return xpcall(
+--     -- function wrapper to pass function arguments
+--     function(...) return fn(unpack(arg)) end,
+--     -- error function
+--     function(msg) return error(msg, 3) end
+--   )
+-- end
 
-function utilities.roundTableVals(table, sigDigits)
+function U.roundTableVals(table, sigDigits)
   if (sigDigits == nil) then sigDigits = 1 end
   local roundMult = 10 ^ sigDigits
   local newTable = {}
@@ -381,23 +381,23 @@ end
 
 -- lua status, returnVal = pcall(function() error("Big error!") end)
 
-function utilities.assert(value, checkFn, tag, defaultVal)
-  local status, checkVal = utilities.try(checkFn, value)
-  if (status and checkVal) then return value end
-  if (type(tag) == "string") then
-    tag = "[" .. tag .. "] "
-  else
-    tag = ""
-  end
-  if (defaultVal) then
-    broadcastToColor("Using supplied default value: " .. tostring(defaultVal), "Red", "Yellow")
-    broadcastToColor(tag .. checkVal, "Red", "Red")
-    return defaultVal
-  end
-  error(tag .. checkVal)
-end
+-- function U.assert(value, checkFn, tag, defaultVal)
+--   local status, checkVal = U.try(checkFn, value)
+--   if (status and checkVal) then return value end
+--   if (type(tag) == "string") then
+--     tag = "[" .. tag .. "] "
+--   else
+--     tag = ""
+--   end
+--   if (defaultVal) then
+--     broadcastToColor("Using supplied default value: " .. tostring(defaultVal), "Red", "Yellow")
+--     broadcastToColor(tag .. checkVal, "Red", "Red")
+--     return defaultVal
+--   end
+--   error(tag .. checkVal)
+-- end
 
-function utilities.clone(t, isDeepCloning)
+function U.clone(t, isDeepCloning)
   local t2 = {}
   for k,v in pairs(t) do
     t2[k] = v
@@ -405,4 +405,4 @@ function utilities.clone(t, isDeepCloning)
   return t2
 end
 
-return utilities
+return U

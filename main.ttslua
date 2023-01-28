@@ -3,16 +3,16 @@ local U = require("utilities")
 local G = require("guids")
 local Z = require("zones")
 
-local H = {}
+local M = {}
 
 function parseCode(val, isIncludingTraits)
   if (val == nil) then return "nil" end
   if (isIncludingTraits) then return JSON.encode_pretty(val.traits.Yellow) end
-  return JSON.encode_pretty(U.filter(val, function(val, key) return key != "traits" end))
+  return JSON.encode_pretty(U.filter(val, function(val, key) return key ~= "traits" end))
 end
 -- *** GAME STATE ***
 
-function H.refreshStateDebug(stateData)
+function M.refreshStateDebug(stateData)
   if (stateData == nil) then
     stateData = Global.getTable("gameState")
   end
@@ -25,28 +25,28 @@ function H.refreshStateDebug(stateData)
   UI.setValue("debugTraitsBlue", JSON.encode_pretty(stateData.traits.Blue))
 end
 
-function H.getGameState()
-  H.refreshStateDebug()
+function M.getGameState()
+  M.refreshStateDebug()
   return Global.getTable("gameState")
 end
-function H.setGameState(data)
+function M.setGameState(data)
   if (data.isAutoPopulatingCharacters == nil) then
     data.isAutoPopulatingCharacters = true
   end
   Global.setTable("gameState", data)
-  H.refreshStateDebug(data)
+  M.refreshStateDebug(data)
   return
 end
 
-function H.getStateVal(key, subKey)
+function M.getStateVal(key, subKey)
   local state = Global.getTable("gameState")
-  H.refreshStateDebug(state)
+  M.refreshStateDebug(state)
   if not state[key] then return state[key] end
   if subKey then return state[key][subKey] end
   return state[key]
 end
 
-function H.setStateVal(value, key, subKey)
+function M.setStateVal(value, key, subKey)
   local state = Global.getTable("gameState")
   if (subKey) then
       if (state[key] == nil) then state[key] = {} end
@@ -55,17 +55,17 @@ function H.setStateVal(value, key, subKey)
       state[key] = value
   end
   Global.setTable("gameState", state)
-  H.refreshStateDebug(state)
+  M.refreshStateDebug(state)
 end
-function H.setStateVals(stateData)
+function M.setStateVals(stateData)
   local state = Global.getTable("gameState")
   for key, val in pairs(stateData) do
     state[key] = val
   end
   Global.setTable("gameState", state)
-  H.refreshStateDebug(state)
+  M.refreshStateDebug(state)
 end
-function H.resetGameState()
+function M.resetGameState()
   local state = Global.getTable("gameState")
 
     -- state.traits = {
@@ -105,7 +105,7 @@ function H.resetGameState()
       traits = state.traits,
       isReadingMoralityBoard = true
   })
-  H.refreshStateDebug()
+  M.refreshStateDebug()
 end
 
 -- *** GAME STATUS ***
@@ -114,38 +114,38 @@ local fallbackValues = {
 }
 
 -- === LastChapterStandings ===
-function H.checkLastChapterStandings(data)
-  if data == nil then data = H.getStateVal("lastChapterStandings") end
+function M.checkLastChapterStandings(data)
+  if data == nil then data = M.getStateVal("lastChapterStandings") end
   if not (type(data) == "table" and #data == #Player.getPlayers()) then return false end
-  if table.concat(table.sort(U.clone(data))) != "BlueRedYellow" then return false end
+  if table.concat(table.sort(U.clone(data))) ~= "BlueRedYellow" then return false end
   return true
 end
-function H.getLastChapterStandings()
-  if (H.checkLastChapterStandings()) then
-    return H.getStateVal("lastChapterStandings")
+function M.getLastChapterStandings()
+  if (M.checkLastChapterStandings()) then
+    return M.getStateVal("lastChapterStandings")
   end
   -- broadcastToColor("[getLastChapterStandings] " .. logString(H.getStateVal("lastChapterStandings")) .. " is invalid state! Using fallback value.", "Red", "Red")
   return fallbackValues.lastChapterStandings
 end
-function H.getLastChapterVictor()
-  return H.getLastChapterStandings()[1]
+function M.getLastChapterVictor()
+  return M.getLastChapterStandings()[1]
 end
-function H.getLastChapterVanquished()
-  return H.getLastChapterStandings()[3]
+function M.getLastChapterVanquished()
+  return M.getLastChapterStandings()[3]
 end
-function H.determineLastChapterStandings(callback)
-  if not H.checkLastChapterStandings() then
-    H.askLastChapterStandings(function() H.determineLastChapterStandings(callback) end)
+function M.determineLastChapterStandings(callback)
+  if not M.checkLastChapterStandings() then
+    M.askLastChapterStandings(function() M.determineLastChapterStandings(callback) end)
   end
 end
-function H.setLastChapterStandings(data)
-  if (H.checkLastChapterStandings(data)) then
-    H.setStateVal(data, "lastChapterStandings")
+function M.setLastChapterStandings(data)
+  if (M.checkLastChapterStandings(data)) then
+    M.setStateVal(data, "lastChapterStandings")
     return
   end
   broadcastToColor("[setLastChapterStandings] " .. logString(data) .. " is invalid data!", "Red", "Red")
 end
-function H.askLastChapterStandings(callback)
+function M.askLastChapterStandings(callback)
   local chapterStandings = {}
   local hostPlayer = U.getHost()
   local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
@@ -158,7 +158,7 @@ function H.askLastChapterStandings(callback)
           hostPlayer.showOptionsDialog("Who came in last?", playerOptions, 1,
             function (color, index)
               table.insert(chapterStandings, color)
-              H.setLastChapterStandings(chapterStandings)
+              M.setLastChapterStandings(chapterStandings)
               if (callback) then callback() end
             end
           )
@@ -167,7 +167,7 @@ function H.askLastChapterStandings(callback)
     end
   )
 end
-function H.askChapterData(callback)
+function M.askChapterData(callback)
   local chapterData = {}
   local hostPlayer = U.getHost()
 
@@ -186,7 +186,7 @@ function H.askChapterData(callback)
                           hostPlayer.showInputDialog("Upcoming Chapter Blurb",
                               function (text)
                                 chapterData.chapterBlurb = text
-                                H.setStateVal(chapterData, "chapterData")
+                                M.setStateVal(chapterData, "chapterData")
                               end
                           )
                         end
@@ -214,19 +214,19 @@ function getRandomFirstPlayer(playerList)
   return randomColor
 end
 function getColorOfClan(clan)
-  local clans = H.getClans()
+  local clans = M.getClans()
   if clans.Red == clan then return "Red" end
   if clans.Yellow == clan then return "Yellow" end
   if clans.Blue == clan then return "Blue" end
   return ""
 end
-function H.readTurnOrderFromBG()
+function M.readTurnOrderFromBG()
 
-  local turnOrder = H.getTurnOrder()
+  local turnOrder = M.getTurnOrder()
   local lastFirstPlayer = turnOrder[1]
   local bg = getObjectFromGUID(G.battlegrounds.b)
   local bgSnapPoints = U.getSnapPointPositions(bg)
-  local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok) return string.find(tok.getName(), "Morality") != nil end)
+  local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok) return string.find(tok.getName(), "Morality") ~= nil end)
 
   function getTokenSlot(tk)
     local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
@@ -259,87 +259,87 @@ function H.readTurnOrderFromBG()
     return turnOrderMap[getRandomFirstPlayer(curTopTokenColors)]
   end
 end
-function H.checkTurnOrder(data)
-  if data == nil then data = H.getStateVal("turnOrder") end
+function M.checkTurnOrder(data)
+  if data == nil then data = M.getStateVal("turnOrder") end
   if not (type(data) == "table" and #data == 3) then return false end
   -- if not (table.concat(turnOrderMap[data[1]]) == table.concat(data)) then return false end
   return true
 end
-function H.getTurnOrder()
-  if (H.checkTurnOrder()) then
-    return H.getStateVal("turnOrder")
+function M.getTurnOrder()
+  if (M.checkTurnOrder()) then
+    return M.getStateVal("turnOrder")
   end
-  broadcastToColor("[getTurnOrder] " .. logString(H.getStateVal("turnOrder")) .. " is invalid state! Using order set in 'Turns'.", "Red", "Red")
+  broadcastToColor("[getTurnOrder] " .. logString(M.getStateVal("turnOrder")) .. " is invalid state! Using order set in 'Turns'.", "Red", "Red")
   return Turns.order
 end
-function H.determineTurnOrder(callback)
+function M.determineTurnOrder(callback)
   local turnOrder = {}
-  local round, turn = H.getRoundAndTurn()
+  local round, turn = M.getRoundAndTurn()
   if round > 1 and round < 10 then
-    if H.getStateVal("isReadingMoralityBoard") then
-      turnOrder = H.readTurnOrderFromBG()
-      H.setTurnOrder(turnOrder)
+    if M.getStateVal("isReadingMoralityBoard") then
+      turnOrder = M.readTurnOrderFromBG()
+      M.setTurnOrder(turnOrder)
     else
-      H.askTurnOrder(function() H.determineTurnOrder(callback) end)
+      M.askTurnOrder(function() M.determineTurnOrder(callback) end)
       return
     end
   else
-    turnOrder = turnOrderMap[H.getLastChapterStandings()[3]]
-    H.setTurnOrder(turnOrder)
+    turnOrder = turnOrderMap[M.getLastChapterStandings()[3]]
+    M.setTurnOrder(turnOrder)
   end
   if callback then callback() end
 end
-function H.setTurnOrder(data)
-  if (H.checkTurnOrder(data)) then
-    H.setStateVal(data, "turnOrder")
+function M.setTurnOrder(data)
+  if (M.checkTurnOrder(data)) then
+    M.setStateVal(data, "turnOrder")
     return
   end
   broadcastToColor("[setTurnOrder] " .. logString(data) .. " is invalid data!", "Red", "Red")
 end
-function H.askTurnOrder(callback)
-  H.setStateVal("isReadingMoralityBoard", false)
-  local round, turn = H.getRoundAndTurn()
+function M.askTurnOrder(callback)
+  M.setStateVal("isReadingMoralityBoard", false)
+  local round, turn = M.getRoundAndTurn()
   if round == 0 then
-    H.askLastChapterStandings(callback)
+    M.askLastChapterStandings(callback)
   else
     local turnOrder
     local hostPlayer = U.getHost()
     local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
     hostPlayer.showOptionsDialog("Who is this round's first player?", playerOptions, 1,
       function (color)
-        H.setTurnOrder(turnOrderMap[color])
+        M.setTurnOrder(turnOrderMap[color])
         if callback then callback() end
       end
     )
   end
 end
-function H.syncTurnOrder()
-  local round, turn = H.getRoundAndTurn()
+function M.syncTurnOrder()
+  local round, turn = M.getRoundAndTurn()
   if round > 0 and round < 10 then
-    local turnOrder = H.getTurnOrder()
-    if (table.concat(Turns.order) != table.concat(turnOrder)) then
-      Turns.order = H.getTurnOrder()
+    local turnOrder = M.getTurnOrder()
+    if (table.concat(Turns.order) ~= table.concat(turnOrder)) then
+      Turns.order = M.getTurnOrder()
     end
-    if (Turns.type != 2) then
+    if (Turns.type ~= 2) then
       Turns.type = 2
     end
-    H.setHighlighter("TurnIndicator", "faint", Turns.order[turn])
-    if (Turns.turn_color != Turns.order[turn]) then
+    M.setHighlighter("TurnIndicator", "faint", Turns.order[turn])
+    if (Turns.turn_color ~= Turns.order[turn]) then
       Turns.turn_color = Turns.order[turn]
     end
     if (not Turns.enable) then
       Turns.enable = true
     end
     moveCurrentMoralityTokenToTop()
-    H.syncTurnTracker()
+    M.syncTurnTracker()
   else
     UI.hide("turnTracker")
     Turns.enable = false
   end
 end
-function H.syncTurnTracker()
-  local round, turn = H.getRoundAndTurn()
-  local turnOrder = H.getTurnOrder()
+function M.syncTurnTracker()
+  local round, turn = M.getRoundAndTurn()
+  local turnOrder = M.getTurnOrder()
   local curPlayer = turnOrder[turn]
   local colors = {
       hex = {
@@ -370,9 +370,9 @@ function H.syncTurnTracker()
         UI.show("turnTracker")
         for _, clr in pairs({"Red", "Yellow", "Blue"}) do
           if (curPlayer == clr) then
-            H.setHighlighter("TurnIndicator", "faint", clr)
+            M.setHighlighter("TurnIndicator", "faint", clr)
           else
-            H.setHighlighter("TurnIndicator", "inactive", clr)
+            M.setHighlighter("TurnIndicator", "inactive", clr)
           end
         end
     end
@@ -411,12 +411,12 @@ function H.syncTurnTracker()
 end
 
 -- === Clans ===
-function H.getClans()
-  local clans = H.getStateVal("clans")
+function M.getClans()
+  local clans = M.getStateVal("clans")
   if (clans == nil) then return {} end
   return clans
 end
-function H.displayClanSelectionRing()
+function M.displayClanSelectionRing()
     local masterStorage = getObjectFromGUID(G.mainStorage.id)
     local clanTokenObjs = {}
     local stagingPosition = masterStorage.getPosition()
@@ -442,38 +442,38 @@ function H.displayClanSelectionRing()
     end, 0.5)
 
     -- Make clan selection highlight visible and position appropriately.
-    H.setHighlighter("ClanSelection", "active")
+    M.setHighlighter("ClanSelection", "active")
 
 end
 
-function H.assignClan(clan, color)
-  local clans = H.getStateVal("clans")
+function M.assignClan(clan, color)
+  local clans = M.getStateVal("clans")
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  H.setStateVal(clan, "clans", color)
+  M.setStateVal(clan, "clans", color)
   UI.setValue(color .. "ClanChoice", C.Names[color] .. " Chooses Clan " .. clan)
-  if (color == H.getLastChapterVanquished()) then
+  if (color == M.getLastChapterVanquished()) then
     U.splashUIElement("chooseStrandsOfTimeNotice", 5) -- Vanquished last Chapter, you may choose a Strand of time
     local strandOfTimeSpot = getObjectFromGUID(G.decks.strandOfTimeSpot)
     strandOfTimeSpot.highlightOn("Green")
-    H.presentStrandsOfTimeToVanquished()
+    M.presentStrandsOfTimeToVanquished()
   end
   Wait.time(function()
-    if (H.getNextPlayer()) then
-      H.setHighlighter("TurnIndicator", "strong", H.getNextPlayer())
-      H.setHighlighter("ClanSelection", "active")
-      UI.setValue("chooseClanPlayer", C.Names[H.getNextPlayer()])
-      UI.setAttribute("chooseClanPlayer", "color", H.getNextPlayer())
+    if (M.getNextPlayer()) then
+      M.setHighlighter("TurnIndicator", "strong", M.getNextPlayer())
+      M.setHighlighter("ClanSelection", "active")
+      UI.setValue("chooseClanPlayer", C.Names[M.getNextPlayer()])
+      UI.setAttribute("chooseClanPlayer", "color", M.getNextPlayer())
       U.splashUIElement("chooseClanNotice", 5)
     else
-      H.setHighlighter("ClanSelection", "inactive")
+      M.setHighlighter("ClanSelection", "inactive")
       local unusedClanTokens = U.filter(
         getAllObjects(),
         function(obj)
           return obj and obj.hasTag("ClanToken")
-            and string.gsub(obj.getName(), " Clan Token", "") != clans.Red
-            and string.gsub(obj.getName(), " Clan Token", "") != clans.Yellow
-            and string.gsub(obj.getName(), " Clan Token", "") != clans.Blue
-            and string.gsub(obj.getName(), " Clan Token", "") != clan
+            and string.gsub(obj.getName(), " Clan Token", "") ~= clans.Red
+            and string.gsub(obj.getName(), " Clan Token", "") ~= clans.Yellow
+            and string.gsub(obj.getName(), " Clan Token", "") ~= clans.Blue
+            and string.gsub(obj.getName(), " Clan Token", "") ~= clan
         end
       )
       for _, token in pairs(unusedClanTokens) do
@@ -485,98 +485,98 @@ function H.assignClan(clan, color)
 end
 
 -- === Round & Turn ===
-function H.checkRoundAndTurn(dataRound, dataTurn)
+function M.checkRoundAndTurn(dataRound, dataTurn)
 
-  if dataRound == nil then dataRound = H.getStateVal("round") end
-  if dataTurn == nil then dataTurn = H.getStateVal("turn") end
+  if dataRound == nil then dataRound = M.getStateVal("round") end
+  if dataTurn == nil then dataTurn = M.getStateVal("turn") end
   if not (type(dataRound) == "number" and type(dataTurn) == "number") then return false end
   if dataRound < 0 or dataRound > 10 then return false end
   if dataTurn < 0 or dataTurn > 3 then return false end
   if dataRound > 0 and dataTurn == 0 then return false end
-  if dataRound == 0 and dataTurn != 0 then return false end
+  if dataRound == 0 and dataTurn ~= 0 then return false end
   return true
 end
-function H.getRoundAndTurn()
-  if (H.checkRoundAndTurn()) then
-    return H.getStateVal("round"), H.getStateVal("turn")
+function M.getRoundAndTurn()
+  if (M.checkRoundAndTurn()) then
+    return M.getStateVal("round"), M.getStateVal("turn")
   end
-  local clans = H.getClans()
+  local clans = M.getClans()
   if not (clans and clans.Red and clans.Yellow and clans.Blue) then
-    H.setRoundAndTurn(0, 0)
+    M.setRoundAndTurn(0, 0)
     return 0, 0
   end
-  broadcastToColor("[getRoundAndTurn] Round: " .. logString(H.getStateVal("round")) .. ", Turn: " .. logString(H.getStateVal("turn")) .. " is invalid state! Falling back to default!", "Red", "Red")
-  local round = H.getStateVal("round")
-  local turn = H.getStateVal("turn")
+  broadcastToColor("[getRoundAndTurn] Round: " .. logString(M.getStateVal("round")) .. ", Turn: " .. logString(M.getStateVal("turn")) .. " is invalid state! Falling back to default!", "Red", "Red")
+  local round = M.getStateVal("round")
+  local turn = M.getStateVal("turn")
   if not (type(round) == "number" and round >= 0 and round <= 9) then -- Round is invalid, reset to 0, 0
-    H.setRoundAndTurn(0, 0)
+    M.setRoundAndTurn(0, 0)
     return 0, 0
   end
   if (round == 0) then
-    H.setRoundAndTurn(0, 0)
+    M.setRoundAndTurn(0, 0)
     return 0, 0
   end
   -- Round is valid: Extract turn number from turn order and current player
-  local turnOrder = H.getTurnOrder()
+  local turnOrder = M.getTurnOrder()
   if (turnOrder[1] == Turns.turn_color) then turn = 1 end
   if (turnOrder[2] == Turns.turn_color) then turn = 2 end
   if (turnOrder[3] == Turns.turn_color) then turn = 3 end
-  H.setRoundAndTurn(round, turn)
+  M.setRoundAndTurn(round, turn)
   return round, turn
 end
-function H.setRoundAndTurn(dataRound, dataTurn)
-  if (H.checkRoundAndTurn(dataRound, dataTurn)) then
-    H.setStateVal(dataRound, "round")
-    H.setStateVal(dataTurn, "turn")
+function M.setRoundAndTurn(dataRound, dataTurn)
+  if (M.checkRoundAndTurn(dataRound, dataTurn)) then
+    M.setStateVal(dataRound, "round")
+    M.setStateVal(dataTurn, "turn")
     return
   end
   broadcastToColor("[setRoundAndTurn] Round: " .. logString(dataRound) .. ", Turn: " .. logString(dataTurn) .. " is invalid data!", "Red", "Red")
 end
-function H.askRoundAndTurn(callback)
+function M.askRoundAndTurn(callback)
   local hostPlayer = U.getHost()
   hostPlayer.showOptionsDialog("What round is it?", {0,1,2,3,4,5,6,7,8,9}, 1,
     function(roundNum)
       hostPlayer.showOptionsDialog("What turn is it?", {0,1,2,3}, 2,
         function(turnNum)
-          H.setRoundAndTurn(roundNum, turnNum)
+          M.setRoundAndTurn(roundNum, turnNum)
           if (callback) then callback() end
         end
       )
     end
   )
 end
-function H.syncRoundAndTurn() H.syncTurnOrder() end
+function M.syncRoundAndTurn() M.syncTurnOrder() end
 
-function H.advanceTurn()
-  local round, turn = H.getRoundAndTurn()
+function M.advanceTurn()
+  local round, turn = M.getRoundAndTurn()
   if (round == 0) then return end
-  if (turn == 3) then return H.advanceRound() end
+  if (turn == 3) then return M.advanceRound() end
   UI.setValue("roundOverNotice", "")
-  H.setRoundAndTurn(round, turn + 1)
-  H.syncTurnOrder()
+  M.setRoundAndTurn(round, turn + 1)
+  M.syncTurnOrder()
   -- Wait.time(H.syncTurnOrder, 1)
 end
-function H.advanceRound()
-  local round, turn = H.getRoundAndTurn()
+function M.advanceRound()
+  local round, turn = M.getRoundAndTurn()
   if (round == 0) then return end
   local roundsLeft = 12 - #Player.getPlayers() - round
   if (roundsLeft <= 0) then
-    H.setRoundAndTurn(10, 1)
+    M.setRoundAndTurn(10, 1)
     U.splashUIElement("splash-backdrop", 6)
     U.splashUIElement("gameOverNotice", 5, 0.5)
     -- UI.show("aftermathReminder")
     UI.hide("turnTracker")
     Wait.time(function()
-      H.setHighlighter("TurnIndicator", "inactive", "Red")
-      H.setHighlighter("TurnIndicator", "inactive", "Yellow")
-      H.setHighlighter("TurnIndicator", "inactive", "Blue")
-      H.setHighlighter("BGIndicator", "inactive", "left")
-      H.setHighlighter("BGIndicator", "inactive", "center")
-      H.setHighlighter("BGIndicator", "inactive", "right")
+      M.setHighlighter("TurnIndicator", "inactive", "Red")
+      M.setHighlighter("TurnIndicator", "inactive", "Yellow")
+      M.setHighlighter("TurnIndicator", "inactive", "Blue")
+      M.setHighlighter("BGIndicator", "inactive", "left")
+      M.setHighlighter("BGIndicator", "inactive", "center")
+      M.setHighlighter("BGIndicator", "inactive", "right")
     end, 3)
     return
   end
-  local lastRoundFirstPlayer = H.getRoundFirstPlayer()
+  local lastRoundFirstPlayer = M.getRoundFirstPlayer()
   UI.setValue("roundOverNoticeText", "End of Round " .. round)
   if (roundsLeft == 1) then
     UI.setValue("roundsRemainingNoticeText", "FINAL ROUND!")
@@ -587,10 +587,10 @@ function H.advanceRound()
   end
   UI.setValue("roundStartNoticeText", "Beginning Round " .. round + 1)
 
-  H.setRoundAndTurn(round + 1, 1)
-  H.determineTurnOrder(function()
+  M.setRoundAndTurn(round + 1, 1)
+  M.determineTurnOrder(function()
     local initiativeElem
-    local roundFirstPlayer = H.getRoundFirstPlayer()
+    local roundFirstPlayer = M.getRoundFirstPlayer()
     if (lastRoundFirstPlayer == roundFirstPlayer) then
         UI.setValue("retainInitiativeNotice", "(" .. C.Names[roundFirstPlayer] .. " Retains His Initiative)")
         UI.setValue("seizeInitiativeNotice", "")
@@ -606,55 +606,55 @@ function H.advanceRound()
     U.splashUIElement("roundStartNotice", 2, 1.5)
     U.splashUIElement(initiativeElem, 1, 1.5)
 
-    H.syncTurnOrder()
+    M.syncTurnOrder()
   end)
 end
 
 -- *** DERIVED GAME STATUSES ***
-function H.getCurrentPlayer()
-  local round, turn = H.getRoundAndTurn()
+function M.getCurrentPlayer()
+  local round, turn = M.getRoundAndTurn()
   if (round == 0) then
-    return H.getNextPlayer() -- 'current' and 'next' player are both 'the player who is next to choose a clan'
+    return M.getNextPlayer() -- 'current' and 'next' player are both 'the player who is next to choose a clan'
   end
   if (round > 9) then return nil end
-  return H.getTurnOrder()[turn]
+  return M.getTurnOrder()[turn]
 end
-function H.getNextPlayer()
-  local round, turn = H.getRoundAndTurn()
-  local clans = H.getClans()
+function M.getNextPlayer()
+  local round, turn = M.getRoundAndTurn()
+  local clans = M.getClans()
   if (round == 0) then
-    for _, color in ipairs(U.reverse(H.getLastChapterStandings())) do
+    for _, color in ipairs(U.reverse(M.getLastChapterStandings())) do
       if (clans[color] == nil) then return color end
     end
     return nil
   end
   if (round == 9 and turn == 3) or round > 9 then return nil end
-  if (turn == 3) then return H.getNextRoundFirstPlayer() end
-  return H.getTurnOrder()[turn + 1]
+  if (turn == 3) then return M.getNextRoundFirstPlayer() end
+  return M.getTurnOrder()[turn + 1]
 end
-function H.getRoundFirstPlayer()
-  local round, turn = H.getRoundAndTurn()
+function M.getRoundFirstPlayer()
+  local round, turn = M.getRoundAndTurn()
   if (round == 0) then
-    return H.getLastChapterStandings()[#Player.getPlayers()]
+    return M.getLastChapterStandings()[#Player.getPlayers()]
   end
-  local curRoundTurnOrder = H.getTurnOrder()
+  local curRoundTurnOrder = M.getTurnOrder()
   return curRoundTurnOrder[1]
 end
-function H.getNextRoundFirstPlayer()
-  local round, turn = H.getRoundAndTurn()
+function M.getNextRoundFirstPlayer()
+  local round, turn = M.getRoundAndTurn()
   if (round == 0) then
-    return H.getLastChapterStandings()[#Player.getPlayers()]
+    return M.getLastChapterStandings()[#Player.getPlayers()]
   end
   if (round >= 9) then return nil end
-  if H.getStateVal("isReadingMoralityBoard") then
-    local nextRoundTurnOrder = H.readTurnOrderFromBG()
+  if M.getStateVal("isReadingMoralityBoard") then
+    local nextRoundTurnOrder = M.readTurnOrderFromBG()
     return nextRoundTurnOrder[1]
   end
   return nil
 end
 
 targetCard = false
-function H.zoomCard(player)
+function M.zoomCard(player)
   pcall(function()
     if targetCard then
       targetCard.setLock(false)
@@ -678,7 +678,7 @@ function H.zoomCard(player)
      distance = 11
    })
 end
-function H.clearZoom(player)
+function M.clearZoom(player)
   pcall(function()
     if targetCard then
       targetCard.setLock(false)
@@ -692,8 +692,8 @@ end
 -- *** GAME PHASE ACTIONS ***
 local chapterCard
 local missionDeck
-function H.gameSETUP()
-  H.resetGameState()
+function M.gameSETUP()
+  M.resetGameState()
   local waitTime = 5
 
   missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
@@ -729,9 +729,9 @@ function H.gameSETUP()
   getObjectFromGUID(G.playerSpaces.Yellow.leaderCard).setTags({"Yellow"})
   getObjectFromGUID(G.playerSpaces.Blue.leaderCard).setTags({"Blue"})
 end
-function H.gameINIT()
-  if not H.checkLastChapterStandings() then
-    H.determineLastChapterStandings(H.gameINIT)
+function M.gameINIT()
+  if not M.checkLastChapterStandings() then
+    M.determineLastChapterStandings(M.gameINIT)
     return
   end
 
@@ -739,9 +739,9 @@ function H.gameINIT()
     missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
   end
 
-  H.syncState()
+  M.syncState()
 
-  local chapterData = H.getStateVal("chapterData")
+  local chapterData = M.getStateVal("chapterData")
 
   UI.setValue("lastChapterStandingsNotice-title", "Chapter " .. chapterData.lastChapterNum .. " Standings:")
   UI.setValue("logoIntro-title", "Chapter " .. chapterData.chapterNum .. " — " .. string.upper(chapterData.location))
@@ -786,13 +786,13 @@ function H.gameINIT()
         local haven = getObjectFromGUID(G.playerSpaces[color].haven)
         haven.deal(100, color)
     end
-    local clanChooser = H.getNextPlayer()
-    H.setHighlighter("TurnIndicator", "strong", clanChooser)
+    local clanChooser = M.getNextPlayer()
+    M.setHighlighter("TurnIndicator", "strong", clanChooser)
     UI.show("clanChoiceAlert")
     UI.setValue("chooseClanPlayer", C.Names[clanChooser])
     UI.setAttribute("chooseClanPlayer", "color", clanChooser)
     U.splashUIElement("chooseClanNotice", 5)
-    H.displayClanSelectionRing()
+    M.displayClanSelectionRing()
     Player.Red.lookAt({position = {x=0,y=5,z=-15}, pitch = 63, yaw = 0, distance = 30})
     Player.Yellow.lookAt({position = {x=0,y=5,z=-15}, pitch = 63, yaw = 0, distance = 30})
     Player.Blue.lookAt({position = {x=0,y=5,z=-15}, pitch = 63, yaw = 0, distance = 30})
@@ -813,8 +813,8 @@ function getSchemesDiscard(color)
   end
   return deck
 end
-function H.initializeClanLeader(col)
-  local leaderClan = H.getClans()[col]
+function M.initializeClanLeader(col)
+  local leaderClan = M.getClans()[col]
   local leaderZone = G.playerSpaces[col].zones.bloodline[1][1]
   local leaderCard = Z.getCard(leaderZone)
   local leaderName = leaderCard.getName()
@@ -832,7 +832,7 @@ function H.initializeClanLeader(col)
       leaderSchemes = schemes[1]
     end
   end
-  if string.match(leaderName, ":M") != nil then
+  if string.match(leaderName, ":M") ~= nil then
     leaderMorality = "M"
   else
     leaderMorality = "C"
@@ -852,7 +852,7 @@ function H.initializeClanLeader(col)
   local schemesDeck = getSchemesDeck(col)
   local schemesToDeal = {}
   for _, obj in pairs(schemesDeck.getObjects()) do
-    if string.match(leaderSchemes, obj.name) != nil then
+    if string.match(leaderSchemes, obj.name) ~= nil then
       table.insert(schemesToDeal, obj.guid)
     end
   end
@@ -870,7 +870,7 @@ function H.initializeClanLeader(col)
     })
   end
 end
-function H.clearUnusedClanLeaders()
+function M.clearUnusedClanLeaders()
   local usedClanLeaders = {
     Z.getCard(G.playerSpaces.Red.zones.bloodline[1][1]).guid,
     Z.getCard(G.playerSpaces.Yellow.zones.bloodline[1][1]).guid,
@@ -897,8 +897,8 @@ function H.clearUnusedClanLeaders()
   end
 end
 
-function H.gameSTART()
-  local clans = H.getClans()
+function M.gameSTART()
+  local clans = M.getClans()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
     -- UI.hide("setupReminder")
     UI.hide("RedClanChoice")
@@ -917,27 +917,27 @@ function H.gameSTART()
         end
       end
     end
-    H.clearUnusedClanLeaders()
+    M.clearUnusedClanLeaders()
     for _, col in pairs(C.Colors) do
       UI.setAttributes("hudSidebar" .. col, {
         rectAlignment = "MiddleRight",
         height = "360",
         offsetXY = "0 0"
       })
-      H.initializeClanLeader(col)
+      M.initializeClanLeader(col)
     end
 
     U.splashUIElement("splash-backdrop", 4)
     U.splashUIElement("gameStartNotice", 3, 0.5)
 
-    H.setRoundAndTurn(1, 1)
-    H.determineTurnOrder(H.syncTurnOrder)
+    M.setRoundAndTurn(1, 1)
+    M.determineTurnOrder(M.syncTurnOrder)
 end
-function H.gameSCORE()
-  H.showVictoryBoard()
+function M.gameSCORE()
+  M.showVictoryBoard()
   scoreBloodlines()
-  H.recallSchemeDiscard()
-  H.recallStrandsOfTime()
+  M.recallSchemeDiscard()
+  M.recallStrandsOfTime()
 end
 
 function scoreBloodlines()
@@ -962,7 +962,7 @@ function hideBloodlinesScore()
   end
 end
 
-function H.recallSchemeDiscard()
+function M.recallSchemeDiscard()
   for _, color in pairs(C.Colors) do
     local sDiscardDeck = getSchemesDiscard(color)
     if (sDiscardDeck) then
@@ -974,7 +974,7 @@ function H.recallSchemeDiscard()
   end
 end
 
-function H.recallStrandsOfTime()
+function M.recallStrandsOfTime()
   local strand = U.findAboveObject(getObjectFromGUID(G.decks.strandOfTimeSpot), "Card")[1]
   local strandStaging = getObjectFromGUID(G.decks.unusedStrandsOfTime)
   local strandStagingPos = strandStaging.getPosition()
@@ -988,13 +988,13 @@ function H.recallStrandsOfTime()
   end, 1)
 end
 
-function H.recallSchemes()
+function M.recallSchemes()
   -- Get table of all scheme cards and decks both in hands and globally
   -- MUST DO THIS BEFORE PRESENTING UNLOCKED SCHEME DECK TO VANIQUISHED
 
   local schemeDecks = {}
   local schemeDeckGUIDs = {}
-  for color, clan in pairs(H.getClans()) do
+  for color, clan in pairs(M.getClans()) do
     schemeDecks[clan] = getSchemesDeck(color)
     if (schemeDecks[clan]) then
       table.insert(schemeDeckGUIDs, schemeDecks[clan].guid)
@@ -1044,41 +1044,41 @@ function H.recallSchemes()
   -- Also Strands of Time
 end
 
-function H.gameMISSIONS()
-  H.askLastChapterStandings(function()
+function M.gameMISSIONS()
+  M.askLastChapterStandings(function()
     hideBloodlinesScore()
-    H.recallSchemes()
-    H.presentObligationsToVictor()
-    H.presentLockedSchemesToVanquished()
-    H.clearPlayerZones(1)
-    H.hideVictoryBoard()
+    M.recallSchemes()
+    M.presentObligationsToVictor()
+    M.presentLockedSchemesToVanquished()
+    M.clearPlayerZones(1)
+    M.hideVictoryBoard()
     for _, color in pairs({"Red", "Yellow", "Blue"}) do
-      H.showUpdatedTraits(color)
+      M.showUpdatedTraits(color)
     end
   end)
 end
 
-function H.gameAFTERMATH()
-  H.boxObligations()
-  H.boxLockedSchemes()
-  Wait.time(function() H.clearPlayerZones(2) end, 1)
+function M.gameAFTERMATH()
+  M.boxObligations()
+  M.boxLockedSchemes()
+  Wait.time(function() M.clearPlayerZones(2) end, 1)
 end
 
-function H.gameEND()
-  H.clearPlayerZones(3)
-  Wait.time(function() H.packClanStorageBoxes() end, 1)
-  Wait.time(function() H.resetGameState() end, 2)
+function M.gameEND()
+  M.clearPlayerZones(3)
+  Wait.time(function() M.packClanStorageBoxes() end, 1)
+  Wait.time(function() M.resetGameState() end, 2)
 end
 
-function H.packClanStorageBoxes()
+function M.packClanStorageBoxes()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  for color, clan in pairs(H.getClans()) do
+  for color, clan in pairs(M.getClans()) do
     local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[clan])
     mainStorage.putObject(clanChest)
   end
 end
 
-function H.clearPlayerZones(clearanceLevel)
+function M.clearPlayerZones(clearanceLevel)
   -- Clearance Level 1 (default) --> Power, Infamy, Exhaustion, Boons, Morality
   -- Clearance Level 2 --> Clan Leader
   -- Clearance Level 3 --> Torpor, Characters
@@ -1112,7 +1112,7 @@ function H.clearPlayerZones(clearanceLevel)
     local aftermathZone = getObjectFromGUID(G.playerSpaces[color].zones.aftermath)
     local moralityToken = getMoralityToken(color)
     if (moralityToken) then
-      local playerChest = getObjectFromGUID(G.mainStorage.clanStorage[H.getClans()[color]])
+      local playerChest = getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]])
       playerChest.putObject(moralityToken)
     end
     for _, obj in pairs(aftermathZone.getObjects()) do
@@ -1135,7 +1135,7 @@ function H.clearPlayerZones(clearanceLevel)
           elseif obj.hasTag("Yellow") then
             obj.setPosition(G.tableSpots.claimedClanLeader.Yellow)
           else
-            local clan = H.getClans()[color]
+            local clan = M.getClans()[color]
             local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[clan])
             clanChest.putObject(obj)
           end
@@ -1145,7 +1145,7 @@ function H.clearPlayerZones(clearanceLevel)
             characterDeck.putObject(obj)
           end
           if (obj.hasTag("ClanScheme")) then
-            local playerChest = getObjectFromGUID(G.mainStorage.clanStorage[H.getClans()[color]])
+            local playerChest = getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]])
             playerChest.putObject(obj)
           end
         end
@@ -1169,7 +1169,7 @@ end
 
 -- *** GAME STATE VALUE CONTROL ***
 
-function H.syncState()
+function M.syncState()
     function parseInt(val)
         if (val == nil) then return 0 end
         return val * 1
@@ -1183,18 +1183,18 @@ function H.syncState()
         return "false"
     end
 
-    local clans = H.getClans()
-    if (clans == nil) then H.setStateVal("clans", {Red = nil, Yellow = nil, Blue = nil}) end
-    clans = H.getClans()
+    local clans = M.getClans()
+    if (clans == nil) then M.setStateVal("clans", {Red = nil, Yellow = nil, Blue = nil}) end
+    clans = M.getClans()
 
-    H.determineTurnOrder(function()
-      H.syncTurnOrder()
-      local lastChapterStandings = H.getLastChapterStandings()
-      local round, turn = H.getRoundAndTurn()
-      local clans = H.getClans()
-      local turnOrder = H.getTurnOrder()
+    M.determineTurnOrder(function()
+      M.syncTurnOrder()
+      local lastChapterStandings = M.getLastChapterStandings()
+      local round, turn = M.getRoundAndTurn()
+      local clans = M.getClans()
+      local turnOrder = M.getTurnOrder()
       if (round > 0 and round < 10) then
-        H.readTurnOrderFromBG()
+        M.readTurnOrderFromBG()
       end
 
       for i = 1, 3, 1 do
@@ -1203,32 +1203,32 @@ function H.syncState()
       end
 
       for _, color in ipairs(turnOrder) do
-        if (clans[color] != nil) then
+        if (clans[color] ~= nil) then
           UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clans[color])
         end
       end
       UI.setValue("lastChapterStandingsNotice-subtitle5", parseString(C.Names[lastChapterStandings[3]]))
       UI.setAttribute("lastChapterStandingsNotice-subtitle5", "color", parseString(lastChapterStandings[3]))
 
-      H.refreshStateDebug(state)
+      -- M.refreshStateDebug(state)
 
-      H.setHighlighter("ClanSelection", "inactive")
-      H.setHighlighter("TurnIndicator", "inactive", "Red")
-      H.setHighlighter("TurnIndicator", "inactive", "Yellow")
-      H.setHighlighter("TurnIndicator", "inactive", "Blue")
+      M.setHighlighter("ClanSelection", "inactive")
+      M.setHighlighter("TurnIndicator", "inactive", "Red")
+      M.setHighlighter("TurnIndicator", "inactive", "Yellow")
+      M.setHighlighter("TurnIndicator", "inactive", "Blue")
 
       if (round == 0) then
         if (clans.Red or clans.Yellow or clans.Blue) then
-          local clanChooser = H.getNextPlayer()
-          if (clanChooser != nil) then
-            H.setHighlighter("ClanSelection", "active")
-            H.setHighlighter("TurnIndicator", "strong", clanChooser)
+          local clanChooser = M.getNextPlayer()
+          if (clanChooser ~= nil) then
+            M.setHighlighter("ClanSelection", "active")
+            M.setHighlighter("TurnIndicator", "strong", clanChooser)
             UI.setValue("chooseClanPlayer", C.Names[clanChooser])
             UI.setAttribute("chooseClanPlayer", "color", clanChooser)
             U.splashUIElement("chooseClanNotice", 5)
           end
           for color, clan in pairs(clans) do
-            if (clan != nil) then
+            if (clan ~= nil) then
               UI.show(color .. "ClanChoice")
             else
               UI.hide(color .. "ClanChoice")
@@ -1249,14 +1249,14 @@ function H.syncState()
 
       if (round >= 1 and round <= 9) then
         UI.show("turnTracker")
-        H.syncTurnTracker()
+        M.syncTurnTracker()
       else
         UI.hide("turnTracker")
       end
   end)
 end
 
-function H.refresh() H.syncState() end
+function M.refresh() M.syncState() end
 
 function getSortedVictoryBoardSnapPoints(victoryBoard)
   local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
@@ -1270,7 +1270,7 @@ function getSortedVictoryBoardSnapPoints(victoryBoard)
 end
 
 function getClanToken(playerColor)
-  local clan = H.getStateVal("clans", playerColor)
+  local clan = M.getStateVal("clans", playerColor)
   if (clan == nil) then return false end
   local tokenName = clan .. " Clan Token"
   local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
@@ -1279,7 +1279,7 @@ function getClanToken(playerColor)
 end
 
 function getMoralityToken(playerColor)
-  local clan = H.getStateVal("clans")[playerColor]
+  local clan = M.getStateVal("clans")[playerColor]
   if (clan == nil) then return false end
   local tokenName = clan .. " Morality"
   local token = U.find(Global.getObjects(), function (obj) return obj.getName() == tokenName end)
@@ -1288,15 +1288,15 @@ function getMoralityToken(playerColor)
 end
 
 function moveCurrentMoralityTokenToTop()
-  local round, turn = H.getRoundAndTurn()
+  local round, turn = M.getRoundAndTurn()
   if (round < 1 or round > 9) then return end
-  local curMoralityToken = getMoralityToken(H.getCurrentPlayer())
+  local curMoralityToken = getMoralityToken(M.getCurrentPlayer())
   local tokenPos = curMoralityToken.getPosition()
   tokenPos.y = tokenPos.y + 1
   curMoralityToken.setPosition(tokenPos)
 end
 
-function H.showVictoryBoard()
+function M.showVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   local victoryTable = getObjectFromGUID(G.victoryTable)
   victoryTable.setInvisibleTo({})
@@ -1319,7 +1319,7 @@ function H.showVictoryBoard()
   end
 end
 
-function H.getVictoryBoardTokenPositions()
+function M.getVictoryBoardTokenPositions()
   local victoryBoard = getObjectFromGUID(G.victoryBoard)
   local clanPoliticsTokens = U.findAboveObject(victoryBoard, "Tile")
   local snapPointPositions = getSortedVictoryBoardSnapPoints(victoryBoard)
@@ -1333,11 +1333,11 @@ function H.getVictoryBoardTokenPositions()
   -- log({TOKENS = tokenPositions})
 end
 
-function H.hideVictoryBoard()
+function M.hideVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   local victoryTable = getObjectFromGUID(G.victoryTable)
   local victoryBoard = getObjectFromGUID(G.victoryBoard)
-  local clanPoliticsTokens = U.filter(Global.getObjects(), function (obj) return string.match(obj.getName(), "Clan Token") != nil end)
+  local clanPoliticsTokens = U.filter(Global.getObjects(), function (obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
   -- log({TOKENS = clanPoliticsTokens})
   mainStorage.putObject(victoryBoard)
   for _, token in pairs(clanPoliticsTokens) do
@@ -1349,7 +1349,7 @@ function H.hideVictoryBoard()
   victoryTable.setPosition({x = 0, y = 50, z = 0})
 end
 
-function H.setHighlighter(ref, mode, subRef)
+function M.setHighlighter(ref, mode, subRef)
   -- local round, turn = H.getRoundAndTurn()
     local obj
     if (ref == "ClanSelection") then
@@ -1361,7 +1361,7 @@ function H.setHighlighter(ref, mode, subRef)
       -- end
       if not subRef then
         for _, color in pairs({"Red", "Yellow", "Blue"}) do
-          H.setHighlighter(ref, mode, color)
+          M.setHighlighter(ref, mode, color)
           return
         end
       end
@@ -1373,7 +1373,7 @@ function H.setHighlighter(ref, mode, subRef)
       -- end
       if not subRef then
         for _, loc in pairs({"left", "center", "right"}) do
-          H.setHighlighter(ref, mode, loc)
+          M.setHighlighter(ref, mode, loc)
           return
         end
       end
@@ -1390,7 +1390,7 @@ end
 
 local decksOnBoard = {}
 
-function H.presentDeck(deckTags, playerColor, position)
+function M.presentDeck(deckTags, playerColor, position)
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   if (position == nil) then
     position = G.tableSpots.staging[playerColor]
@@ -1408,52 +1408,52 @@ function H.presentDeck(deckTags, playerColor, position)
       guid = deckData.guid
     })
 end
-function H.presentObligationsToVictor() H.presentDeck({"Obligation"}, H.getLastChapterVictor()) end
-function H.presentLockedSchemesToVanquished() H.presentDeck({"ClanScheme", H.getStateVal("clans", H.getLastChapterVanquished())}, H.getLastChapterVanquished()) end
-function H.presentStrandsOfTimeToVanquished()
-  H.presentDeck({"StrandsOfTime"}, H.getLastChapterVanquished(), G.tableSpots.strandsOfTime)
+function M.presentObligationsToVictor() M.presentDeck({"Obligation"}, M.getLastChapterVictor()) end
+function M.presentLockedSchemesToVanquished() M.presentDeck({"ClanScheme", M.getStateVal("clans", M.getLastChapterVanquished())}, M.getLastChapterVanquished()) end
+function M.presentStrandsOfTimeToVanquished()
+  M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime)
 end
 
-function H.boxDeck(deck)
+function M.boxDeck(deck)
   if not deck then return false end
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   mainStorage.putObject(deck)
 end
 
-function H.hideUnusedStrandsOfTime(usedGuid)
-  local round, turn = H.getRoundAndTurn()
-  if (round != 0) then return end
+function M.hideUnusedStrandsOfTime(usedGuid)
+  local round, turn = M.getRoundAndTurn()
+  if (round ~= 0) then return end
   local strandObjs = getObjectsWithTag("StrandsOfTime")
   local cardPos = getObjectFromGUID(G.decks.unusedStrandsOfTime).getPosition()
   cardPos.y = cardPos.y + 1
   for _, card in pairs(strandObjs) do
-    if card.guid != usedGuid then
+    if card.guid ~= usedGuid then
       card.setRotation({x = 0, y = 180, z = 0})
       card.setPosition(cardPos)
     end
   end
 end
 
-function H.boxObligations() return H.boxDeck(decksOnBoard.Obligation) end
-function H.boxLockedSchemes() return H.boxDeck(decksOnBoard.ClanScheme) end
-function H.boxStrandsOfTime() return H.boxDeck(decksOnBoard.StrandsOfTime) end
+function M.boxObligations() return M.boxDeck(decksOnBoard.Obligation) end
+function M.boxLockedSchemes() return M.boxDeck(decksOnBoard.ClanScheme) end
+function M.boxStrandsOfTime() return M.boxDeck(decksOnBoard.StrandsOfTime) end
 
-function H.ignorePlayerTurn(currentTurnColor)
-  local round, turn = H.getRoundAndTurn()
+function M.ignorePlayerTurn(currentTurnColor)
+  local round, turn = M.getRoundAndTurn()
     if (round == 0) then return true end
-    local turnOrder = H.getTurnOrder()
+    local turnOrder = M.getTurnOrder()
     local curColor = turnOrder[turn] or "NULL"
-    if (H.getTurnOrder()[turn] == currentTurnColor) then return true end
+    if (M.getTurnOrder()[turn] == currentTurnColor) then return true end
     return false
 end
 
-function H.setCamera(player, zoomTarget)
+function M.setCamera(player, zoomTarget)
   Player[player.color].setCameraMode("ThirdPerson")
   Player[player.color].lookAt(C.CameraAngles[zoomTarget])
   Wait.time(function() Player[player.color].setCameraMode("ThirdPerson") end, 0.5)
 end
 
-function H.askTraitsUpdate()
+function M.askTraitsUpdate()
   local hostPlayer = U.getHost()
   local playerOptions = {"Gaius Marcellus", "Baron Samedi", "Jalan-Aayav"}
   local traitOptions = {"Kindred", "Mortals", "Wealth", "Subterfuge", "Warfare", "Occult", "Cruelty", "Mercy", "Detachment", "Camarilla", "Sabbat", "Anarchs", "Animalism", "Auspex", "Celerity", "Dominate", "Fortitude", "Obfuscate", "Oblivion", "Potence", "Presence", "Protean", "Blood_Sorcery"}
@@ -1465,15 +1465,15 @@ function H.askTraitsUpdate()
           if (playerName == "Gaius Marcellus") then color = "Red" end
           if (playerName == "Baron Samedi") then color = "Yellow" end
           if (playerName == "Jalan-Aayav") then color = "Blue" end
-          H.addTraitDot(color, trait)
+          M.addTraitDot(color, trait)
         end
       )
     end
   )
 end
 
-function H.addTraitDot(color, trait, rowNum)
-  local playerData = H.getStateVal("traits", color)
+function M.addTraitDot(color, trait, rowNum)
+  local playerData = M.getStateVal("traits", color)
   -- log("Player Data for " .. color .. ", Adding to '" .. trait .. "'")
   -- log(playerData)
   for i = 1, 5, 1 do
@@ -1483,8 +1483,8 @@ function H.addTraitDot(color, trait, rowNum)
       if (trait == traitName) then
         -- log("MATCH!")
         playerData[i][traitName] = playerData[i][traitName] + 1
-        H.setStateVal(playerData, "traits", color)
-        H.showUpdatedTraits(color)
+        M.setStateVal(playerData, "traits", color)
+        M.showUpdatedTraits(color)
         return
       end
     end
@@ -1591,18 +1591,18 @@ function parseTraitsToXMLTable(traitsTable)
   return XMLTable
 end
 
-function H.showUpdatedTraits(playerColor)
+function M.showUpdatedTraits(playerColor)
   local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
-  local playerData = H.getStateVal("traits", playerColor)
+  local playerData = M.getStateVal("traits", playerColor)
   local playerXML = parseTraitsToXMLTable(playerData)
   -- log(JSON.encode_pretty(playerXML))
   playerBoard.UI.setXmlTable(playerXML)
   Wait.time(function() playerBoard.UI.show("traits") end, 1)
 end
 
-function H.hideUpdatedTraits(playerColor)
+function M.hideUpdatedTraits(playerColor)
   local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
   playerBoard.UI.setXmlTable({{}})
 end
 
-return H
+return M

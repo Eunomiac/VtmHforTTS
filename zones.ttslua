@@ -1,4 +1,4 @@
-local H = require("huicontrol")
+local M = require("main")
 local G = require("guids")
 local U = require("utilities")
 local C = require("constants")
@@ -34,7 +34,7 @@ function Z.isPlayerCardZone(zoneGuid)
 end
 
 function Z.hasCard(zoneGuid)
-  return Z.getCard(zoneGuid) != false
+  return Z.getCard(zoneGuid) ~= false
 end
 
 isShowingScores = false
@@ -162,7 +162,7 @@ function Z.refreshOverlays()
     end
   end
 end
-local zone = getZone(zoneGuid)
+
 function Z.getBloodlineData(color)
   local bloodlineData = {}
   local guidData = G.playerSpaces[color].zones.bloodline
@@ -375,7 +375,7 @@ function Z.syncCard(zoneGuid)
           rotation = "-70 0 0",
           spacing = "1",
           width = "80",
-          active = totalValue != "",
+          active = totalValue ~= "",
           color = "rgba(0, 0, 0, 0.5)",
           childForceExpandHeight="true",
           childForceExpandWidth="true"},
