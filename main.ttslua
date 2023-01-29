@@ -5,7 +5,7 @@ local Z = require("zones")
 
 local M = {}
 
-function parseCode(val, isIncludingTraits)
+local function parseCode(val, isIncludingTraits)
   if (val == nil) then return "nil" end
   if (isIncludingTraits) then return JSON.encode_pretty(val.traits.Yellow) end
   return JSON.encode_pretty(U.filter(val, function(val, key) return key ~= "traits" end))
@@ -30,9 +30,6 @@ function M.getGameState()
   return Global.getTable("gameState")
 end
 function M.setGameState(data)
-  if (data.isAutoPopulatingCharacters == nil) then
-    data.isAutoPopulatingCharacters = true
-  end
   Global.setTable("gameState", data)
   M.refreshStateDebug(data)
   return
@@ -106,6 +103,36 @@ function M.resetGameState()
       isReadingMoralityBoard = true
   })
   M.refreshStateDebug()
+end
+
+local function getSchemesDeck(color)
+  local deck = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDeck), "Deck")[1]
+  if not deck then return false end
+  return deck
+end
+local function getSchemesDiscard(color)
+  local deck = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDiscard), "Deck")[1]
+  if not deck then
+    local card = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDiscard), "Card")[1]
+    if not card then return false end
+    return card
+  end
+  return deck
+end
+local function getClanToken(playerColor)
+  local clan = M.getStateVal("clans", playerColor)
+  if (clan == nil) then return false end
+  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
+  if (token == nil) then return false end
+  return token
+end
+local function getMoralityToken(playerColor)
+  local clan = M.getStateVal("clans")[playerColor]
+  if (clan == nil) then return false end
+  local tokenName = clan .. " Morality"
+  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == tokenName end)
+  if (token == nil) then return false end
+  return token
 end
 
 -- *** GAME STATUS ***
@@ -206,14 +233,14 @@ local turnOrderMap = {
   Yellow = {"Yellow", "Blue", "Red"},
   Blue = {"Blue", "Red", "Yellow"}
 }
-function getRandomFirstPlayer(playerList)
+local function getRandomFirstPlayer(playerList)
   local tiedString = C.Names[playerList[1]] .. " ties with " .. C.Names[playerList[2]] .. "!"
   local randomColor = playerList[math.random(1, #playerList)]
   local randomChoiceString = " ... " .. C.Names[randomColor] .. " randomly selected to go first."
   -- UI.show("randomfirstplayerselection")
   return randomColor
 end
-function getColorOfClan(clan)
+local function getColorOfClan(clan)
   local clans = M.getClans()
   if clans.Red == clan then return "Red" end
   if clans.Yellow == clan then return "Yellow" end
@@ -228,7 +255,7 @@ function M.readTurnOrderFromBG()
   local bgSnapPoints = U.getSnapPointPositions(bg)
   local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok) return string.find(tok.getName(), "Morality") ~= nil end)
 
-  function getTokenSlot(tk)
+  local function getTokenSlot(tk)
     local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
       local clan = U.findClanTag(tk)
       local color = getColorOfClan(clan)
@@ -315,7 +342,12 @@ function M.askTurnOrder(callback)
 end
 function M.syncTurnOrder()
   local round, turn = M.getRoundAndTurn()
-  if round > 0 and round < 10 then
+	if round < 1 or round > 9 then
+    UI.hide("turnTracker")
+    Turns.enable = false
+		return
+	end
+
     local turnOrder = M.getTurnOrder()
     if (table.concat(Turns.order) ~= table.concat(turnOrder)) then
       Turns.order = M.getTurnOrder()
@@ -330,12 +362,14 @@ function M.syncTurnOrder()
     if (not Turns.enable) then
       Turns.enable = true
     end
-    moveCurrentMoralityTokenToTop()
+
+		-- Move current player's morality token to the top
+		local curMoralityToken = getMoralityToken(M.getCurrentPlayer())
+		local tokenPos = curMoralityToken.getPosition()
+		tokenPos.y = tokenPos.y + 1
+		curMoralityToken.setPosition(tokenPos)
+
     M.syncTurnTracker()
-  else
-    UI.hide("turnTracker")
-    Turns.enable = false
-  end
 end
 function M.syncTurnTracker()
   local round, turn = M.getRoundAndTurn()
@@ -653,7 +687,7 @@ function M.getNextRoundFirstPlayer()
   return nil
 end
 
-targetCard = false
+local targetCard = false
 function M.zoomCard(player)
   pcall(function()
     if targetCard then
@@ -799,20 +833,7 @@ function M.gameINIT()
 
   end, timePassed + (2 * timePadding))
 end
-function getSchemesDeck(color)
-  local deck = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDeck), "Deck")[1]
-  if not deck then return false end
-  return deck
-end
-function getSchemesDiscard(color)
-  local deck = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDiscard), "Deck")[1]
-  if not deck then
-    local card = U.findAboveObject(getObjectFromGUID(G.playerSpaces[color].schemeDiscard), "Card")[1]
-    if not card then return false end
-    return card
-  end
-  return deck
-end
+
 function M.initializeClanLeader(col)
   local leaderClan = M.getClans()[col]
   local leaderZone = G.playerSpaces[col].zones.bloodline[1][1]
@@ -838,17 +859,17 @@ function M.initializeClanLeader(col)
     leaderMorality = "C"
   end
   local moralityToken = getMoralityToken(col)
+  local tokenPos = moralityToken.getPosition()
   local moralityRotation = moralityToken.getRotation()
+  tokenPos.y = tokenPos.y + 1
   if C.MoralityTokens[leaderClan] == leaderMorality then
     moralityRotation.z = 0
   else
     moralityRotation.z = 180
   end
+  moralityToken.setPosition(tokenPos)
   moralityToken.setRotation(moralityRotation)
   leaderName = string.gsub(leaderName, ":.", "")
-  broadcastToAll("Leader: " .. leaderName, col)
-  broadcastToAll("Morality: " .. leaderMorality, col)
-  broadcastToAll("Schemes: " .. leaderSchemes, col)
   local schemesDeck = getSchemesDeck(col)
   local schemesToDeal = {}
   for _, obj in pairs(schemesDeck.getObjects()) do
@@ -933,27 +954,29 @@ function M.gameSTART()
     M.setRoundAndTurn(1, 1)
     M.determineTurnOrder(M.syncTurnOrder)
 end
+
 function M.gameSCORE()
+
+	local function scoreBloodlines()
+		Z.toggleScoresOverlay(true)
+		local waitStep = 2
+		UI.show("scoreAlert")
+		for i, color in pairs({"Red", "Yellow", "Blue"}) do
+			local playerName = C.Names[color]
+			UI.setValue(color .. "Score", playerName .. "'s Bloodline: " .. Z.scoreBloodline(color) .. " points.")
+			Wait.time(function()
+				UI.show(color .. "Score")
+			end, waitStep * (i - 1))
+		end
+	end
+
   M.showVictoryBoard()
   scoreBloodlines()
   M.recallSchemeDiscard()
   M.recallStrandsOfTime()
 end
 
-function scoreBloodlines()
-  Z.toggleScoresOverlay(true)
-  local waitStep = 2
-  UI.show("scoreAlert")
-  for i, color in pairs({"Red", "Yellow", "Blue"}) do
-    local playerName = C.Names[color]
-    UI.setValue(color .. "Score", playerName .. "'s Bloodline: " .. Z.scoreBloodline(color) .. " points.")
-    Wait.time(function()
-      UI.show(color .. "Score")
-    end, waitStep * (i - 1))
-  end
-end
-
-function hideBloodlinesScore()
+local function hideBloodlinesScore()
   Z.toggleScoresOverlay(false)
   UI.hide("scoreAlert")
   for _, color in pairs({"Red", "Yellow", "Blue"}) do
@@ -1154,33 +1177,20 @@ function M.clearPlayerZones(clearanceLevel)
 
   end
   if clearanceLevel == 3 then
-    clearAllTokens()
+		U.forEach(U.filter(getAllObjects(), function (obj) return
+			obj.getName() == "Power"
+			or obj.getName() == "Infamy"
+			or obj.getName() == "Torpor/Exhaustion"
+		end), function(obj) obj.destruct() end)
   end
 end
-
-function clearAllTokens()
-  U.forEach(U.filter(getAllObjects(), function (obj) return
-    obj.getName() == "Power"
-    or obj.getName() == "Infamy"
-    or obj.getName() == "Torpor/Exhaustion"
-  end), function(obj) obj.destruct() end)
-end
-
 
 -- *** GAME STATE VALUE CONTROL ***
 
 function M.syncState()
-    function parseInt(val)
-        if (val == nil) then return 0 end
-        return val * 1
-    end
-    function parseString(val)
+    local function parseString(val)
         if (val == nil) then return "" end
         return val
-    end
-    function parseBool(val)
-        if (val == true) then return "true" end
-        return "false"
     end
 
     local clans = M.getClans()
@@ -1258,7 +1268,7 @@ end
 
 function M.refresh() M.syncState() end
 
-function getSortedVictoryBoardSnapPoints(victoryBoard)
+local function getSortedVictoryBoardSnapPoints(victoryBoard)
   local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
   table.sort(snapPointPositions, function(a,b)
     if (math.abs(a.z - b.z) <= 0.1) then
@@ -1269,32 +1279,7 @@ function getSortedVictoryBoardSnapPoints(victoryBoard)
   return snapPointPositions
 end
 
-function getClanToken(playerColor)
-  local clan = M.getStateVal("clans", playerColor)
-  if (clan == nil) then return false end
-  local tokenName = clan .. " Clan Token"
-  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
-  if (token == nil) then return false end
-  return token
-end
 
-function getMoralityToken(playerColor)
-  local clan = M.getStateVal("clans")[playerColor]
-  if (clan == nil) then return false end
-  local tokenName = clan .. " Morality"
-  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == tokenName end)
-  if (token == nil) then return false end
-  return token
-end
-
-function moveCurrentMoralityTokenToTop()
-  local round, turn = M.getRoundAndTurn()
-  if (round < 1 or round > 9) then return end
-  local curMoralityToken = getMoralityToken(M.getCurrentPlayer())
-  local tokenPos = curMoralityToken.getPosition()
-  tokenPos.y = tokenPos.y + 1
-  curMoralityToken.setPosition(tokenPos)
-end
 
 function M.showVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
@@ -1491,8 +1476,8 @@ function M.addTraitDot(color, trait, rowNum)
   end
 end
 
-function parseTraitsToXMLTable(traitsTable)
-  function countTraitRows(ttable)
+local function parseTraitsToXMLTable(traitsTable)
+  local function countTraitRows(ttable)
     local rowCount = 0
     for _, rowData in pairs(ttable) do
       if (U.count(U.filter(rowData, function(tVal) return tVal > 0 end)) > 0) then
@@ -1554,12 +1539,13 @@ function parseTraitsToXMLTable(traitsTable)
     }
   }
 
-  function parseRow(rowTable, class)
+  local function parseRow(rowTable, class)
     local rowXMLTable = {
       tag = "HorizontalLayout",
       children = {}
     }
     if class == nil then class = "" end
+		local hasNonZeroChildren
     for traitName, traitNum in pairs(rowTable) do
       if (traitNum > 0) then
         hasNonZeroChildren = true
