@@ -838,6 +838,8 @@ function M.initializeClanLeader(col)
     leaderMorality = "C"
   end
   local moralityToken = getMoralityToken(col)
+	local moralityPosition = moralityToken.getPosition()
+	moralityPosition.y = moralityPosition.y + 0.5
   local moralityRotation = moralityToken.getRotation()
   if C.MoralityTokens[leaderClan] == leaderMorality then
     moralityRotation.z = 0
@@ -846,9 +848,6 @@ function M.initializeClanLeader(col)
   end
   moralityToken.setRotation(moralityRotation)
   leaderName = string.gsub(leaderName, ":.", "")
-  broadcastToAll("Leader: " .. leaderName, col)
-  broadcastToAll("Morality: " .. leaderMorality, col)
-  broadcastToAll("Schemes: " .. leaderSchemes, col)
   local schemesDeck = getSchemesDeck(col)
   local schemesToDeal = {}
   for _, obj in pairs(schemesDeck.getObjects()) do
@@ -1390,7 +1389,7 @@ end
 
 local decksOnBoard = {}
 
-function M.presentDeck(deckTags, playerColor, position)
+function M.presentDeck(deckTags, playerColor, position, options)
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   if (position == nil) then
     position = G.tableSpots.staging[playerColor]
@@ -1401,17 +1400,29 @@ function M.presentDeck(deckTags, playerColor, position)
     end
     return true
   end)
+	local rotation = {x = 0, y = 180, z = 180}
+	if options and options.isFlipped then
+		rotation.z = 0
+	end
 
   decksOnBoard[deckTags[1]] = mainStorage.takeObject({
       position = position,
-      rotation = {x = 0, y = 180, z = 180},
-      guid = deckData.guid
+      rotation = rotation,
+			smooth = false,
+      guid = deckData.guid,
+			callback_function = function(deck)
+				Wait.frames(function()
+					if options and options.spread then
+						decksOnBoard[deckTags[1]].spread(options.spread)
+					end
+				end)
+			end
     })
 end
 function M.presentObligationsToVictor() M.presentDeck({"Obligation"}, M.getLastChapterVictor()) end
 function M.presentLockedSchemesToVanquished() M.presentDeck({"ClanScheme", M.getStateVal("clans", M.getLastChapterVanquished())}, M.getLastChapterVanquished()) end
 function M.presentStrandsOfTimeToVanquished()
-  M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime)
+  M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime, {spread = -2.5})
 end
 
 function M.boxDeck(deck)

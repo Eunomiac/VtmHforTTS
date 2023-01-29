@@ -141,7 +141,7 @@ G.tableSpots = {
       Yellow = {x = -3.25, y = 1, z = -26.71},
       Blue = {x = 23.25, y = 1, z = -26.71}
     },
-    strandsOfTime = {x = -6, y = 1, z = -23},
+    strandsOfTime = {x = -9, y = 1, z = -4},
     highlighters = {
         clanSelection = {
             active = {x = 0, y = 0.1, z = -21},
