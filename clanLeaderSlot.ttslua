@@ -73,7 +73,7 @@ function SetupPlayerSpace(color, clan, politicsToken)
             positions.clanMorality.y = positions.clanMorality.y + 0.5
             positions.clanPolitics.y = positions.clanPolitics.y + 0.5
             local clanBoonPos = {
-                x = leaderPos.x + 1,
+                x = leaderPos.x + 2,
                 y = leaderPos.y,
                 z = leaderPos.z
             }
@@ -100,15 +100,21 @@ function SetupPlayerSpace(color, clan, politicsToken)
                         position = positions.clanMorality,
                         rotation = {x = 0, y = 180, z = 0}
                     }) end, waitTime)
-                elseif (containedObject.name == clan .. " Boon") then
+                elseif (U.isIn("Boon", containedObject.tags)) then
                     numBoons = numBoons + 1
                     local boonPos = positions.clanBoons[numBoons]
-                    Wait.time(function() clanContainer.takeObject({
+                    -- Wait.time(function() clanContainer.takeObject({
+                    --     guid = containedObject.guid,
+                    --     smooth = false,
+                    --     position = boonPos,
+                    --     rotation = {x = 0, y = 180, z = 0}
+                    -- }) end, waitTime)
+                    clanContainer.takeObject({
                         guid = containedObject.guid,
                         smooth = false,
                         position = boonPos,
                         rotation = {x = 0, y = 180, z = 0}
-                    }) end, waitTime)
+                    })
                 elseif (U.isIn("ClanLeader", containedObject.tags)) then
                   local pos = positions.clanLeader
                   if (clanLeadersPlaced > 0) then

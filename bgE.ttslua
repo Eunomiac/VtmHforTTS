@@ -1,0 +1,55 @@
+local U = require("utilities")
+local G = require("guids")
+
+local BGE = {}
+
+local function parseAnkhPos(ankhObj)
+	local stringPos = ankhObj.getDescription()
+	stringPos = string.sub(stringPos,2,#stringPos-1)
+	local coords = U.split(stringPos, ",")
+	return {x = coords[1], y = coords[2], z = coords[3]}
+end
+
+function BGE.sendAnkhHome(ankhObj)
+	ankhObj.setPosition(parseAnkhPos(ankhObj))
+	ankhObj.setRotation({x = 13, y = 180, z = 180})
+end
+
+local testObjs = U.filter(getObjects(), function(obj) return obj.hasTag("Ankh") end)
+for _, obj in pairs(testObjs) do
+	obj.setPosition(parseAnkhPos(obj))
+end
+
+function BGE.countCityAnkhs(dir)
+
+end
+
+function BGE.countFireAnkhs(dir)
+
+end
+
+function BGE.countUnburnedAnkhs(dir)
+
+end
+
+function BGE.burnAnkh(ankhObj)
+	local burnPos = {
+		x = G.tableSpots.anarchFire.x + math.random(-120, 120) / 100,
+		y = G.tableSpots.anarchFire.y,
+		z = G.tableSpots.anarchFire.z + math.random(-120, 120) / 100
+	}
+	local burnRot = {
+		x = 0,
+		y = 180 + math.random(-30, 30),
+		z = 180
+	}
+	ankhObj.setPosition(burnPos)
+	ankhObj.setRotation(burnRot)
+	-- Now count number of ankhs in fire: if there are three, find and burn the last
+end
+
+
+
+
+
+return BGE

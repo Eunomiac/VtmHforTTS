@@ -12,6 +12,9 @@ function parseCode(val, isIncludingTraits)
 end
 -- *** GAME STATE ***
 
+local isLoaded = false
+function onLoad() isLoaded = true end
+
 function M.refreshStateDebug(stateData)
   if (stateData == nil) then
     stateData = Global.getTable("gameState")
@@ -129,6 +132,9 @@ function M.getLastChapterStandings()
 end
 function M.getLastChapterVictor()
   return M.getLastChapterStandings()[1]
+end
+function M.getLastChapterMiddle()
+  return M.getLastChapterStandings()[2]
 end
 function M.getLastChapterVanquished()
   return M.getLastChapterStandings()[3]
@@ -451,11 +457,11 @@ function M.assignClan(clan, color)
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   M.setStateVal(clan, "clans", color)
   UI.setValue(color .. "ClanChoice", C.Names[color] .. " Chooses Clan " .. clan)
-  if (color == M.getLastChapterVanquished()) then
+  if (color == M.getLastChapterMiddle()) then
     U.splashUIElement("chooseStrandsOfTimeNotice", 5) -- Vanquished last Chapter, you may choose a Strand of time
     local strandOfTimeSpot = getObjectFromGUID(G.decks.strandOfTimeSpot)
     strandOfTimeSpot.highlightOn("Green")
-    M.presentStrandsOfTimeToVanquished()
+    M.presentStrandsOfTimeToMiddle()
   end
   Wait.time(function()
     if (M.getNextPlayer()) then
@@ -815,8 +821,7 @@ function getSchemesDiscard(color)
 end
 function M.initializeClanLeader(col)
   local leaderClan = M.getClans()[col]
-  local leaderZone = G.playerSpaces[col].zones.bloodline[1][1]
-  local leaderCard = Z.getCard(leaderZone)
+  local leaderCard = Z.getClanLeader(col)
   local leaderName = leaderCard.getName()
   local leaderSchemes = leaderCard.getDescription()
   local leaderMorality
@@ -839,7 +844,7 @@ function M.initializeClanLeader(col)
   end
   local moralityToken = getMoralityToken(col)
 	local moralityPosition = moralityToken.getPosition()
-	moralityPosition.y = moralityPosition.y + 0.5
+	moralityPosition.y = moralityPosition.y + 1
   local moralityRotation = moralityToken.getRotation()
   if C.MoralityTokens[leaderClan] == leaderMorality then
     moralityRotation.z = 0
@@ -870,12 +875,12 @@ function M.initializeClanLeader(col)
   end
 end
 function M.clearUnusedClanLeaders()
-  local usedClanLeaders = {
-    Z.getCard(G.playerSpaces.Red.zones.bloodline[1][1]).guid,
-    Z.getCard(G.playerSpaces.Yellow.zones.bloodline[1][1]).guid,
-    Z.getCard(G.playerSpaces.Blue.zones.bloodline[1][1]).guid
+  local usedClanLeaderIDs = {
+    Z.getClanLeader("Red").guid,
+    Z.getClanLeader("Yellow").guid,
+    Z.getClanLeader("Blue").guid
   }
-  local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"), function(obj) return not U.isIn(obj.guid, usedClanLeaders) end)
+  local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"), function(obj) return not U.isIn(obj.guid, usedClanLeaderIDs) end)
   for _, obj in pairs(unusedClanLeaders) do
     if obj.hasTag("Red") then
       obj.setPosition(G.tableSpots.claimedClanLeader.Red)
@@ -896,9 +901,30 @@ function M.clearUnusedClanLeaders()
   end
 end
 
+function M.removeUnusedClanRefs()
+	local clans = M.getClans()
+	local round, turn = M.getRoundAndTurn()
+	if round > 0 and round < 10 then
+		for _, clan in pairs(C.Clans) do
+			if not U.isIn(clan, clans) then
+				for _, color in pairs({"Red", "Yellow", "Blue"}) do
+					UI.hide("hudRef" .. clan .. color)
+					UI.hide("hudRef" .. clan .. color .. "Overlay")
+				end
+			end
+		end
+		for _, col in pairs(C.Colors) do
+      UI.setAttributes("hudSidebar" .. col, {
+        rectAlignment = "MiddleRight",
+        height = "360",
+        offsetXY = "0 0"
+      })
+    end
+	end
+end
+
 function M.gameSTART()
-  local clans = M.getClans()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
+  -- local mainStorage = getObjectFromGUID(G.mainStorage.id)
     -- UI.hide("setupReminder")
     UI.hide("RedClanChoice")
     UI.hide("YellowClanChoice")
@@ -908,21 +934,8 @@ function M.gameSTART()
 
     -- H.boxStrandsOfTime()  -- Must wait until we have at least one more to keep it a deck!
 
-    for _, clan in pairs(C.Clans) do
-      if not U.isIn(clan, clans) then
-        for _, color in pairs({"Red", "Yellow", "Blue"}) do
-          UI.hide("hudRef" .. clan .. color)
-          UI.hide("hudRef" .. clan .. color .. "Overlay")
-        end
-      end
-    end
     M.clearUnusedClanLeaders()
     for _, col in pairs(C.Colors) do
-      UI.setAttributes("hudSidebar" .. col, {
-        rectAlignment = "MiddleRight",
-        height = "360",
-        offsetXY = "0 0"
-      })
       M.initializeClanLeader(col)
     end
 
@@ -930,6 +943,7 @@ function M.gameSTART()
     U.splashUIElement("gameStartNotice", 3, 0.5)
 
     M.setRoundAndTurn(1, 1)
+		M.removeUnusedClanRefs()
     M.determineTurnOrder(M.syncTurnOrder)
 end
 function M.gameSCORE()
@@ -1050,6 +1064,7 @@ function M.gameMISSIONS()
     M.presentObligationsToVictor()
     M.presentLockedSchemesToVanquished()
     M.clearPlayerZones(1)
+		Z.discardTorporedVamps()
     M.hideVictoryBoard()
     for _, color in pairs({"Red", "Yellow", "Blue"}) do
       M.showUpdatedTraits(color)
@@ -1078,7 +1093,7 @@ function M.packClanStorageBoxes()
 end
 
 function M.clearPlayerZones(clearanceLevel)
-  -- Clearance Level 1 (default) --> Power, Infamy, Exhaustion, Boons, Morality
+  -- Clearance Level 1 (default) --> Power, Infamy, Exhaustion, Boons, Morality, Ankhs
   -- Clearance Level 2 --> Clan Leader
   -- Clearance Level 3 --> Torpor, Characters
   if (not clearanceLevel) then clearanceLevel = 1 end
@@ -1108,7 +1123,7 @@ function M.clearPlayerZones(clearanceLevel)
     end
   end
   for _, color in pairs(C.Colors) do
-    local aftermathZone = getObjectFromGUID(G.playerSpaces[color].zones.aftermath)
+    local aftermathZone = getObjectFromGUID(G.zones[color].aftermath)
     local moralityToken = getMoralityToken(color)
     if (moralityToken) then
       local playerChest = getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]])
@@ -1117,6 +1132,7 @@ function M.clearPlayerZones(clearanceLevel)
     for _, obj in pairs(aftermathZone.getObjects()) do
       if string.find(obj.getName(), "Power")
         or string.find(obj.getName(), "Infamy")
+				or obj.hasTag("Ankh")
         or string.find(obj.getName(), "Torpor") and (clearanceLevel == 3 or not U.isFlipped(obj)) then
           obj.destruct()
       end
@@ -1155,6 +1171,7 @@ function M.clearPlayerZones(clearanceLevel)
   if clearanceLevel == 3 then
     clearAllTokens()
   end
+	Wait.time(function() Z.refreshOverlays() end, 1)
 end
 
 function clearAllTokens()
@@ -1278,6 +1295,7 @@ function getClanToken(playerColor)
 end
 
 function getMoralityToken(playerColor)
+	-- if not isLoaded then return false end
   local clan = M.getStateVal("clans")[playerColor]
   if (clan == nil) then return false end
   local tokenName = clan .. " Morality"
@@ -1301,7 +1319,7 @@ function M.showVictoryBoard()
   victoryTable.setInvisibleTo({})
   victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
   victoryTable.setRotationSmooth(G.tableSpots.victory.rotation, false, true)
-  local victoryBoard = mainStorage.takeObject({
+  mainStorage.takeObject({
     position = G.tableSpots.victory.board,
     rotation = G.tableSpots.victory.rotation,
     guid = G.victoryBoard,
@@ -1423,6 +1441,9 @@ function M.presentObligationsToVictor() M.presentDeck({"Obligation"}, M.getLastC
 function M.presentLockedSchemesToVanquished() M.presentDeck({"ClanScheme", M.getStateVal("clans", M.getLastChapterVanquished())}, M.getLastChapterVanquished()) end
 function M.presentStrandsOfTimeToVanquished()
   M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime, {spread = -2.5})
+end
+function M.presentStrandsOfTimeToMiddle()
+  M.presentDeck({"StrandsOfTime"}, M.getLastChapterMiddle(), G.tableSpots.strandsOfTime, {spread = -2.5})
 end
 
 function M.boxDeck(deck)

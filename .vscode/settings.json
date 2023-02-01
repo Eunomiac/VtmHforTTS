@@ -1,0 +1,20 @@
+{
+	"Lua.diagnostics.globals": [
+		"getObjectFromGUID",
+		"Wait",
+		"self",
+		"JSON",
+		"Global",
+		"UI",
+		"Player",
+		"broadcastToColor",
+		"logString",
+		"Turns",
+		"getAllObjects",
+		"broadcastToAll",
+		"getObjectsWithTag",
+		"Physics",
+		"log",
+		"onLoad"
+	]
+}

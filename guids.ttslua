@@ -1,184 +1,204 @@
+local U = require("utilities")
+
 local G = {}
 
 G.decks = {
-    characterSpot = "20e59b",
-    characterDiscardSpot = "083e88",
-    strandOfTimeSpot = "d7029a",
-    unusedStrandsOfTime = "c70be2",
-    missionSpot = "eacf3f",
-    obligationsDeck = "5c2c36",
-    lockedSchemes = {
-        Brujah      = "ff5ddf",
-        Gangrel     = "85e0d5",
-        Lasombra    = "5598b7",
-        Malkavian   = "7c0bf8",
-        Nosferatu   = "7484cd",
-        Toreador    = "e5cb5a",
-        Tremere     = "594145",
-        Tzimisce    = "8e6499",
-        Ventrue     = "8d4d08"
-    }
+	characterSpot = "20e59b",
+	characterDiscardSpot = "083e88",
+	strandOfTimeSpot = "d7029a",
+	unusedStrandsOfTime = "c70be2",
+	missionSpot = "eacf3f",
+	obligationsDeck = "5c2c36",
+	lockedSchemes = {
+		Brujah    = "ff5ddf",
+		Gangrel   = "85e0d5",
+		Lasombra  = "5598b7",
+		Malkavian = "7c0bf8",
+		Nosferatu = "7484cd",
+		Toreador  = "e5cb5a",
+		Tremere   = "594145",
+		Tzimisce  = "8e6499",
+		Ventrue   = "3329de"
+	}
 }
 
 G.playerSpaces = {
-    Red = {
-        schemeDeck = "ce178f",
-        schemeDiscard = "0f4771",
-        leaderCard = "8880ab",
-        haven = "cb09de",
-        zones = {
-          aftermath = "c4d233",
-          bloodline = {
-            {"220e11"},
-            {"6da497", "5bd260", "5692f2"},
-            {"bdd3e4", "cecc43", "c2ea32"}, {"f050ed", "b47d47", "2fca79"}, {"ebc824", "1e7a70", "6f3e4a"}
-          }
-        }
-    },
-    Yellow = {
-        schemeDeck = "989a32",
-        schemeDiscard = "e1a8c7",
-        leaderCard = "d5c85b",
-        haven = "b9ea0d",
-        zones = {
-          aftermath = "dfb1df",
-          bloodline = {
-            {"b8f1e2"},
-            {"307a28", "3a5146", "5f450b"},
-            {"56aae0", "fe9976", "0f358a"}, {"3d98ed", "859a85", "31cdad"}, {"f25eec", "d52957", "ad3c31"}
-          }
-        }
-    },
-    Blue = {
-        schemeDeck = "66e043",
-        schemeDiscard = "21a28a",
-        leaderCard = "402e53",
-        haven = "c2ebbf",
-        zones = {
-          aftermath = "5b0818",
-          bloodline = {
-            {"7ec073"},
-            {"c3942c", "4864d4", "cdfdd3"},
-            {"7ffefc", "3c5cbc", "a6ba72"}, {"ce176c", "0aa479", "5f5a39"}, {"b62156", "e06c45", "8e92a0"}
-          }
-        }
-}}
+	Red = {
+		schemeDeck = "ce178f",
+		schemeDiscard = "0f4771",
+		leaderCard = "8880ab",
+		haven = "cb09de",
+		pouch = "6121d9"
+	},
+	Yellow = {
+		schemeDeck = "989a32",
+		schemeDiscard = "e1a8c7",
+		leaderCard = "d5c85b",
+		haven = "b9ea0d",
+		pouch = "1412c4"
+	},
+	Blue = {
+		schemeDeck = "66e043",
+		schemeDiscard = "21a28a",
+		leaderCard = "402e53",
+		haven = "c2ebbf",
+		pouch = "031999"
+	}
+}
 
 G.zones = {
-    charQueueArea = "04917a",
-    charQueue = {"c8faa5", "af0603", "f1ec56", "4b7d04", "558327"},
-    clearZones = {"72a2cd", "c0c9cc", "69b32b", "c50ff9"}
+	charQueueArea = "04917a",
+	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
+	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
+	bgEZones = {
+		n = "0a1fa7",
+		s = "5f265e",
+		e = "620320",
+		w = "0cdb7a",
+		f = "997422"
+	},
+	Red = {
+		aftermath = "c4d233",
+		bloodline = {
+			{ "220e11" },
+			{ "6da497", "5bd260", "5692f2" },
+			{ "bdd3e4", "cecc43", "c2ea32" }, { "f050ed", "b47d47", "2fca79" }, { "ebc824", "1e7a70", "6f3e4a" }
+		}
+	},
+	Yellow = {
+		aftermath = "dfb1df",
+		bloodline = {
+			{ "b8f1e2" },
+			{ "307a28", "3a5146", "5f450b" },
+			{ "56aae0", "fe9976", "0f358a" }, { "3d98ed", "859a85", "31cdad" }, { "f25eec", "d52957", "ad3c31" }
+		}
+	},
+	Blue = {
+		aftermath = "5b0818",
+		bloodline = {
+			{ "7ec073" },
+			{ "c3942c", "4864d4", "cdfdd3" },
+			{ "7ffefc", "3c5cbc", "a6ba72" }, { "ce176c", "0aa479", "5f5a39" }, { "b62156", "e06c45", "8e92a0" }
+		}
+	}
 }
 
+for color, zoneData in pairs(U.filter(G.zones, function(v, k) return U.isIn(k, {"Red","Yellow","Blue"}) end)) do
+	G.zones[color].all = U.flatten(zoneData)
+end
+
+G.zones.allPlayer = U.flatten({G.zones.Red.all, G.zones.Yellow.all, G.zones.Blue.all})
+
 G.playerCards = {
-  Red = "7f82f3",
-  Yellow = "ba1cde",
-  Blue = "f9ff56"
+	Red = "7f82f3",
+	Yellow = "ba1cde",
+	Blue = "f9ff56"
 }
 G.mainStorage = {
-    id = "1c0050",
-    clanStorage = {
-        Brujah      = "98a6cc",
-        Gangrel     = "5c13fb",
-        Lasombra    = "d28e5e",
-        Malkavian   = "a8e20f",
-        Nosferatu   = "35de9f",
-        Toreador    = "d147dc",
-        Tremere     = "138cbd",
-        Tzimisce    = "df911a",
-        Ventrue     = "4c884a"
-    }
+	id = "1c0050",
+	clanStorage = {
+		Brujah    = "98a6cc",
+		Gangrel   = "5c13fb",
+		Lasombra  = "d28e5e",
+		Malkavian = "a8e20f",
+		Nosferatu = "35de9f",
+		Toreador  = "d147dc",
+		Tremere   = "138cbd",
+		Tzimisce  = "df911a",
+		Ventrue   = "4c884a"
+	}
 }
 
 G.tokenSources = {
-    power = "8b6a8b",
-    infamy = "0f088a",
-    exhaustion = "74fa00",
-    torpor = "74fa00"
+	power = "8b6a8b",
+	infamy = "0f088a",
+	exhaustion = "74fa00",
+	torpor = "74fa00"
 }
 
 G.battlegrounds = {
-    a = "d34811",
-    b = "a2cf25",
-    c = "265535",
-    d = "710eb1",
-    e = nil,
-    f = nil,
-    g = nil
+	a = "d34811",
+	b = "a2cf25",
+	c = "265535",
+	d = "710eb1",
+	e = nil,
+	f = nil,
+	g = nil
 }
 
 G.tableSpots = {
-    clanMorality = {
-        Red = {x = 10.96, y = 3.5, z = 15.36},
-        Yellow = {x = 11.94, y = 3, z = 14.55},
-        Blue = {x = 12.64, y = 3.4, z = 15.51}
-    },
-    clanPolitics = {
-        Red = {x = -27, y = 0, z = -4.5},
-        Yellow = {x = 0, y = 0, z = -4.5},
-        Blue = {x = 27, y = 0, z = -4.5}
-    },
-    claimedClanLeader = {
-      Red = {x = -23, y = 0, z = -28},
-      Yellow = {x = 4, y = 0, z = -28},
-      Blue = {x = 31, y = 0, z = -28}
-    },
-    clanPoliticsVictory = {
-        Red = {x = -9.17, y = 5, z = 5.77},
-        Yellow = {x = -9.17, y = 5, z = 5.77 - 1.7},
-        Blue = {x = -9.17, y = 5, z = 5.77 - (2 * 1.7)},
-        scale = {x = 0.4, y = 1, z = 0.4},
-        rotation = {x = 19.28, y = 180, z = 0}
-    },
-    victory = {
-      table = {x = -0.74, y = 2.12, z = 1.82},
-      board = {x = 0, y = 3, z = 1.64},
-      rotation = {x = 19.28, y = 180, z = 0}
-    },
-    chapterCard = {x = -13.50, y = -0.1, z = 0},
-    staging = {
-      Red = {x = -30.25, y = 1, z = -26.71},
-      Yellow = {x = -3.25, y = 1, z = -26.71},
-      Blue = {x = 23.25, y = 1, z = -26.71}
-    },
-    strandsOfTime = {x = -9, y = 1, z = -4},
-    highlighters = {
-        clanSelection = {
-            active = {x = 0, y = 0.1, z = -21},
-            inactive = {x = 0, y = -10, z = -21}
-        },
-        turnIndicator = {
-            Red = {
-                strong = {x = -27, y = -0.31, z = -7},
-                faint = {x = -27, y = -7.8, z = -7},
-                inactive = {x = -27, y = -20, z = 15}
-            },
-            Yellow = {
-                strong = {x = 0, y = -0.31, z = -7},
-                faint = {x = 0, y = -7.8, z = -7},
-                inactive = {x = 0, y = -20, z = 15}
-            },
-            Blue = {
-                strong = {x = 27, y = -0.31, z = -7},
-                faint = {x = 27, y = -7.8, z = -7},
-                inactive = {x = 27, y = -20, z = 15}
-            },
-        },
-        bgIndicator = {
-            left = {
-                active = {x = -13.50, y = 3.06, z = 19.02},
-                inactive = {x = -13.50, y = -15, z = 19.02}
-            },
-            center = {
-                active = {x = 0, y = 3.31, z = 20.31},
-                inactive = {x = 0, y = -15, z = 19.02}
-            },
-            right = {
-                active = {x = 13.5, y = 3.06, z = 19.02},
-                inactive = {x = 13.5, y = -15, z = 19.02}
-            }
-        }
-    }
+	clanMorality = {
+		Red = { x = 10.96, y = 3.5, z = 15.36 },
+		Yellow = { x = 11.94, y = 3, z = 14.55 },
+		Blue = { x = 12.64, y = 3.4, z = 15.51 }
+	},
+	clanPolitics = {
+		Red = { x = -27, y = 0, z = -4.5 },
+		Yellow = { x = 0, y = 0, z = -4.5 },
+		Blue = { x = 27, y = 0, z = -4.5 }
+	},
+	claimedClanLeader = {
+		Red = { x = -23, y = 0, z = -28 },
+		Yellow = { x = 4, y = 0, z = -28 },
+		Blue = { x = 31, y = 0, z = -28 }
+	},
+	clanPoliticsVictory = {
+		Red = { x = -9.17, y = 5, z = 5.77 },
+		Yellow = { x = -9.17, y = 5, z = 5.77 - 1.7 },
+		Blue = { x = -9.17, y = 5, z = 5.77 - (2 * 1.7) },
+		scale = { x = 0.4, y = 1, z = 0.4 },
+		rotation = { x = 19.28, y = 180, z = 0 }
+	},
+	victory = {
+		table = { x = -0.74, y = 2.12, z = 1.82 },
+		board = { x = 0, y = 3, z = 1.64 },
+		rotation = { x = 19.28, y = 180, z = 0 }
+	},
+	chapterCard = { x = -13.50, y = -0.1, z = 0 },
+	staging = {
+		Red = { x = -30.25, y = 1, z = -26.71 },
+		Yellow = { x = -3.25, y = 1, z = -26.71 },
+		Blue = { x = 23.25, y = 1, z = -26.71 }
+	},
+	anarchFire = {x = 3, y = 6, z = 17.5},
+	strandsOfTime = { x = -9, y = 1, z = -4 },
+	highlighters = {
+		clanSelection = {
+			active = { x = 0, y = 0.1, z = -21 },
+			inactive = { x = 0, y = -10, z = -21 }
+		},
+		turnIndicator = {
+			Red = {
+				strong = { x = -27, y = -0.31, z = -7 },
+				faint = { x = -27, y = -7.8, z = -7 },
+				inactive = { x = -27, y = -20, z = 15 }
+			},
+			Yellow = {
+				strong = { x = 0, y = -0.31, z = -7 },
+				faint = { x = 0, y = -7.8, z = -7 },
+				inactive = { x = 0, y = -20, z = 15 }
+			},
+			Blue = {
+				strong = { x = 27, y = -0.31, z = -7 },
+				faint = { x = 27, y = -7.8, z = -7 },
+				inactive = { x = 27, y = -20, z = 15 }
+			},
+		},
+		bgIndicator = {
+			left = {
+				active = { x = -13.50, y = 3.06, z = 19.02 },
+				inactive = { x = -13.50, y = -15, z = 19.02 }
+			},
+			center = {
+				active = { x = 0, y = 3.31, z = 20.31 },
+				inactive = { x = 0, y = -15, z = 19.02 }
+			},
+			right = {
+				active = { x = 13.5, y = 3.06, z = 19.02 },
+				inactive = { x = 13.5, y = -15, z = 19.02 }
+			}
+		}
+	}
 }
 
 G.chapterDecksStorage = "b6bddf"
@@ -186,36 +206,36 @@ G.victoryBoard = "593a8d"
 G.victoryTable = "e157b5"
 
 G.highlighters = {
-    clanSelection = "2e6007",
-    turnIndicator = {
-        Red = "210fad",
-        Yellow = "9d08f2",
-        Blue = "84ceed"
-    },
-    bgIndicator = {
-        left = "eac658",
-        center = "cd7c93",
-        right = "cfbd29"
-    }
+	clanSelection = "2e6007",
+	turnIndicator = {
+		Red = "210fad",
+		Yellow = "9d08f2",
+		Blue = "84ceed"
+	},
+	bgIndicator = {
+		left = "eac658",
+		center = "cd7c93",
+		right = "cfbd29"
+	}
 }
 
 G.lockedObjects = {
-    "a97528", -- BG Riser Front
-    "bcc1e6", -- BG Riser Main
-    "142de3", -- Table Main
-    "21c450", -- Table Front
-    "6cc1dc" -- Chaoters Lectern
+	"a97528", -- BG Riser Front
+	"bcc1e6", -- BG Riser Main
+	"142de3", -- Table Main
+	"21c450", -- Table Front
+	"6cc1dc" -- Chaoters Lectern
 }
 
 G.invisObjects = {
-    G.highlighters.clanSelection,
-    G.highlighters.turnIndicator.Red,
-    G.highlighters.turnIndicator.Yellow,
-    G.highlighters.turnIndicator.Blue,
-    G.highlighters.bgIndicator.left,
-    G.highlighters.bgIndicator.center,
-    G.highlighters.bgIndicator.right,
-    G.victoryTable
+	G.highlighters.clanSelection,
+	G.highlighters.turnIndicator.Red,
+	G.highlighters.turnIndicator.Yellow,
+	G.highlighters.turnIndicator.Blue,
+	G.highlighters.bgIndicator.left,
+	G.highlighters.bgIndicator.center,
+	G.highlighters.bgIndicator.right,
+	G.victoryTable
 }
 
 return G

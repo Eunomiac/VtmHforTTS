@@ -2,42 +2,130 @@ local M = require("main")
 local G = require("guids")
 local U = require("utilities")
 local C = require("constants")
+local BGE = require("bgE")
 
 local Z = {}
+local isShowingScores = false
+
+local function parseBool(bool) if bool then return "true" else return "false" end end
 
 
+-- local function getZone(zoneID) return getObjectFromGUID(zoneID) end
+-- local function getCardSpot(zoneGuid) return Z.getCardSpots(zoneGuid)[1] end
 
 
-function getZone(zoneID) return getObjectFromGUID(zoneID) end
+-- function Z.logObjects(zoneID)
+--   log(U.map(getZone(zoneID).getObjects(), function(obj) return obj.type end))
+-- end
 
-
-function Z.logObjects(zoneID)
-  log(U.map(getZone(zoneID).getObjects(), function(obj) return obj.type end))
+-- function Z.getCardSpots(zoneGuid)
+--   local zone = getZone(zoneGuid)
+--   return U.filter(zone.getObjects(), function(obj) return obj.type == "Block" and string.find(obj.getName(), "Leader") end)
+-- end
+function Z.getPlayerZones(color)
+	if color == nil then
+		return U.map(G.zones.allPlayer, function(zoneID) return getObjectFromGUID(zoneID) end)
+	else
+		return U.map(G.zones[color].all, function(zoneID) return getObjectFromGUID(zoneID) end)
+	end
 end
 
-function Z.getCardSpots(zoneGuid)
-  local zone = getZone(zoneGuid)
-  return U.filter(zone.getObjects(), function(obj) return obj.type == "Block" and string.find(obj.getName(), "Leader") end)
+-- *** Zone Type Checking ***
+function Z.isPlayerCardZone(zone) return U.isIn(zone.guid, G.zones.allPlayer) end
+function Z.isTokenClearZone(zone) return U.isIn(zone.guid, G.zones.clearZones) end
+
+-- *** Zone Object Retrieval ***
+function Z.getZoneObjects(zone, objType)
+	return U.filter(zone.getObjects(true), function (obj) return obj.type == objType end)
+end
+function Z.getTaggedZoneObjects(zone, tags, requireAll)
+	local zoneObjs = zone.getObjects()
+	if type(tags) == "string" then return U.filter(zoneObjs, function(obj) return obj.hasTag(tags) end) end
+	if requireAll == true then
+		return U.filter(zoneObjs, function(obj)
+			for _, tag in pairs(tags) do
+				if not obj.hasTag(tag) then return false end
+			end
+			return true
+		end
+		)
+	else
+		return U.filter(zoneObjs, function(obj)
+			for _, tag in pairs(tags) do
+				if obj.hasTag(tag) then return true end
+			end
+			return false
+		end
+		)
+	end
 end
 
-function getCardSpot(zoneGuid) return Z.getCardSpots(zoneGuid)[1] end
+function Z.getCard(zone) return Z.getZoneObjects(zone, "Card")[1] end
+function Z.hasCard(zone) return Z.getCard(zone) ~= nil end
 
-function Z.isPlayerCardZone(zoneGuid)
-  for _, colorData in pairs(G.playerSpaces) do
-    for _, zoneRows in pairs(colorData.zones.bloodline) do
-      for _, zoneID in pairs(zoneRows) do
-        if zoneID == zoneGuid then return true end
-      end
-    end
-  end
-  return false
+function Z.getDeck(zone) return Z.getZoneObjects(zone, "Deck")[1] end
+
+function Z.getClanLeader(color)
+	local leaderZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
+	return Z.getCard(leaderZone)
 end
 
-function Z.hasCard(zoneGuid)
-  return Z.getCard(zoneGuid) ~= false
+function Z.getAnkhs(zone, dir)
+	return Z.getTaggedZoneObjects(zone, {"Ankh", dir}, true)
 end
 
-isShowingScores = false
+function Z.getPowerTokens(zone) return Z.getTaggedZoneObjects(zone, "Power") end
+function Z.getInfamyTokens(zone) return Z.getTaggedZoneObjects(zone, "Power") end
+function Z.getBoons(zone) return Z.getTaggedZoneObjects(zone, "Boon") end
+local function getExhaustionTorporTokens(zone) return Z.getTaggedZoneObjects(zone, "ExhaustTorpor") end
+function Z.getExhaustionTokens(zone)
+	return U.filter(getExhaustionTorporTokens(zone), function(token) return not U.isFlipped(token) end)
+end
+function Z.getTorporTokens(zone)
+	return U.filter(getExhaustionTorporTokens(zone), function(token) return U.isFlipped(token) end)
+end
+
+function Z.isTorpored(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getTorporTokens(zone) > 0 end
+function Z.isExhausted(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getExhaustionTokens(zone) > 0 end
+
+function Z.countPower(zone, isCountingTorpored)
+	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
+		if not isCountingTorpored or not Z.isTorpored(zone) then
+			return #Z.getPowerTokens(zone)
+		end
+	end
+	return 0
+end
+function Z.countInfamy(zone, isCountingTorpored)
+	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
+		if not isCountingTorpored or not Z.isTorpored(zone) then
+			if string.find(Z.getCard(zone).getDescription(), "IgnoreInfamyVP") then
+				local gameState = Global.getTable("gameState")
+				if gameState.round == 10 then return 0 end
+			end
+			return #Z.getInfamyTokens(zone)
+		end
+	end
+	return 0
+end
+function Z.countBoons(zone, isCountingTorpored)
+	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
+		if not isCountingTorpored or not Z.isTorpored(zone) then
+			return #Z.getBoons(zone)
+		end
+	end
+	return 0
+end
+
+function Z.scoreZone(zone) return Z.countPower(zone) + Z.countBoons(zone) - Z.countInfamy(zone) end
+
+function Z.scoreBloodline(color)
+	local scoreTotal = 0
+	for _, zone in pairs(Z.getPlayerZones(color)) do
+		scoreTotal = scoreTotal + Z.scoreZone(zone)
+	end
+	return scoreTotal
+end
 
 function Z.toggleScoresOverlay(isShowing)
   if isShowing == nil then
@@ -48,199 +136,43 @@ function Z.toggleScoresOverlay(isShowing)
   Z.refreshOverlays()
 end
 
-function Z.getCard(zoneGuid)
-  local zone = getZone(zoneGuid)
-  -- log(zone.getObjects())
-  local cardObjs = U.filter(zone.getObjects(), function(obj) return obj.type == "Card" end)
-  if (#cardObjs == 0) then return false end
-  if (#cardObjs > 1) then
-    -- Tzimisce craft monstrosity or Brujah Enemy could be this: Gotta handle them!
-    return cardObjs[1]
-  end
-  return cardObjs[1]
-end
-
-function Z.getDeck(zoneGuid)
-  local zone = getZone(zoneGuid)
-  -- log(zone.getObjects())
-  local deckObjs = U.filter(zone.getObjects(), function(obj) return obj.type == "Deck" end)
-  if (#deckObjs == 0) then return false end
-  if (#deckObjs > 1) then
-    -- Tzimisce craft monstrosity or Brujah Enemy could be this: Gotta handle them!
-    return deckObjs[1]
-  end
-  return deckObjs[1]
-end
-
-function Z.alignCard(zoneGuid)
-  -- if not Z.hasCard(zoneGuid) then return end
-  local zone = getZone(zoneGuid)
-  local cardSpot = getCardSpot(zoneGuid)
-  local card = Z.getCard(zoneGuid)
-  if (zone and cardSpot and card) then
-    card.setRotationSmooth({
-      x = 0,
-      y = U.pAngle(card.getRotation().y, 180),
-      z = U.pAngle(card.getRotation().z, 180)
-    })
-    card.setPositionSmooth({
-      x = cardSpot.getPosition().x,
-      y = cardSpot.getPosition().y + 0.02,
-      z = cardSpot.getPosition().z
-    })
-  end
-end
-
-function Z.isClanLeader(zoneGuid)
-  local card = Z.getCard(zoneGuid)
-  if not card then return false end
-  return card.hasTag("ClanLeader")
-end
-
-function Z.isTorpored(zoneGuid)
-  local zone = getZone(zoneGuid)
-  if (Z.getCard(zoneGuid)) then
-    local torpTokens = U.filter(zone.getObjects(), function(obj) return string.find(obj.getName(), "Torpor") end)
-    if (#torpTokens == 0) then return false end
-    for _, tTok in pairs(torpTokens) do
-      if (U.isFlipped(tTok)) then return true end
-    end
-  end
-  return false
-end
-
-function Z.isExhausted(zoneGuid)
-  local zone = getZone(zoneGuid)
-  if (Z.getCard(zoneGuid)) then
-    local torpTokens = U.filter(zone.getObjects(), function(obj) return string.find(obj.getName(), "Torpor") end)
-    if (#torpTokens == 0) then return false end
-    for _, tTok in pairs(torpTokens) do
-      if not U.isFlipped(tTok) then return true end
-    end
-  end
-  return false
-end
-
-function Z.countPower(zoneGuid, isIncludingTorpored)
-  local zone = getZone(zoneGuid)
-  if not Z.getCard(zoneGuid) then return 0 end
-  if Z.isTorpored(zoneGuid) and not isIncludingTorpored then return 0 end
-  return #U.filter(zone.getObjects(), function(obj) return string.find(obj.getName(), "Power") end)
-end
-
-function Z.countInfamy(zoneGuid, isIncludingTorpored)
-  local gameState = Global.getTable("gameState")
-  local isVictoryCount = gameState.round == 10
-  local zone = getZone(zoneGuid)
-  if not Z.getCard(zoneGuid) then return 0 end
-  if Z.isTorpored(zoneGuid) and not isIncludingTorpored then return 0 end
-  if string.find(Z.getCard(zoneGuid).getDescription(), "IgnoreInfamyVP") and isVictoryCount then return 0 end
-  return #U.filter(zone.getObjects(), function(obj) return string.find(obj.getName(), "Infamy") end)
-end
-
-function Z.countBoons(zoneGuid, isIncludingTorpored)
-  local zone = getZone(zoneGuid)
-  if not Z.getCard(zoneGuid) then return 0 end
-  if Z.isTorpored(zoneGuid) and not isIncludingTorpored then return 0 end
-  return #U.filter(zone.getObjects(), function(obj) return string.find(obj.getName(), "Boon") end)
-end
-
-function Z.getScore(zoneGuid)
-  local zone = getZone(zoneGuid)
-  if not (Z.getCard(zoneGuid)) then return 0 end
-  if (Z.isTorpored(zoneGuid)) then return 0 end
-  return Z.countPower(zoneGuid) + Z.countBoons(zoneGuid) - Z.countInfamy(zoneGuid)
-end
-
 function Z.refreshOverlays()
-  for _, color in pairs(C.Colors) do
-    local guidData = G.playerSpaces[color].zones.bloodline
-    for _, zoneRows in pairs(guidData) do
-      for _, zoneID in pairs(zoneRows) do
-        Z.syncCard(zoneID)
-      end
-    end
-  end
+	for _, zone in pairs(Z.getPlayerZones()) do
+		if Z.hasCard(zone) then
+			Z.syncCard(zone)
+		else
+			zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
+		end
+	end
 end
 
-function Z.getBloodlineData(color)
-  local bloodlineData = {}
-  local guidData = G.playerSpaces[color].zones.bloodline
-  for _, zoneRows in pairs(guidData) do
-    for _, zoneID in pairs(zoneRows) do
-      -- Z.syncCard(zoneID)
-      if Z.hasCard(zoneID) then
-        local cardData = {
-          player = color,
-          zoneID = zoneID,
-          cardObj = Z.getCard(zoneID),
-          power = Z.countPower(zoneID),
-          infamy = Z.countInfamy(zoneID),
-          boons = Z.countBoons(zoneID),
-          overlays = {
-            torpor = Z.isTorpored(zoneID),
-            exhausted = Z.isExhausted(zoneID),
-            enemy = false,
-            monstrosity = false
-          }
-        }
-        table.insert(bloodlineData, cardData)
-      end
-    end
-  end
-  return bloodlineData
-end
 
-function Z.getAllCards()
-  local cardsData = {}
-  for _, color in pairs(C.Colors) do
-    cardsData = U.concat(cardsData, Z.getBloodlineData(color))
-  end
-  return cardsData
-end
-
-function Z.getMaxInfamyCards()
-  local validChars = U.filter(Z.getAllCards(), function(cardData) return not cardData.overlays.torpor end)
-  local maxInfamy = 0
-  local cardsAtMax = {}
-  for _, cardData in pairs(validChars) do
-    if (cardData.infamy > maxInfamy) then
-      maxInfamy = cardData.infamy
-      cardsAtMax = {cardData.cardObj}
-    elseif (cardData.infamy == maxInfamy) then
-      table.insert(cardsAtMax, cardData.cardObj)
-    end
-  end
-  return cardsAtMax
+local maxInfamy = 0
+function Z.refreshMaxInfamy()
+	maxInfamy = 0
+	for _, zone in pairs(Z.getPlayerZones()) do
+		local infamyCount = Z.countInfamy(zone)
+		if infamyCount > maxInfamy then
+			maxInfamy = infamyCount
+		end
+	end
 end
 
 local isCheckingSuspicion = false
-
 function Z.checkSuspicion()
   isCheckingSuspicion = true
-  Z.scoreBloodline("Red")
-  Z.scoreBloodline("Yellow")
-  Z.scoreBloodline("Blue")
+	Z.refreshMaxInfamy()
+	Z.refreshOverlays()
 end
 
 function Z.hideSuspicion()
   isCheckingSuspicion = false
-  Z.scoreBloodline("Red")
-  Z.scoreBloodline("Yellow")
-  Z.scoreBloodline("Blue")
+	maxInfamy = 0
+	Z.refreshOverlays()
 end
 
-function Z.scoreBloodline(color)
-  local guidData = G.playerSpaces[color].zones.bloodline
-  local scoreTotal = 0
-  for _, zoneRows in pairs(guidData) do
-    for _, zoneID in pairs(zoneRows) do
-      Z.syncCard(zoneID)
-      scoreTotal = scoreTotal + Z.getScore(zoneID)
-    end
-  end
-  return scoreTotal
-end
+
+
 
 local XML = {
   ExhaustionOverlay = function(zoneID)
@@ -270,95 +202,118 @@ local XML = {
   end
 }
 
+function Z.alignCard(zone)
+	local zonePos = zone.getPosition()
+  local card = Z.getCard(zone)
+  if (card) then
+		local cardRot = card.getRotation()
+    card.setRotationSmooth({
+      x = 0,
+      y = U.pAngle(cardRot.y, 180),
+      z = U.pAngle(cardRot.z, 180)
+    })
+    card.setPositionSmooth({
+      x = zonePos.x,
+      y = -0.11,
+      z = zonePos.z
+    })
+  end
+end
+
+function Z.clearOverlay(zone)
+	zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
+end
+
+
+
 local zoneThrottle = {}
 
-function Z.syncCard(zoneGuid)
-  if zoneThrottle[zoneGuid] then return end
-  zoneThrottle[zoneGuid] = true
-  Wait.time(function() zoneThrottle[zoneGuid] = nil end, 0.5)
-  Wait.time(function() Z.alignCard(zoneGuid) end, 0.25)
+function Z.syncCard(zone)
+  if zoneThrottle[zone.guid] then return end
+	if not Z.hasCard(zone) then return Z.clearOverlay(zone) end
+
+	zoneThrottle[zone.guid] = true
+  Wait.time(function() zoneThrottle[zone] = nil end, 1)
+  Wait.time(function() Z.alignCard(zone) end, 0.25)
 
   local gameState = Global.getTable("gameState")
-  local round = gameState.round
-  local zone = getZone(zoneGuid)
-  if Z.hasCard(zoneGuid) then
-    -- broadcastToColor("Syncing Card", "Red", "Yellow")
-    local card = Z.getCard(zoneGuid)
-    Wait.time(function() Z.alignCard(zoneGuid) end, 0.25)
-    if round == 0 then return end
-    local overlayPanelColor = "clear"
-    local isExhaustionActive = XML.ExhaustionOverlay(zoneGuid)
-    local isSuspicionActive = "false"
-    if isCheckingSuspicion then
-      isSuspicionActive = XML.SuspicionOverlay(zoneGuid)
-      if isSuspicionActive == "true" then
-        card.highlightOn("White")
-        isExhaustionActive = "false"
-      else
-        card.highlightOff()
-        if isCheckingSuspicion then
-          overlayPanelColor = "rgba(0, 0, 0, 0.98)"
-          isExhaustionActive = "false"
-        end
-      end
-    else
-      card.highlightOff()
-    end
+  if gameState.round == 0 then return Z.clearOverlay(zone) end
 
+  local overlayPanelColor = "clear"
 
-    local XMLData = {
-      { tag = "Panel",
-        attributes = {class = "overlay",
-          height = "100",
-          padding = "0 0 0 0",
-          position = "0 0 15",
-          rotation = "0 0 0",
-          spacing = "0",
-          width = "100",
-          color = overlayPanelColor},
-        children = {
-          { tag = "Image",
-            attributes = {class = "torpor-overlay",
-              image = "overlay-torpor",
-              color = "rgba(1,1,1,0.95)",
-              active = XML.TorporOverlay(zoneGuid)
-            },
-            children = {} },
-          { tag = "Image",
-            attributes = {class = "exhaustion-overlay",
-              image = "overlay-exhaustion",
-              color = "rgba(1,1,1,0.95)",
-              active = isExhaustionActive
-            },
-            children = {} },
-          { tag = "Image",
-            attributes = {class = "suspicious-overlay",
-              -- image = "overlay-exhaustion",
-              -- color = "rgba(1,1,0,0.95)",
-              image = "overlay-suspicion",
-              active = isSuspicionActive
-            },
-            children = {} },
-          { tag = "Image",
-            attributes = {class = "enemy-overlay",
-              image = "overlay-enemy",
-              active = XML.EnemyOverlay(zoneGuid)
-            },
-            children = {} },
-          { tag = "Image",
-            attributes = {class = "monstrosity-overlay",
-              image = "overlay-monstrosity",
-              active = XML.MonstrosityOverlay(zoneGuid)
-            },
-            children = {} }
-        } }
-      }
+	local overlayStatus = {}
+	overlayStatus.torpor = Z.isTorpored(zone)
+	if (overlayStatus.torpor) then
+		Z.burnAnkhs(zone)
+	end
+	-- if vamp is torpored and has ankhs on it, burn those ankhs via BGE
+	overlayStatus.suspicion = isCheckingSuspicion and Z.countInfamy(zone) == maxInfamy
+	overlayStatus.exhaustion = not isCheckingSuspicion and not overlayStatus.torpor and gameState.round < 10 and Z.isExhausted(zone)
+
+  local card = Z.getCard(zone)
+	if isCheckingSuspicion then
+		if overlayStatus.suspicion then
+			card.highlightOn("White")
+		else
+			overlayPanelColor = "rgba(0, 0, 0, 0.98)"
+		end
+	else
+		card.highlightOff()
+	end
+
+	local XMLData = {
+		{ tag = "Panel",
+			attributes = {class = "overlay",
+				height = "100",
+				padding = "0 0 0 0",
+				position = "0 0 15",
+				rotation = "0 0 0",
+				spacing = "0",
+				width = "100",
+				color = overlayPanelColor},
+			children = {
+				{ tag = "Image",
+					attributes = {class = "torpor-overlay",
+						image = "overlay-torpor",
+						color = "rgba(1,1,1,0.95)",
+						active = parseBool(overlayStatus.torpor)
+					},
+					children = {} },
+				{ tag = "Image",
+					attributes = {class = "exhaustion-overlay",
+						image = "overlay-exhaustion",
+						color = "rgba(1,1,1,0.95)",
+						active = parseBool(overlayStatus.exhaustion)
+					},
+					children = {} },
+				{ tag = "Image",
+					attributes = {class = "suspicious-overlay",
+						-- image = "overlay-exhaustion",
+						-- color = "rgba(1,1,0,0.95)",
+						image = "overlay-suspicion",
+						active = parseBool(overlayStatus.suspicion)
+					},
+					children = {} },
+				-- { tag = "Image",
+				-- 	attributes = {class = "enemy-overlay",
+				-- 		image = "overlay-enemy",
+				-- 		active = XML.EnemyOverlay(zone)
+				-- 	},
+				-- 	children = {} },
+				-- { tag = "Image",
+				-- 	attributes = {class = "monstrosity-overlay",
+				-- 		image = "overlay-monstrosity",
+				-- 		active = XML.MonstrosityOverlay(zone)
+				-- 	},
+				-- children = {} }
+			} }
+		}
 
     if isShowingScores then
 
-      local infamyValue = Z.countInfamy(zoneGuid)
-      local powerValue = Z.countPower(zoneGuid)
-      local boonsValue = Z.countBoons(zoneGuid)
+      local infamyValue = Z.countInfamy(zone)
+      local powerValue = Z.countPower(zone)
+      local boonsValue = Z.countBoons(zone)
       local totalValue = powerValue + boonsValue - infamyValue
 
       if infamyValue == 0 then infamyValue = "" else infamyValue = "-" .. infamyValue end
@@ -500,12 +455,56 @@ function Z.syncCard(zoneGuid)
           -- }
         }
         })
-    end
 
     zone.UI.setXmlTable(XMLData)
   else
     zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
   end
 end
+
+function Z.discardTorporedVamps()
+	local discardPos = getObjectFromGUID(G.decks.characterDiscardSpot).getPosition()
+	discardPos.y = discardPos.y + 1
+	for _, zone in pairs(Z.getPlayerZones()) do
+		if (Z.isTorpored(zone)) then
+			for _, obj in pairs(Z.getTaggedZoneObjects(zone, {"Power", "Infamy", "ExhaustTorpor"})) do
+				obj.destruct()
+			end
+			U.forEach(Z.getBoons(zone), function(boon)
+				local boonClan = string.gsub(boon.getName(), " Boon", "")
+				local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[boonClan])
+				clanChest.putObject(boon)
+			end)
+			Z.getCard(zone).setPosition(discardPos)
+			Wait.time(function() Z.clearOverlay(zone) end, 0.5)
+		end
+	end
+end
+
+function Z.returnAnkhs(dir, isAwardingPower)
+	if isAwardingPower == nil then isAwardingPower = true end
+  local gameState = Global.getTable("gameState")
+  if gameState.round > 9 then isAwardingPower = false end
+
+	for _, zone in pairs(Z.getPlayerZones()) do
+		local returningAnkhs = Z.getAnkhs(zone, dir)
+		U.forEach(returningAnkhs, function(obj) BGE.sendAnkhHome(obj) end)
+		if (isAwardingPower and #ankhObjs > 0) then
+			local powerBox = getObjectFromGUID(G.tokenSources.power);
+			local powerPos = zone.getPosition()
+			powerPos.y = powerPos.y + 1
+			powerBox.takeObject({
+				index = 1,
+				smooth = false,
+				position = powerPos
+			})
+		end
+	end
+end
+
+function Z.burnAnkhs(zone)
+	U.forEach(Z.getAnkhs(zone), function(ankh) BGE.burnAnkh(ankh) end)
+end
+
 
 return Z

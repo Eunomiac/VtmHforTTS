@@ -213,6 +213,18 @@ function U.concat(t1,t2)
     return t1
 end
 
+function U.flatten(tb)
+	local newTable = {}
+	for _, val in pairs(tb) do
+		if type(val) == "table" then
+			U.concat(newTable, U.flatten(val))
+		else
+			table.insert(newTable, val)
+		end
+	end
+	return newTable
+end
+
 function U.find(tb, func)
   for k,v in pairs(tb) do
     if (func(v,k)) then return v end
