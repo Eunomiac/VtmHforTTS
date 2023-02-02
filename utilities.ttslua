@@ -1,5 +1,7 @@
 local U = {}
 
+local ISDEBUGGING = false
+
 function U.pFloat(num)
     if (num) then
         return math.ceil(num * 100) / 100
@@ -11,7 +13,7 @@ function U.pAngle(num, interval)
   if not interval then interval = 45 end
   return math.floor((num / interval) + 0.5) * interval
 end
--- ISDEBUGGING = true
+
 function U.findAboveObject(obj, type)
     local objBounds = obj.getBounds()
     objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) - 2.5
@@ -66,7 +68,7 @@ function U.findOnObject(baseObj, type, cast)
     return refinedList
 end
 
-function checkSnapPoint(snapPoint, axis, coordsFilter)
+local function checkSnapPoint(snapPoint, axis, coordsFilter)
     if (snapPoint and snapPoint.position) then
         if (axis and coordsFilter[axis]) then
             local snapPos = math.ceil(snapPoint.position[axis] * 10) / 10
@@ -259,6 +261,7 @@ function U.isFlipped(obj)
   return zRot == 180
 end
 
+local isSplashActive = false
 function SplashMessageTo(visibilityTargets, messageData, delay)
     if (not delay) then
         delay = 5
@@ -282,7 +285,6 @@ function SplashMessageTo(visibilityTargets, messageData, delay)
         )
     end
 end
-local isSplashActive = false
 function U.splashMessage(title, subtitle, body)
     if (isSplashActive) then
         Wait.time(

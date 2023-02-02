@@ -1,5 +1,6 @@
 local U = require("utilities")
 local G = require("guids")
+local Z = require("zones")
 
 local BGE = {}
 
@@ -11,25 +12,29 @@ local function parseAnkhPos(ankhObj)
 end
 
 function BGE.sendAnkhHome(ankhObj)
-	ankhObj.setPosition(parseAnkhPos(ankhObj))
-	ankhObj.setRotation({x = 13, y = 180, z = 180})
-end
-
-local testObjs = U.filter(getObjects(), function(obj) return obj.hasTag("Ankh") end)
-for _, obj in pairs(testObjs) do
-	obj.setPosition(parseAnkhPos(obj))
+	ankhObj.setPositionSmooth(parseAnkhPos(ankhObj))
+	ankhObj.setRotationSmooth({x = 13, y = 180, z = 180})
 end
 
 function BGE.countCityAnkhs(dir)
-
+	local cityZone = getObjectFromGUID(G.zones.bgEZones[dir])
+	return #Z.getTaggedZoneObjects(cityZone, {dir})
 end
 
-function BGE.countFireAnkhs(dir)
-
+function BGE.getBurnedAnkhs(dir)
+	local fireZone = getObjectFromGUID(G.zones.bgEZones.Fire)
+	local ankhObjs = U.filter(fireZone.getObjects(), function(obj) return obj.hasTag(dir) end)
+	-- log({burnedAnkhs = ankhObjs})
+	return ankhObjs
 end
 
-function BGE.countUnburnedAnkhs(dir)
+function BGE.countBurnedAnkhs(dir) return #BGE.getBurnedAnkhs(dir) end
 
+function BGE.getUnburnedAnkhs(dir)
+	local burnedGUIDs = U.map(BGE.getBurnedAnkhs(dir), function(ankhObj) return ankhObj.guid end)
+	return U.filter(getObjectsWithAllTags({"Ankh", dir}), function(ankhObj)
+		return not U.isIn(ankhObj.guid, burnedGUIDs)
+	end)
 end
 
 function BGE.burnAnkh(ankhObj)
@@ -43,9 +48,10 @@ function BGE.burnAnkh(ankhObj)
 		y = 180 + math.random(-30, 30),
 		z = 180
 	}
-	ankhObj.setPosition(burnPos)
+
+	ankhObj.highlightOn({1,0,0}, 5)
+	ankhObj.setPositionSmooth(burnPos)
 	ankhObj.setRotation(burnRot)
-	-- Now count number of ankhs in fire: if there are three, find and burn the last
 end
 
 

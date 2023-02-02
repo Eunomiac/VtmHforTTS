@@ -189,54 +189,54 @@ function SetupPlayerSpace(color, clan, politicsToken)
 end
 -- end
 
-function populate_queue()
-    local charCards = U.findOnObject(self, "Card", charQueueCast)
+-- function Populate_Queue()
+--     local charCards = U.findOnObject(self, "Card")
 
-    local charCardData = {}
-    for _, card in ipairs(charCards) do
-        local cardData = {
-            card = card,
-            position = U.pFloat(self.positionToLocal(card.getPosition()).x),
-            facing = "FaceDown"
-        }
-        if (card.getRotation().z < 90) then
-            cardData.facing = "FaceUp"
-        end
-        cardData.snapSlot = U.findSnapPoint(charQueueSnapPoints, {x = cardData.position, z = nil})
-        table.insert(charCardData, cardData)
-    end
+--     local charCardData = {}
+--     for _, card in ipairs(charCards) do
+--         local cardData = {
+--             card = card,
+--             position = U.pFloat(self.positionToLocal(card.getPosition()).x),
+--             facing = "FaceDown"
+--         }
+--         if (card.getRotation().z < 90) then
+--             cardData.facing = "FaceUp"
+--         end
+--         -- cardData.snapSlot = U.findSnapPoint(charQueueSnapPoints, {x = cardData.position, z = nil})
+--         table.insert(charCardData, cardData)
+--     end
 
-    local function cardPosCompare(a,b) return a.position < b.position end
-    table.sort(charCardData, cardPosCompare)
+--     local function cardPosCompare(a,b) return a.position < b.position end
+--     table.sort(charCardData, cardPosCompare)
 
-    local waitTime = 0
-    local curSlot = 5
+--     local waitTime = 0
+--     local curSlot = 5
 
-    while (curSlot > 0) do
-        local thisSnapPoint = charQueueSnapPoints[curSlot]
-        if (U.count(charCardData) > 0) then
-            local thisCard = table.remove(charCardData, 1)
-            if (thisCard.snapSlot ~= curSlot) then
-                Wait.time(function() shiftCardQueue(thisCard.card.setPositionSmooth(
-                    self.positionToWorld(thisSnapPoint.position), false, false
-                )) end, waitTime)
-                waitTime = waitTime + 0.25
-            end
-        else
-            Wait.time(function() DealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
-            waitTime = waitTime + 0.25
-        end
-        curSlot = curSlot - 1
-    end
-end
+--     while (curSlot > 0) do
+--         -- local thisSnapPoint = charQueueSnapPoints[curSlot]
+--         if (U.count(charCardData) > 0) then
+--             local thisCard = table.remove(charCardData, 1)
+--             if (thisCard.snapSlot ~= curSlot) then
+--                 -- Wait.time(function() shiftCardQueue(thisCard.card.setPositionSmooth(
+--                 --     self.positionToWorld(thisSnapPoint.position), false, false
+--                 -- )) end, waitTime)
+--                 waitTime = waitTime + 0.25
+--             end
+--         else
+--             Wait.time(function() DealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
+--             waitTime = waitTime + 0.25
+--         end
+--         curSlot = curSlot - 1
+--     end
+-- end
 
-function DealCardQueue(position)
-    position = self.positionToWorld(position)
-    characterDeck.takeObject({
-        position = position,
-        flip = true
-    })
-end
+-- function DealCardQueue(position)
+--     position = self.positionToWorld(position)
+--     characterDeck.takeObject({
+--         position = position,
+--         flip = true
+--     })
+-- end
 
     -- Reference Card
 

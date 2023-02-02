@@ -12,8 +12,8 @@ function parseCode(val, isIncludingTraits)
 end
 -- *** GAME STATE ***
 
-local isLoaded = false
-function onLoad() isLoaded = true end
+-- local isLoaded = false
+-- function onLoad() isLoaded = true end
 
 function M.refreshStateDebug(stateData)
   if (stateData == nil) then
@@ -21,7 +21,7 @@ function M.refreshStateDebug(stateData)
   end
   -- stateData.traits = nil
   -- stateData.traits.Yellow[1].Wealth = 0
-  -- H.setGameState(stateData)
+  -- M.setGameState(stateData)
   UI.setValue("debugState", parseCode(stateData))
   UI.setValue("debugTraitsRed", JSON.encode_pretty(stateData.traits.Red))
   UI.setValue("debugTraitsYellow", JSON.encode_pretty(stateData.traits.Yellow))
@@ -582,6 +582,7 @@ function M.advanceRound()
     end, 3)
     return
   end
+	Wait.time(function() M.highlightBattlegrounds() end, 2)
   local lastRoundFirstPlayer = M.getRoundFirstPlayer()
   UI.setValue("roundOverNoticeText", "End of Round " .. round)
   if (roundsLeft == 1) then
@@ -714,8 +715,8 @@ function M.gameSETUP()
      chapterCard.setRotationSmooth({x=19.28, y=180, z=180})
 
      -- Populate character queue and missions
-     getObjectFromGUID("afb371").call("populate_queue")
-     getObjectFromGUID("afb371").call("populate_missions")
+     getObjectFromGUID("afb371").call("Populate_Queue")
+     getObjectFromGUID("afb371").call("Populate_Missions")
    end, waitTime)
 
    U.forEach({"Red", "Yellow", "Blue"}, function(color)
@@ -851,6 +852,7 @@ function M.initializeClanLeader(col)
   else
     moralityRotation.z = 180
   end
+	moralityToken.setPosition(moralityPosition)
   moralityToken.setRotation(moralityRotation)
   leaderName = string.gsub(leaderName, ":.", "")
   local schemesDeck = getSchemesDeck(col)
@@ -946,15 +948,8 @@ function M.gameSTART()
 		M.removeUnusedClanRefs()
     M.determineTurnOrder(M.syncTurnOrder)
 end
-function M.gameSCORE()
-  M.showVictoryBoard()
-  scoreBloodlines()
-  M.recallSchemeDiscard()
-  M.recallStrandsOfTime()
-end
-
-function scoreBloodlines()
-  Z.toggleScoresOverlay(true)
+local function scoreBloodlines()
+  Z.showScores()
   local waitStep = 2
   UI.show("scoreAlert")
   for i, color in pairs({"Red", "Yellow", "Blue"}) do
@@ -965,14 +960,19 @@ function scoreBloodlines()
     end, waitStep * (i - 1))
   end
 end
-
-function hideBloodlinesScore()
-  Z.toggleScoresOverlay(false)
+local function hideBloodlinesScore()
+  Z.hideScores()
   UI.hide("scoreAlert")
   for _, color in pairs({"Red", "Yellow", "Blue"}) do
     UI.hide(color .. "Score")
     Wait.time(function() UI.setValue(color .. "Score", "") end, 1)
   end
+end
+function M.gameSCORE()
+  M.showVictoryBoard()
+  scoreBloodlines()
+  M.recallSchemeDiscard()
+  M.recallStrandsOfTime()
 end
 
 function M.recallSchemeDiscard()
@@ -1171,7 +1171,7 @@ function M.clearPlayerZones(clearanceLevel)
   if clearanceLevel == 3 then
     clearAllTokens()
   end
-	Wait.time(function() Z.refreshOverlays() end, 1)
+	Wait.time(function() Z.refreshUI() end, 1)
 end
 
 function clearAllTokens()
@@ -1182,6 +1182,11 @@ function clearAllTokens()
   end), function(obj) obj.destruct() end)
 end
 
+function M.highlightBattlegrounds()
+	for _, loc in pairs({"left", "center", "right"}) do
+		M.setHighlighter("BGIndicator", "active", loc)
+	end
+end
 
 -- *** GAME STATE VALUE CONTROL ***
 
@@ -1255,12 +1260,6 @@ function M.syncState()
       else
         -- UI.hide("setupReminder")
         UI.hide("clanChoiceAlert")
-      end
-
-      if (round == 10) then
-        -- UI.show("aftermathReminder")
-      else
-        -- UI.hide("aftermathReminder")
       end
 
       if (round >= 1 and round <= 9) then

@@ -1,27 +1,131 @@
-local M = require("main")
+-- local M = require("main")
 local G = require("guids")
 local U = require("utilities")
-local C = require("constants")
+-- local C = require("constants")
 local BGE = require("bgE")
 
 local Z = {}
-local isShowingScores = false
+
+local uiData = {}
+local maxInfamy = 0
+local isCheckingSuspicion = false
 
 local function parseBool(bool) if bool then return "true" else return "false" end end
 
+function Z.dimBattleground(zone)
+	local function dimBG(loc)
+		local highlighter = getObjectFromGUID(G.highlighters.bgIndicator[loc])
+		highlighter.setPosition(G.tableSpots.highlighters.bgIndicator[loc].inactive)
+		highlighter.setInvisibleTo({"Red", "Blue", "Yellow"})
+	end
+	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then
+		dimBG("left")
+	elseif U.isIn(zone.guid, G.zones.battlegroundZones.center) then
+		dimBG("center")
+	elseif U.isIn(zone.guid, G.zones.battlegroundZones.right) then
+		dimBG("right")
+	end
+end
 
--- local function getZone(zoneID) return getObjectFromGUID(zoneID) end
--- local function getCardSpot(zoneGuid) return Z.getCardSpots(zoneGuid)[1] end
+-- *** Events ***
 
 
--- function Z.logObjects(zoneID)
---   log(U.map(getZone(zoneID).getObjects(), function(obj) return obj.type end))
--- end
 
--- function Z.getCardSpots(zoneGuid)
---   local zone = getZone(zoneGuid)
---   return U.filter(zone.getObjects(), function(obj) return obj.type == "Block" and string.find(obj.getName(), "Leader") end)
--- end
+--
+
+local zoneThrottle = {}
+local function throttleZone(zone, func, delay)
+	if delay == nil then delay = 0.4 end
+	zoneThrottle[zone.guid] = true
+	Wait.time(function()
+		func()
+		zoneThrottle[zone.guid] = nil
+	end, delay)
+end
+
+local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
+
+function Z.onObjectEnterZone(zone, object)
+	if isThrottled(zone) then return end
+	if Z.isPlayerCardZone(zone) then
+		throttleZone(zone, function()
+			Z.alignCard(zone)
+			Z.refreshUI(zone)
+			if object.type == "Card" then
+				getObjectFromGUID(G.charQueue).call("Populate_Queue")
+			end
+		end)
+	elseif Z.isTokenClearZone(zone) then
+		if object.hasTag("Power") or object.hasTag("Infamy") or object.hasTag("ExhaustTorpor") then
+			object.destruct()
+		end
+	elseif Z.isBattlegroundZone(zone) then
+		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+			Z.dimBattleground(zone)
+		end
+		if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
+			local dir
+			if object.hasTag("North") then dir = "North"
+			elseif object.hasTag("South") then dir = "South"
+			elseif object.hasTag("East") then dir = "East"
+			elseif object.hasTag("West") then dir = "West"
+			end
+
+			-- Count ankhs in fire. If there are three, burn the fourth and announce it.
+			if BGE.countBurnedAnkhs(dir) == 3 then
+				if dir == "North" then
+					UI.setAttributes("anarchRevoltText", {
+						color = "#000000",
+						outline = "#FFFFFF"
+					})
+					UI.setValue("anarchRevoltText", "London burns to the ground in the North!")
+				elseif dir == "South" then
+					UI.setAttributes("anarchRevoltText", {
+						color = "#FFFFFF",
+						outline = "#555555"
+					})
+					UI.setValue("anarchRevoltText", "Palermo burns to the ground in the South!")
+				elseif dir == "East" then
+					UI.setAttributes("anarchRevoltText", {
+						color = "#D2691E",
+						outline = "#8B4513"
+					})
+					UI.setValue("anarchRevoltText", "Prague burns to the ground in the East!")
+				else
+					UI.setAttributes("anarchRevoltText", {
+						color = "#00FFFF",
+						outline = "#008B8B"
+					})
+					UI.setValue("anarchRevoltText", "Madrid burns to the ground in the West!")
+				end
+				Wait.time(function()
+					U.splashUIElement("anarchRevoltNotice", 3)
+					local unburnedAnkh = BGE.getUnburnedAnkhs(dir)[1]
+					if unburnedAnkh then
+						BGE.burnAnkh(unburnedAnkh)
+					end
+				end, 1)
+			end
+		end
+	end
+end
+
+function Z.onObjectLeaveZone(zone, object)
+	--U.isIn(zone.guid, U.flatten(G.zones.bgEZones)) then
+	if Z.isPlayerCardZone(zone) then
+		Z.refreshUI(zone)
+	elseif Z.isCharQueueZone(zone) and object.type == "Card" then
+		local objRotation = object.getRotation()
+		object.setRotation({
+			x = U.pAngle(objRotation.x, 180),
+			y = U.pAngle(objRotation.y, 180),
+			z = U.pAngle(objRotation.z, 180)
+		})
+	elseif Z.isBattlegroundZone(zone) then
+		Z.dimBattleground(zone)
+	end
+end
+
 function Z.getPlayerZones(color)
 	if color == nil then
 		return U.map(G.zones.allPlayer, function(zoneID) return getObjectFromGUID(zoneID) end)
@@ -32,12 +136,18 @@ end
 
 -- *** Zone Type Checking ***
 function Z.isPlayerCardZone(zone) return U.isIn(zone.guid, G.zones.allPlayer) end
+
 function Z.isTokenClearZone(zone) return U.isIn(zone.guid, G.zones.clearZones) end
+
+function Z.isBattlegroundZone(zone) return U.isIn(zone.guid, U.flatten(G.zones.battlegroundZones)) end
+
+function Z.isCharQueueZone(zone) return zone.guid == G.zones.charQueueArea end
 
 -- *** Zone Object Retrieval ***
 function Z.getZoneObjects(zone, objType)
-	return U.filter(zone.getObjects(true), function (obj) return obj.type == objType end)
+	return U.filter(zone.getObjects(true), function(obj) return obj.type == objType end)
 end
+
 function Z.getTaggedZoneObjects(zone, tags, requireAll)
 	local zoneObjs = zone.getObjects()
 	if type(tags) == "string" then return U.filter(zoneObjs, function(obj) return obj.hasTag(tags) end) end
@@ -61,6 +171,7 @@ function Z.getTaggedZoneObjects(zone, tags, requireAll)
 end
 
 function Z.getCard(zone) return Z.getZoneObjects(zone, "Card")[1] end
+
 function Z.hasCard(zone) return Z.getCard(zone) ~= nil end
 
 function Z.getDeck(zone) return Z.getZoneObjects(zone, "Deck")[1] end
@@ -71,34 +182,42 @@ function Z.getClanLeader(color)
 end
 
 function Z.getAnkhs(zone, dir)
-	return Z.getTaggedZoneObjects(zone, {"Ankh", dir}, true)
+	return Z.getTaggedZoneObjects(zone, { "Ankh", dir }, true)
 end
 
 function Z.getPowerTokens(zone) return Z.getTaggedZoneObjects(zone, "Power") end
-function Z.getInfamyTokens(zone) return Z.getTaggedZoneObjects(zone, "Power") end
+
+function Z.getInfamyTokens(zone) return Z.getTaggedZoneObjects(zone, "Infamy") end
+
 function Z.getBoons(zone) return Z.getTaggedZoneObjects(zone, "Boon") end
+
 local function getExhaustionTorporTokens(zone) return Z.getTaggedZoneObjects(zone, "ExhaustTorpor") end
+
 function Z.getExhaustionTokens(zone)
 	return U.filter(getExhaustionTorporTokens(zone), function(token) return not U.isFlipped(token) end)
 end
+
 function Z.getTorporTokens(zone)
 	return U.filter(getExhaustionTorporTokens(zone), function(token) return U.isFlipped(token) end)
 end
 
+-- *** Zone Status Checking ***
 function Z.isTorpored(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getTorporTokens(zone) > 0 end
+
 function Z.isExhausted(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getExhaustionTokens(zone) > 0 end
 
 function Z.countPower(zone, isCountingTorpored)
 	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
-		if not isCountingTorpored or not Z.isTorpored(zone) then
+		if isCountingTorpored or not Z.isTorpored(zone) then
 			return #Z.getPowerTokens(zone)
 		end
 	end
 	return 0
 end
+
 function Z.countInfamy(zone, isCountingTorpored)
 	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
-		if not isCountingTorpored or not Z.isTorpored(zone) then
+		if isCountingTorpored or not Z.isTorpored(zone) then
 			if string.find(Z.getCard(zone).getDescription(), "IgnoreInfamyVP") then
 				local gameState = Global.getTable("gameState")
 				if gameState.round == 10 then return 0 end
@@ -108,15 +227,17 @@ function Z.countInfamy(zone, isCountingTorpored)
 	end
 	return 0
 end
+
 function Z.countBoons(zone, isCountingTorpored)
 	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
-		if not isCountingTorpored or not Z.isTorpored(zone) then
+		if isCountingTorpored or not Z.isTorpored(zone) then
 			return #Z.getBoons(zone)
 		end
 	end
 	return 0
 end
 
+-- *** Scoring Bloodline ***
 function Z.scoreZone(zone) return Z.countPower(zone) + Z.countBoons(zone) - Z.countInfamy(zone) end
 
 function Z.scoreBloodline(color)
@@ -127,28 +248,378 @@ function Z.scoreBloodline(color)
 	return scoreTotal
 end
 
-function Z.toggleScoresOverlay(isShowing)
-  if isShowing == nil then
-    isShowingScores = not isShowingScores
-  else
-    isShowingScores = isShowing
-  end
-  Z.refreshOverlays()
+-- *** Overlays ***
+local function initXML(zone)
+	if uiData[zone.guid] == nil then uiData[zone.guid] = {} end
 end
 
-function Z.refreshOverlays()
-	for _, zone in pairs(Z.getPlayerZones()) do
-		if Z.hasCard(zone) then
-			Z.syncCard(zone)
-		else
-			zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
+local function getStatusXML(statusData)
+	local XML = {
+		tag = "Panel",
+		attributes = {
+			class = "overlay",
+			height = "100",
+			padding = "0 0 0 0",
+			position = "0 0 15",
+			rotation = "0 0 0",
+			spacing = "0",
+			width = "100",
+			color = statusData.color
+		},
+		children = {}
+	}
+
+	if statusData.torpor then
+		table.insert(XML.children, {
+			tag = "Image",
+			attributes = {
+				class = "torpor-overlay",
+				image = "overlay-torpor",
+				color = "rgba(1,1,1,0.95)"
+			},
+			children = {}
+		})
+	elseif statusData.exhaustion then
+		table.insert(XML.children, {
+			tag = "Image",
+			attributes = {
+				class = "exhaustion-overlay",
+				image = "overlay-exhaustion",
+				color = "rgba(1,1,1,0.95)"
+			},
+			children = {}
+		})
+	end
+
+	if statusData.suspicion then
+		table.insert(XML.children, {
+			tag = "Image",
+			attributes = {
+				class = "suspicious-overlay",
+				image = "overlay-suspicion"
+			},
+			children = {}
+		})
+	end
+
+	return XML
+end
+
+local function getScoreXML(scoreData)
+
+	scoreData.totalValue = scoreData.power + scoreData.boons - scoreData.infamy
+
+	if scoreData.boons == 0 then
+		scoreData.boons = ""
+	elseif scoreData.power > 0 then
+		scoreData.boons = "+" .. scoreData.boons
+	end
+	if scoreData.power == 0 then scoreData.power = "" end
+	if scoreData.infamy == 0 then scoreData.infamy = "" else scoreData.infamy = "-" .. scoreData.infamy end
+	if scoreData.totalValue == 0 then
+		scoreData.totalValue = "~"
+		if scoreData.infamy == "" and scoreData.power == "" and scoreData.boons == "" then
+			return {
+				tag = "Panel",
+				attributes = {
+					class = "main",
+					height = "300",
+					padding = "0 0 0 0",
+					pivot = "0.5 0",
+					position = "0 5 -300",
+					rotation = "-85 0 0",
+					spacing = "1",
+					width = "100",
+					outline = "#000000",
+					outlineSize = "10",
+					color = "rgba(0, 0, 0, 0.5)",
+					childForceExpandHeight = "true",
+					childForceExpandWidth = "true"
+				},
+				children = {
+					{
+						tag = "Panel",
+						attributes = {
+							class = "totalPanel",
+							height = "150",
+							rectAlignment = "MiddleCenter",
+							width = "100",
+							 ignoreLayout = "true",
+							flexibleWidth="0",
+							flexibleHeight="0",
+							childForceExpandWidth="false",
+							childForceExpandHeight="false"
+						},
+						children = {
+							{
+								tag = "Text",
+								value = scoreData.totalValue,
+									attributes = {
+										id="totalCount",
+										class = "totalCount",
+										scale = "1.5 3 1.5",
+										color = "#FFFFFF",
+										fontSize = "40",
+										fontStyle = "Bold",
+										outline = "#FF0000",
+										flexibleHeight="0",
+										flexibleWidth="0"
+									},
+								children = {}
+							}
+						}
+					}
+				}
+			}
 		end
+	end
+
+	return {
+		tag = "Panel",
+		attributes = {
+			class = "main",
+			height = "300",
+			padding = "0 0 0 0",
+			pivot = "0.5 0",
+			position = "0 5 -300",
+			rotation = "-85 0 0",
+			spacing = "1",
+			width = "100",
+			outline = "#000000",
+			outlineSize = "10",
+			color = "rgba(0.2, 0, 0, 0.5)",
+			childForceExpandHeight = "true",
+			childForceExpandWidth = "true"
+		},
+		children = {
+			{
+				tag = "Panel",
+				attributes = {
+					class = "powerPanel",
+					height = "100",
+					rectAlignment = "UpperLeft",
+					width = "30"
+				},
+				children = {
+					{
+						tag = "Text",
+						value = scoreData.power,
+						attributes = {
+							rectAlignment = "UpperRight",
+							height = "50",
+							class = "powerCount",
+							scale = "1 4 1",
+							color = "#FF0000",
+							fontSize = "25",
+							fontStyle = "Bold",
+							outline = "#660000",
+							id = "powerCount",
+							flexibleHeight = "0",
+							flexibleWidth = "0"
+						},
+						children = {}
+					}
+				}
+			},
+			{
+				tag = "Panel",
+				attributes = {
+					class = "boonPanel",
+					height = "100",
+					rectAlignment = "UpperCenter",
+					width = "30"
+				},
+				children = {
+					{
+						tag = "Text",
+						value = "" .. scoreData.boons,
+						attributes = {
+							rectAlignment = "UpperCenter",
+							height = "50",
+							class = "boonCount",
+							scale = "1 4 1",
+							color = "#DDDDDD",
+							fontSize = "25",
+							fontStyle = "Bold",
+							outline = "#999999",
+							id = "boonCount",
+							flexibleHeight = "0",
+							flexibleWidth = "0"
+						},
+						children = {}
+					}
+				}
+			},
+			{
+				tag = "Panel",
+				attributes = {
+					class = "infamyPanel",
+					height = "100",
+					rectAlignment = "UpperRight",
+					width = "35"
+				},
+				children = {
+					{
+						tag = "Text",
+						value = scoreData.infamy,
+						attributes = {
+							rectAlignment = "UpperLeft",
+							height = "50",
+							class = "infamyCount",
+							scale = "1 4 1",
+							color = "#FFFF00",
+							fontSize = "25",
+							fontStyle = "Bold",
+							outline = "#555500",
+							id = "infamyCount",
+							flexibleHeight = "0",
+							flexibleWidth = "0"
+						},
+						children = {}
+					}
+				}
+			},
+			{
+				tag = "Panel",
+			  attributes = {
+			    class = "totalPanel",
+			    height = "150",
+			    rectAlignment = "LowerCenter",
+			    width = "100",
+					 ignoreLayout = "true",
+			    flexibleWidth="0",
+			    flexibleHeight="0",
+			    childForceExpandWidth="false",
+			    childForceExpandHeight="false"},
+			  children = {
+			    {
+						tag = "Text",
+			      value = scoreData.totalValue,
+			        attributes = {
+			          id="totalCount",
+			          class = "totalCount",
+								scale = "1.5 3 1.5",
+			          color = "#FFFFFF",
+			          fontSize = "40",
+			          fontStyle = "Bold",
+			          outline = "#FF0000",
+			          flexibleHeight="0",
+			          flexibleWidth="0"
+			        },
+			      children = {}
+					}
+			  }
+			}
+		}
+	}
+end
+
+local function refreshStatusXML(zone)
+	local gameState = Global.getTable("gameState")
+	if gameState.round == 0 then
+		uiData[zone.guid].statusXML = nil
+		return
+	end
+
+	local statusData = {
+		torpor = Z.isTorpored(zone),
+		exhaustion = false,
+		suspicion = false,
+		enemy = false,
+		monstrosity = false,
+		color = "clear"
+	}
+
+	if statusData.torpor then
+		Z.burnAnkhs(zone)
+	end
+
+	if gameState.round <= 9 and isCheckingSuspicion and not statusData.torpor then
+		statusData.exhaustion = false
+		if Z.countInfamy(zone) == maxInfamy then
+			Z.getCard(zone).highlightOn({ 1, 1, 1 })
+			statusData.suspicion = true
+		else
+			Z.getCard(zone).highlightOff()
+			statusData.color = "rgba(0, 0, 0, 0.98)"
+			statusData.suspicion = false
+		end
+	else
+		Z.getCard(zone).highlightOff()
+		statusData.suspicion = false
+		statusData.exhaustion = not statusData.torpor and gameState.round < 10 and Z.isExhausted(zone)
+	end
+
+	uiData[zone.guid].statusXML = getStatusXML(statusData)
+end
+
+local function refreshScoreXML(zone)
+	-- ONLY if one has already been set
+	if uiData[zone.guid].scoreXML == nil then return end
+
+	local scoreData = {
+		power = Z.countPower(zone),
+		infamy = Z.countInfamy(zone),
+		boons = Z.countBoons(zone)
+	}
+
+	uiData[zone.guid].scoreXML = getScoreXML(scoreData)
+end
+
+local function refreshXML(zone)
+	if not Z.hasCard(zone) then
+		uiData[zone.guid] = {}
+		return
+	end
+	initXML(zone)
+	refreshStatusXML(zone)
+	refreshScoreXML(zone)
+end
+
+local function refreshUI(zone)
+	refreshXML(zone)
+	if not uiData[zone.guid].statusXML and not uiData[zone.guid].scoreXML then
+		zone.UI.setXml("")
+		return
+	end
+	local XML = {}
+	if uiData[zone.guid].statusXML then
+		table.insert(XML, uiData[zone.guid].statusXML)
+	end
+	if uiData[zone.guid].scoreXML then
+		table.insert(XML, uiData[zone.guid].scoreXML)
+	end
+
+	zone.UI.setXmlTable(XML)
+end
+
+function Z.refreshUI(zone)
+	if zone == nil then
+		for _, z in pairs(Z.getPlayerZones()) do
+			refreshUI(z)
+		end
+	else
+		refreshUI(zone)
 	end
 end
 
+function Z.showScores()
+	for _, zone in pairs(Z.getPlayerZones()) do
+		initXML(zone)
+		uiData[zone.guid].scoreXML = {}
+	end
+	Z.refreshUI()
+end
 
-local maxInfamy = 0
-function Z.refreshMaxInfamy()
+function Z.hideScores()
+	for _, zone in pairs(Z.getPlayerZones()) do
+		initXML(zone)
+		uiData[zone.guid].scoreXML = nil
+	end
+	Z.refreshUI()
+end
+
+local function refreshMaxInfamy()
 	maxInfamy = 0
 	for _, zone in pairs(Z.getPlayerZones()) do
 		local infamyCount = Z.countInfamy(zone)
@@ -157,309 +628,33 @@ function Z.refreshMaxInfamy()
 		end
 	end
 end
-
-local isCheckingSuspicion = false
-function Z.checkSuspicion()
-  isCheckingSuspicion = true
-	Z.refreshMaxInfamy()
-	Z.refreshOverlays()
+function Z.showSuspicion()
+	isCheckingSuspicion = true
+	refreshMaxInfamy()
+	Z.refreshUI()
 end
-
 function Z.hideSuspicion()
-  isCheckingSuspicion = false
+	isCheckingSuspicion = false
 	maxInfamy = 0
-	Z.refreshOverlays()
+	Z.refreshUI()
 end
-
-
-
-
-local XML = {
-  ExhaustionOverlay = function(zoneID)
-    if (Z.isExhausted(zoneID) and not Z.isTorpored(zoneID)) then return "true" end
-    return "false"
-  end,
-  TorporOverlay = function(zoneID)
-    if (Z.isTorpored(zoneID)) then return "true" end
-    return "false"
-  end,
-  SuspicionOverlay = function(zoneID)
-    if not isCheckingSuspicion or not Z.hasCard(zoneID) or Z.isTorpored(zoneID) then return "false" end
-    local maxCards = U.map(Z.getMaxInfamyCards(), function(card) return card.guid end)
-    local thisCard = Z.getCard(zoneID).guid
-    if U.isIn(thisCard, maxCards) then return "true" end
-    return "false"
-  end,
-  EnemyOverlay = function(zoneID)
-    return "false"
-    -- if (Z.isTorpored(zoneID)) then return "true" end
-    -- return "false"
-  end,
-  MonstrosityOverlay = function(zoneID)
-    return "false"
-    -- if (Z.isTorpored(zoneID)) then return "true" end
-    -- return "false"
-  end
-}
 
 function Z.alignCard(zone)
 	local zonePos = zone.getPosition()
-  local card = Z.getCard(zone)
-  if (card) then
+	local card = Z.getCard(zone)
+	if (card) then
 		local cardRot = card.getRotation()
-    card.setRotationSmooth({
-      x = 0,
-      y = U.pAngle(cardRot.y, 180),
-      z = U.pAngle(cardRot.z, 180)
-    })
-    card.setPositionSmooth({
-      x = zonePos.x,
-      y = -0.11,
-      z = zonePos.z
-    })
-  end
-end
-
-function Z.clearOverlay(zone)
-	zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
-end
-
-
-
-local zoneThrottle = {}
-
-function Z.syncCard(zone)
-  if zoneThrottle[zone.guid] then return end
-	if not Z.hasCard(zone) then return Z.clearOverlay(zone) end
-
-	zoneThrottle[zone.guid] = true
-  Wait.time(function() zoneThrottle[zone] = nil end, 1)
-  Wait.time(function() Z.alignCard(zone) end, 0.25)
-
-  local gameState = Global.getTable("gameState")
-  if gameState.round == 0 then return Z.clearOverlay(zone) end
-
-  local overlayPanelColor = "clear"
-
-	local overlayStatus = {}
-	overlayStatus.torpor = Z.isTorpored(zone)
-	if (overlayStatus.torpor) then
-		Z.burnAnkhs(zone)
+		card.setRotationSmooth({
+			x = 0,
+			y = U.pAngle(cardRot.y, 180),
+			z = U.pAngle(cardRot.z, 180)
+		})
+		card.setPositionSmooth({
+			x = zonePos.x,
+			y = -0.11,
+			z = zonePos.z
+		})
 	end
-	-- if vamp is torpored and has ankhs on it, burn those ankhs via BGE
-	overlayStatus.suspicion = isCheckingSuspicion and Z.countInfamy(zone) == maxInfamy
-	overlayStatus.exhaustion = not isCheckingSuspicion and not overlayStatus.torpor and gameState.round < 10 and Z.isExhausted(zone)
-
-  local card = Z.getCard(zone)
-	if isCheckingSuspicion then
-		if overlayStatus.suspicion then
-			card.highlightOn("White")
-		else
-			overlayPanelColor = "rgba(0, 0, 0, 0.98)"
-		end
-	else
-		card.highlightOff()
-	end
-
-	local XMLData = {
-		{ tag = "Panel",
-			attributes = {class = "overlay",
-				height = "100",
-				padding = "0 0 0 0",
-				position = "0 0 15",
-				rotation = "0 0 0",
-				spacing = "0",
-				width = "100",
-				color = overlayPanelColor},
-			children = {
-				{ tag = "Image",
-					attributes = {class = "torpor-overlay",
-						image = "overlay-torpor",
-						color = "rgba(1,1,1,0.95)",
-						active = parseBool(overlayStatus.torpor)
-					},
-					children = {} },
-				{ tag = "Image",
-					attributes = {class = "exhaustion-overlay",
-						image = "overlay-exhaustion",
-						color = "rgba(1,1,1,0.95)",
-						active = parseBool(overlayStatus.exhaustion)
-					},
-					children = {} },
-				{ tag = "Image",
-					attributes = {class = "suspicious-overlay",
-						-- image = "overlay-exhaustion",
-						-- color = "rgba(1,1,0,0.95)",
-						image = "overlay-suspicion",
-						active = parseBool(overlayStatus.suspicion)
-					},
-					children = {} },
-				-- { tag = "Image",
-				-- 	attributes = {class = "enemy-overlay",
-				-- 		image = "overlay-enemy",
-				-- 		active = XML.EnemyOverlay(zone)
-				-- 	},
-				-- 	children = {} },
-				-- { tag = "Image",
-				-- 	attributes = {class = "monstrosity-overlay",
-				-- 		image = "overlay-monstrosity",
-				-- 		active = XML.MonstrosityOverlay(zone)
-				-- 	},
-				-- children = {} }
-			} }
-		}
-
-    if isShowingScores then
-
-      local infamyValue = Z.countInfamy(zone)
-      local powerValue = Z.countPower(zone)
-      local boonsValue = Z.countBoons(zone)
-      local totalValue = powerValue + boonsValue - infamyValue
-
-      if infamyValue == 0 then infamyValue = "" else infamyValue = "-" .. infamyValue end
-      if powerValue == 0 then powerValue = "" end
-      if boonsValue == 0 then boonsValue = "" end
-      if infamyValue == "" and powerValue == "" and boonsValue == "" then totalValue = "~" end
-
-      table.insert(XMLData, { tag = "Panel",
-        attributes = {class = "main",
-          height = "150",
-          padding = "0 0 0 0",
-          pivot = "0.5 0",
-          position = "0 5 -50",
-          rotation = "-70 0 0",
-          spacing = "1",
-          width = "80",
-          active = totalValue ~= "",
-          color = "rgba(0, 0, 0, 0.5)",
-          childForceExpandHeight="true",
-          childForceExpandWidth="true"},
-        children = {
-          { tag = "Panel",
-            attributes = {
-              class = "powerPanel",
-              height = "40%",
-              rectAlignment = "UpperLeft",
-              width = "25%",
-              offsetXY="15 0",
-              flexibleWidth="0",
-              flexibleHeight="0",
-              childForceExpandWidth="false",
-              childForceExpandHeight="false"
-            },
-            children = {
-              { tag = "Text",
-                value = powerValue,
-                attributes = {
-                  rectAlignment = "UpperRight",
-                  height = "33%",
-                  class = "powerCount",
-                  -- scale = "0.75",
-                  color = "#FF0000",
-                  fontSize = "25",
-                  fontStyle = "Bold",
-                  outline = "#660000",
-                  id = "powerCount",
-                  flexibleHeight="0",
-                  flexibleWidth="0"
-                },
-                children = {} }
-            }
-          },
-          { tag = "Panel",
-            attributes = {
-              class = "boonPanel",
-              height = "40%",
-              rectAlignment = "UpperCenter",
-              width = "25%",
-              flexibleWidth="0",
-              flexibleHeight="0",
-              childForceExpandWidth="false",
-              childForceExpandHeight="false"
-            },
-            children = {
-              { tag = "Text",
-                value = boonsValue,
-                attributes = {
-                  rectAlignment = "UpperCenter",
-                  height = "33%",
-                  class = "boonCount",
-                  -- scale = "0.75",
-                  color = "#990000",
-                  fontSize = "25",
-                  fontStyle = "Bold",
-                  outline = "#999999",
-                  id = "boonCount",
-                  flexibleHeight="0",
-                  flexibleWidth="0"
-                },
-                children = {} }
-            }
-          },
-          { tag = "Panel",
-            attributes = {
-              class = "infamyPanel",
-              height = "40%",
-              rectAlignment = "UpperRight",
-              width = "50%",
-              offsetXY="-15 0",
-              flexibleWidth="0",
-              flexibleHeight="0",
-              childForceExpandWidth="false",
-              childForceExpandHeight="false"
-            },
-            children = {
-              { tag = "Text",
-                value = infamyValue,
-                attributes = {
-                  rectAlignment = "UpperLeft",
-                  height = "33%",
-                  class = "infamyCount",
-                  -- scale = "0.75",
-                  color = "#FFFF00",
-                  fontSize = "25",
-                  fontStyle = "Bold",
-                  outline = "#555500",
-                  id = "infamyCount",
-                  flexibleHeight="0",
-                  flexibleWidth="0"
-                },
-                children = {} }
-            }
-          }
-          -- { tag = "Panel",
-          --   attributes = {
-          --     class = "totalPanel",
-          --     height = "33%",
-          --     rectAlignment = "LowerCenter",
-          --     width = "100%",
-          --     flexibleWidth="0",
-          --     flexibleHeight="0",
-          --     childForceExpandWidth="false",
-          --     childForceExpandHeight="false"},
-          --   children = {
-          --     { tag = "Text",
-          --       value = totalValue,
-          --         attributes = {
-          --           id="totalCount",
-          --           class = "totalCount",
-          --           color = "#FFFFFF",
-          --           fontSize = "40",
-          --           fontStyle = "Bold",
-          --           outline = "#FF0000",
-          --           flexibleHeight="0",
-          --           flexibleWidth="0"
-          --         },
-          --       children = {} }
-          --   }
-          -- }
-        }
-        })
-
-    zone.UI.setXmlTable(XMLData)
-  else
-    zone.UI.setXmlTable({{tag = "Panel", attributes = {}, children = {}}})
-  end
 end
 
 function Z.discardTorporedVamps()
@@ -467,7 +662,7 @@ function Z.discardTorporedVamps()
 	discardPos.y = discardPos.y + 1
 	for _, zone in pairs(Z.getPlayerZones()) do
 		if (Z.isTorpored(zone)) then
-			for _, obj in pairs(Z.getTaggedZoneObjects(zone, {"Power", "Infamy", "ExhaustTorpor"})) do
+			for _, obj in pairs(Z.getTaggedZoneObjects(zone, { "Power", "Infamy", "ExhaustTorpor" })) do
 				obj.destruct()
 			end
 			U.forEach(Z.getBoons(zone), function(boon)
@@ -476,20 +671,20 @@ function Z.discardTorporedVamps()
 				clanChest.putObject(boon)
 			end)
 			Z.getCard(zone).setPosition(discardPos)
-			Wait.time(function() Z.clearOverlay(zone) end, 0.5)
+			Wait.time(function() Z.clearStatusOverlay(zone) end, 0.5)
 		end
 	end
 end
 
 function Z.returnAnkhs(dir, isAwardingPower)
 	if isAwardingPower == nil then isAwardingPower = true end
-  local gameState = Global.getTable("gameState")
-  if gameState.round > 9 then isAwardingPower = false end
+	local gameState = Global.getTable("gameState")
+	if gameState.round > 9 then isAwardingPower = false end
 
 	for _, zone in pairs(Z.getPlayerZones()) do
 		local returningAnkhs = Z.getAnkhs(zone, dir)
 		U.forEach(returningAnkhs, function(obj) BGE.sendAnkhHome(obj) end)
-		if (isAwardingPower and #ankhObjs > 0) then
+		if (isAwardingPower and #returningAnkhs > 0) then
 			local powerBox = getObjectFromGUID(G.tokenSources.power);
 			local powerPos = zone.getPosition()
 			powerPos.y = powerPos.y + 1
@@ -503,8 +698,9 @@ function Z.returnAnkhs(dir, isAwardingPower)
 end
 
 function Z.burnAnkhs(zone)
-	U.forEach(Z.getAnkhs(zone), function(ankh) BGE.burnAnkh(ankh) end)
+	U.forEach(Z.getAnkhs(zone), function(obj)
+		BGE.burnAnkh(obj)
+	end)
 end
-
 
 return Z

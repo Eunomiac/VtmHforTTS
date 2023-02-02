@@ -51,11 +51,21 @@ G.zones = {
 	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
 	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
 	bgEZones = {
-		n = "0a1fa7",
-		s = "5f265e",
-		e = "620320",
-		w = "0cdb7a",
-		f = "997422"
+		North = "0a1fa7",
+		South = "5f265e",
+		East = "620320",
+		West = "0cdb7a",
+		Fire = "997422"
+	},
+	battlegroundZones = {
+		left = {"cccfc4"},
+		center = {"0a1fa7",
+			"5f265e",
+			"620320",
+			"0cdb7a",
+			"997422"
+		},
+		right = {"c41714"}
 	},
 	Red = {
 		aftermath = "c4d233",
@@ -84,7 +94,7 @@ G.zones = {
 }
 
 for color, zoneData in pairs(U.filter(G.zones, function(v, k) return U.isIn(k, {"Red","Yellow","Blue"}) end)) do
-	G.zones[color].all = U.flatten(zoneData)
+	G.zones[color].all = U.flatten(zoneData.bloodline)
 end
 
 G.zones.allPlayer = U.flatten({G.zones.Red.all, G.zones.Yellow.all, G.zones.Blue.all})
@@ -125,6 +135,8 @@ G.battlegrounds = {
 	f = nil,
 	g = nil
 }
+
+G.charQueue = "afb371"
 
 G.tableSpots = {
 	clanMorality = {
@@ -190,7 +202,7 @@ G.tableSpots = {
 				inactive = { x = -13.50, y = -15, z = 19.02 }
 			},
 			center = {
-				active = { x = 0, y = 3.31, z = 20.31 },
+				active = { x = 0, y = 3.09, z = 19.05 },
 				inactive = { x = 0, y = -15, z = 19.02 }
 			},
 			right = {

@@ -40,4 +40,13 @@ C.CameraAngles = {
   WideAngleWide = {position = {x=0,y=10,z=-15}, pitch = 35, yaw = 0, distance = 100}
 }
 
+C.Ankhs = {"North", "South", "East", "West"}
+
+C.AnkhColors = {
+	North = {248/255,248/255,255/255},
+	South = {188/255,188/255,188/255},
+	East = {210/255, 105/255, 30/255},
+	West = {175/255,238/255,238/255}
+}
+
 return C
