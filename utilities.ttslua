@@ -262,7 +262,7 @@ function U.isFlipped(obj)
 end
 
 local isSplashActive = false
-function SplashMessageTo(visibilityTargets, messageData, delay)
+local function SplashMessageTo(visibilityTargets, messageData, delay)
     if (not delay) then
         delay = 5
     end

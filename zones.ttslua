@@ -1,7 +1,7 @@
 -- local M = require("main")
 local G = require("guids")
 local U = require("utilities")
--- local C = require("constants")
+local C = require("constants")
 local BGE = require("bgE")
 
 local Z = {}
@@ -10,9 +10,37 @@ local uiData = {}
 local maxInfamy = 0
 local isCheckingSuspicion = false
 
-local function parseBool(bool) if bool then return "true" else return "false" end end
+local function getZoneBounds(zone)
+	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
+	local zonePos = zone.getPosition()
+	return {
+		x = U.map(zonePos.x, function(coord) return {min = coord - zoneExtent.x, max = coord + zoneExtent.x} end),
+		y = U.map(zonePos.y, function(coord) return {min = coord - zoneExtent.y, max = coord + zoneExtent.y} end),
+		z = U.map(zonePos.z, function(coord) return {min = coord - zoneExtent.z, max = coord + zoneExtent.z} end)
+	}
+end
+
+local function isInside(zone, pos)
+	local zoneBounds = getZoneBounds(zone)
+	return pos.x >= zoneBounds.x.min and pos.x <= zoneBounds.x.max
+		and pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max
+		and pos.z >= zoneBounds.z.min and pos.z <= zoneBounds.z.max
+end
+
+function Z.getSnapPointsInZone(zone, object)
+	if object == nil then object = Global end
+	local snapPoints = object.getSnapPoints()
+	local validSnapPoints = {}
+	for _, point in pairs(snapPoints) do
+		if isInside(zone, point) then
+			table.insert(validSnapPoints, point)
+		end
+	end
+	return validSnapPoints
+end
 
 function Z.dimBattleground(zone)
+
 	local function dimBG(loc)
 		local highlighter = getObjectFromGUID(G.highlighters.bgIndicator[loc])
 		highlighter.setPosition(G.tableSpots.highlighters.bgIndicator[loc].inactive)
@@ -30,8 +58,39 @@ end
 -- *** Events ***
 
 
+function Z.updateTestObject()
+	-- local obj = getObjectFromGUID("0bc7f5")
+	-- obj.UI.setXmlTable({
+	-- 	{
+	-- 		tag = "Panel",
+	-- 		attributes = {
+	-- 			class = "main",
+	-- 			height = "1000",
+	-- 			width = "100",
+	-- 			padding = "0 0 0 0",
+	-- 			position = "0 0 -900",
+	-- 			rotation = "-90 0 0"
+	-- 		},
+	-- 		children = {
+	-- 			{
+	-- 				tag = "Image",
+	-- 				attributes = {
+	-- 					height = "100",
+	-- 					width = "100",
+	-- 					scale = "2 2 2",
+	-- 					image = "overlay-spotlight"
+	-- 				},
+	-- 				children = {}
+	-- 			}
+	-- 		}
+	-- 	}
+	-- })
 
+
+end
 --
+
+
 
 local zoneThrottle = {}
 local function throttleZone(zone, func, delay)
@@ -47,9 +106,12 @@ local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
 
 function Z.onObjectEnterZone(zone, object)
 	if isThrottled(zone) then return end
+	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
 	if Z.isPlayerCardZone(zone) then
+		if round > 9 then return end
 		throttleZone(zone, function()
 			Z.alignCard(zone)
+			if round < 1 then return end
 			Z.refreshUI(zone)
 			if object.type == "Card" then
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
@@ -60,7 +122,7 @@ function Z.onObjectEnterZone(zone, object)
 			object.destruct()
 		end
 	elseif Z.isBattlegroundZone(zone) then
-		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
 		end
 		if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
@@ -122,7 +184,9 @@ function Z.onObjectLeaveZone(zone, object)
 			z = U.pAngle(objRotation.z, 180)
 		})
 	elseif Z.isBattlegroundZone(zone) then
-		Z.dimBattleground(zone)
+		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+			Z.dimBattleground(zone)
+		end
 	end
 end
 
@@ -292,14 +356,37 @@ local function getStatusXML(statusData)
 	end
 
 	if statusData.suspicion then
-		table.insert(XML.children, {
-			tag = "Image",
-			attributes = {
-				class = "suspicious-overlay",
-				image = "overlay-suspicion"
-			},
-			children = {}
-		})
+		XML = {
+				tag = "Panel",
+				attributes = {
+					class = "main",
+					height = "1000",
+					width = "100",
+					padding = "0 0 0 0",
+					position = "0 0 -900",
+					rotation = "-90 0 0"
+				},
+				children = {
+					{
+						tag = "Image",
+						attributes = {
+							height = "100",
+							width = "100",
+							scale = "2 2 2",
+							image = "overlay-spotlight"
+						},
+						children = {}
+					}
+				}
+			}
+		-- table.insert(XML.children, {
+		-- 	tag = "Image",
+		-- 	attributes = {
+		-- 		class = "suspicious-overlay",
+		-- 		image = "overlay-suspicion"
+		-- 	},
+		-- 	children = {}
+		-- })
 	end
 
 	return XML
@@ -631,11 +718,19 @@ end
 function Z.showSuspicion()
 	isCheckingSuspicion = true
 	refreshMaxInfamy()
+	for var, val in pairs(C.Lighting.suspicion) do
+		Lighting[var] = val
+	end
+	Lighting.apply()
 	Z.refreshUI()
 end
 function Z.hideSuspicion()
 	isCheckingSuspicion = false
 	maxInfamy = 0
+	for var, val in pairs(C.Lighting.standard) do
+		Lighting[var] = val
+	end
+	Lighting.apply()
 	Z.refreshUI()
 end
 
@@ -671,7 +766,7 @@ function Z.discardTorporedVamps()
 				clanChest.putObject(boon)
 			end)
 			Z.getCard(zone).setPosition(discardPos)
-			Wait.time(function() Z.clearStatusOverlay(zone) end, 0.5)
+			-- Wait.time(function() Z.clearStatusOverlay(zone) end, 0.5)
 		end
 	end
 end

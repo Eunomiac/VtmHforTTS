@@ -59,12 +59,7 @@ G.zones = {
 	},
 	battlegroundZones = {
 		left = {"cccfc4"},
-		center = {"0a1fa7",
-			"5f265e",
-			"620320",
-			"0cdb7a",
-			"997422"
-		},
+		center = {"a79ca4"},
 		right = {"c41714"}
 	},
 	Red = {
@@ -131,7 +126,7 @@ G.battlegrounds = {
 	b = "a2cf25",
 	c = "265535",
 	d = "710eb1",
-	e = nil,
+	e = "b1d2ae",
 	f = nil,
 	g = nil
 }
@@ -140,9 +135,9 @@ G.charQueue = "afb371"
 
 G.tableSpots = {
 	clanMorality = {
-		Red = { x = 10.96, y = 3.5, z = 15.36 },
-		Yellow = { x = 11.94, y = 3, z = 14.55 },
-		Blue = { x = 12.64, y = 3.4, z = 15.51 }
+		Red = { x = 11.96, y = 3.5, z = 15.23 },
+		Yellow = { x = 12.93, y = 3, z = 14.41 },
+		Blue = { x = 13.64, y = 3.4, z = 15.36 }
 	},
 	clanPolitics = {
 		Red = { x = -27, y = 0, z = -4.5 },
@@ -168,12 +163,12 @@ G.tableSpots = {
 	},
 	chapterCard = { x = -13.50, y = -0.1, z = 0 },
 	staging = {
-		Red = { x = -30.25, y = 1, z = -26.71 },
-		Yellow = { x = -3.25, y = 1, z = -26.71 },
-		Blue = { x = 23.25, y = 1, z = -26.71 }
+		Red = { x = -30, y = 1, z = -6.93 },
+		Yellow = { x = -3, y = 1, z = -6.93 },
+		Blue = { x = 23, y = 1, z = -6.93 }
 	},
 	anarchFire = {x = 3, y = 6, z = 17.5},
-	strandsOfTime = { x = -9, y = 1, z = -4 },
+	strandsOfTime = { x = -13, y = 1, z = 0 },
 	highlighters = {
 		clanSelection = {
 			active = { x = 0, y = 0.1, z = -21 },
@@ -198,16 +193,16 @@ G.tableSpots = {
 		},
 		bgIndicator = {
 			left = {
-				active = { x = -13.50, y = 3.06, z = 19.02 },
-				inactive = { x = -13.50, y = -15, z = 19.02 }
+				active = { x = -14.50, y = 3.06, z = 19.02 },
+				inactive = { x = -14.50, y = -15, z = 19.02 }
 			},
 			center = {
 				active = { x = 0, y = 3.09, z = 19.05 },
 				inactive = { x = 0, y = -15, z = 19.02 }
 			},
 			right = {
-				active = { x = 13.5, y = 3.06, z = 19.02 },
-				inactive = { x = 13.5, y = -15, z = 19.02 }
+				active = { x = 14.5, y = 3.06, z = 19.02 },
+				inactive = { x = 14.5, y = -15, z = 19.02 }
 			}
 		}
 	}

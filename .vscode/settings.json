@@ -17,6 +17,9 @@
 		"log",
 		"onLoad",
 		"getObjects",
-		"getObjectsWithAllTags"
+		"getObjectsWithAllTags",
+		"Lighting"
+	],
+	"Lua.diagnostics.disable": [
 	]
 }

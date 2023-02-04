@@ -49,4 +49,21 @@ C.AnkhColors = {
 	West = {175/255,238/255,238/255}
 }
 
+C.Lighting = {
+	standard = {
+		ambient_intensity = 0.5546665,
+		light_intensity = 0.5333346,
+		lut_contribution = 0,
+		lut_index = 78,
+		reflection_intensity = 0
+	},
+	suspicion = {
+		ambient_intensity = 0,
+		light_intensity = 0,
+		lut_contribution = 1,
+		lut_index = 105, -- 36, 40, 48!, 77, 79, 92!, 95!, 105!!
+		reflection_intensity = 0
+	}
+}
+
 return C
