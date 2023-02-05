@@ -116,19 +116,22 @@ function Z.onObjectEnterZone(zone, object)
 	if isThrottled(zone) then return end
 	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
 	if Z.isPlayerCardZone(zone) then
-		if round > 9 then return end
+		if Global.getTable("gameState").playerZonesLocked == true then return end
 		throttleZone(zone, function()
 			Z.alignCard(zone)
 			if round < 1 then return end
 			Z.refreshUI(zone)
+			if round > 9 then return end
 			if object.type == "Card" then
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
 			end
 		end)
+		return
 	elseif Z.isTokenClearZone(zone) then
 		if object.hasTag("Power") or object.hasTag("Infamy") or object.hasTag("ExhaustTorpor") then
 			object.destruct()
 		end
+		return
 	elseif Z.isBattlegroundZone(zone) then
 		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
