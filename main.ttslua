@@ -1084,7 +1084,6 @@ local function getSortedVictoryBoardSnapPoints(victoryBoard)
 end
 
 local function getClanToken(playerColor)
-	-- Z.showScores()
   local clan = M.getStateVal("clans", playerColor)
   if (clan == nil) then return false end
   local tokenName = clan .. " Clan Token"
@@ -1094,6 +1093,7 @@ local function getClanToken(playerColor)
 end
 
 function M.updatePlayerScore(color)
+	-- Z.showScores()
 	local playerName = C.Names[color]
 	local playerScore = Z.scoreBloodline(color)
 	UI.setValue(color .. "Score", playerName .. "'s Bloodline: " .. playerScore .. " points.")
@@ -1137,8 +1137,6 @@ local function hideBloodlinesScore()
   end
 end
 
--- local function move
-
 function M.showVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   local victoryTable = getObjectFromGUID(G.victoryTable)
@@ -1163,6 +1161,8 @@ function M.showVictoryBoard()
   --   end
   -- end
 end
+
+-- local function move
 
 function M.DEBUG_RunSortedVictorySpots(tokenObj)
 	local waitTime = 0

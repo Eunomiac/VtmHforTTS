@@ -13,26 +13,34 @@ local isCheckingSuspicion = false
 local function getZoneBounds(zone)
 	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
 	local zonePos = zone.getPosition()
-	return {
-		x = U.map(zonePos.x, function(coord) return {min = coord - zoneExtent.x, max = coord + zoneExtent.x} end),
-		y = U.map(zonePos.y, function(coord) return {min = coord - zoneExtent.y, max = coord + zoneExtent.y} end),
-		z = U.map(zonePos.z, function(coord) return {min = coord - zoneExtent.z, max = coord + zoneExtent.z} end)
-	}
+	-- log({extent = zoneExtent, pos = zonePos})
+	return U.map(zonePos, function(coord, axis) return {min = coord - zoneExtent[axis], max = coord + zoneExtent[axis]} end)
+	-- return {
+	-- 	x = U.map(zonePos.x, function(coord) return {min = zonePos.x - zoneExtent.x, max = zonePos.x + zoneExtent.x} end),
+	-- 	y = U.map(zonePos.y, function(coord) return {min = zonePos.y - zoneExtent.y, max = zonePos.y + zoneExtent.y} end),
+	-- 	z = U.map(zonePos.z, function(coord) return {min = zonePos.z - zoneExtent.z, max = zonePos.z + zoneExtent.z} end)
+	-- }
 end
 
-local function isInside(zone, pos)
+local function isInside(zone, pos, ignoreY)
+	if ignoreY == nil then ignoreY = true end
+	-- log({zone = zone, pos = pos})
 	local zoneBounds = getZoneBounds(zone)
+	-- log({zoneBounds = zoneBounds, pos = pos})
 	return pos.x >= zoneBounds.x.min and pos.x <= zoneBounds.x.max
-		and pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max
+		and (ignoreY or pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max)
 		and pos.z >= zoneBounds.z.min and pos.z <= zoneBounds.z.max
 end
 
 function Z.getSnapPointsInZone(zone, object)
 	if object == nil then object = Global end
 	local snapPoints = object.getSnapPoints()
+	-- log(snapPoints)
 	local validSnapPoints = {}
 	for _, point in pairs(snapPoints) do
-		if isInside(zone, point) then
+		-- log({point = point})
+		if isInside(zone, object.positionToWorld(point.position)) then
+			-- log("IS INSIDE!")
 			table.insert(validSnapPoints, point)
 		end
 	end
