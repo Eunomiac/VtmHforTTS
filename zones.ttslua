@@ -2,6 +2,7 @@
 local G = require("guids")
 local U = require("utilities")
 local C = require("constants")
+-- local M = require("main")
 local BGE = require("bgE")
 
 local Z = {}
@@ -13,26 +14,34 @@ local isCheckingSuspicion = false
 local function getZoneBounds(zone)
 	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
 	local zonePos = zone.getPosition()
-	return {
-		x = U.map(zonePos.x, function(coord) return {min = coord - zoneExtent.x, max = coord + zoneExtent.x} end),
-		y = U.map(zonePos.y, function(coord) return {min = coord - zoneExtent.y, max = coord + zoneExtent.y} end),
-		z = U.map(zonePos.z, function(coord) return {min = coord - zoneExtent.z, max = coord + zoneExtent.z} end)
-	}
+	-- log({extent = zoneExtent, pos = zonePos})
+	return U.map(zonePos, function(coord, axis) return {min = coord - zoneExtent[axis], max = coord + zoneExtent[axis]} end)
+	-- return {
+	-- 	x = U.map(zonePos.x, function(coord) return {min = zonePos.x - zoneExtent.x, max = zonePos.x + zoneExtent.x} end),
+	-- 	y = U.map(zonePos.y, function(coord) return {min = zonePos.y - zoneExtent.y, max = zonePos.y + zoneExtent.y} end),
+	-- 	z = U.map(zonePos.z, function(coord) return {min = zonePos.z - zoneExtent.z, max = zonePos.z + zoneExtent.z} end)
+	-- }
 end
 
-local function isInside(zone, pos)
+local function isInside(zone, pos, ignoreY)
+	if ignoreY == nil then ignoreY = true end
+	-- log({zone = zone, pos = pos})
 	local zoneBounds = getZoneBounds(zone)
+	-- log({zoneBounds = zoneBounds, pos = pos})
 	return pos.x >= zoneBounds.x.min and pos.x <= zoneBounds.x.max
-		and pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max
+		and (ignoreY or pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max)
 		and pos.z >= zoneBounds.z.min and pos.z <= zoneBounds.z.max
 end
 
 function Z.getSnapPointsInZone(zone, object)
 	if object == nil then object = Global end
 	local snapPoints = object.getSnapPoints()
+	-- log(snapPoints)
 	local validSnapPoints = {}
 	for _, point in pairs(snapPoints) do
-		if isInside(zone, point) then
+		-- log({point = point})
+		if isInside(zone, object.positionToWorld(point.position)) then
+			-- log("IS INSIDE!")
 			table.insert(validSnapPoints, point)
 		end
 	end
@@ -108,67 +117,72 @@ function Z.onObjectEnterZone(zone, object)
 	if isThrottled(zone) then return end
 	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
 	if Z.isPlayerCardZone(zone) then
-		if round > 9 then return end
+		if Global.getTable("gameState").playerZonesLocked == true then return end
 		throttleZone(zone, function()
 			Z.alignCard(zone)
 			if round < 1 then return end
 			Z.refreshUI(zone)
+			if round > 9 then return end
 			if object.type == "Card" then
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
 			end
 		end)
+		return
 	elseif Z.isTokenClearZone(zone) then
 		if object.hasTag("Power") or object.hasTag("Infamy") or object.hasTag("ExhaustTorpor") then
 			object.destruct()
 		end
-	elseif Z.isBattlegroundZone(zone) then
-		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+		return
+	end
+	if round > 9 then return end
+	if Z.isBattlegroundZone(zone) then
+		if round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
 		end
-		if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
-			local dir
-			if object.hasTag("North") then dir = "North"
-			elseif object.hasTag("South") then dir = "South"
-			elseif object.hasTag("East") then dir = "East"
-			elseif object.hasTag("West") then dir = "West"
-			end
+		-- if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
+		-- 	local dir
+		-- 	if object.hasTag("North") then dir = "North"
+		-- 	elseif object.hasTag("South") then dir = "South"
+		-- 	elseif object.hasTag("East") then dir = "East"
+		-- 	elseif object.hasTag("West") then dir = "West"
+		-- 	end
 
-			-- Count ankhs in fire. If there are three, burn the fourth and announce it.
-			if BGE.countBurnedAnkhs(dir) == 3 then
-				if dir == "North" then
-					UI.setAttributes("anarchRevoltText", {
-						color = "#000000",
-						outline = "#FFFFFF"
-					})
-					UI.setValue("anarchRevoltText", "London burns to the ground in the North!")
-				elseif dir == "South" then
-					UI.setAttributes("anarchRevoltText", {
-						color = "#FFFFFF",
-						outline = "#555555"
-					})
-					UI.setValue("anarchRevoltText", "Palermo burns to the ground in the South!")
-				elseif dir == "East" then
-					UI.setAttributes("anarchRevoltText", {
-						color = "#D2691E",
-						outline = "#8B4513"
-					})
-					UI.setValue("anarchRevoltText", "Prague burns to the ground in the East!")
-				else
-					UI.setAttributes("anarchRevoltText", {
-						color = "#00FFFF",
-						outline = "#008B8B"
-					})
-					UI.setValue("anarchRevoltText", "Madrid burns to the ground in the West!")
-				end
-				Wait.time(function()
-					U.splashUIElement("anarchRevoltNotice", 3)
-					local unburnedAnkh = BGE.getUnburnedAnkhs(dir)[1]
-					if unburnedAnkh then
-						BGE.burnAnkh(unburnedAnkh)
-					end
-				end, 1)
-			end
-		end
+		-- 	-- Count ankhs in fire. If there are three, burn the fourth and announce it.
+		-- 	if BGE.countBurnedAnkhs(dir) == 3 then
+		-- 		if dir == "North" then
+		-- 			UI.setAttributes("anarchRevoltText", {
+		-- 				color = "#000000",
+		-- 				outline = "#FFFFFF"
+		-- 			})
+		-- 			UI.setValue("anarchRevoltText", "London burns to the ground in the North!")
+		-- 		elseif dir == "South" then
+		-- 			UI.setAttributes("anarchRevoltText", {
+		-- 				color = "#FFFFFF",
+		-- 				outline = "#555555"
+		-- 			})
+		-- 			UI.setValue("anarchRevoltText", "Palermo burns to the ground in the South!")
+		-- 		elseif dir == "East" then
+		-- 			UI.setAttributes("anarchRevoltText", {
+		-- 				color = "#D2691E",
+		-- 				outline = "#8B4513"
+		-- 			})
+		-- 			UI.setValue("anarchRevoltText", "Prague burns to the ground in the East!")
+		-- 		else
+		-- 			UI.setAttributes("anarchRevoltText", {
+		-- 				color = "#00FFFF",
+		-- 				outline = "#008B8B"
+		-- 			})
+		-- 			UI.setValue("anarchRevoltText", "Madrid burns to the ground in the West!")
+		-- 		end
+		-- 		Wait.time(function()
+		-- 			U.splashUIElement("anarchRevoltNotice", 3)
+		-- 			local unburnedAnkh = BGE.getUnburnedAnkhs(dir)[1]
+		-- 			if unburnedAnkh then
+		-- 				BGE.burnAnkh(unburnedAnkh)
+		-- 			end
+		-- 		end, 1)
+		-- 	end
+		-- end
 	end
 end
 
@@ -176,7 +190,10 @@ function Z.onObjectLeaveZone(zone, object)
 	--U.isIn(zone.guid, U.flatten(G.zones.bgEZones)) then
 	if Z.isPlayerCardZone(zone) then
 		Z.refreshUI(zone)
-	elseif Z.isCharQueueZone(zone) and object.type == "Card" then
+		return
+	end
+	if Global.getTable("gameState").round > 9 then return end
+	if Z.isCharQueueZone(zone) and object.type == "Card" then
 		local objRotation = object.getRotation()
 		object.setRotation({
 			x = U.pAngle(objRotation.x, 180),
@@ -649,6 +666,21 @@ local function refreshScoreXML(zone)
 		infamy = Z.countInfamy(zone),
 		boons = Z.countBoons(zone)
 	}
+
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	if victoryBoard ~= nil then
+		local color
+		if U.isIn(zone.guid, U.flatten(G.zones.Red.all)) then
+			color = "Red"
+		elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow.all)) then
+			color = "Yellow"
+		elseif U.isIn(zone.guid, U.flatten(G.zones.Blue.all)) then
+			color = "Blue"
+		else
+			return
+		end
+		Global.getTable("M").updatePlayerScore(color)
+	end
 
 	uiData[zone.guid].scoreXML = getScoreXML(scoreData)
 end
