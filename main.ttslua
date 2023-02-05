@@ -1097,18 +1097,18 @@ function M.updatePlayerScore(color)
 	local token = getClanToken(color)
 	local victoryBoard = getObjectFromGUID(G.victoryBoard)
 	if (token and victoryBoard) then
-		-- local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
-		-- 	x = pos.x,
-		-- 	y = pos.y + 1,
-		-- 	z = pos.z - 0.1
-		-- }) end)
-		-- local scorePos
-		-- if playerScore > 0 then
-		-- 	if playerScore > 60 then playerScore = 60 end
-		-- 	scorePos = positions[playerScore]
-		-- else
+		local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
+			x = pos.x,
+			y = pos.y + 1,
+			z = pos.z - 0.1
+		}) end)
+		local scorePos
+		if playerScore > 0 then
+			if playerScore > 60 then playerScore = 60 end
+			scorePos = positions[playerScore]
+		else
 			scorePos = G.tableSpots.clanTokenVictory[color]
-		-- end
+		end
 		token.setPositionSmooth(scorePos, false, true)
 		token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
 		token.setScale(G.tableSpots.clanTokenVictory.scale)
@@ -1143,7 +1143,8 @@ function M.showVictoryBoard()
     position = G.tableSpots.victory.board,
     rotation = G.tableSpots.victory.rotation,
     guid = G.victoryBoard,
-    smooth = false
+    smooth = false,
+		callback_function = function(vBoard) vBoard.setLock(true) end
   })
   for _, pColor in pairs(C.Colors) do
     local token = getClanToken(pColor)
@@ -1207,6 +1208,7 @@ end
 
 function M.recallStrandsOfTime()
   local strand = U.findAboveObject(getObjectFromGUID(G.decks.strandOfTimeSpot), "Card")[1]
+	if strand == nil then return end
   local strandStaging = getObjectFromGUID(G.decks.unusedStrandsOfTime)
   local strandStagingPos = strandStaging.getPosition()
   strandStagingPos.y = strandStagingPos.y + 1
@@ -1278,6 +1280,7 @@ function M.recallSchemes()
 end
 
 function M.gameMISSIONS()
+	M.setStateVal(true, "playerZonesLocked")
   M.askLastChapterStandings(function()
     hideBloodlinesScore()
     M.recallSchemes()
