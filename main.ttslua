@@ -1068,6 +1068,7 @@ function M.gameSTART()
     M.determineTurnOrder(M.syncTurnOrder)
 end
 
+
 local function getSortedVictoryBoardSnapPoints(victoryBoard)
   local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
 	snapPointPositions = U.getSnapPointPositions(victoryBoard)
@@ -1077,10 +1078,13 @@ local function getSortedVictoryBoardSnapPoints(victoryBoard)
     end
     return a.z < b.z
   end)
+	-- log({localSnapPoints = snapPointPositions,
+	-- localSnapPointZs = U.map(snapPointPositions, function(pos) return pos.z end)})
   return snapPointPositions
 end
 
 local function getClanToken(playerColor)
+	-- Z.showScores()
   local clan = M.getStateVal("clans", playerColor)
   if (clan == nil) then return false end
   local tokenName = clan .. " Clan Token"
@@ -1133,6 +1137,8 @@ local function hideBloodlinesScore()
   end
 end
 
+-- local function move
+
 function M.showVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   local victoryTable = getObjectFromGUID(G.victoryTable)
@@ -1146,15 +1152,32 @@ function M.showVictoryBoard()
     smooth = false,
 		callback_function = function(vBoard) vBoard.setLock(true) end
   })
-  for _, pColor in pairs(C.Colors) do
-    local token = getClanToken(pColor)
-    if (token) then
-      token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
-      token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
-      token.setScale(G.tableSpots.clanTokenVictory.scale)
-      token.setColorTint(pColor)
-    end
-  end
+	return
+  -- for _, pColor in pairs(C.Colors) do
+  --   local token = getClanToken(pColor)
+  --   if (token) then
+  --     token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
+  --     token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
+  --     token.setScale(G.tableSpots.clanTokenVictory.scale)
+  --     token.setColorTint(pColor)
+  --   end
+  -- end
+end
+
+function M.DEBUG_RunSortedVictorySpots(tokenObj)
+	local waitTime = 0
+	local waitStep = 0.5
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
+		x = pos.x,
+		y = pos.y + 0.5,
+		z = pos.z
+	}) end)
+	-- log(positions)
+	for _, pos in ipairs(positions) do
+		Wait.time(function() tokenObj.setPosition(pos) end, waitTime)
+		waitTime = waitTime + waitStep
+	end
 end
 
 function M.getVictoryBoardTokenPositions()
@@ -1186,6 +1209,7 @@ function M.hideVictoryBoard()
   victoryTable.setInvisibleTo({"Red", "Yellow", "Blue"})
   victoryTable.setPosition({x = 0, y = 50, z = 0})
 end
+
 
 function M.gameSCORE()
   M.showVictoryBoard()
