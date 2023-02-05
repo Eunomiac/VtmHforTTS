@@ -127,13 +127,16 @@ function Z.onObjectEnterZone(zone, object)
 			end
 		end)
 		return
-	elseif Z.isTokenClearZone(zone) then
+	end
+	if Z.isTokenClearZone(zone) then
 		if object.hasTag("Power") or object.hasTag("Infamy") or object.hasTag("ExhaustTorpor") then
 			object.destruct()
 		end
 		return
-	elseif Z.isBattlegroundZone(zone) then
-		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+	end
+	if round > 9 or round < 1 then return end
+	if Z.isBattlegroundZone(zone) then
+		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
 		end
 		-- if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
