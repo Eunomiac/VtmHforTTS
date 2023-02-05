@@ -104,6 +104,7 @@ function M.resetGameState()
       round = 0,
       turn = 0,
       traits = state.traits,
+			playerZonesLocked = false,
       -- isReadingMoralityBoard = true
   })
   M.refreshStateDebug()
@@ -113,6 +114,74 @@ end
 local fallbackValues = {
   lastChapterStandings = {"Red", "Blue", "Yellow"}
 }
+
+function M.showHavens()
+	for _, color in pairs(C.Colors) do
+		local haven = getObjectFromGUID(G.playerSpaces[color].haven)
+		if haven then
+			local havenPos = haven.getPosition()
+			if havenPos.y < -2 then
+				havenPos.y = 2
+				haven.setPosition(havenPos)
+				havenPos.y = -0.40
+				haven.setInvisibleTo({})
+				haven.setPositionSmooth(havenPos)
+			end
+		end
+	end
+end
+
+function M.hideHavens()
+	for _, color in pairs(C.Colors) do
+		local haven = getObjectFromGUID(G.playerSpaces[color].haven)
+		if haven then
+			local havenPos = haven.getPosition()
+			if havenPos.y > -2 then
+				havenPos.y = 2
+				haven.setPositionSmooth(havenPos)
+				Wait.time(function()
+					haven.setInvisibleTo(C.Colors)
+					havenPos.y = -10
+					Wait.frames(function() haven.setPosition(havenPos) end)
+				end, 0.5)
+			end
+		end
+	end
+end
+
+function M.showPouches()
+	for _, color in pairs(C.Colors) do
+		local pouch = getObjectFromGUID(G.playerSpaces[color].pouch)
+		if pouch then
+			local pouchPos = pouch.getPosition()
+			if pouchPos.y < -2 then
+				pouchPos.y = 2
+				pouch.setPosition(pouchPos)
+				pouchPos.y = -0.13
+				pouch.setInvisibleTo({})
+				pouch.setPositionSmooth(pouchPos)
+			end
+		end
+	end
+end
+
+function M.hidePouches()
+	for _, color in pairs(C.Colors) do
+		local pouch = getObjectFromGUID(G.playerSpaces[color].pouch)
+		if pouch then
+			local pouchPos = pouch.getPosition()
+			if pouchPos.y > -2 then
+				pouchPos.y = 2
+				pouch.setPositionSmooth(pouchPos)
+				Wait.time(function()
+					pouch.setInvisibleTo(C.Colors)
+					pouchPos.y = -10
+					Wait.frames(function() pouch.setPosition(pouchPos) end)
+				end, 0.5)
+			end
+		end
+	end
+end
 
 -- === LastChapterStandings ===
 function M.checkLastChapterStandings(data)
@@ -994,6 +1063,51 @@ function M.gameSTART()
 		M.removeUnusedClanRefs()
     M.determineTurnOrder(M.syncTurnOrder)
 end
+
+
+local function getSortedVictoryBoardSnapPoints(victoryBoard)
+  local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
+  table.sort(snapPointPositions, function(a,b)
+    if (math.abs(a.z - b.z) <= 0.1) then
+      return a.x < b.x
+    end
+    return a.z < b.z
+  end)
+  return snapPointPositions
+end
+
+local function getClanToken(playerColor)
+  local clan = M.getStateVal("clans", playerColor)
+  if (clan == nil) then return false end
+  local tokenName = clan .. " Clan Token"
+  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
+  if (token == nil) then return false end
+  return token
+end
+
+function M.showVictoryBoard()
+  local mainStorage = getObjectFromGUID(G.mainStorage.id)
+  local victoryTable = getObjectFromGUID(G.victoryTable)
+  victoryTable.setInvisibleTo({})
+  victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
+  victoryTable.setRotationSmooth(G.tableSpots.victory.rotation, false, true)
+  mainStorage.takeObject({
+    position = G.tableSpots.victory.board,
+    rotation = G.tableSpots.victory.rotation,
+    guid = G.victoryBoard,
+    smooth = false
+  })
+  for _, pColor in pairs(C.Colors) do
+    local token = getClanToken(pColor)
+    if (token) then
+      token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
+      token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
+      token.setScale(G.tableSpots.clanTokenVictory.scale)
+      token.setColorTint(pColor)
+    end
+  end
+end
+
 local function scoreBloodlines()
   Z.showScores()
   local waitStep = 2
@@ -1327,117 +1441,6 @@ function M.syncState()
 end
 
 function M.refresh() M.syncState() end
-
-local function getSortedVictoryBoardSnapPoints(victoryBoard)
-  local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
-  table.sort(snapPointPositions, function(a,b)
-    if (math.abs(a.z - b.z) <= 0.1) then
-      return a.x < b.x
-    end
-    return a.z < b.z
-  end)
-  return snapPointPositions
-end
-
-local function getClanToken(playerColor)
-  local clan = M.getStateVal("clans", playerColor)
-  if (clan == nil) then return false end
-  local tokenName = clan .. " Clan Token"
-  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
-  if (token == nil) then return false end
-  return token
-end
-
-function M.showVictoryBoard()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  local victoryTable = getObjectFromGUID(G.victoryTable)
-  victoryTable.setInvisibleTo({})
-  victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
-  victoryTable.setRotationSmooth(G.tableSpots.victory.rotation, false, true)
-  mainStorage.takeObject({
-    position = G.tableSpots.victory.board,
-    rotation = G.tableSpots.victory.rotation,
-    guid = G.victoryBoard,
-    smooth = false
-  })
-  for _, pColor in pairs(C.Colors) do
-    local token = getClanToken(pColor)
-    if (token) then
-      token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
-      token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
-      token.setScale(G.tableSpots.clanTokenVictory.scale)
-      token.setColorTint(pColor)
-    end
-  end
-end
-
-function M.showHavens()
-	for _, color in pairs(C.Colors) do
-		local haven = getObjectFromGUID(G.playerSpaces[color].haven)
-		if haven then
-			local havenPos = haven.getPosition()
-			if havenPos.y < -2 then
-				havenPos.y = 2
-				haven.setPosition(havenPos)
-				havenPos.y = -0.40
-				haven.setInvisibleTo({})
-				haven.setPositionSmooth(havenPos)
-			end
-		end
-	end
-end
-
-function M.hideHavens()
-	for _, color in pairs(C.Colors) do
-		local haven = getObjectFromGUID(G.playerSpaces[color].haven)
-		if haven then
-			local havenPos = haven.getPosition()
-			if havenPos.y > -2 then
-				havenPos.y = 2
-				haven.setPositionSmooth(havenPos)
-				Wait.time(function()
-					haven.setInvisibleTo(C.Colors)
-					havenPos.y = -10
-					Wait.frames(function() haven.setPosition(havenPos) end)
-				end, 0.5)
-			end
-		end
-	end
-end
-
-function M.showPouches()
-	for _, color in pairs(C.Colors) do
-		local pouch = getObjectFromGUID(G.playerSpaces[color].pouch)
-		if pouch then
-			local pouchPos = pouch.getPosition()
-			if pouchPos.y < -2 then
-				pouchPos.y = 2
-				pouch.setPosition(pouchPos)
-				pouchPos.y = -0.13
-				pouch.setInvisibleTo({})
-				pouch.setPositionSmooth(pouchPos)
-			end
-		end
-	end
-end
-
-function M.hidePouches()
-	for _, color in pairs(C.Colors) do
-		local pouch = getObjectFromGUID(G.playerSpaces[color].pouch)
-		if pouch then
-			local pouchPos = pouch.getPosition()
-			if pouchPos.y > -2 then
-				pouchPos.y = 2
-				pouch.setPositionSmooth(pouchPos)
-				Wait.time(function()
-					pouch.setInvisibleTo(C.Colors)
-					pouchPos.y = -10
-					Wait.frames(function() pouch.setPosition(pouchPos) end)
-				end, 0.5)
-			end
-		end
-	end
-end
 
 function M.getVictoryBoardTokenPositions()
   local victoryBoard = getObjectFromGUID(G.victoryBoard)

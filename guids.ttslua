@@ -50,6 +50,7 @@ G.zones = {
 	charQueueArea = "04917a",
 	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
 	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
+	bgDEndZone = "b5bbb2",
 	bgEZones = {
 		North = "0a1fa7",
 		South = "5f265e",
@@ -57,6 +58,7 @@ G.zones = {
 		West = "0cdb7a",
 		Fire = "997422"
 	},
+	bgFEndZone = "a168dd",
 	battlegroundZones = {
 		left = {"cccfc4"},
 		center = {"a79ca4"},
