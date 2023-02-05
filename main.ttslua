@@ -126,6 +126,7 @@ function M.showHavens()
 				havenPos.y = -0.40
 				haven.setInvisibleTo({})
 				haven.setPositionSmooth(havenPos)
+				haven.tooltip = true
 			end
 		end
 	end
@@ -141,6 +142,7 @@ function M.hideHavens()
 				haven.setPositionSmooth(havenPos)
 				Wait.time(function()
 					haven.setInvisibleTo(C.Colors)
+					haven.tooltip = false
 					havenPos.y = -10
 					Wait.frames(function() haven.setPosition(havenPos) end)
 				end, 0.5)
@@ -160,6 +162,7 @@ function M.showPouches()
 				pouchPos.y = -0.13
 				pouch.setInvisibleTo({})
 				pouch.setPositionSmooth(pouchPos)
+				pouch.tooltip = true
 			end
 		end
 	end
@@ -175,6 +178,7 @@ function M.hidePouches()
 				pouch.setPositionSmooth(pouchPos)
 				Wait.time(function()
 					pouch.setInvisibleTo(C.Colors)
+					pouch.tooltip = false
 					pouchPos.y = -10
 					Wait.frames(function() pouch.setPosition(pouchPos) end)
 				end, 0.5)
@@ -1064,11 +1068,11 @@ function M.gameSTART()
     M.determineTurnOrder(M.syncTurnOrder)
 end
 
-
 local function getSortedVictoryBoardSnapPoints(victoryBoard)
   local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
+	snapPointPositions = U.getSnapPointPositions(victoryBoard)
   table.sort(snapPointPositions, function(a,b)
-    if (math.abs(a.z - b.z) <= 0.1) then
+    if (math.abs(a.z - b.z) <= 0.2) then
       return a.x < b.x
     end
     return a.z < b.z
@@ -1108,22 +1112,46 @@ function M.showVictoryBoard()
   end
 end
 
+function M.updatePlayerScore(color)
+	local playerName = C.Names[color]
+	local playerScore = Z.scoreBloodline(color)
+	UI.setValue(color .. "Score", playerName .. "'s Bloodline: " .. playerScore .. " points.")
+	UI.show(color .. "Score")
+	local token = getClanToken(color)
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	if (token and victoryBoard) then
+		-- local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
+			-- x = pos.x,
+			-- y = pos.y + 1,
+			-- z = pos.z - 0.1
+		-- }) end)
+		-- local scorePos
+		-- if playerScore > 0 then
+			-- if playerScore > 60 then playerScore = 60 end
+			-- scorePos = positions[playerScore]
+		-- else
+			scorePos = G.tableSpots.clanTokenVictory[color]
+		-- end
+		token.setPositionSmooth(scorePos, false, true)
+		token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
+		token.setScale(G.tableSpots.clanTokenVictory.scale)
+		token.setColorTint(color)
+	end
+
+end
+
 local function scoreBloodlines()
   Z.showScores()
   local waitStep = 2
   UI.show("scoreAlert")
-  for i, color in pairs({"Red", "Yellow", "Blue"}) do
-    local playerName = C.Names[color]
-    UI.setValue(color .. "Score", playerName .. "'s Bloodline: " .. Z.scoreBloodline(color) .. " points.")
-    Wait.time(function()
-      UI.show(color .. "Score")
-    end, waitStep * (i - 1))
+  for i, color in pairs(C.Colors) do
+		Wait.time(function() M.updatePlayerScore(color) end, waitStep * (i - 1))
   end
 end
 local function hideBloodlinesScore()
   Z.hideScores()
   UI.hide("scoreAlert")
-  for _, color in pairs({"Red", "Yellow", "Blue"}) do
+  for _, color in pairs(C.Colors) do
     UI.hide(color .. "Score")
     Wait.time(function() UI.setValue(color .. "Score", "") end, 1)
   end
