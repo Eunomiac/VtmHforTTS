@@ -22,7 +22,7 @@ function clanLeaderSlot.onLoad(thisObj)
   _stagingPos.z = _stagingPos.z + 3
 end
 
-local function setupPlayerSpace(color, clan, politicsToken)
+local function setupPlayerSpace(color, clan, clanToken)
 	local waitTime = 0
 	local waitStep = 0.35
 	local guids = G.playerSpaces[color]
@@ -49,12 +49,12 @@ local function setupPlayerSpace(color, clan, politicsToken)
 							clanLeader = leaderPos,
 							clanScheme = getObjectFromGUID(guids.schemeDeck).getPosition(),
 							clanMorality = G.tableSpots.clanMorality[color],
-							clanPolitics = G.tableSpots.clanPolitics[color]
+							clanToken = G.tableSpots.clanToken[color]
 					}
 					positions.clanLeader.y = positions.clanLeader.y + 0.5
 					positions.clanScheme.y = positions.clanScheme.y + 0.5
 					positions.clanMorality.y = positions.clanMorality.y + 0.5
-					positions.clanPolitics.y = positions.clanPolitics.y + 0.5
+					positions.clanToken.y = positions.clanToken.y + 0.5
 					local clanBoonPos = {
 							x = leaderPos.x + 2,
 							y = leaderPos.y,
@@ -69,8 +69,8 @@ local function setupPlayerSpace(color, clan, politicsToken)
 					local powerBox = getObjectFromGUID(G.tokenSources.power);
 
 					local numBoons = 0
-					politicsToken.setPosition(positions.clanPolitics)
-					politicsToken.setScale({x = 0.24, y = 1, z = 0.24})
+					clanToken.setPosition(positions.clanToken)
+					clanToken.setScale({x = 0.24, y = 1, z = 0.24})
 
 					local clanLeadersPlaced = 0
 					for _, containedObject in ipairs(clanContainer.getObjects()) do
@@ -170,7 +170,8 @@ local function setupPlayerSpace(color, clan, politicsToken)
 								guid = clanLeaderCard.guid,
 								-- smooth = false,
 								position = pos,
-								rotation = {x = 0, y = 180, z = 0}
+								rotation = {x = 0, y = 180, z = 0},
+								callback_function = function(card) card.highlightOn(color, 3) end
 						}) end, waitTime)
 					end
 
