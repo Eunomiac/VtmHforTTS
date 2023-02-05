@@ -1363,9 +1363,9 @@ function M.showVictoryBoard()
   for _, pColor in pairs(C.Colors) do
     local token = getClanToken(pColor)
     if (token) then
-      token.setPositionSmooth(G.tableSpots.clanPoliticsVictory[pColor], false, true)
-      token.setRotationSmooth(G.tableSpots.clanPoliticsVictory.rotation, false, true)
-      token.setScale(G.tableSpots.clanPoliticsVictory.scale)
+      token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
+      token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
+      token.setScale(G.tableSpots.clanTokenVictory.scale)
       token.setColorTint(pColor)
     end
   end
@@ -1441,9 +1441,9 @@ end
 
 function M.getVictoryBoardTokenPositions()
   local victoryBoard = getObjectFromGUID(G.victoryBoard)
-  local clanPoliticsTokens = U.findAboveObject(victoryBoard, "Tile")
+  local clanTokens = U.findAboveObject(victoryBoard, "Tile")
   local snapPointPositions = getSortedVictoryBoardSnapPoints(victoryBoard)
-  local tokenPositions = U.map(clanPoliticsTokens, function(token)
+  local tokenPositions = U.map(clanTokens, function(token)
     return U.findSnapPoint(
       snapPointPositions,
       token.getPosition(),
@@ -1457,10 +1457,10 @@ function M.hideVictoryBoard()
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   local victoryTable = getObjectFromGUID(G.victoryTable)
   local victoryBoard = getObjectFromGUID(G.victoryBoard)
-  local clanPoliticsTokens = U.filter(Global.getObjects(), function (obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
-  -- log({TOKENS = clanPoliticsTokens})
+  local clanTokens = U.filter(Global.getObjects(), function (obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
+  -- log({TOKENS = clanTokens})
   mainStorage.putObject(victoryBoard)
-  for _, token in pairs(clanPoliticsTokens) do
+  for _, token in pairs(clanTokens) do
     token.setColorTint("White")
     token.setScale({x = 0.24, y = 1, z = 0.24})
     mainStorage.putObject(token)
