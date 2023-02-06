@@ -35,6 +35,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 			Blue = {x = -51.5, y = -0.14, z = 27.5}
 	}
 	M.setHighlighter("TurnIndicator", "inactive", color)
+	M.presentObligations(color)
 
 	-- Extract clan box from main storage
 	mainStorage.takeObject({
@@ -144,6 +145,12 @@ local function setupPlayerSpace(color, clan, clanToken)
 											smooth = false,
 											position = powerPos[3]
 									}) end, waitTime)
+									Wait.time(function()
+										local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
+										for _, powerToken in pairs(Z.getTaggedZoneObjects(clZone, "Power")) do
+											powerToken.setLock(true)
+										end
+									end, waitTime + 1)
 								end
 							elseif (containedObject.name == "Deck") then
 									Wait.time(function() clanContainer.takeObject({
@@ -175,12 +182,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 						}) end, waitTime)
 					end
 
-					Wait.time(function()
-						local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
-						for _, powerToken in pairs(Z.getTaggedZoneObjects(clZone, "Power")) do
-							powerToken.setLock(true)
-						end
-					end, waitTime + 2)
+
 			end, 0.5)
 
 

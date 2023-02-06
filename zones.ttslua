@@ -120,7 +120,7 @@ function Z.onObjectEnterZone(zone, object)
 		throttleZone(zone, function()
 			Z.alignCard(zone)
 			if round < 1 then return end
-			Z.refreshUI(zone)
+			Wait.time(function() Z.refreshUI(zone) end, 0.5)
 			if round > 9 then return end
 			if object.type == "Card" then
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
@@ -190,7 +190,7 @@ function Z.onObjectLeaveZone(zone, object)
 	--U.isIn(zone.guid, U.flatten(G.zones.bgEZones)) then
 	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
 	if Z.isPlayerCardZone(zone) then
-		Z.refreshUI(zone)
+		Wait.time(function() Z.refreshUI(zone) end, 0.5)
 		return
 	end
 	if round > 9 then return end
@@ -635,9 +635,9 @@ local function refreshStatusXML(zone)
 		color = "clear"
 	}
 
-	if statusData.torpor then
-		Z.burnAnkhs(zone)
-	end
+	-- if statusData.torpor then
+	-- 	Z.burnAnkhs(zone)
+	-- end
 
 	if gameState.round <= 9 and isCheckingSuspicion and not statusData.torpor then
 		statusData.exhaustion = false
@@ -658,6 +658,7 @@ local function refreshStatusXML(zone)
 	uiData[zone.guid].statusXML = getStatusXML(statusData)
 end
 
+local scoreThrottle = false
 local function refreshScoreXML(zone)
 	-- ONLY if one has already been set
 	if uiData[zone.guid].scoreXML == nil then return end
@@ -667,6 +668,25 @@ local function refreshScoreXML(zone)
 		infamy = Z.countInfamy(zone),
 		boons = Z.countBoons(zone)
 	}
+
+	if scoreThrottle == false then
+		scoreThrottle = true
+		Wait.time(function() scoreThrottle = false end, 2)
+		local victoryBoard = getObjectFromGUID(G.victoryBoard)
+		if victoryBoard ~= nil then
+			local color
+			if U.isIn(zone.guid, G.zones.Red.all) then
+				color = "Red"
+			elseif U.isIn(zone.guid, G.zones.Yellow.all) then
+				color = "Yellow"
+			elseif U.isIn(zone.guid, G.zones.Blue.all) then
+				color = "Blue"
+			else
+				return
+			end
+			Global.getTable("M").updatePlayerScore(color)
+		end
+	end
 
 	uiData[zone.guid].scoreXML = getScoreXML(scoreData)
 end
@@ -755,7 +775,7 @@ end
 function Z.alignCard(zone)
 	local zonePos = zone.getPosition()
 	local card = Z.getCard(zone)
-	if (card) then
+	if card and ((card.hasTag("Character") and zone.hasTag("Character")) or (card.hasTag("ClanLeader") and zone.hasTag("ClanLeader"))) then
 		local cardRot = card.getRotation()
 		card.setRotationSmooth({
 			x = 0,

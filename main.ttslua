@@ -634,7 +634,7 @@ function M.askRoundAndTurn(callback)
         function(turnNum)
 					roundNum = roundNum * 1
 					turnNum = turnNum * 1
-					log({round = roundNum, turn = turnNum})
+					-- log({round = roundNum, turn = turnNum})
 					local isAdvancingTurn = roundNum > 0 and turnNum > 0
 					if roundNum > 0 and turnNum > 0 then
 						if turnNum == 1 then
@@ -862,20 +862,20 @@ function M.gameINIT()
   UI.setValue("logoIntro-subtitle", "(" .. chapterData.years .. ")")
   UI.setValue("logoIntro-body", chapterData.chapterBlurb)
 
-  local timeOnScreen = 5
+  local timeBlurbAloneOnScreen = 5
   local timePadding = 0.5
+	local timeScoresOnScreen = 6
+	local timeBlurbOnScreen = timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen
   local timeStep = 1
 
-  U.splashUIElement("logoIntro", timeOnScreen)
+  U.splashUIElement("logoIntro", timeBlurbOnScreen)
   U.splashUIElement("logoIntro-title", 10, timePadding)
   U.splashUIElement("logoIntro-subtitle", 10, timePadding + timeStep)
   U.splashUIElement("logoIntro-body", 10, timePadding + (timeStep * 2))
 
-  local timePassed = timeOnScreen + (2 * timePadding)
+  local timePassed = timeBlurbAloneOnScreen + (2 * timePadding)
 
-  timeOnScreen = 6
-
-  U.splashUIElement("lastChapterStandingsNotice", timeOnScreen, timePassed)
+  U.splashUIElement("lastChapterStandingsNotice", timeScoresOnScreen, timePassed)
   U.splashUIElement("lastChapterStandingsNotice-title", 10, timePassed)
   U.splashUIElement("lastChapterStandingsNotice-subtitle1", 10, timePassed + timeStep)
   U.splashUIElement("lastChapterStandingsNotice-subtitle2", 10, timePassed + timeStep * 1.5)
@@ -884,7 +884,7 @@ function M.gameINIT()
   U.splashUIElement("lastChapterStandingsNotice-subtitle5", 10, timePassed + timeStep * 3.5)
   U.splashUIElement("lastChapterStandingsNotice-subtitle6", 10, timePassed + timeStep * 4)
 
-  timePassed = timePassed + timeOnScreen + timePadding
+  timePassed = timePassed + timeScoresOnScreen + timePadding
 
   U.splashUIElement("splash-backdrop", timePassed)
 
@@ -1000,7 +1000,7 @@ function M.clearUnusedClanLeaders()
     Z.getClanLeader("Yellow").guid,
     Z.getClanLeader("Blue").guid
   }
-  local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"), function(obj) return not U.isIn(obj.guid, usedClanLeaderIDs) end)
+  local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"), function(obj) return obj.type == "Card" and not U.isIn(obj.guid, usedClanLeaderIDs) end)
   for _, obj in pairs(unusedClanLeaders) do
 		local targetContainer
     if obj.hasTag("Red") then
@@ -1041,6 +1041,52 @@ function M.removeUnusedClanRefs()
 	end
 end
 
+function M.presentObligations(color)
+	local player = Player[color]
+	if player == nil then return end
+	local obligations = U.filter(player.getHandObjects(), function(obj) return obj.hasTag("Obligation") end)
+	if #obligations == 0 then return end
+	local xShift = -2.5
+	for i = 1, #obligations do
+		local obligation = obligations[i]
+		if obligation ~= nil then
+			local oblPos = G.tableSpots.obligations[player.color]
+			local oblRotation = G.tableSpots.obligations.rotation
+			Wait.time(function()
+				obligation.use_hands = false
+				obligation.setLock(true)
+				obligation.setPositionSmooth({
+					x = oblPos.x + (i - 1) * xShift,
+					y = oblPos.y,
+					z = oblPos.z
+				})
+				obligation.setRotationSmooth(oblRotation)
+				obligation.highlightOn("Red")
+				obligation.use_hands = true
+			end, 1.5)
+		end
+	end
+end
+
+function M.retrieveObligations(color)
+	if color == nil then
+		for _, color in pairs(C.Colors) do
+			M.retrieveObligations(color)
+		end
+	else
+		local playerZone = getObjectFromGUID(G.zones[color].aftermath)
+		if playerZone ~= nil then
+			local playerHaven = getObjectFromGUID(G.playerSpaces[color].haven)
+			for _, obl in pairs(Z.getTaggedZoneObjects(playerZone, "Obligation")) do
+				obl.highlightOff()
+				obl.setLock(false)
+				obl.setRotation({x = 0, y = 180, z = 0})
+				playerHaven.putObject(obl)
+			end
+		end
+	end
+end
+
 function M.gameSTART()
   -- local mainStorage = getObjectFromGUID(G.mainStorage.id)
     -- UI.hide("setupReminder")
@@ -1049,11 +1095,11 @@ function M.gameSTART()
     UI.hide("BlueClanChoice")
     UI.hide("clanChoiceAlert")
     UI.hide("chooseStrandsOfTimeNotice")
+		M.retrieveObligations()
 
 		M.hideHavens()
 		M.hidePouches()
 
-    -- H.boxStrandsOfTime()  -- Must wait until we have at least one more to keep it a deck!
 
     M.clearUnusedClanLeaders()
     for _, col in pairs(C.Colors) do
@@ -1103,9 +1149,10 @@ function M.updatePlayerScore(color)
 	if (token and victoryBoard) then
 		local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
 			x = pos.x,
-			y = pos.y + 1,
-			z = pos.z - 0.1
+			y = pos.y + 0.2,
+			z = pos.z -- + 0.2
 		}) end)
+		log({snapPoint4 = positions[4]})
 		local scorePos
 		if playerScore > 0 then
 			if playerScore > 60 then playerScore = 60 end
@@ -1150,16 +1197,15 @@ function M.showVictoryBoard()
     smooth = false,
 		callback_function = function(vBoard) vBoard.setLock(true) end
   })
-	return
-  -- for _, pColor in pairs(C.Colors) do
-  --   local token = getClanToken(pColor)
-  --   if (token) then
-  --     token.setPositionSmooth(G.tableSpots.clanTokenVictory[pColor], false, true)
-  --     token.setRotationSmooth(G.tableSpots.clanTokenVictory.rotation, false, true)
-  --     token.setScale(G.tableSpots.clanTokenVictory.scale)
-  --     token.setColorTint(pColor)
-  --   end
-  -- end
+  for _, pColor in pairs(C.Colors) do
+    local token = getClanToken(pColor)
+    if (token) then
+      token.setPosition(G.tableSpots.clanTokenVictory[pColor], false, true)
+      token.setRotation(G.tableSpots.clanTokenVictory.rotation, false, true)
+      token.setScale(G.tableSpots.clanTokenVictory.scale)
+      token.setColorTint(pColor)
+    end
+  end
 end
 
 -- local function move
@@ -1213,9 +1259,9 @@ end
 
 function M.gameSCORE()
   M.showVictoryBoard()
-  scoreBloodlines()
   M.recallSchemeDiscard()
   M.recallStrandsOfTime()
+	Wait.time(scoreBloodlines, 1)
 end
 
 function M.recallSchemeDiscard()
@@ -1571,7 +1617,7 @@ local decksOnBoard = {}
 function M.presentDeck(deckTags, playerColor, position, options)
   local mainStorage = getObjectFromGUID(G.mainStorage.id)
   if (position == nil) then
-    position = G.tableSpots.staging[playerColor]
+    position = G.tableSpots.deckStaging[playerColor]
   end
   local deckData = U.find(mainStorage.getObjects(), function (obj)
     for _, tag in pairs(deckTags) do
@@ -1579,6 +1625,7 @@ function M.presentDeck(deckTags, playerColor, position, options)
     end
     return true
   end)
+	if deckData == nil then return end
 	local rotation = {x = 0, y = 180, z = 180}
 	if options and options.isFlipped then
 		rotation.z = 0
@@ -1604,8 +1651,14 @@ function M.presentStrandsOfTimeToVanquished()
   M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime, {spread = -2.5})
 end
 function M.presentStrandsOfTimeToMiddle()
-  M.presentDeck({"StrandsOfTime"}, M.getLastChapterMiddle(), G.tableSpots.strandsOfTime, {spread = -2.5})
+	local color = M.getLastChapterMiddle()
+	local thirdChildeZone = getObjectFromGUID(G.zones[color].bloodline[2][3])
+	local pos = thirdChildeZone.getPosition()
+	pos.y = 1
+  M.presentDeck({"StrandsOfTime"}, color, pos, {spread = -2.5})
 end
+
+
 
 function M.boxDeck(deck)
   if not deck then return false end
