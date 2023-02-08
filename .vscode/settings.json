@@ -18,8 +18,22 @@
 		"onLoad",
 		"getObjects",
 		"getObjectsWithAllTags",
-		"Lighting"
+		"Lighting",
+		"addHotkey",
+		"gameState",
+		"onObjectEnterZone",
+		"onObjectLeaveZone",
+		"console",
+		"onPlayerTurn",
+		"tryObjectEnterContainer",
+		"onUpdate",
+		"onSave",
+		"onCollisionEnter"
 	],
-	"Lua.diagnostics.disable": [
+	"Lua.completion.enable": false,
+	"Lua.workspace.ignoreDir": [
+		".vscode",
+		"vscode",
+		"Console"
 	]
 }

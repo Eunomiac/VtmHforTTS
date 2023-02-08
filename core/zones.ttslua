@@ -1,14 +1,54 @@
--- local M = require("main")
-local G = require("guids")
-local U = require("utilities")
-local C = require("constants")
-local BGE = require("bgE")
+local M
+local G = require("lib.guids")
+local U = require("lib.utilities")
+local C = require("lib.constants")
+local BGE = require("battlegrounds.bgE")
 
 local Z = {}
 
 local uiData = {}
 local maxInfamy = 0
 local isCheckingSuspicion = false
+
+function Z.onLoad()
+	M = Global.getTable("M")
+	-- log("[ZONES]: " .. M.getStateVal("gamePhase"))
+	Z.refreshUI()
+end
+
+local zoneTags = {
+	aftermath = {"Obligation"}
+}
+
+local function getStateVal(key, subKey)
+	return M.getStateVal(key, subKey)
+  -- local state = Global.getTable("gameState")
+  -- if not state[key] then return state[key] end
+  -- if subKey then return state[key][subKey] end
+  -- return state[key]
+end
+
+local function setStateVal(value, key, subKey)
+  local state = Global.getTable("gameState")
+  if (subKey) then
+      if (state[key] == nil) then state[key] = {} end
+      state[key][subKey] = value
+  else
+      state[key] = value
+  end
+  Global.setTable("gameState", state)
+end
+
+local function isInPhase(phases)
+	if type(phases) == "string" then phases = {phases} end
+	return U.isIn(getStateVal("gamePhase"), phases)
+end
+
+local function getZoneColor(zone)
+	if U.isIn(zone.guid, U.flatten(G.zones.Red)) then return "Red"
+	elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow)) then return "Yellow"
+	elseif U.isIn(zone.guid, U.flatten(G.zones.Blue)) then return "Blue" end
+end
 
 local function getZoneBounds(zone)
 	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
@@ -63,43 +103,35 @@ function Z.dimBattleground(zone)
 	end
 end
 
--- *** Events ***
-
-
-function Z.updateTestObject()
-	-- local obj = getObjectFromGUID("0bc7f5")
-	-- obj.UI.setXmlTable({
-	-- 	{
-	-- 		tag = "Panel",
-	-- 		attributes = {
-	-- 			class = "main",
-	-- 			height = "1000",
-	-- 			width = "100",
-	-- 			padding = "0 0 0 0",
-	-- 			position = "0 0 -900",
-	-- 			rotation = "-90 0 0"
-	-- 		},
-	-- 		children = {
-	-- 			{
-	-- 				tag = "Image",
-	-- 				attributes = {
-	-- 					height = "100",
-	-- 					width = "100",
-	-- 					scale = "2 2 2",
-	-- 					image = "overlay-spotlight"
-	-- 				},
-	-- 				children = {}
-	-- 			}
-	-- 		}
-	-- 	}
-	-- })
-
-
+function Z.hideZones()
+	local zones = U.filter(getObjects(), function(obj) return obj.type == "Scripting" end)
+	setStateVal(true, "allZonesLocked")
+	Wait.time(function()
+		U.forEach(zones, function(zone)
+			local zonePos = zone.getPosition()
+			if zonePos.y < 30 then
+				zonePos.y = zonePos.y + 50
+			end
+			zone.setPosition(zonePos)
+		end)
+	end, 0.25)
 end
---
 
+function Z.activateZones()
+	local zones = U.filter(getObjects(), function(obj) return obj.type == "Scripting" end)
+	if #zones > 0 and zones[1].getPosition().y > 30 then
+		U.forEach(zones, function(zone)
+			local zonePos = zone.getPosition()
+			zonePos.y = zonePos.y - 50
+			zone.setPosition(zonePos)
+		end)
+	end
+	Wait.time(function()
+		setStateVal(false, "allZonesLocked")
+	end, 0.25)
+end
 
-
+-- *** Events ***
 local zoneThrottle = {}
 local function throttleZone(zone, func, delay)
 	if delay == nil then delay = 0.4 end
@@ -113,17 +145,30 @@ end
 local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
 
 function Z.onObjectEnterZone(zone, object)
+	if M == nil then return end
+	if M.getStateVal("allZonesLocked") == true then return end
 	if isThrottled(zone) then return end
-	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
 	if Z.isPlayerCardZone(zone) then
-		if Global.getTable("gameState").playerZonesLocked == true then return end
+		if getStateVal("playerZonesLocked") == true then return end
 		throttleZone(zone, function()
 			Z.alignCard(zone)
-			if round < 1 then return end
 			Wait.time(function() Z.refreshUI(zone) end, 0.5)
-			if round > 9 then return end
+			if isInPhase("INIT") and object.hasTag("ClanLeader") then
+				local color = getZoneColor(zone)
+				if color == nil then return end
+				M.updateMoralityToken(color)
+			end
+			if not isInPhase("PLAY") then return end
 			if object.type == "Card" then
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
+			end
+			if isCheckingSuspicion and (object.hasTag("ExhaustTorpor") or object.hasTag("Infamy")) then
+				Wait.time(function()
+					if Z.isTorpored(zone) or object.hasTag("Infamy") then
+						Z.hideSuspicion()
+						getObjectFromGUID(G.battlegrounds.d).call("EndTrial")
+					end
+				end, 1)
 			end
 		end)
 		return
@@ -134,11 +179,17 @@ function Z.onObjectEnterZone(zone, object)
 		end
 		return
 	end
-	if round > 9 or round < 1 then return end
+	if not isInPhase("PLAY") then return end
 	if Z.isBattlegroundZone(zone) then
 		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
 		end
+		if object.hasTag("ClassToken") and zone.guid == G.zones.bgDEndZone then
+			if getObjectFromGUID(G.battlegrounds.d).call("CheckForTrial") == true then
+				Z.showSuspicion()
+			end
+		end
+
 		-- if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
 		-- 	local dir
 		-- 	if object.hasTag("North") then dir = "North"
@@ -187,22 +238,25 @@ function Z.onObjectEnterZone(zone, object)
 end
 
 function Z.onObjectLeaveZone(zone, object)
-	--U.isIn(zone.guid, U.flatten(G.zones.bgEZones)) then
-	local round, turn = Global.getTable("gameState").round, Global.getTable("gameState").turn
+	if M == nil then return end
+	if M.getStateVal("allZonesLocked") == true then return end
 	if Z.isPlayerCardZone(zone) then
+		if object.hasTag("Character") or object.hasTag("ClanLeader") then
+			object.removeTag("TopChar")
+			object.removeTag("Monstrosity_1")
+			object.removeTag("Monstrosity_2")
+			object.removeTag("Monstrosity_3")
+			object.removeTag("Monstrosity_4")
+		end
+		if object.hasTag("ClanScheme") then object.setScale({1, 1, 1}) end
 		Wait.time(function() Z.refreshUI(zone) end, 0.5)
 		return
 	end
-	if round > 9 then return end
+	if not isInPhase("PLAY") then return end
 	if Z.isCharQueueZone(zone) and object.type == "Card" then
-		local objRotation = object.getRotation()
-		object.setRotation({
-			x = U.pAngle(objRotation.x, 180),
-			y = U.pAngle(objRotation.y, 180),
-			z = U.pAngle(objRotation.z, 180)
-		})
+		object.setRotation(U.pRotation(object.getRotation(), 180))
 	elseif Z.isBattlegroundZone(zone) then
-		if Global.getTable("gameState").round > 0 and not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
+		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			Z.dimBattleground(zone)
 		end
 	end
@@ -226,11 +280,27 @@ function Z.isBattlegroundZone(zone) return U.isIn(zone.guid, U.flatten(G.zones.b
 function Z.isCharQueueZone(zone) return zone.guid == G.zones.charQueueArea end
 
 -- *** Zone Object Retrieval ***
+function Z.getTaggedZoneObjects(zone, tags, requireAll)
+	local zoneTags = zone.getTags()
+	if type(tags) == "string" then tags = {tags} end
+	zone.setTags(tags)
+	local zoneObjs = U.filter(zone.getObjects(), function(obj) return U.hasAnyTag(obj, tags) end)
+	if requireAll == true then
+		zoneObjs = U.filter(zoneObjs, function(obj)
+			for _, tag in pairs(tags) do
+				if not obj.hasTag(tag) then return false end
+			end
+			return true
+		end)
+	end
+	zone.setTags(zoneTags)
+	return zoneObjs
+end
 function Z.getZoneObjects(zone, objType)
 	return U.filter(zone.getObjects(true), function(obj) return obj.type == objType end)
 end
 
-function Z.getTaggedZoneObjects(zone, tags, requireAll)
+function Z.OLD_getTaggedZoneObjects(zone, tags, requireAll)
 	local zoneObjs = zone.getObjects()
 	if type(tags) == "string" then return U.filter(zoneObjs, function(obj) return obj.hasTag(tags) end) end
 	if requireAll == true then
@@ -252,7 +322,24 @@ function Z.getTaggedZoneObjects(zone, tags, requireAll)
 	end
 end
 
-function Z.getCard(zone) return Z.getZoneObjects(zone, "Card")[1] end
+function Z.getCards(zone, tags)
+	if tags == nil then tags = {"Character", "ClanLeader"}
+	elseif type(tags) == "string" then tags = {tags} end
+	return Z.getTaggedZoneObjects(zone, tags, false)
+end
+-- Z.getCard(zone)
+-- returns the top card in zone, if there is one
+
+function Z.getCard(zone)
+	local cards = Z.getZoneObjects(zone, "Card")
+	if #cards == 0 then return end
+	if #cards == 1 then return cards[1] end
+	-- table.sort({5, 2, 3, 1}, function(a, b) return b < a end) = {5, 3, 2, 1}
+
+	table.sort(cards, function(a, b) return b.getPosition().y < a.getPosition().y end);
+
+	return cards[1]
+end
 
 function Z.hasCard(zone) return Z.getCard(zone) ~= nil end
 
@@ -288,6 +375,8 @@ function Z.isTorpored(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) 
 
 function Z.isExhausted(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getExhaustionTokens(zone) > 0 end
 
+function Z.isEnemy(zone) return Z.isPlayerCardZone(zone) and Z.hasCard(zone) and #Z.getTaggedZoneObjects(zone, {"ClanScheme", "Brujah"}, true) > 0 end
+
 function Z.countPower(zone, isCountingTorpored)
 	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
 		if isCountingTorpored or not Z.isTorpored(zone) then
@@ -300,9 +389,9 @@ end
 function Z.countInfamy(zone, isCountingTorpored)
 	if Z.isPlayerCardZone(zone) and Z.hasCard(zone) then
 		if isCountingTorpored or not Z.isTorpored(zone) then
-			if string.find(Z.getCard(zone).getDescription(), "IgnoreInfamyVP") then
-				local gameState = Global.getTable("gameState")
-				if gameState.round == 10 then return 0 end
+			local function isIgnoringInfamy(card) return string.find(card.getDescription(), "IgnoreInfamyVP") end
+			if #U.filter(Z.getCards(zone), isIgnoringInfamy) > 0 then
+				if isInPhase("SCORING") then return 0 end
 			end
 			return #Z.getInfamyTokens(zone)
 		end
@@ -397,14 +486,20 @@ local function getStatusXML(statusData)
 					}
 				}
 			}
-		-- table.insert(XML.children, {
-		-- 	tag = "Image",
-		-- 	attributes = {
-		-- 		class = "suspicious-overlay",
-		-- 		image = "overlay-suspicion"
-		-- 	},
-		-- 	children = {}
-		-- })
+	end
+
+	if statusData.enemy then
+		table.insert(XML.children, {
+			tag = "Image",
+			attributes = {
+				class = "enemy-overlay",
+				image = "overlay-enemy",
+				color = "rgba(1,1,1,1)"
+			},
+			children = {}
+		})
+
+
 	end
 
 	return XML
@@ -620,8 +715,7 @@ local function getScoreXML(scoreData)
 end
 
 local function refreshStatusXML(zone)
-	local gameState = Global.getTable("gameState")
-	if gameState.round == 0 then
+	if isInPhase({"NONE", "SETUP"}) then
 		uiData[zone.guid].statusXML = nil
 		return
 	end
@@ -630,7 +724,7 @@ local function refreshStatusXML(zone)
 		torpor = Z.isTorpored(zone),
 		exhaustion = false,
 		suspicion = false,
-		enemy = false,
+		enemy = Z.isEnemy(zone),
 		monstrosity = false,
 		color = "clear"
 	}
@@ -639,7 +733,7 @@ local function refreshStatusXML(zone)
 	-- 	Z.burnAnkhs(zone)
 	-- end
 
-	if gameState.round <= 9 and isCheckingSuspicion and not statusData.torpor then
+	if isInPhase("PLAY") and isCheckingSuspicion and not statusData.torpor then
 		statusData.exhaustion = false
 		if Z.countInfamy(zone) == maxInfamy then
 			Z.getCard(zone).highlightOn({ 1, 1, 1 })
@@ -652,7 +746,7 @@ local function refreshStatusXML(zone)
 	else
 		Z.getCard(zone).highlightOff()
 		statusData.suspicion = false
-		statusData.exhaustion = not statusData.torpor and gameState.round < 10 and Z.isExhausted(zone)
+		statusData.exhaustion = not statusData.torpor and isInPhase({"INIT", "PLAY"}) and Z.isExhausted(zone)
 	end
 
 	uiData[zone.guid].statusXML = getStatusXML(statusData)
@@ -773,21 +867,115 @@ function Z.hideSuspicion()
 end
 
 function Z.alignCard(zone)
+	local monstrosityTags = {"Monstrosity_1", "Monstrosity_2", "Monstrosity_3", "Monstrosity_4"}
 	local zonePos = zone.getPosition()
-	local card = Z.getCard(zone)
-	if card and ((card.hasTag("Character") and zone.hasTag("Character")) or (card.hasTag("ClanLeader") and zone.hasTag("ClanLeader"))) then
-		local cardRot = card.getRotation()
-		card.setRotationSmooth({
-			x = 0,
-			y = U.pAngle(cardRot.y, 180),
-			z = U.pAngle(cardRot.z, 180)
-		})
+	local function alignCharCard(card)
+		if U.hasAnyTag(card, monstrosityTags) then return end
+		local cardRot = zone.getRotation()
+		cardRot.y = 180
+		cardRot.z = U.pAngle(card.getRotation().z, 180)
+		card.setRotationSmooth(cardRot)
 		card.setPositionSmooth({
 			x = zonePos.x,
 			y = -0.11,
 			z = zonePos.z
 		})
+		card.addTag("TopChar")
 	end
+	local function alignEnemySchemeCard(card)
+		local zoneBounds = getZoneBounds(zone)
+		-- card.setLock(true)
+		card.setScale({0.33, 1, 0.33})
+		card.setRotation({x = 0, y = 180, z = 0})
+		card.setPosition({
+			x = zoneBounds.x.max - 0.4,
+			y = 0.05,
+			z = zoneBounds.z.max - 0.4
+		})
+	end
+	local function alignMonstrosityCards(cards)
+
+	end
+
+	local zoneCharCards = Z.getCards(zone)
+	if #zoneCharCards == 1 then
+		alignCharCard(zoneCharCards[1])
+		local pos = zone.getPosition()
+		zone.setPosition({
+			x = pos.x,
+			y = 0.01,
+			z = pos.z
+		})
+	elseif #zoneCharCards > 1 and #zoneCharCards < 5 then
+		local minY = -0.11
+		local heightStep = 0.04
+		local vertStep = 1
+		local topCard = U.find(zoneCharCards, function(card) return card.hasTag("TopChar") end)
+		local newCard = U.find(zoneCharCards, function(card) return not U.hasAnyTag(card, U.concat({"TopChar"}, monstrosityTags)) end)
+		if topCard ~= nil and newCard ~= nil then
+			local monstrosityCards = U.filter(zoneCharCards, function(card) return U.hasAnyTag(card, monstrosityTags) end)
+			local thisMonstrosityNum = #monstrosityCards + 1
+			newCard.addTag("Monstrosity_" .. thisMonstrosityNum)
+			-- lock and elevate the top card
+			topCard.setLock(true)
+			Wait.time(function() topCard.setLock(false) end, 1)
+			local topPos = topCard.getPosition()
+			topCard.setPositionSmooth({
+				x = topPos.x,
+				y = minY + heightStep * (#monstrosityCards + 1),
+				z = topPos.z
+			})
+			local zonePos = zone.getPosition()
+			zone.setPosition({
+				x = zonePos.x,
+				y = 0.01 + heightStep * (#monstrosityCards + 1),
+				z = zonePos.z
+			})
+
+			for i = 1, #monstrosityCards + 1 do
+				local tag = "Monstrosity_" .. i
+				local thisCard = U.find(zoneCharCards, function(card) return card.hasTag(tag) end)
+				if thisCard ~= nil then
+					thisCard.setLock(true)
+					thisCard.setPositionSmooth({
+						x = topPos.x,
+						y = minY + heightStep * (#monstrosityCards + 1 - i),
+						z = topPos.z - vertStep * i
+					})
+					thisCard.setRotation({x = 0, y = 180, z = 0})
+					Wait.time(function() thisCard.setLock(false) end, 1)
+				end
+			end
+		end
+	end
+
+	local zoneSchemeCards = Z.getTaggedZoneObjects(zone, {"ClanScheme", "Brujah"}, true)
+	if #zoneSchemeCards == 0 then return end
+	if #zoneCharCards == 0 then
+		U.forEach(zoneSchemeCards, Z.discardEnemyScheme)
+	else
+		alignEnemySchemeCard(table.remove(zoneSchemeCards, 1))
+	end
+end
+
+function Z.discardEnemyScheme(enemyScheme)
+	if enemyScheme == nil then return end
+	local pos = enemyScheme.getPosition()
+	pos.y = pos.y + 0.5
+	enemyScheme.setPosition(pos)
+	enemyScheme.setScale({1, 1, 1})
+	enemyScheme.setLock(false)
+	local playerColor
+	local clans = getStateVal("clans")
+	if clans == nil then return end
+  if clans.Red == "Brujah" then playerColor = "Red"
+	elseif clans.Yellow == "Brujah" then playerColor =  "Yellow"
+  elseif clans.Blue == "Brujah" then playerColor = "Blue"
+	else return end
+	local schemeDiscard = getObjectFromGUID(G.playerObjs[playerColor].schemeDiscard)
+	pos = schemeDiscard.getPosition()
+	pos.y = pos.y + 0.5
+	enemyScheme.setPositionSmooth(pos)
 end
 
 function Z.discardTorporedVamps()
@@ -803,16 +991,18 @@ function Z.discardTorporedVamps()
 				local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[boonClan])
 				clanChest.putObject(boon)
 			end)
-			Z.getCard(zone).setPosition(discardPos)
-			-- Wait.time(function() Z.clearStatusOverlay(zone) end, 0.5)
+			U.forEach(Z.getCards(zone), function(card) card.setPosition(discardPos) end)
+			local enemyScheme = Z.getEnemyScheme(zone)
+			if enemyScheme ~= nil then
+				Z.discardEnemyScheme(enemyScheme)
+			end
 		end
 	end
 end
 
 function Z.returnAnkhs(dir, isAwardingPower)
 	if isAwardingPower == nil then isAwardingPower = true end
-	local gameState = Global.getTable("gameState")
-	if gameState.round > 9 then isAwardingPower = false end
+	if not isInPhase("PLAY") then isAwardingPower = false end
 
 	for _, zone in pairs(Z.getPlayerZones()) do
 		local returningAnkhs = Z.getAnkhs(zone, dir)

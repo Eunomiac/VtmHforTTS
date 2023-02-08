@@ -1,6 +1,6 @@
-local U = require("utilities")
-local G = require("guids")
-local Z = require("zones")
+local U = require("lib.utilities")
+local G = require("lib.guids")
+local Z = require("core.zones")
 
 local BGE = {}
 

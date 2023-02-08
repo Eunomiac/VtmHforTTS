@@ -1,39 +1,28 @@
 
-local U = require("utilities")
-local C = require("constants")
-local G = require("guids")
-local Z = require("zones")
-local M = require("main")
-local clanLeaderSlot = {}
+local U = require("lib.utilities")
+local G = require("lib.guids")
+local Z = require("core.zones")
+local M = require("core.main")
 
 local _playerColor = nil
 local _stagingPos = nil
 
 local isSelecting = false
-
-function clanLeaderSlot.onLoad(thisObj)
-  for _, tag in pairs(thisObj.getTags()) do
-    if (tag == "Red" or tag == "Yellow" or tag == "Blue") then
-      _playerColor = tag
-      break
-    end
-  end
-  _stagingPos = thisObj.getPosition()
-  _stagingPos.z = _stagingPos.z + 3
-end
+local isLoaded = false
 
 local function setupPlayerSpace(color, clan, clanToken)
 	local waitTime = 0
 	local waitStep = 0.35
-	local guids = G.playerSpaces[color]
+	local guids = G.playerObjs[color]
 	local mainStorage = getObjectFromGUID(G.mainStorage.id)
-	local playerPouch = getObjectFromGUID(G.playerSpaces[color].pouch)
+	local playerPouch = getObjectFromGUID(G.playerObjs[color].pouch)
 	local clanStorageGUID = G.mainStorage.clanStorage[clan]
 	local stagingPositions = {
 			Red = {x = -51.5, y = -0.14, z = 33.5},
 			Yellow = {x = -51.5, y = -0.14, z = 30.5},
 			Blue = {x = -51.5, y = -0.14, z = 27.5}
 	}
+	M.setStateVal(clan, "clans", color)
 	M.setHighlighter("TurnIndicator", "inactive", color)
 	M.presentObligations(color)
 
@@ -57,7 +46,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 					positions.clanMorality.y = positions.clanMorality.y + 0.5
 					positions.clanToken.y = positions.clanToken.y + 0.5
 					local clanBoonPos = {
-							x = leaderPos.x + 2,
+							x = leaderPos.x + 1,
 							y = leaderPos.y,
 							z = leaderPos.z
 					}
@@ -145,19 +134,17 @@ local function setupPlayerSpace(color, clan, clanToken)
 											smooth = false,
 											position = powerPos[3]
 									}) end, waitTime)
-									Wait.time(function()
-										local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
-										for _, powerToken in pairs(Z.getTaggedZoneObjects(clZone, "Power")) do
-											powerToken.setLock(true)
-										end
-									end, waitTime + 1)
+
 								end
 							elseif (containedObject.name == "Deck") then
 									Wait.time(function() clanContainer.takeObject({
 											guid = containedObject.guid,
 											smooth = false,
 											position = positions.clanScheme,
-											rotation = {x = 0, y = 180, z = 180}
+											rotation = {x = 0, y = 180, z = 180},
+											callback_function = function(deck)
+												deck.shuffle()
+											end
 									}) end, waitTime)
 							else
 									-- log(JSON.encode_pretty(containedObject));
@@ -182,6 +169,13 @@ local function setupPlayerSpace(color, clan, clanToken)
 						}) end, waitTime)
 					end
 
+					Wait.time(function()
+						local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
+						for _, token in pairs(Z.getTaggedZoneObjects(clZone, {"Power", "Boon", "Infamy"})) do
+							token.setLock(true)
+						end
+					end, waitTime + 1)
+
 
 			end, 0.5)
 
@@ -199,17 +193,31 @@ local function handleClanToken(collision_info)
 	setupPlayerSpace(_playerColor, clanName, collision_info.collision_object)
 end
 
+function onLoad()
+  for _, tag in pairs(self.getTags()) do
+    if (tag == "Red" or tag == "Yellow" or tag == "Blue") then
+      _playerColor = tag
+      break
+    end
+  end
+  _stagingPos = self.getPosition()
+  _stagingPos.z = _stagingPos.z + 3
+	isLoaded = true
+end
 
-function clanLeaderSlot.onCollisionEnter(collision_info)
-    if (isSelecting) then return end
-    local round, turn = M.getRoundAndTurn()
-    if (round ~= 0) then return end
-    if (M.getNextPlayer() ~= _playerColor) then return end
-    local colObj = collision_info.collision_object
-    if not colObj.hasTag("ClanToken") then return end
-    isSelecting = true
-    Wait.time(function() isSelecting = false end, 0.5)
-    return handleClanToken(collision_info)
+function onCollisionEnter(collision_info)
+	if isLoaded == false then return end
+	if M.getStateVal("gamePhase") ~= "INIT" then return end
+	if not collision_info.collision_object.hasTag("ClanToken") then return end
+	if (isSelecting) then return end
+	local round, turn = M.getRoundAndTurn()
+	if (round ~= 0) then return end
+	if (M.getNextPlayer() ~= _playerColor) then return end
+	local colObj = collision_info.collision_object
+	if not colObj.hasTag("ClanToken") then return end
+	isSelecting = true
+	Wait.time(function() isSelecting = false end, 0.5)
+	return handleClanToken(collision_info)
 end
 
 -- end
@@ -274,5 +282,3 @@ end
     -- Clan Leader
 
     -- Morality Token on Battleground
-
-return clanLeaderSlot

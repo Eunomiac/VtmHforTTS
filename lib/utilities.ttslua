@@ -13,6 +13,9 @@ function U.pAngle(num, interval)
   if not interval then interval = 45 end
   return math.floor((num / interval) + 0.5) * interval
 end
+function U.pRotation(rot, interval)
+	return U.map(rot, function(rVal) return U.pAngle(rVal, interval) end)
+end
 
 function U.findAboveObject(obj, type)
     local objBounds = obj.getBounds()
@@ -178,9 +181,12 @@ function U.split(inputstr, sep)
     return t
 end
 
-function U.forEach(table, func)
+function U.forEach(table, func, delayStep)
+	if delayStep == nil then delayStep = 0 end
+	local waitTime = 0
   for k,v in pairs(table) do
-    func(v,k)
+		Wait.time(function() func(v, k) end, waitTime)
+		waitTime = waitTime + delayStep
   end
 end
 
@@ -208,11 +214,47 @@ function U.filter(tb, func)
   return new_table
 end
 
+function U.invert(tb)
+	local new_table = {}
+	for k,v in pairs(tb) do
+		if U.isIn(v, {"string", "number"}) then
+			new_table[v] = k
+		elseif U.isIn(v, {"boolean", "nil", "table", "function"}) then
+			new_table[JSON.encode(v)] = k
+		else
+			new_table.user_data = k
+		end
+	end
+	return new_table
+end
+-- lua function testConcat(...) local arg = {...}; local tb1 = table.remove(arg, 1); for _, tb in ipairs(arg) do log("TB: " .. JSON.encode(tb)); for i = 1, #tb do log("TB[" .. i .. "] " .. tb[i]); tb1[#tb1 + 1] = tb[i] end end; return tb1 end
+
+-- function U.conc(...)
+-- 	local arg = {...}
+-- 	local tb1 = table.remove(arg, 1)
+-- 	for _, tb in ipairs(arg) do
+-- 		log("TB: " .. JSON.encode(tb))
+-- 		for i = 1, #tb do
+-- 			log("TB[" .. i .. "] " .. tb[i])
+-- 			tb1[#tb1 + 1] = tb[i]
+-- 		end
+-- 	end
+-- 	return tb1
+-- end
 function U.concat(t1,t2)
     for i=1,#t2 do
         t1[#t1+1] = t2[i]
     end
     return t1
+end
+
+function U.concatMult(...)
+	local args = {...}
+	local tb = {}
+	U.forEach(args, function(arg)
+		tb = U.concat(tb, arg)
+	end)
+	return tb
 end
 
 function U.flatten(tb)
@@ -324,6 +366,13 @@ function U.splashUIElement(elemID, duration, delay)
 end
 function U.alertGM(message)
   broadcastToColor(message, "Red")
+end
+
+function U.hasAnyTag(obj, tags)
+	for _, tag in pairs(tags) do
+		if obj.hasTag(tag) then return true end
+	end
+	return false
 end
 
 function U.findClanTag(obj)

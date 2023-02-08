@@ -24,6 +24,17 @@ C.MoralityTokens = {
   Ventrue = "C"
 }
 
+C.GamePhases = {
+	"NONE",
+	"SETUP",
+	"INIT",
+	"PLAY",
+	"SCORING",
+	"MISSIONS",
+	"AFTERMATH",
+	"END"
+}
+
 C.CameraAngles = {
   ZoomCard = {position = {x=-0.5,y=-2,z=4.75},pitch = 70.72,yaw = 0,distance = 11},
   ZoomPlayerOne = {position = {x=-27,y=1,z=-14}, pitch = 75, yaw = 0, distance = 17.5},
@@ -61,7 +72,7 @@ C.Lighting = {
 		ambient_intensity = 0,
 		light_intensity = 0,
 		lut_contribution = 1,
-		lut_index = 105, -- 36, 40, 48!, 77, 79, 92!, 95!, 105!!
+		lut_index = 36, -- 36, 40, 48!, 77, 79, 92!, 95!, 105!!
 		reflection_intensity = 0
 	}
 }
