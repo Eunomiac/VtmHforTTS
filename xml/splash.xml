@@ -9,6 +9,8 @@
 
 	<VerticalLayout class="splash-text"
     rectAlignment="UpperCenter"
+		childAlignment="UpperCenter"
+		childForceExpandHeight="false"
     offsetXY="0 -200" />
 
   <VerticalLayout class="splash-intro"
@@ -27,7 +29,7 @@
   <VerticalLayout class="splash-clanChoice"
     height="135" width="675"
     rectAlignment="UpperRight"
-    offsetXY="-2 -2"
+    offsetXY="-100 -40"
     scale="0.75"
     padding="10 10 10 0"
     spacing="5" />

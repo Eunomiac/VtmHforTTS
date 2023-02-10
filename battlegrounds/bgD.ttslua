@@ -68,7 +68,7 @@ local function getTokenData()
 end
 
 function CheckForTrial()
-	log(getTokenData())
+	-- log(getTokenData())
 	local judicesTokens = U.filter(getTokenData(),
 		function(tData) return tData.location == "judices"
 		end)

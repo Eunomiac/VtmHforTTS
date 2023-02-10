@@ -46,7 +46,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 					positions.clanMorality.y = positions.clanMorality.y + 0.5
 					positions.clanToken.y = positions.clanToken.y + 0.5
 					local clanBoonPos = {
-							x = leaderPos.x + 1,
+							x = leaderPos.x + 2,
 							y = leaderPos.y,
 							z = leaderPos.z
 					}
@@ -104,17 +104,17 @@ local function setupPlayerSpace(color, clan, clanToken)
 											{
 													x = positions.clanLeader.x + 0.1,
 													y = positions.clanLeader.y + 2,
-													z = positions.clanLeader.z - 0.1
+													z = positions.clanLeader.z - 2.5 - 0.1
 											},
 											{
 													x = positions.clanLeader.x - 0.1,
 													y = positions.clanLeader.y + 2,
-													z = positions.clanLeader.z - 0.1
+													z = positions.clanLeader.z - 2.5 - 0.1
 											},
 											{
 													x = positions.clanLeader.x,
 													y = positions.clanLeader.y + 2,
-													z = positions.clanLeader.z + 0.1
+													z = positions.clanLeader.z - 2.5 + 0.1
 											}
 									}
 									Wait.time(function() powerBox.takeObject({
@@ -169,12 +169,12 @@ local function setupPlayerSpace(color, clan, clanToken)
 						}) end, waitTime)
 					end
 
-					Wait.time(function()
-						local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
-						for _, token in pairs(Z.getTaggedZoneObjects(clZone, {"Power", "Boon", "Infamy"})) do
-							token.setLock(true)
-						end
-					end, waitTime + 1)
+					-- Wait.time(function()
+					-- 	local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
+					-- 	for _, token in pairs(Z.getTaggedZoneObjects(clZone, {"Power", "Boon", "Infamy"})) do
+					-- 		token.setLock(true)
+					-- 	end
+					-- end, waitTime + 1)
 
 
 			end, 0.5)

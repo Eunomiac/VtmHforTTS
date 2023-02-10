@@ -152,9 +152,9 @@ G.tableSpots = {
 		Blue = { x = 31, y = 0, z = -28 }
 	},
 	clanTokenVictory = {
-		Red = { x = -9.17, y = 8, z = 5.77 },
-		Yellow = { x = -9.17, y = 8, z = 5.77 - 1.7 },
-		Blue = { x = -9.17, y = 8, z = 5.77 - (2 * 1.7) },
+		Red = { x = -9.17, y = 9, z = 5.77 },
+		Yellow = { x = -9.17, y = 9, z = 5.77 - 1.7 },
+		Blue = { x = -9.17, y = 9, z = 5.77 - (2 * 1.7) },
 		scale = { x = 0.35, y = 1, z = 0.35 },
 		rotation = { x = 19.28, y = 180, z = 0 }
 	},
@@ -178,7 +178,9 @@ G.tableSpots = {
 		Red = {x = -23, y = 1.4, z = -2},
 		Yellow = {x = 4, y = 1.4, z = -2},
 		Blue = {x = 31, y = 1.4, z = -2},
-		rotation = {x = 45, y = 180, z = 0}
+		rotation = {x = 45, y = 180, z = 0},
+		staging = {x = -43.08, y = 1, z = 21.98},
+		stagingRot = {x = 0, y = 135, z = 180}
 	},
 	anarchFire = {x = 3, y = 6, z = 17.5},
 	strandsOfTime = { x = -13, y = 1, z = 0 },

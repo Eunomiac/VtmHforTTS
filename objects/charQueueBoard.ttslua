@@ -4,162 +4,178 @@ local G = require("lib.guids")
 local queueCharZones, queueCharSnaps, queueCharCast
 local queueMissionZone, queueMissionSnaps, queueMissionCast
 
+local isPopulating = false
+local isRequeuing = false
+
 local function getCharacterDeck()
-  local deck = U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
-  if not deck then return false end
-  return deck
+	local deck = U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
+	if not deck then return false end
+	return deck
 end
 
 local function getMissionDeck()
-  local deck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-  if not deck then return false end
-  return deck
+	local deck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+	if not deck then return false end
+	return deck
 end
 
 function onLoad()
-    queueCharZones = U.map(G.zones.charQueue, function(zoneID) return getObjectFromGUID(zoneID) end)
-    queueCharSnaps = U.getSnapPoints(self, {z = 0.42}, "x")
-    queueCharCast = {
-        origin = self.getBounds().center,
-        type = 3,
-        direction = {0,1,0},
-        max_distance = 0,
-        size = {12,2,1},
-        debug = false
-    }
-    queueCharCast.origin.z = queueCharCast.origin.z - 2
+	queueCharZones = U.map(G.zones.charQueue, function(zoneID) return getObjectFromGUID(zoneID) end)
+	queueCharSnaps = U.getSnapPoints(self, { z = 0.42 }, "x")
+	queueCharCast = {
+			origin = self.getBounds().center,
+			type = 3,
+			direction = { 0, 1, 0 },
+			max_distance = 0,
+			size = { 12, 2, 1 },
+			debug = false
+	}
+	queueCharCast.origin.z = queueCharCast.origin.z - 2
 
-    queueMissionSnaps = U.reverse(U.filter(U.getSnapPoints(self, {z = -0.43}, "x"), function(snap) return U.count(snap.tags) == 0 end))
-    queueMissionCast = {
-        origin = self.getBounds().center,
-        type = 3,
-        direction = {0,1,0},
-        max_distance = 0,
-        size = {12,2,1},
-        debug = false
-    }
-    queueMissionCast.origin.z = queueMissionCast.origin.z + 2
+	queueMissionSnaps = U.reverse(U.filter(U.getSnapPoints(self, { z = -0.43 }, "x"),
+					function(snap) return U.count(snap.tags) == 0 end))
+	queueMissionCast = {
+			origin = self.getBounds().center,
+			type = 3,
+			direction = { 0, 1, 0 },
+			max_distance = 0,
+			size = { 12, 2, 1 },
+			debug = false
+	}
+	queueMissionCast.origin.z = queueMissionCast.origin.z + 2
 
-    local characterDeck = getCharacterDeck()
-    if characterDeck then
-      characterDeck.randomize()
-    end
+	local characterDeck = getCharacterDeck()
+	if characterDeck then
+		characterDeck.randomize()
+	end
 end
 
-
 function Populate_Missions()
-    local missions = U.findOnObject(self, "Card", queueMissionCast)
-    local missionDeck = getMissionDeck()
+	local missions = U.findOnObject(self, "Card", queueMissionCast)
+	local missionDeck = getMissionDeck()
 
-    if not missionDeck then
-      U.alertGM("Error finding mission deck!")
-      return
-    end
+	if not missionDeck then
+		U.alertGM("Error finding mission deck!")
+		return
+	end
 
-    if (U.count(missions) > 0) then
-      U.alertGM("Cards in way of Mission Queue!")
-      return
-    end
+	if (U.count(missions) > 0) then
+		U.alertGM("Cards in way of Mission Queue!")
+		return
+	end
 
-    local waitTime = 0.25
-    local curSlot = 1
-    local curIndex = #missionDeck.getObjects()
+	local waitTime = 0.25
+	local curSlot = 1
+	local curIndex = #missionDeck.getObjects()
 
-    while (curSlot <= 5) do
-        local thisSnapPoint = queueMissionSnaps[curSlot]
-        Wait.time(function()
-           missionDeck.takeObject({
-             index = curIndex,
-             position = self.positionToWorld({
-                x = thisSnapPoint.position.x,
-                y = thisSnapPoint.position.y + 1,
-                z = thisSnapPoint.position.z - 0.1
-            }),
-            rotation = {x = 25, y = 180, z = 0}
-           })
-       end, waitTime)
-       waitTime = waitTime + 0.25
-       curSlot = curSlot + 1
-       curIndex = curIndex - 1
-    end
+	while (curSlot <= 5) do
+		local thisSnapPoint = queueMissionSnaps[curSlot]
+		Wait.time(function()
+			missionDeck.takeObject({
+					index = curIndex,
+					position = self.positionToWorld({
+							x = thisSnapPoint.position.x,
+							y = thisSnapPoint.position.y + 1,
+							z = thisSnapPoint.position.z - 0.1
+					}),
+					rotation = { x = 25, y = 180, z = 0 }
+			})
+		end, waitTime)
+		waitTime = waitTime + 0.25
+		curSlot = curSlot + 1
+		curIndex = curIndex - 1
+	end
 end
 
 function Populate_Queue()
-    local charCards = U.findOnObject(self, "Card", queueCharCast)
-    local characterDeck = getCharacterDeck()
+	if isPopulating then
+		isRequeuing = true
+		return
+	end
+	isPopulating = true
+	isRequeuing = false
+	local charCards = U.findOnObject(self, "Card", queueCharCast)
+	local characterDeck = getCharacterDeck()
 
-    if not characterDeck then
-      U.alertGM("Error finding character deck!")
-      return
-    end
+	if not characterDeck then
+		U.alertGM("Error finding character deck!")
+		return
+	end
 
-    local charCardData = {}
-    for i, card in ipairs(charCards) do
-        local cardZone = queueCharZones[i]
-        local cardData = {
-            card = card,
-            position = U.pFloat(self.positionToLocal(card.getPosition()).x),
-            facing = "FaceUp",
-            linkedObjects = U.filter(
-              cardZone.getObjects(),
-              function(obj)
-                return obj.type ~= "Card" and obj.guid ~= self.guid and obj.getName() ~= "Character Queue Base"
-              end)
-        }
-        if (card.getRotation().z > 90 and card.getRotation().z < 250) then
-            cardData.facing = "FaceDown"
-        end
-        cardData.snapSlot = U.findSnapPoint(queueCharSnaps, {x = cardData.position, z = nil})
-        table.insert(charCardData, cardData)
-    end
+	local charCardData = {}
+	for i, card in ipairs(charCards) do
+		local cardZone = queueCharZones[i]
+		local cardData = {
+				card = card,
+				position = U.pFloat(self.positionToLocal(card.getPosition()).x),
+				facing = "FaceUp",
+				linkedObjects = U.filter(
+						cardZone.getObjects(),
+						function(obj)
+							return obj.type ~= "Card" and obj.guid ~= self.guid and obj.getName() ~= "Character Queue Base"
+						end)
+		}
+		if (card.getRotation().z > 90 and card.getRotation().z < 250) then
+			cardData.facing = "FaceDown"
+		end
+		cardData.snapSlot = U.findSnapPoint(queueCharSnaps, { x = cardData.position, z = nil })
+		table.insert(charCardData, cardData)
+	end
 
-    local function cardPosCompare(a,b) return a.position < b.position end
-    table.sort(charCardData, cardPosCompare)
+	local function cardPosCompare(a, b) return a.position < b.position end
+	table.sort(charCardData, cardPosCompare)
 
-    local waitTime = 0
-    local curSlot = 5
+	local waitTime = 0
+	local curSlot = 5
 
-    while (curSlot > 0) do
-        local thisSnapPoint = queueCharSnaps[curSlot]
-        if (U.count(charCardData) > 0) then
-            local thisCard = table.remove(charCardData, 1)
-            if (thisCard.snapSlot ~= curSlot and thisCard.card) then
-              local newPos = self.positionToWorld(thisSnapPoint.position)
-              local numSnapShift = curSlot - thisCard.snapSlot
-              newPos.y = newPos.y + 0.5
-              Wait.time(
-                function()
-                  thisCard.card.setPositionSmooth(newPos, false, false)
-                  U.forEach(thisCard.linkedObjects, function(obj)
-                    local curPos = obj.getPosition()
-                    obj.setPositionSmooth({
-                      x = curPos.x + (2.5 * numSnapShift),
-                      y = curPos.y + 1,
-                      z = curPos.z
-                    }, false, false)
-                  end)
-                end, waitTime)
-                waitTime = waitTime + 0.25
-            end
-        else
+	while (curSlot > 0) do
+		local thisSnapPoint = queueCharSnaps[curSlot]
+		if (U.count(charCardData) > 0) then
+			local thisCard = table.remove(charCardData, 1)
+			if (thisCard.snapSlot ~= curSlot and thisCard.card) then
+				local newPos = self.positionToWorld(thisSnapPoint.position)
+				local numSnapShift = curSlot - thisCard.snapSlot
+				newPos.y = newPos.y + 0.5
+				Wait.time(
+						function()
+							thisCard.card.setPositionSmooth(newPos, false, false)
+							U.forEach(thisCard.linkedObjects, function(obj)
+								local curPos = obj.getPosition()
+								obj.setPositionSmooth({
+										x = curPos.x + (2.5 * numSnapShift),
+										y = curPos.y + 1,
+										z = curPos.z
+								}, false, false)
+							end)
+						end, waitTime)
+				waitTime = waitTime + 0.25
+			end
+		else
+			Wait.time(function()
+				characterDeck.takeObject({
+						position = self.positionToWorld({
+								x = thisSnapPoint.position.x,
+								y = thisSnapPoint.position.y + 1,
+								z = thisSnapPoint.position.z - 0.1
+						}),
+						rotation = { x = 25, y = 180, z = 0 },
+						callback_function = function(obj)
+							obj.addTag("Card")
+							obj.addTag("Character")
+							obj.drag_selectable = false
+						end
+				})
+			end, waitTime)
+			waitTime = waitTime + 0.25
+		end
+		curSlot = curSlot - 1
+	end
 
-              Wait.time(function()
-                 characterDeck.takeObject({
-                     position = self.positionToWorld({
-                        x = thisSnapPoint.position.x,
-                        y = thisSnapPoint.position.y + 1,
-                        z = thisSnapPoint.position.z - 0.1
-                    }),
-                    rotation = {x = 25, y = 180, z = 0},
-                    callback_function = function(obj)
-                      obj.addTag("Card")
-                      obj.addTag("Character")
-                      obj.drag_selectable = false
-                    end
-                 })
-             end, waitTime)
-           waitTime = waitTime + 0.25
-        end
-        curSlot = curSlot - 1
-    end
+	Wait.time(function()
+		isPopulating = false
+		if isRequeuing == true then
+			isRequeuing = false
+			Populate_Queue()
+		end
+	end, waitTime + 0.5)
 end

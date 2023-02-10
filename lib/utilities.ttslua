@@ -227,7 +227,6 @@ function U.invert(tb)
 	end
 	return new_table
 end
--- lua function testConcat(...) local arg = {...}; local tb1 = table.remove(arg, 1); for _, tb in ipairs(arg) do log("TB: " .. JSON.encode(tb)); for i = 1, #tb do log("TB[" .. i .. "] " .. tb[i]); tb1[#tb1 + 1] = tb[i] end end; return tb1 end
 
 -- function U.conc(...)
 -- 	local arg = {...}
@@ -404,6 +403,27 @@ function U.getHost()
   -- end
 end
 
+function U.getZoneColor(zone)
+	if U.isIn(zone.guid, U.flatten(G.zones.Red)) then return "Red"
+	elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow)) then return "Yellow"
+	elseif U.isIn(zone.guid, U.flatten(G.zones.Blue)) then return "Blue" end
+end
+
+function U.getZoneBounds(zone)
+	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
+	local zonePos = zone.getPosition()
+	return U.map(zonePos, function(coord, axis) return {min = coord - zoneExtent[axis], max = coord + zoneExtent[axis]} end)
+end
+--#endregion
+
+function U.isInside(zone, pos, ignoreY)
+	if ignoreY == nil then ignoreY = true end
+	local zoneBounds = U.getZoneBounds(zone)
+	return pos.x >= zoneBounds.x.min and pos.x <= zoneBounds.x.max
+		and (ignoreY or pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max)
+		and pos.z >= zoneBounds.z.min and pos.z <= zoneBounds.z.max
+end
+
 -- function U.try(fn, ...)
 --   local arg = {...}
 --   return xpcall(
@@ -414,51 +434,35 @@ end
 --   )
 -- end
 
-function U.roundTableVals(table, sigDigits)
+function U.round(num, sigDigits)
   if (sigDigits == nil) then sigDigits = 1 end
   local roundMult = 10 ^ sigDigits
+	return (math.floor(num * roundMult + 0.5)) / roundMult
+end
+
+function U.roundTableVals(table, sigDigits)
   local newTable = {}
   for key, val in pairs(table) do
-    newTable[key] = (math.floor(val * roundMult + 0.5)) / roundMult
+    newTable[key] = U.round(val, sigDigits)
   end
   return newTable
 end
 
--- lua function uTry(fn, ...) local arg = {...} return xpcall(function(...) return fn(unpack(arg)) end, function(msg) return error(msg, 3) end) end
--- uTry(function(msg, num) return "Msg: " .. msg .. ", Num: " .. num end, "Message", 3)
+function U.getValues(table)
+	local values = {}
+	for _, val in ipairs(table) do
+		table.insert(values, val)
+	end
+	return values
+end
 
--- lua status, err = xpcall(function() error() end, function(msg) log(msg) end)
--- function try(fn, catch_fn)
---   local status, msg = pcall(fn)
---   if not status then
---     catch_fn(msg)
---   end
--- end
---
--- try(function()
---   f1(2, 3) -- this will throw "an exception"
--- end, function(e)
---   print('An exception occured:', e)
---   error('Throw exception')
--- end)
-
--- lua status, returnVal = pcall(function() error("Big error!") end)
-
--- function U.assert(value, checkFn, tag, defaultVal)
---   local status, checkVal = U.try(checkFn, value)
---   if (status and checkVal) then return value end
---   if (type(tag) == "string") then
---     tag = "[" .. tag .. "] "
---   else
---     tag = ""
---   end
---   if (defaultVal) then
---     broadcastToColor("Using supplied default value: " .. tostring(defaultVal), "Red", "Yellow")
---     broadcastToColor(tag .. checkVal, "Red", "Red")
---     return defaultVal
---   end
---   error(tag .. checkVal)
--- end
+function U.getKeys(table)
+	local keys = {}
+	for _, key in ipairs(table) do
+		table.insert(keys, key)
+	end
+	return keys
+end
 
 function U.clone(t, isDeepCloning)
   local t2 = {}

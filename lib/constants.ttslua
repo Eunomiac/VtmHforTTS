@@ -35,6 +35,20 @@ C.GamePhases = {
 	"END"
 }
 
+C.TraitAbbvs = {
+	Animalism = "Ani",
+	Auspex = "Aus",
+	Blood_Sorcery = "BSr",
+	Celerity = "Cel",
+	Dominate = "Dom",
+	Fortitude = "For",
+	Obfuscate = "Obf",
+	Oblivion = "Obv",
+	Potence = "Pot",
+	Presence = "Prs",
+	Protean = "Pro"
+}
+
 C.CameraAngles = {
   ZoomCard = {position = {x=-0.5,y=-2,z=4.75},pitch = 70.72,yaw = 0,distance = 11},
   ZoomPlayerOne = {position = {x=-27,y=1,z=-14}, pitch = 75, yaw = 0, distance = 17.5},
@@ -48,7 +62,8 @@ C.CameraAngles = {
   ZoomPlayerThreeWide = {position = {x=27,y=10,z=-25}, pitch = 45, yaw = 350, distance = 10},
   ZoomQueueWide = {position = {x=0,y=5,z=5}, pitch = 56.43, yaw = 0, distance = 25},
   ZoomBattlegroundsWide = {position = {x=0,y=5,z=5}, pitch = 56.43, yaw = 0, distance = 25},
-  WideAngleWide = {position = {x=0,y=10,z=-15}, pitch = 35, yaw = 0, distance = 100}
+  WideAngleWide = {position = {x=0,y=10,z=-15}, pitch = 35, yaw = 0, distance = 100},
+	ClanSelection = {position = {x=0,y=5,z=-15}, pitch = 63, yaw = 0, distance = 30}
 }
 
 C.Ankhs = {"North", "South", "East", "West"}

@@ -1,0 +1,10 @@
+local U = require("lib.utilities")
+local Z = require("core.zones")
+local G = require("lib.guids")
+
+local bgZone, endZone
+
+function onLoad()
+	bgZone = getObjectFromGUID(G.zones.battlegroundZones.center[1])
+	endZone = getObjectFromGUID(G.zones.battlegroundZones.center[1])
+end
