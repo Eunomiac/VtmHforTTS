@@ -1,18 +1,37 @@
 require("vscode/console")
-M = require("core.main")
-U = require("lib.utilities")
-C = require("lib.constants")
-G = require("lib.guids")
-Z = require("core.zones")
+local M = require("core.main")
+local U = require("lib.utilities")
+local C = require("lib.constants")
+local S = require("core.state")
+local G = require("lib.guids")
+local Z = require("core.zones")
 
 gameState = {}
 
 function HUD_testFunc1(player, value, id)
-	if value == "-2" then
-		getObjectFromGUID(G.battlegrounds.d).call("EndTrial")
-	else
-		getObjectFromGUID(G.battlegrounds.d).call("CheckForTrial")
-	end
+	-- local changePad = getObjectFromGUID("bd8cd5")
+	-- local changeObj = U.filter(U.findAboveObject(changePad), function(obj) return obj.getPosition().y > changePad.getPosition().y end)[1]
+
+	M.processContainer(getObjectFromGUID("bcd555"), "asset")
+	M.processContainer(getObjectFromGUID("1df0c9"), "asset")
+
+	-- M.processContainer(getObjectFromGUID(G.playerObjs.Red.pouch), "mission")
+
+	-- Wait.time(function() U.forEach(C.Colors, function(color)
+	-- 	M.processContainer(getObjectFromGUID(G.playerObjs[color].haven))
+	-- 	M.processContainer(getObjectFromGUID(G.playerObjs[color].pouch))
+	-- end) end, 2)
+
+	-- local chapterObj = getObjectFromGUID(G.playerObjs.Red.haven)
+	-- M.processContainer(chapterObj, "chapter")
+	-- local missionObj = getObjectFromGUID(G.playerObjs.Yellow.pouch)
+	-- M.processContainer(missionObj, "mission")
+	-- local chapterObj = getObjectFromGUID(G.playerObjs.Yellow.haven)
+	-- M.processContainer(chapterObj, "chapter")
+	-- local missionObj = getObjectFromGUID(G.playerObjs.Blue.pouch)
+	-- M.processContainer(missionObj, "mission")
+	-- local chapterObj = getObjectFromGUID(G.playerObjs.Blue.haven)
+	-- M.processContainer(chapterObj, "chapter")
 end
 function HUD_testFunc2(player, value, id)
 	local zones = U.map(G.zones.allPlayer, function(uid) return getObjectFromGUID(uid) end)
@@ -55,7 +74,7 @@ function onLoad(script_state)
 		end)
 
 	Wait.time(function()
-		onObjectEnterZone = Z.onObjectEnterZone
+		onObjectEnterZone = M.onObjectEnterZone
 		onObjectLeaveZone = Z.onObjectLeaveZone
 		onPlayerTurn = M.onPlayerTurn
 		tryObjectEnterContainer = M.tryObjectEnterContainer
@@ -68,7 +87,7 @@ function onSave() return JSON.encode(gameState) end
 
 function HUD_refreshUI() M.refresh() end
 
-function HUD_resetGameState() M.resetGameState() end
+function HUD_resetGameState() S.resetGameState() end
 function HUD_setChapterStandings() M.askLastChapterStandings() end
 function HUD_setChapterData() M.askChapterData() end
 
@@ -131,7 +150,7 @@ function HUD_updateTraits() M.askTraitsUpdate() end
 function HUD_processCharacterDeck()
 	local charDeck =  U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
   if not charDeck then return false end
-	M.processCharDeck(charDeck)
+	M.processDeck(charDeck, "character")
 end
 
 local truePos = {x = -3.67, y = 4, z = -2.14}

@@ -1,6 +1,7 @@
 
 local U = require("lib.utilities")
 local G = require("lib.guids")
+local S = require("core.state")
 local Z = require("core.zones")
 local M = require("core.main")
 
@@ -15,14 +16,14 @@ local function setupPlayerSpace(color, clan, clanToken)
 	local waitStep = 0.35
 	local guids = G.playerObjs[color]
 	local mainStorage = getObjectFromGUID(G.mainStorage.id)
-	local playerPouch = getObjectFromGUID(G.playerObjs[color].pouch)
+	local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
 	local clanStorageGUID = G.mainStorage.clanStorage[clan]
 	local stagingPositions = {
 			Red = {x = -51.5, y = -0.14, z = 33.5},
 			Yellow = {x = -51.5, y = -0.14, z = 30.5},
 			Blue = {x = -51.5, y = -0.14, z = 27.5}
 	}
-	M.setStateVal(clan, "clans", color)
+	S.setStateVal(clan, "clans", color)
 	M.setHighlighter("TurnIndicator", "inactive", color)
 	M.presentObligations(color)
 
@@ -151,7 +152,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 							end
 					end
 
-					for _, clanLeaderCard in ipairs(U.filter(playerPouch.getObjects(), function(obj) return U.isIn("ClanLeader", obj.tags) and U.isIn(clan, obj.tags) end)) do
+					for _, clanLeaderCard in ipairs(U.filter(playerHaven.getObjects(), function(obj) return U.isIn("ClanLeader", obj.tags) and U.isIn(clan, obj.tags) end)) do
 						waitTime = waitTime + waitStep
 						local pos = positions.clanLeader
 						clanLeadersPlaced = clanLeadersPlaced + 1
@@ -160,7 +161,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 							y = pos.y,
 							z = pos.z
 						}
-						Wait.time(function() playerPouch.takeObject({
+						Wait.time(function() playerHaven.takeObject({
 								guid = clanLeaderCard.guid,
 								-- smooth = false,
 								position = pos,
@@ -207,7 +208,7 @@ end
 
 function onCollisionEnter(collision_info)
 	if isLoaded == false then return end
-	if M.getStateVal("gamePhase") ~= "INIT" then return end
+	if S.getStateVal("gamePhase") ~= "INIT" then return end
 	if not collision_info.collision_object.hasTag("ClanToken") then return end
 	if (isSelecting) then return end
 	local round, turn = M.getRoundAndTurn()

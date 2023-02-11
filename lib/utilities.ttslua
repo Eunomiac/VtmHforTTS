@@ -403,12 +403,6 @@ function U.getHost()
   -- end
 end
 
-function U.getZoneColor(zone)
-	if U.isIn(zone.guid, U.flatten(G.zones.Red)) then return "Red"
-	elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow)) then return "Yellow"
-	elseif U.isIn(zone.guid, U.flatten(G.zones.Blue)) then return "Blue" end
-end
-
 function U.getZoneBounds(zone)
 	local zoneExtent = U.map(zone.getScale(), function(val) return 0.5 * val end)
 	local zonePos = zone.getPosition()
