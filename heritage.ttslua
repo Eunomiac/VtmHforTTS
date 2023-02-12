@@ -36,15 +36,14 @@ end
 function HUD_testFunc2(player, value, id)
 	M.showStickerUnlocks()
 end
+
+local isShowingScoreboard = false
 function HUD_testFunc3(player, value, id)
-	local bgF = getObjectFromGUID(G.battlegrounds.f)
-	local bgD = getObjectFromGUID(G.battlegrounds.d)
-	local bgB = getObjectFromGUID(G.battlegrounds.b)
-	M.sequence({
-		function() bgD.call("Reset") end,
-		function() bgF.call("Reset") end,
-		function() bgB.call("Reset") end
-	}, 1)
+	if not isShowingScoreboard then
+		isShowingScoreboard = true
+		M.showScoreboard()
+	end
+	M.updateScoreFromBoard()
 end
 
 function onLoad(script_state)

@@ -13,10 +13,14 @@ local function lockObjects(objGUIDs)
 	end
 end
 local function invisObjects(objGUIDs)
-	for _, guid in pairs(objGUIDs) do
-			local obj = getObjectFromGUID(guid)
-			obj.setInvisibleTo({"Red","Blue","Yellow"})
-	end
+	U.forEach(objGUIDs, function(guid)
+		if S.isInPhase("SCORING") and guid == G.victoryTable
+			or S.isInPhase("INIT") and guid == G.highlighters.clanSelection then
+			return
+		end
+		local obj = getObjectFromGUID(guid)
+		obj.setInvisibleTo({"Red","Blue","Yellow"})
+	end)
 end
 
 function M.getRandomCard(cardOrDeck, callback)
@@ -34,18 +38,22 @@ function M.getRandomCard(cardOrDeck, callback)
 		callback(cardOrDeck)
 	end
 end
+
+
 function M.sequence(funcs, waitStep)
-	if waitStep == nil then waitStep = 0.5 end
+	if waitStep == nil then waitStep = 0.5 end -- default step of 0.5s
 	local waitTime = 0
 	for _, func in ipairs(funcs) do
-		if type(func) == "number" then
-			waitTime = waitTime + func
-		else
-			Wait.time(function() func() end, waitTime)
+		if type(func) == "function" then
+			Wait.time(func, waitTime)
 			waitTime = waitTime + waitStep
+		elseif type(func) == "number" then
+			-- can include a number, which becomes a delay in seconds
+			waitTime = waitTime + func
 		end
 	end
 end
+
 function M.translateObj(obj, translation)
 	local pos = obj.getPosition()
 	pos.x = pos.x + translation.x
@@ -53,7 +61,6 @@ function M.translateObj(obj, translation)
 	pos.z = pos.z + translation.z
 	obj.setPositionSmooth(pos)
 end
-
 
 -- *** GAME STATE ***
 
@@ -112,6 +119,19 @@ function M.onLoad(script_state)
 		-- Z.updateTestObject()
 		M.highlightBattlegrounds()
 		M.syncPhase()
+
+		local victoryBoard = getObjectFromGUID(G.victoryBoard)
+		if victoryBoard ~= nil then
+			local snapPoints = victoryBoard.getSnapPoints()
+			table.sort(snapPoints, function(a, b)
+				if (math.abs(a.position.z - b.position.z) <= 0.2) then
+					return a.position.x > b.position.x
+				end
+				return a.position.z < b.position.z
+			end)
+			victoryBoard.setSnapPoints(snapPoints)
+			log("Snap Points Set!")
+		end
 
 		-- S.setStateVal({
 		-- 	"Kindred1", "Kindred2", "Mortals1", "Mortals2", "Wealth1", "Wealth2", "Subterfuge1", "Subterfuge2", "Subterfuge3", "Warfare1", "Occult1", "Occult2", "Occult3", "Occult4", "Cruelty1", "Cruelty2", "Mercy1", "Mercy2", "Mercy3", "Detachment1", "Detachment2", "Sabbat1", "Animalism1", "Dominate1", "Oblivion1", "Potence1", "Presence2", "Blood_Sorcery1"
@@ -381,8 +401,8 @@ function M.readTurnOrderFromBG()
 
   local function getTokenSlot(tk)
     local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
-      local clan = U.findClanTag(tk)
-      local color = getColorOfClan(clan)
+		local clan = U.findClanTag(tk)
+		local color = getColorOfClan(clan)
     if (slot >= 6 and slot <= 9) then slot = 7 end
     if (color == lastFirstPlayer) then
       slot = slot + 0.5
@@ -803,45 +823,6 @@ end
 local chapterCard
 local missionDeck
 
-function M.gameSETUP()
-	if (S.getStateVal("gamePhase") ~= "NONE") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'NONE' to enter 'SETUP'", "Red", "Red")
-		return
-	end
-	S.setStateVal("SETUP", "gamePhase")
-
-	missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-
-	-- Reset any tags set on player Leader Card spaces
-  getObjectFromGUID(G.playerObjs.Red.leaderCard).setTags({"Red"})
-  getObjectFromGUID(G.playerObjs.Yellow.leaderCard).setTags({"Yellow"})
-  getObjectFromGUID(G.playerObjs.Blue.leaderCard).setTags({"Blue"})
-
-	M.sequence({
-		M.showHavens,
-		M.hidePouches,
-		function() M.setCamera("ALL", "ZoomCard") end,
-		function()
-			chapterCard = missionDeck.takeObject({
-				position = {x=-0.5, y=5.47, z=2},
-				rotation = {x=19.28, y=180, z=0},
-				callback_function = function(obj)
-					obj.setLock(true)
-					M.processObj(obj, "chapter")
-				end
-			})
-		end,
-		5,
-		function()
-			chapterCard.setPositionSmooth({x=-3.50, y=3.00, z=-0.50})
-			chapterCard.setRotationSmooth({x=19.28, y=180, z=180})
-		end,
-		function() getObjectFromGUID("afb371").call("Populate_Missions") end,
-		2,
-		function() getObjectFromGUID("afb371").call("Populate_Queue") end
-	})
-
-end
 
 function M.dealAssets()
 	for _, color in pairs(C.Colors) do
@@ -950,84 +931,6 @@ function M.assignClan(clan, color)
   Wait.time(M.doNextClan, 1)
 end
 
-function M.gameINIT()
-	if (S.getStateVal("gamePhase") ~= "SETUP") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SETUP' to enter 'INIT'", "Red", "Red")
-		return
-	end
-	S.setStateVal("INIT", "gamePhase")
-
-  if not M.checkLastChapterStandings() then
-    M.determineLastChapterStandings(M.gameINIT)
-    return
-  end
-
-  if not missionDeck then
-    missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-  end
-
-  M.syncState()
-
-	local timeBlurbAloneOnScreen = 5
-	local timePadding = 0.5
-	local timeScoresOnScreen = 6
-	local timeBlurbOnScreen = timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen
-	local timeStep = 1
-
-	M.sequence({
-		function()
-			local chapterData = S.getStateVal("chapterData")
-
-			UI.setValue("lastChapterStandingsNotice-title", "Chapter " .. chapterData.lastChapterNum .. " Standings:")
-			UI.setValue("logoIntro-title", "Chapter " .. chapterData.chapterNum .. " — " .. string.upper(chapterData.location))
-			UI.setValue("logoIntro-subtitle", "(" .. chapterData.years .. ")")
-			UI.setValue("logoIntro-body", chapterData.chapterBlurb)
-
-
-			U.splashUIElement("logoIntro", timeBlurbOnScreen)
-			U.splashUIElement("logoIntro-title", 10, timePadding)
-			U.splashUIElement("logoIntro-subtitle", 10, timePadding + timeStep)
-			U.splashUIElement("logoIntro-body", 10, timePadding + (timeStep * 2))
-
-			local timePassed = timeBlurbAloneOnScreen + (2 * timePadding)
-
-			U.splashUIElement("lastChapterStandingsNotice", timeScoresOnScreen, timePassed)
-			U.splashUIElement("lastChapterStandingsNotice-title", 10, timePassed)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle1", 10, timePassed + timeStep)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle2", 10, timePassed + timeStep * 1.5)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle3", 10, timePassed + timeStep * 2)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle4", 10, timePassed + timeStep * 3)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle5", 10, timePassed + timeStep * 3.5)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle6", 10, timePassed + timeStep * 4)
-
-
-			U.splashUIElement("splash-backdrop", timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen + timePadding)
-		end,
-		timeBlurbAloneOnScreen + timeScoresOnScreen + (4 * timePadding),
-		function()
-			if chapterCard then
-				chapterCard.setLock(false)
-				chapterCard.setRotationSmooth({x=0, y=180, z=0})
-				missionDeck.putObject(chapterCard)
-			end
-		end,
-		function() M.setCamera("ALL", "ClanSelection") end,
-		M.displayClanSelectionRing,
-		1,
-		M.dealAssets,
-		M.dealRetainer,
-		function()
-			local clanChooser = M.getNextPlayer()
-			M.setHighlighter("TurnIndicator", "strong", clanChooser)
-			UI.setValue("chooseClanPlayer", C.Names[clanChooser])
-			UI.setAttribute("chooseClanPlayer", "color", clanChooser)
-		end,
-		function()
-			U.splashUIElement("chooseClanNotice", 5)
-			UI.show("clanChoiceAlert")
-		end
-	})
-end
 local function getSchemesDeck(color)
   local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDeck), "Deck")[1]
   if not deck then
@@ -1276,43 +1179,6 @@ function M.retrieveObligations(color)
 	end
 end
 
-function M.gameSTART()
-	if (S.getStateVal("gamePhase") ~= "INIT") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'INIT' to enter 'PLAY'", "Red", "Red")
-		return
-	end
-	S.setStateVal("PLAY", "gamePhase")
-
-	M.sequence({
-		function()
-			UI.hide("RedClanChoice")
-			UI.hide("YellowClanChoice")
-			UI.hide("BlueClanChoice")
-			UI.hide("clanChoiceAlert")
-			UI.hide("chooseStrandsOfTimeNotice")
-			M.removeUnusedClanRefs()
-		end,
-		M.showHavens,
-		1,
-		M.retrieveObligations,
-		M.clearUnusedClanLeaders,
-		M.removeUnusedClanRefs,
-		M.hideHavens,
-		M.hidePouches,
-		function() M.initializeClanLeader("Red") end, 1,
-		function() M.initializeClanLeader("Yellow") end, 1,
-		function() M.initializeClanLeader("Blue") end, 1,
-		function()
-			U.splashUIElement("splash-backdrop", 2)
-			U.splashUIElement("gameStartNotice", 1, 0.5)
-
-			M.setRoundAndTurn(1, 1)
-			M.determineTurnOrder(M.syncTurnOrder)
-		end
-	})
-end
-
-
 local function getSortedVictoryBoardSnapPoints(victoryBoard)
   local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
 	snapPointPositions = U.getSnapPointPositions(victoryBoard)
@@ -1364,6 +1230,83 @@ function M.updatePlayerScore(color)
 		token.setColorTint(color)
 	end
 end
+
+function M.getScoreFromBoard(color)
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	if victoryBoard ~= nil then
+		local playerToken = getClanToken(color)
+		return U.findSnapPoint(
+			victoryBoard.getSnapPoints(),
+			victoryBoard.positionToLocal(playerToken.getPosition()),
+			0.25)
+	end
+end
+
+function M.showScoreboard()
+	UI.show("scoreAlert")
+	U.forEach(C.Colors, function(col) UI.show(col .. "Score") end)
+end
+
+
+function M.updateScoreFromBoard(color, isSilent)
+	if color == nil then return U.forEach(C.Colors, M.updateScoreFromBoard) end
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	if victoryBoard ~= nil then
+		local playerName = C.Names[color]
+		local score = M.getScoreFromBoard(color)
+		if score == nil or score == 0 then score = "no points."
+		elseif score == 1 then score = "one point."
+		else score = score .. " points." end
+
+		UI.setValue(color .. "Score", playerName .. "'s Score: " .. score)
+	end
+end
+
+function M.getStandingsFromBoard()
+	local standings = C.Colors
+	table.sort(standings, function(a, b)
+		local aScore = M.getScoreFromBoard(a)
+		local bScore = M.getScoreFromBoard(b)
+		if aScore == nil then aScore = 0 end
+		if bScore == nil then bScore = 0 end
+		return aScore > bScore
+	end)
+	return standings
+end
+
+function M.setStandingsFromBoard()
+	local standings = M.getStandingsFromBoard()
+	if M.getScoreFromBoard(standings[1]) == M.getScoreFromBoard(standings[2]) then
+		UI.setAttributes("anarchRevoltText", {
+				color = "#FF0000",
+				outline = "#550000"
+			})
+		UI.setValue("anarchRevoltText", "Consult the Primogen, then Break the Tie on the Board!")
+		U.splashUIElement("anarchRevoltNotice", 3, 0.25)
+		return false
+	else
+		M.setLastChapterStandings(standings)
+		-- M.splashChapterStandings()
+		return true
+	end
+end
+
+	-- M.setLastChapterStandings(standings)
+
+	-- local red, yellow, blue = M.getScoreFromBoard("Red"), M.getScoreFromBoard("Yellow"), M.getScoreFromBoard("Blue")
+	-- local standings =
+	-- if red > yellow and red > blue then
+
+	-- 	M.setLastChapterStandings(chapterStandings)
+
+	-- if victoryBoard ~= nil then
+	-- 	local snapPoints = victoryBoard.getSnapPoints()
+	-- 	local tokenPos = getObjectFromGUID("463574").getPosition()
+	-- 	log(snapPoints)
+	-- 	log(tokenPos)
+	-- 	log()
+	-- end
+
 
 local function scoreBloodlines()
   Z.showScores()
@@ -1500,22 +1443,6 @@ function M.returnAssetsToHaven()
 	end)
 end
 
-function M.gameSCORE()
-	if (S.getStateVal("gamePhase") ~= "PLAY") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'PLAY' to enter 'SCORING'", "Red", "Red")
-		return
-	end
-	S.setStateVal("SCORING", "gamePhase")
-
-	M.sequence({
-		M.recallSchemesToDiscard,
-		M.showVictoryBoard,
-		M.recallStrandsOfTime,
-		M.returnAssetsToHaven,
-		scoreBloodlines
-	})
-end
-
 function M.recallSchemeDiscard()
   for _, color in pairs(C.Colors) do
     local sDiscardDeck = getSchemesDiscard(color)
@@ -1528,18 +1455,22 @@ function M.recallSchemeDiscard()
   end
 end
 
+
+
 local function showObligationToPlayer(color, card, highlightColor)
 	local oblPos = G.tableSpots.obligations[color]
 	local oblRotation = G.tableSpots.obligations.rotation
 	card.setLock(true)
 	card.setPositionSmooth(oblPos)
 	card.setRotationSmooth(oblRotation)
-	card.highlightOn(highlightColor, 3)
+	card.highlightOn(highlightColor)
 	if highlightColor == "Green" then
 		card.addTag("OblDiscard")
+		Wait.time(function() card.highlightOn({0,100/255,0}) end, 5)
 	else
 		card.addTag("OblDraw")
 		card.addTag(color)
+		Wait.time(function() card.highlightOn({100/255,0,0}) end, 5)
 	end
 end
 
@@ -1591,33 +1522,25 @@ function M.clearAllTokens()
 	U.forEach(getObjectsWithTag("ExhaustTorpor"), function(token) if token.type == "Tile" then token.destruct() end end)
 end
 
-function M.gameMISSIONS()
-	if (S.getStateVal("gamePhase") ~= "SCORING") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SCORING' to enter 'MISSIONS'", "Red", "Red")
-		return
+function M.discardMonstrousVamps(color)
+	if color == nil then return U.forEach(C.Colors, M.discardMonstrousVamps) end
+	local discardPos = getObjectFromGUID(G.decks.characterDiscardSpot).getPosition()
+	discardPos.y = discardPos.y + 0.5
+	local discardRot = {x = 0, y = 180, z = 0}
+	for i = 1, 4 do
+		local tag = "Monstrosity_" .. i
+		U.forEach(getObjectsWithTag(tag), function(obj)
+			if obj.type == "Card" then
+				M.processObj(obj)
+				obj.setLock(false)
+				obj.setPositionSmooth(discardPos)
+				obj.setRotation(discardRot)
+				discardPos.y = discardPos.y + 0.04
+			end
+		end)
 	end
-
-  M.askLastChapterStandings(function()
-		S.setStateVal("MISSIONS", "gamePhase")
-		S.setStateVal(true, "playerZonesLocked")
-		M.sequence({
-			hideBloodlinesScore,
-			M.showUpdatedTraits,
-			Z.discardTorporedVamps,
-			M.recallSchemeDiscard,
-			M.presentLockedSchemesToVanquished,
-			function() M.clearPlayerZones(1) end,
-			M.hideVictoryBoard,
-			function() M.resetBattleground("d") end,
-			function() M.resetBattleground("f") end,
-			M.clearAllTokens,
-			M.showHavens,
-			M.showPouches,
-			M.presentObligationsToVictor,
-			M.revealLostObligationsToNonVictors
-		}, 1)
-  end)
 end
+
 
 function M.recoverObligations()
 	U.forEach(C.Colors, function(pColor)
@@ -1632,6 +1555,9 @@ function M.recoverObligations()
 				playerHaven.putObject(obl)
 			else
 				obl.removeTag("OblDiscard")
+				obl.removeTag("Red")
+				obl.removeTag("Yellow")
+				obl.removeTag("Blue")
 				obl.setRotation(G.tableSpots.obligations.stagingRot)
 				obl.setPositionSmooth(G.tableSpots.obligations.staging)
 			end
@@ -1677,55 +1603,6 @@ function M.sendRetainerToTable()
 	end
 end
 
-function M.gameAFTERMATH()
-	if (S.getStateVal("gamePhase") ~= "MISSIONS") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'MISSIONS' to enter 'AFTERMATH'", "Red", "Red")
-		return
-  end
-	S.setStateVal("AFTERMATH", "gamePhase")
-
-	M.sequence({
-		-- M.hideUpdatedTraits,
-		M.recoverObligations,
-		M.dealLettersOfIntroduction,
-		M.sendRetainerToTable,
-		function()
-			local schemeDeck = getSchemesDeck(M.getLastChapterVanquished())
-			if schemeDeck ~= false then
-				M.processDeck(schemeDeck, "unlockedScheme")
-				-- M.processSchemesDeck(schemeDeck)
-			end
-		end,
-		M.hidePouches,
-		1,
-		function()
-			if obligationsDeck ~= nil then
-				local mainStorage = getObjectFromGUID(G.mainStorage.id)
-				mainStorage.putObject(obligationsDeck)
-			end
-		end,
-		function()
-			local lockedSchemeObjs = getObjectsWithTag("LockedScheme")
-			if #lockedSchemeObjs == 1 and lockedSchemeObjs[1].type == "Deck" then
-				getObjectFromGUID(G.mainStorage.id).putObject(lockedSchemeObjs[1])
-			end
-		end,
-		function()
-			U.forEach(C.Colors, function(color)
-				local schemeDeck = getSchemesDeck(color)
-				if schemeDeck then
-					getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]]).putObject(schemeDeck)
-				end
-			end)
-		end,
-		1,
-		M.showStickerUnlocks,
-		function() M.clearPlayerZones(2) end,
-		M.packObligations
-		}
-	)
-end
-
 function M.returnLettersOfIntroduction()
 	U.forEach(C.Colors, function(color)
 		local player = Player[color]
@@ -1753,27 +1630,6 @@ function M.resetBattlegrounds()
 	}, 1)
 end
 
-function M.gameEND()
-	if (S.getStateVal("gamePhase") ~= "AFTERMATH") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'AFTERMATH' to enter 'END'", "Red", "Red")
-		return
-	end
-	S.setStateVal("END", "gamePhase")
-
-	M.sequence({
-		M.showUpdatedTraits,
-		M.returnLettersOfIntroduction,
-		M.packObligations,
-		function() M.clearPlayerZones(3) end,
-		M.packClanStorageBoxes,
-
-		function()
-			S.resetGameState()
-			M.showHavens()
-			M.showPouches()
-		end
-	}, 1)
-end
 
 function M.packObligations()
 	local oblDeck = U.filter(getObjectsWithTag("Obligation"), function(obj) return obj.type == "Deck" end)[1]
@@ -2297,9 +2153,6 @@ function M.hideUnusedStrandsOfTime(usedGuid)
   end
 end
 
-
-
-
 function M.ignorePlayerTurn(currentTurnColor)
   local round, turn = M.getRoundAndTurn()
     if (round == 0) then return true end
@@ -2662,5 +2515,272 @@ function M.showStickerUnlocks(playerColor)
 		end, 0.25)
 	end, 0.25)
 end
+
+function M.gameSETUP()
+	if (S.getStateVal("gamePhase") ~= "NONE") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'NONE' to enter 'SETUP'", "Red", "Red")
+		return
+	end
+	S.setStateVal("SETUP", "gamePhase")
+
+	missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+
+	-- Reset any tags set on player Leader Card spaces
+  getObjectFromGUID(G.playerObjs.Red.leaderCard).setTags({"Red"})
+  getObjectFromGUID(G.playerObjs.Yellow.leaderCard).setTags({"Yellow"})
+  getObjectFromGUID(G.playerObjs.Blue.leaderCard).setTags({"Blue"})
+
+	M.sequence({
+		M.showHavens,
+		M.hidePouches,
+		function() M.setCamera("ALL", "ZoomCard") end,
+		function()
+			chapterCard = missionDeck.takeObject({
+				position = {x=-0.5, y=5.47, z=2},
+				rotation = {x=19.28, y=180, z=0},
+				callback_function = function(obj)
+					obj.setLock(true)
+					M.processObj(obj, "chapter")
+				end
+			})
+		end,
+		5,
+		function()
+			chapterCard.setPositionSmooth({x=-3.50, y=3.00, z=-0.50})
+			chapterCard.setRotationSmooth({x=19.28, y=180, z=180})
+		end,
+		function() getObjectFromGUID("afb371").call("Populate_Missions") end,
+		2,
+		function() getObjectFromGUID("afb371").call("Populate_Queue") end
+	})
+
+end
+function M.gameINIT()
+	if (S.getStateVal("gamePhase") ~= "SETUP") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SETUP' to enter 'INIT'", "Red", "Red")
+		return
+	end
+	S.setStateVal("INIT", "gamePhase")
+
+  if not M.checkLastChapterStandings() then
+    M.determineLastChapterStandings(M.gameINIT)
+    return
+  end
+
+  if not missionDeck then
+    missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+  end
+
+  M.syncState()
+
+	local timeBlurbAloneOnScreen = 5
+	local timePadding = 0.5
+	local timeScoresOnScreen = 6
+	local timeBlurbOnScreen = timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen
+	local timeStep = 1
+
+	M.sequence({
+		function()
+			local chapterData = S.getStateVal("chapterData")
+
+			UI.setValue("lastChapterStandingsNotice-title", "Chapter " .. chapterData.lastChapterNum .. " Standings:")
+			UI.setValue("logoIntro-title", "Chapter " .. chapterData.chapterNum .. " — " .. string.upper(chapterData.location))
+			UI.setValue("logoIntro-subtitle", "(" .. chapterData.years .. ")")
+			UI.setValue("logoIntro-body", chapterData.chapterBlurb)
+
+
+			U.splashUIElement("logoIntro", timeBlurbOnScreen)
+			U.splashUIElement("logoIntro-title", 10, timePadding)
+			U.splashUIElement("logoIntro-subtitle", 10, timePadding + timeStep)
+			U.splashUIElement("logoIntro-body", 10, timePadding + (timeStep * 2))
+
+			local timePassed = timeBlurbAloneOnScreen + (2 * timePadding)
+
+			U.splashUIElement("lastChapterStandingsNotice", timeScoresOnScreen, timePassed)
+			U.splashUIElement("lastChapterStandingsNotice-title", 10, timePassed)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle1", 10, timePassed + timeStep)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle2", 10, timePassed + timeStep * 1.5)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle3", 10, timePassed + timeStep * 2)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle4", 10, timePassed + timeStep * 3)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle5", 10, timePassed + timeStep * 3.5)
+			U.splashUIElement("lastChapterStandingsNotice-subtitle6", 10, timePassed + timeStep * 4)
+
+
+			U.splashUIElement("splash-backdrop", timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen + timePadding)
+		end,
+		timeBlurbAloneOnScreen + timeScoresOnScreen + (4 * timePadding),
+		function()
+			if chapterCard then
+				chapterCard.setLock(false)
+				chapterCard.setRotationSmooth({x=0, y=180, z=0})
+				missionDeck.putObject(chapterCard)
+			end
+		end,
+		function() M.setCamera("ALL", "ClanSelection") end,
+		M.displayClanSelectionRing,
+		1,
+		M.dealAssets,
+		M.dealRetainer,
+		function()
+			local clanChooser = M.getNextPlayer()
+			M.setHighlighter("TurnIndicator", "strong", clanChooser)
+			UI.setValue("chooseClanPlayer", C.Names[clanChooser])
+			UI.setAttribute("chooseClanPlayer", "color", clanChooser)
+		end,
+		function()
+			U.splashUIElement("chooseClanNotice", 5)
+			UI.show("clanChoiceAlert")
+		end
+	})
+end
+function M.gameSTART()
+	if (S.getStateVal("gamePhase") ~= "INIT") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'INIT' to enter 'PLAY'", "Red", "Red")
+		return
+	end
+	S.setStateVal("PLAY", "gamePhase")
+
+	M.sequence({
+		function()
+			UI.hide("RedClanChoice")
+			UI.hide("YellowClanChoice")
+			UI.hide("BlueClanChoice")
+			UI.hide("clanChoiceAlert")
+			UI.hide("chooseStrandsOfTimeNotice")
+			M.removeUnusedClanRefs()
+		end,
+		M.showHavens,
+		1,
+		M.retrieveObligations,
+		M.clearUnusedClanLeaders,
+		M.removeUnusedClanRefs,
+		M.hideHavens,
+		M.hidePouches,
+		function() M.initializeClanLeader("Red") end, 1,
+		function() M.initializeClanLeader("Yellow") end, 1,
+		function() M.initializeClanLeader("Blue") end, 1,
+		function()
+			U.splashUIElement("splash-backdrop", 2)
+			U.splashUIElement("gameStartNotice", 1, 0.5)
+
+			M.setRoundAndTurn(1, 1)
+			M.determineTurnOrder(M.syncTurnOrder)
+		end
+	})
+end
+function M.gameSCORE()
+	if (S.getStateVal("gamePhase") ~= "PLAY") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'PLAY' to enter 'SCORING'", "Red", "Red")
+		return
+	end
+	S.setStateVal("SCORING", "gamePhase")
+
+	M.sequence({
+		M.recallSchemesToDiscard,
+		M.showVictoryBoard,
+		M.recallStrandsOfTime,
+		M.returnAssetsToHaven,
+		scoreBloodlines
+	})
+end
+function M.gameMISSIONS()
+	if (S.getStateVal("gamePhase") ~= "SCORING") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SCORING' to enter 'MISSIONS'", "Red", "Red")
+		return
+	end
+
+	if M.setStandingsFromBoard() == true then
+		S.setStateVal("MISSIONS", "gamePhase")
+		S.setStateVal(true, "playerZonesLocked")
+		M.sequence({
+			hideBloodlinesScore,
+			M.showUpdatedTraits,
+			M.discardMonstrousVamps,
+			Z.discardTorporedVamps,
+			M.clearAllTokens,
+			M.recallSchemeDiscard,
+			M.presentLockedSchemesToVanquished,
+			function() M.clearPlayerZones(1) end,
+			M.hideVictoryBoard,
+			function() M.resetBattleground("d") end,
+			function() M.resetBattleground("f") end,
+			M.showHavens,
+			M.showPouches,
+			M.presentObligationsToVictor,
+			M.revealLostObligationsToNonVictors
+		}, 1)
+	end
+end
+function M.gameAFTERMATH()
+	if (S.getStateVal("gamePhase") ~= "MISSIONS") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'MISSIONS' to enter 'AFTERMATH'", "Red", "Red")
+		return
+  end
+	S.setStateVal("AFTERMATH", "gamePhase")
+
+	M.sequence({
+		-- M.hideUpdatedTraits,
+		M.recoverObligations,
+		M.dealLettersOfIntroduction,
+		M.sendRetainerToTable,
+		function()
+			local schemeDeck = getSchemesDeck(M.getLastChapterVanquished())
+			if schemeDeck ~= false then
+				M.processDeck(schemeDeck, "unlockedScheme")
+				-- M.processSchemesDeck(schemeDeck)
+			end
+		end,
+		M.hidePouches,
+		1,
+		function()
+			if obligationsDeck ~= nil then
+				local mainStorage = getObjectFromGUID(G.mainStorage.id)
+				mainStorage.putObject(obligationsDeck)
+			end
+		end,
+		function()
+			local lockedSchemeObjs = getObjectsWithTag("LockedScheme")
+			if #lockedSchemeObjs == 1 and lockedSchemeObjs[1].type == "Deck" then
+				getObjectFromGUID(G.mainStorage.id).putObject(lockedSchemeObjs[1])
+			end
+		end,
+		function()
+			U.forEach(C.Colors, function(color)
+				local schemeDeck = getSchemesDeck(color)
+				if schemeDeck then
+					getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]]).putObject(schemeDeck)
+				end
+			end)
+		end,
+		1,
+		M.showStickerUnlocks,
+		function() M.clearPlayerZones(2) end,
+		M.packObligations
+		}
+	)
+end
+function M.gameEND()
+	if (S.getStateVal("gamePhase") ~= "AFTERMATH") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'AFTERMATH' to enter 'END'", "Red", "Red")
+		return
+	end
+	S.setStateVal("END", "gamePhase")
+
+	M.sequence({
+		M.showUpdatedTraits,
+		M.returnLettersOfIntroduction,
+		M.packObligations,
+		function() M.clearPlayerZones(3) end,
+		M.packClanStorageBoxes,
+
+		function()
+			S.resetGameState()
+			M.showHavens()
+			M.showPouches()
+		end
+	}, 1)
+end
+
+
 
 return M
