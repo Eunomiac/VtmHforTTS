@@ -1,9 +1,24 @@
 local U = require("lib.utilities")
-local Z
+local G = require("lib.guids")
+local M = require("core.main")
+local Z = require("core.zones")
 
+local bgZone, endZone
 
 function onLoad()
-	Z = Global.getTable("Z")
+	bgZone = getObjectFromGUID(G.zones.battlegroundZones.left[1])
+	endZone = getObjectFromGUID(G.zones.bgDEndZone)
+end
+
+function OnObjectEnterZone(params)
+	if bgZone == nil or endZone == nil then return end
+	local zone, object = params.zone, params.object
+
+	if object.hasTag("ClassToken") and zone.guid == endZone.guid then
+		if CheckForTrial() == true then
+			Z.showSuspicion()
+		end
+	end
 end
 
 local function leftToRightObjectSort(a, b) return b.getPosition().x > a.getPosition().x end
@@ -104,6 +119,18 @@ function EndTrial()
 	UI.hide("inquisitionTrialNotice_3")
 end
 
-function onLoad()
-	-- log(getTokenData())
+function Reset()
+	local resetFuncs = {}
+	U.forEach(getTokenData(), function(tData, i)
+		M.sequence({
+			function() tData.token.setPositionSmooth(tData.vaticanum) end,
+			0.75,
+			function()
+				if getClassOfToken(tData.token) == "elitist" and i % 2 == 0
+					or getClassOfToken(tData.token) == "egalitarian" and i % 2 == 1 then
+						tData.token.flip()
+				end
+			end
+		}, 0.5)
+	end)
 end

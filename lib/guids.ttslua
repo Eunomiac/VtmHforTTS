@@ -144,8 +144,8 @@ G.battlegrounds = {
 	b = "a2cf25",
 	c = "265535",
 	d = "710eb1",
-	e = "b1d2ae",
-	f = nil,
+	e = nil,
+	f = "b1d2ae",
 	g = nil
 }
 

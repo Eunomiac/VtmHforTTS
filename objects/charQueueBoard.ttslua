@@ -105,15 +105,20 @@ function Populate_Queue()
 	local function shiftCharCard(cardZone, deltaSlots)
 		if deltaSlots == 0 then return end
 		local xStepPerSlot = 2.5
+		local translation = {
+			x = xStepPerSlot * deltaSlots,
+			y = 1,
+			z = 0
+		}
+		local card = Z.getCard(cardZone)
+		M.translateObj(card, translation)
+		translation.y = translation.y + 0.2
 		U.forEach(cardZone.getObjects(), function(obj)
+			if obj.guid == card.guid or obj.guid == self.guid then return end
 			local pos = obj.getPosition()
-			if pos.y > snapY and obj.guid ~= self.guid then
-				obj.translate({
-					x = xStepPerSlot * deltaSlots,
-					y = 1,
-					z = 0
-				})
-			end
+			if pos.y <= snapY then return end
+			M.translateObj(obj, translation)
+			translation.y = translation.y + 0.02
 		end)
 	end
 

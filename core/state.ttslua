@@ -66,6 +66,8 @@ function S.resetGameState()
       round = 0,
       turn = 0,
       traits = state.traits,
+			usedAbilityStickers = state.usedAbilityStickers,
+			usedClanStickers = state.usedClanStickers,
 			playerZonesLocked = false,
 			allZonesLocked = false,
 			gamePhase = "NONE"

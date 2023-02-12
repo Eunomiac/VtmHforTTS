@@ -50,7 +50,7 @@
     rectAlignment="MiddleLeft"
     childAlignment="UpperLeft"
     width="160"
-    offsetXY="0 -100"
+    offsetXY="0 -300"
     scale="0.5"
     flexibleWidth="0"
     flexibleHeight="0"
@@ -58,7 +58,7 @@
     childForceExpandHeight="false" />
 	<HorizontalLayout class="subButtonControls"
 		spacing="0"
-		offsetXY="75 25"
+		offsetXY="75 -155"
 		width="200"
 		height="500"
 		rectAlignment="MiddleLeft"
@@ -66,7 +66,7 @@
 
   <Panel class="debugState"
     color="rgba(0,0,0,0.75)"
-    height="400"
+    height="700"
     width="350"
     padding="5 5 5 5"
     scale="0.75"

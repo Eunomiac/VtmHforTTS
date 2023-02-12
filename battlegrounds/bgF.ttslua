@@ -1,10 +1,140 @@
 local U = require("lib.utilities")
+local C = require("lib.constants")
+local S = require("core.state")
 local Z = require("core.zones")
 local G = require("lib.guids")
 
 local bgZone, endZone
 
+local investigatorSnaps = {}
+local ankhSnaps = {
+	north = {},
+	south = {},
+	east = {},
+	west = {}
+}
+local ankhColors = {
+	north = "Grey",
+	south = "White",
+	east = "Brown",
+	west = "Cyan"
+}
+
+local function translateSnapCoords()
+	return U.map(self.getSnapPoints(), function(snapData)
+		snapData.position.y = snapData.position.y + 0.5
+		snapData.position = self.positionToWorld(snapData.position)
+		if U.isIn("North", snapData.tags) or U.isIn("East", snapData.tags) or U.isIn("West", snapData.tags) or U.isIn("South", snapData.tags) then
+			snapData.rotation = {x = 0, y = 270, z = 13.57}
+		elseif U.isIn("Investigator", snapData.tags) then
+			snapData.rotation = {x = 13.57, y = 180.00, z = 0.00}
+		end
+		return snapData
+	end)
+end
+local function updateInvestigatorSnaps()
+	local iSnaps = U.filter(translateSnapCoords(), function(sPt) return U.isIn("Investigator", sPt.tags) end)
+	table.sort(iSnaps, function(a, b) return a.position.x < b.position.x end)
+	iSnaps = {iSnaps[1], iSnaps[2], iSnaps[3], iSnaps[4]}
+	table.sort(iSnaps, function(a, b) return a.position.z > b.position.z end)
+	investigatorSnaps.north = iSnaps[1]
+	investigatorSnaps.east = iSnaps[2]
+	investigatorSnaps.west = iSnaps[3]
+	investigatorSnaps.south = iSnaps[4]
+end
+
+local function updateAnkhSnaps()
+	U.forEach({"North", "South", "East", "West"}, function(dir)
+		local lowDir = string.lower(dir)
+		ankhSnaps[lowDir] = U.filter(translateSnapCoords(), function(sPt) return U.isIn(dir, sPt.tags) end)
+		table.sort(ankhSnaps[lowDir], function(a, b) return a.position.x > b.position.x end)
+	end)
+
+end
+
 function onLoad()
 	bgZone = getObjectFromGUID(G.zones.battlegroundZones.center[1])
-	endZone = getObjectFromGUID(G.zones.battlegroundZones.center[1])
+	endZone = getObjectFromGUID(G.zones.bgFEndZone)
+
+	updateInvestigatorSnaps()
+	updateAnkhSnaps()
+
+	-- Wait.time(function() log(JSON.encode_pretty(ankhSnaps)) end, 1)
+end
+
+local function countAnkhs(dir)
+	if dir == nil then return #Z.getTaggedZoneObjects(bgZone, {"Ankh"}) end
+	return #Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true)
+end
+local function getAnkhByNum(dir, num)
+	return U.find(Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true), function(ankh)
+		return ankh.getDescription() == "" .. num
+	end)
+end
+
+function OnObjectEnterZone(params)
+	local zone, object = params.zone, params.object
+	if zone.guid == endZone.guid and object.hasTag("Investigator") then
+		SendObjectHome(object)
+		local dir = object.getDescription()
+		local ankhNum = countAnkhs(dir)
+		if ankhNum == 0 then return end
+		local nextAnkh = getAnkhByNum(dir, ankhNum)
+		if getAnkhByNum == nil then return end
+		nextAnkh.highlightOn("Red")
+		local dirMap = {
+			North = "a Northern ankh",
+			South = "a Southern ankh",
+			East = "an Eastern ankh",
+			West = "a Western ankh"
+		}
+		local attrMap = {
+			North = {
+				color = "#000000",
+				outline = "#FFFFFF"
+			},
+			South = {
+				color = "#FFFFFF",
+				outline = "#555555"
+			},
+			East = {
+				color = "#D2691E",
+				outline = "#241205"
+			},
+			West = {
+				color = "#00FFFF",
+				outline = "#003030"
+			}
+		}
+		UI.setAttributes("anarchRevoltText", attrMap[dir])
+		UI.setValue("anarchRevoltText", "Move " .. dirMap[dir] .. " onto the activating vampire.")
+		U.splashUIElement("anarchRevoltNotice", 3, 0.25)
+	end
+end
+
+function OnObjectLeaveZone(params)
+	params.object.highlightOff()
+end
+
+function SendObjectHome(obj)
+	local homeSnap
+	if obj.hasTag("Investigator") then
+		homeSnap = investigatorSnaps[string.lower(obj.getDescription())]
+	elseif obj.hasTag("Ankh") and obj.type == "Tile" then
+		local dir = obj.getName()
+		local index = obj.getDescription()
+		homeSnap = ankhSnaps[string.lower(dir)][index * 1]
+	end
+
+	if homeSnap ~= nil then
+		obj.setPositionSmooth(homeSnap.position)
+		obj.setRotation(homeSnap.rotation)
+	end
+end
+
+function Reset()
+	local bgObjs = getObjectsWithTag("Investigator")
+	bgObjs = U.concat(bgObjs, getObjectsWithTag("Ankh"))
+	U.forEach(bgObjs, SendObjectHome)
+	-- log(JSON.encode_pretty(ankhSnaps))
 end

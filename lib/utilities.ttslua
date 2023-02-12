@@ -275,6 +275,13 @@ function U.find(tb, func)
   return nil
 end
 
+function U.findIndex(tb, func)
+  for k,v in pairs(tb) do
+    if (func(v,k)) then return k end
+  end
+	return nil
+end
+
 function U.compact(table)
 
 
@@ -416,6 +423,30 @@ function U.isInside(zone, pos, ignoreY)
 	return pos.x >= zoneBounds.x.min and pos.x <= zoneBounds.x.max
 		and (ignoreY or pos.y >= zoneBounds.y.min and pos.y <= zoneBounds.y.max)
 		and pos.z >= zoneBounds.z.min and pos.z <= zoneBounds.z.max
+end
+
+function U.parsePosition(obj)
+	local posVals, rotVals
+	if type(obj) ~= "userdata" then return end
+	local desc = obj.getDescription()
+	if type(desc) ~= "string" or string.find(desc, "^{%d+.%d+, %d+.%d+, %d+.%d+}") == nil then return end
+	local posRotSplit = U.split(desc, "|")
+	local posString, rotString = posRotSplit[1], posRotSplit[2]
+	if type(posString) == "string" then
+		posString = string.gsub(string.sub(posString, 2, #posString - 1), " ", "")
+		posVals = U.map(U.split(posString, ","), function(strVal) return 1 * strVal end)
+		if #posVals == 3 then
+			posVals = {x = posVals[1], y = posVals[2], z = posVals[3]}
+		end
+	end
+	if type(rotString) == "string" then
+		rotString = string.gsub(string.sub(rotString, 2, #rotString - 1), " ", "")
+		rotVals = U.map(U.split(rotString, ","), function(strVal) return 1 * strVal end)
+		if #rotVals == 3 then
+			rotVals = {x = rotVals[1], y = rotVals[2], z = rotVals[3]}
+		end
+	end
+	return posVals, rotVals
 end
 
 -- function U.try(fn, ...)

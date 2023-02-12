@@ -1,0 +1,4 @@
+
+function OnObjectEnterZone(zone, object) return end
+
+function Reset() return end

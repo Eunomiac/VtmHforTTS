@@ -28,6 +28,13 @@ local zoneTags = {
 		aftermath = { "Obligation" }
 }
 --#endregion
+
+local battlegrounds = {
+	left = "d",
+	center = "f",
+	right = "b"
+}
+
 function Z.getZoneColor(zone)
 	if U.isIn(zone.guid, U.flatten(G.zones.Red)) then return "Red"
 	elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow)) then return "Yellow"
@@ -125,6 +132,21 @@ function Z.activateZones()
 	end, 0.25)
 end
 
+function Z.writePosToTaggedObjectsInZone(zone, tags, mode, stateKey, stateSubKey)
+	if mode == nil then mode = "desc" end
+	U.forEach(Z.getTaggedZoneObjects(zone, tags), function(obj)
+		if mode == "clear" then return obj.setDescription("") end
+		local pos = obj.getPosition()
+		pos.y = pos.y + 0.5
+		local rot = obj.getRotation()
+		if mode == "desc" then
+			obj.setDescription("{" .. U.round(pos.x, 2) .. ", " .. U.round(pos.y, 2) .. ", " .. U.round(pos.z, 2) .. "}|{" .. U.round(rot.x, 2) .. ", " .. U.round(rot.y, 2) .. ", " .. U.round(rot.z, 2) .. "}")
+		elseif mode == "state" and type(stateKey) == "string" then
+			S.setStateVal({position = pos, rotation = rot}, stateKey, stateSubKey)
+		end
+	end)
+end
+
 -- *** Events ***
 local zoneThrottle = {}
 local function throttleZone(zone, func, delay)
@@ -138,12 +160,22 @@ end
 
 local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
 
+local function getBattleground(dir) return getObjectFromGUID(G.battlegrounds[battlegrounds[dir]]) end
+
+local function getBattlegroundOfZone(zone)
+	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then return getBattleground("left") end
+	if U.isIn(zone.guid, G.zones.battlegroundZones.center) then return getBattleground("center") end
+	if U.isIn(zone.guid, G.zones.battlegroundZones.right) then return getBattleground("right") end
+	return nil
+end
+
 function Z.onObjectEnterZone(zone, object)
 	if S.getStateVal("allZonesLocked") == true then return end
 	if isThrottled(zone) then return end
 	if Z.isPlayerCardZone(zone) then
 		if S.getStateVal("playerZonesLocked") == true then return end
 		throttleZone(zone, function()
+			if S.isInPhase("AFTERMATH") or S.isInPhase("END") then return end
 			Z.alignCard(zone)
 			Wait.time(function() Z.refreshUI(zone) end, 0.5)
 			if not S.isInPhase("PLAY") then return end
@@ -172,56 +204,8 @@ function Z.onObjectEnterZone(zone, object)
 		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			dimBattleground(zone)
 		end
-		if object.hasTag("ClassToken") and zone.guid == G.zones.bgDEndZone then
-			if getObjectFromGUID(G.battlegrounds.d).call("CheckForTrial") == true then
-				Z.showSuspicion()
-			end
-		end
-
-		-- if object.hasTag("Ankh") and zone.guid == G.zones.bgEZones.Fire then
-		-- 	local dir
-		-- 	if object.hasTag("North") then dir = "North"
-		-- 	elseif object.hasTag("South") then dir = "South"
-		-- 	elseif object.hasTag("East") then dir = "East"
-		-- 	elseif object.hasTag("West") then dir = "West"
-		-- 	end
-
-		-- 	-- Count ankhs in fire. If there are three, burn the fourth and announce it.
-		-- 	if BGE.countBurnedAnkhs(dir) == 3 then
-		-- 		if dir == "North" then
-		-- 			UI.setAttributes("anarchRevoltText", {
-		-- 				color = "#000000",
-		-- 				outline = "#FFFFFF"
-		-- 			})
-		-- 			UI.setValue("anarchRevoltText", "London burns to the ground in the North!")
-		-- 		elseif dir == "South" then
-		-- 			UI.setAttributes("anarchRevoltText", {
-		-- 				color = "#FFFFFF",
-		-- 				outline = "#555555"
-		-- 			})
-		-- 			UI.setValue("anarchRevoltText", "Palermo burns to the ground in the South!")
-		-- 		elseif dir == "East" then
-		-- 			UI.setAttributes("anarchRevoltText", {
-		-- 				color = "#D2691E",
-		-- 				outline = "#8B4513"
-		-- 			})
-		-- 			UI.setValue("anarchRevoltText", "Prague burns to the ground in the East!")
-		-- 		else
-		-- 			UI.setAttributes("anarchRevoltText", {
-		-- 				color = "#00FFFF",
-		-- 				outline = "#008B8B"
-		-- 			})
-		-- 			UI.setValue("anarchRevoltText", "Madrid burns to the ground in the West!")
-		-- 		end
-		-- 		Wait.time(function()
-		-- 			U.splashUIElement("anarchRevoltNotice", 3)
-		-- 			local unburnedAnkh = BGE.getUnburnedAnkhs(dir)[1]
-		-- 			if unburnedAnkh then
-		-- 				BGE.burnAnkh(unburnedAnkh)
-		-- 			end
-		-- 		end, 1)
-		-- 	end
-		-- end
+		local bg = getBattlegroundOfZone(zone)
+		if bg ~= nil then bg.call("OnObjectEnterZone", {zone = zone, object = object}) end
 	end
 end
 
@@ -250,6 +234,8 @@ function Z.onObjectLeaveZone(zone, object)
 		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			dimBattleground(zone)
 		end
+		local bg = getBattlegroundOfZone(zone)
+		if bg ~= nil then bg.call("OnObjectLeaveZone", {zone = zone, object = object}) end
 	end
 end
 
@@ -711,9 +697,18 @@ local function refreshStatusXML(zone)
 			color = "clear"
 	}
 
-	-- if statusData.torpor then
-	-- 	Z.burnAnkhs(zone)
-	-- end
+	if statusData.torpor then
+		local ankhs = Z.getTaggedZoneObjects(zone, {"Ankh"})
+		if #ankhs > 0 then
+			local bg = getBattleground("center")
+			if bg ~= nil then
+				U.forEach(ankhs, function(ankh) bg.call("SendObjectHome", ankh) end)
+				UI.setAttributes("anarchRevoltText", {color = nil, outline = nil})
+				UI.setValue("anarchRevoltText", "If a vampire caused the torpor, award them " .. #ankhs * 2 .. " Power.")
+				U.splashUIElement("anarchRevoltNotice", 3, 0.25)
+			end
+		end
+	end
 
 	if S.isInPhase("PLAY") and isCheckingSuspicion and not statusData.torpor then
 		statusData.exhaustion = false
@@ -1118,14 +1113,14 @@ function Z.discardTorporedVamps()
 	discardPos.y = discardPos.y + 1
 	for _, zone in pairs(Z.getPlayerZones()) do
 		if (Z.isTorpored(zone)) then
-			for _, obj in pairs(Z.getTaggedZoneObjects(zone, { "Power", "Infamy", "ExhaustTorpor" })) do
-				obj.destruct()
-			end
-			U.forEach(Z.getBoons(zone), function(boon)
-				local boonClan = string.gsub(boon.getName(), " Boon", "")
-				local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[boonClan])
-				clanChest.putObject(boon)
-			end)
+			-- for _, obj in pairs(Z.getTaggedZoneObjects(zone, { "Power", "Infamy", "ExhaustTorpor" })) do
+			-- 	obj.destruct()
+			-- end
+			-- U.forEach(Z.getBoons(zone), function(boon)
+			-- 	local boonClan = string.gsub(boon.getName(), " Boon", "")
+			-- 	local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[boonClan])
+			-- 	clanChest.putObject(boon)
+			-- end)
 			U.forEach(Z.getCards(zone), function(card)
 				card.setPosition(discardPos)
 				card.setLock(false)

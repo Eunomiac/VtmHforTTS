@@ -34,34 +34,17 @@ function HUD_testFunc1(player, value, id)
 	-- M.processContainer(chapterObj, "chapter")
 end
 function HUD_testFunc2(player, value, id)
-	local zones = U.map(G.zones.allPlayer, function(uid) return getObjectFromGUID(uid) end)
-	local tags = {
-		ClanLeader = {"Ankh", "Boon", "Power", "ClanLeader", "ExhaustTorpor"},
-		Character = {"Ankh", "Boon", "Power", "Infamy", "Character", "ExhaustTorpor"}
-	}
-	for _, zone in pairs(zones) do
-		if U.isIn(zone.guid, {G.zones.Red.bloodline[1][1], G.zones.Yellow.bloodline[1][1], G.zones.Blue.bloodline[1][1]}) then
-			if value == "-2" then
-				for _, tag in pairs(tags.ClanLeader) do zone.removeTag(tag) end
-			else
-				for _, tag in pairs(tags.ClanLeader) do zone.addTag(tag) end
-			end
-		else
-			if value == "-2" then
-				for _, tag in pairs(tags.Character) do zone.removeTag(tag) end
-			else
-				for _, tag in pairs(tags.Character) do zone.addTag(tag) end
-			end
-		end
-	end
-
+	M.showStickerUnlocks()
 end
 function HUD_testFunc3(player, value, id)
-	U.forEach(G.zones.allPlayer,
-		function(zoneGUID)
-			local zone = getObjectFromGUID(zoneGUID)
-			zone.addTag("ClanScheme")
-		end)
+	local bgF = getObjectFromGUID(G.battlegrounds.f)
+	local bgD = getObjectFromGUID(G.battlegrounds.d)
+	local bgB = getObjectFromGUID(G.battlegrounds.b)
+	M.sequence({
+		function() bgD.call("Reset") end,
+		function() bgF.call("Reset") end,
+		function() bgB.call("Reset") end
+	}, 1)
 end
 
 function onLoad(script_state)
