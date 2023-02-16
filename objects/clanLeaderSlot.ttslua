@@ -18,6 +18,8 @@ local function setupPlayerSpace(color, clan, clanToken)
 	local mainStorage = getObjectFromGUID(G.mainStorage.id)
 	local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
 	local clanStorageGUID = G.mainStorage.clanStorage[clan]
+	local leaderPosition = getObjectFromGUID(guids.leaderCard).getPosition()
+	Disable()
 	local stagingPositions = {
 			Red = {x = -51.5, y = -0.14, z = 33.5},
 			Yellow = {x = -51.5, y = -0.14, z = 30.5},
@@ -34,7 +36,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 		callback_function = function(clanContainer)
 			Wait.time(function()
 					M.assignClan(clan, color)
-					local leaderPos = getObjectFromGUID(guids.leaderCard).getPosition()
+					local leaderPos = U.clone(leaderPosition)
 					leaderPos.y = leaderPos.y + 1
 					local positions = {
 							clanLeader = leaderPos,
@@ -45,6 +47,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 					positions.clanLeader.y = positions.clanLeader.y + 0.5
 					positions.clanScheme.y = positions.clanScheme.y + 0.5
 					positions.clanMorality.y = positions.clanMorality.y + 0.5
+					positions.clanToken.x = positions.clanToken.x + 2
 					positions.clanToken.y = positions.clanToken.y + 0.5
 					local clanBoonPos = {
 							x = leaderPos.x + 2,
@@ -97,7 +100,10 @@ local function setupPlayerSpace(color, clan, clanToken)
 										guid = containedObject.guid,
 										smooth = false,
 										position = pos,
-										rotation = {x = 0, y = 180, z = 0}
+										rotation = {x = 0, y = 180, z = 0},
+										callback_function = function()
+
+										end
 								}) end, waitTime)
 								waitTime = waitTime + waitStep
 								if U.isIn("DoubleSided", containedObject.tags) then
@@ -135,7 +141,6 @@ local function setupPlayerSpace(color, clan, clanToken)
 											smooth = false,
 											position = powerPos[3]
 									}) end, waitTime)
-
 								end
 							elseif (containedObject.name == "Deck") then
 									Wait.time(function() clanContainer.takeObject({
@@ -170,21 +175,12 @@ local function setupPlayerSpace(color, clan, clanToken)
 						}) end, waitTime)
 					end
 
-					-- Wait.time(function()
-					-- 	local clZone = getObjectFromGUID(G.zones[color].bloodline[1][1])
-					-- 	for _, token in pairs(Z.getTaggedZoneObjects(clZone, {"Power", "Boon", "Infamy"})) do
-					-- 		token.setLock(true)
-					-- 	end
-					-- end, waitTime + 1)
-
-
+					waitTime = waitTime + (2 * waitStep)
+					Wait.time(function()
+						M.updateMoralityToken(color)
+					end, waitTime)
 			end, 0.5)
-
-
 		end})
-
-	-- local clanContainer = getObjectFromGUID(G.mainStorage.clanStorage[clan])
-
 end
 
 local function handleClanToken(collision_info)
@@ -203,14 +199,14 @@ function onLoad()
   end
   _stagingPos = self.getPosition()
   _stagingPos.z = _stagingPos.z + 3
+	_stagingPos.y = -0.13
 	isLoaded = true
 end
 
 function onCollisionEnter(collision_info)
-	if isLoaded == false then return end
+	if isLoaded == false or isSelecting == true then return end
 	if S.getStateVal("gamePhase") ~= "INIT" then return end
 	if not collision_info.collision_object.hasTag("ClanToken") then return end
-	if (isSelecting) then return end
 	local round, turn = M.getRoundAndTurn()
 	if (round ~= 0) then return end
 	if (M.getNextPlayer() ~= _playerColor) then return end
@@ -221,65 +217,15 @@ function onCollisionEnter(collision_info)
 	return handleClanToken(collision_info)
 end
 
--- end
+function Enable()
+	local pos = self.getPosition()
+	pos.y = -0.13
+	self.setPosition(pos)
+end
 
--- function Populate_Queue()
---     local charCards = U.findOnObject(self, "Card")
-
---     local charCardData = {}
---     for _, card in ipairs(charCards) do
---         local cardData = {
---             card = card,
---             position = U.pFloat(self.positionToLocal(card.getPosition()).x),
---             facing = "FaceDown"
---         }
---         if (card.getRotation().z < 90) then
---             cardData.facing = "FaceUp"
---         end
---         -- cardData.snapSlot = U.findSnapPoint(charQueueSnapPoints, {x = cardData.position, z = nil})
---         table.insert(charCardData, cardData)
---     end
-
---     local function cardPosCompare(a,b) return a.position < b.position end
---     table.sort(charCardData, cardPosCompare)
-
---     local waitTime = 0
---     local curSlot = 5
-
---     while (curSlot > 0) do
---         -- local thisSnapPoint = charQueueSnapPoints[curSlot]
---         if (U.count(charCardData) > 0) then
---             local thisCard = table.remove(charCardData, 1)
---             if (thisCard.snapSlot ~= curSlot) then
---                 -- Wait.time(function() shiftCardQueue(thisCard.card.setPositionSmooth(
---                 --     self.positionToWorld(thisSnapPoint.position), false, false
---                 -- )) end, waitTime)
---                 waitTime = waitTime + 0.25
---             end
---         else
---             Wait.time(function() DealCardQueue(thisSnapPoint.position, thisSnapPoint.rotation) end, waitTime)
---             waitTime = waitTime + 0.25
---         end
---         curSlot = curSlot - 1
---     end
--- end
-
--- function DealCardQueue(position)
---     position = self.positionToWorld(position)
---     characterDeck.takeObject({
---         position = position,
---         flip = true
---     })
--- end
-
-    -- Reference Card
-
-    -- Scheme Deck, Shuffle
-
-    -- Boons Laid Out
-
-    -- 3x Power
-
-    -- Clan Leader
-
-    -- Morality Token on Battleground
+function Disable()
+	local pos = self.getPosition()
+	pos.y = -10
+	self.setPosition(pos)
+	self.setLock(true)
+end

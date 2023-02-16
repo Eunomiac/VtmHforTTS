@@ -90,6 +90,22 @@
     flexibleHeight="0"
     flexibleWidth="1"
     fontSize="64" />
+	<VerticalLayout class="splash-court"
+		color="rgba(0, 0, 0, 1)"
+		height="170"
+		width="1200"
+		childAlignment="MiddleCenter"
+		childForceExpandWidth="false"
+		childForceExpandHeight="false"
+		rectAlignment="LowerCenter"
+		offsetXY="0 150" />
+	<HorizontalLayout class="splash-court"
+		childAlignment="MiddleCenter"
+		childForceExpandWidth="false"
+		childForceExpandHeight="false"
+		preferredHeight = "64"
+		spacing = "15"
+		padding = "0 0 0 0" />
   <Text class="subtitle"
     alignment="MiddleCenter"
     fontStyle="BoldAndItalic"
@@ -138,6 +154,7 @@
     outlineSize="1 1"
     color="#FF0000" />
 	<Text class="just-and" preferredWidth="170" flexibleWidth="0" />
+	<Text class="not-italic" fontStyle="Bold" />
 
 	<!-- <Text class="no-flex" flexibleWidth="0" /> -->
 
@@ -270,10 +287,35 @@
 	<VerticalLayout class="splash-text splash-inquisition">
 		<Text id="inquisitionTrialNotice_1" class="subtitle fade" color="White">The Inquisition convenes a trial:</Text>
 		<HorizontalLayout id="inquisitionTrialNotice_2" class="splash-inquisition fade" showAnimationDelay="1">
-			<Text id="inquisitionTrialNotice-elitist" class="title no-flex" color="#890E0A" alignment="MiddleRight" flexibleWidth="1">3 elitists</Text>
+			<Text id="inquisitionTrialNotice-elitist" class="title no-flex" color="#890E0A" alignment="MiddleRight" flexibleWidth="1"></Text>
 			<Text class="title just-and" color="#FFFFFF"> and </Text>
-			<Text id="inquisitionTrialNotice-egalitarian" class="title no-flex" color="#77dd77" alignment="MiddleLeft" flexibleWidth="1">1 egalitarian</Text>
+			<Text id="inquisitionTrialNotice-egalitarian" class="title no-flex" color="#77dd77" alignment="MiddleLeft" flexibleWidth="1"></Text>
 		</HorizontalLayout>
 		<Text id="inquisitionTrialNotice_3" class="subtitle fade" color="White" showAnimationDelay="2">... are in <i>judices</i></Text>
+	</VerticalLayout>
+</Panel>
+
+
+<Panel id="courtVoteNotice" class="splash-panel fade">
+	<VerticalLayout class="splash-text splash-court">
+    <Image class="splash-fill" image="ui-bg-6-1"></Image>
+		<HorizontalLayout id="courtVoteNotice_1" class="splash-court fade" showAnimationDelay="1">
+			<Text class="subtitle not-italic" color="White" flexibleWidth="0">The Court confers the title of </Text>
+			<HorizontalLayout class="splash-court" padding="0 0 0 0" spacing="0">
+				<Text class="subtitle not-italic" color="White" flexibleWidth="0">'</Text>
+				<Text id="courtVoteNotice-title" class="subtitle no-flex not-italic" color="#FFD700" flexibleWidth="0">Harpy</Text>
+				<Text class="subtitle not-italic" color="White" flexibleWidth="0">' upon</Text>
+			</HorizontalLayout>
+		</HorizontalLayout>
+		<HorizontalLayout id="courtVoteNotice_2" class="splash-court fade" showAnimationDelay="2">
+			<Text class="subtitle not-italic" color="#FFFFFF" flexibleWidth="0">the</Text>
+			<Text id="courtVoteNotice-elitist" class="subtitle no-flex not-italic" color="#890E0A" flexibleWidth="0" active="false">Elitist</Text>
+			<Text id="courtVoteNotice-egalitarian" class="subtitle no-flex not-italic" color="#77dd77" flexibleWidth="0" active="false">Egalitarian</Text>
+			<Text class="subtitle not-italic" color="#FFFFFF" flexibleWidth="0">vampire with the most</Text>
+			<HorizontalLayout class="splash-court" padding="0 0 0 0" spacing="0">
+				<Text class="subtitle not-italic" color="#FF0000" flexibleWidth="0">Power</Text>
+				<Text class="subtitle not-italic" color="White" flexibleWidth="0">.</Text>
+			</HorizontalLayout>
+		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>

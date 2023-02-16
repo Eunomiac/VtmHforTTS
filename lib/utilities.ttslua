@@ -21,17 +21,24 @@ function U.findAboveObject(obj, type)
     local objBounds = obj.getBounds()
     objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) - 2.5
     objBounds.size.y = 5
-    local castParams = {
-        origin = objBounds.center,
-        type = 3,
-        direction = {0,1,0},
-        size = objBounds.size,
-        max_distance = 0,
-        debug = (ISDEBUGGING or false)
-    }
 
-    local objList = U.findOnObject(obj, type, castParams)
-    return objList
+    local hitList = Physics.cast({
+			origin = objBounds.center,
+			type = 3,
+			direction = {0,1,0},
+			size = objBounds.size,
+			max_distance = 0,
+			debug = (ISDEBUGGING or false)
+		})
+    if not hitList then return {} end
+
+    local refinedList = {}
+    for _, obj in ipairs(hitList) do
+			if (obj.hit_object.guid ~= obj.guid and (type == nil or obj.hit_object.type == type)) then
+				table.insert(refinedList, obj.hit_object)
+			end
+    end
+    return refinedList
 end
 
 function U.transferContents(fromObj, toObj)
@@ -59,16 +66,6 @@ function U.mutateObjects(containerObj, mutateFunc)
 end
 
 function U.findOnObject(baseObj, type, cast)
-    local hitList = Physics.cast(cast)
-    if (not hitList) then return end
-    local refinedList = {}
-    for _, obj in ipairs(hitList) do
-        -- log({baseObj, obj})
-        if (obj.hit_object.guid ~= baseObj.guid and (type == nil or obj.hit_object.type == type)) then
-            table.insert(refinedList, obj.hit_object)
-        end
-    end
-    return refinedList
 end
 
 local function checkSnapPoint(snapPoint, axis, coordsFilter)
@@ -109,6 +106,18 @@ function U.getSnapPointPositions(board, coordsFilter, sortAxis)
 end
 
 function U.findSnapPoint(snapPoints, pos, fuzziness)
+	local baseObj, snapObj
+		if type(snapPoints) == "userdata" and snapPoints.getSnapPoints ~= nil then
+			baseObj = snapPoints
+			snapPoints = U.map(baseObj.getSnapPoints(), function(snapData)
+				snapData.position = baseObj.positionToWorld(snapData.position)
+				return snapData
+			end)
+		end
+		if type(pos) == "userdata" and pos.getSnapPoints ~= nil then
+			snapObj = pos
+			pos = snapObj.getPosition()
+		end
     fuzziness = fuzziness or 0.1
     for slot, snap in ipairs(snapPoints) do
         if (snap.position) then

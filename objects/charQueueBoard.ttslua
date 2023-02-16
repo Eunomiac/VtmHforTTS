@@ -9,12 +9,12 @@ local isRequeuing = false
 
 local function getCharacterDeck()
 	local deck = U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
-	if not deck then return false end
+	if not deck then return nil end
 	return deck
 end
 local function getMissionDeck()
 	local deck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-	if not deck then return false end
+	if not deck then return nil end
 	return deck
 end
 
@@ -167,107 +167,3 @@ function Populate_Queue()
 
 	M.sequence(charCardFuncs, 0.25)
 end
-
-
--- 	for i = curSlot, 1, -1 do
-
-
--- 	end
-
--- 	if curSlot == 0 then return end
-
--- 	-- Deal new cards from Character Deck
-
--- 	local function dealNextChar()
--- 	end
-
-
-
--- 	-- Shift cards to the right
-
-
--- 	for i = #charCards, 1, -1 do
--- 		local slot, card = charCards[i][1], charCards[i][2]
--- 		shiftCharCard(card, )
-
--- 	end
-
--- 	local charCards = U.findOnObject(self, "Card", queueCharCast)
-
--- 	local charCardData = {}
--- 	for i, card in ipairs(charCards) do
--- 		local cardZone = queueCharZones[i]
--- 		local cardData = {
--- 				card = card,
--- 				position = U.pFloat(self.positionToLocal(card.getPosition()).x),
--- 				facing = "FaceUp",
--- 				linkedObjects = U.filter(
--- 						cardZone.getObjects(),
--- 						function(obj)
--- 							return obj.type ~= "Card" and obj.guid ~= self.guid and obj.getName() ~= "Character Queue Base"
--- 						end)
--- 		}
--- 		if (card.getRotation().z > 90 and card.getRotation().z < 250) then
--- 			cardData.facing = "FaceDown"
--- 		end
--- 		cardData.snapSlot = U.findSnapPoint(queueCharSnaps, { x = cardData.position, z = nil })
--- 		table.insert(charCardData, cardData)
--- 	end
-
--- 	local function cardPosCompare(a, b) return a.position < b.position end
--- 	table.sort(charCardData, cardPosCompare)
-
--- 	local waitTime = 0
--- 	local curSlot = 5
-
--- 	while (curSlot > 0) do
--- 		local thisSnapPoint = queueCharSnaps[curSlot]
--- 		if (U.count(charCardData) > 0) then
--- 			local thisCard = table.remove(charCardData, 1)
--- 			if (thisCard.snapSlot ~= curSlot and thisCard.card) then
--- 				local newPos = self.positionToWorld(thisSnapPoint.position)
--- 				local numSnapShift = curSlot - thisCard.snapSlot
--- 				newPos.y = newPos.y + 0.5
--- 				Wait.time(
--- 						function()
--- 							thisCard.card.setPositionSmooth(newPos, false, false)
--- 							U.forEach(thisCard.linkedObjects, function(obj)
--- 								local curPos = obj.getPosition()
--- 								obj.setPositionSmooth({
--- 										x = curPos.x + (2.5 * numSnapShift),
--- 										y = curPos.y + 1,
--- 										z = curPos.z
--- 								}, false, false)
--- 							end)
--- 						end, waitTime)
--- 				waitTime = waitTime + 0.25
--- 			end
--- 		else
--- 			Wait.time(function()
--- 				characterDeck.takeObject({
--- 						position = self.positionToWorld({
--- 								x = thisSnapPoint.position.x,
--- 								y = thisSnapPoint.position.y + 1,
--- 								z = thisSnapPoint.position.z - 0.1
--- 						}),
--- 						rotation = { x = 25, y = 180, z = 0 },
--- 						callback_function = function(obj)
--- 							obj.addTag("Card")
--- 							obj.addTag("Character")
--- 							obj.drag_selectable = false
--- 						end
--- 				})
--- 			end, waitTime)
--- 			waitTime = waitTime + 0.25
--- 		end
--- 		curSlot = curSlot - 1
--- 	end
-
--- 	Wait.time(function()
--- 		isPopulating = false
--- 		if isRequeuing == true then
--- 			isRequeuing = false
--- 			Populate_Queue()
--- 		end
--- 	end, waitTime + 0.5)
--- end

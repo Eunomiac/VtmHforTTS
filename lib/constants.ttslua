@@ -24,6 +24,10 @@ C.MoralityTokens = {
   Ventrue = "C"
 }
 
+C.StickerTraits = { "Kindred", "Mortals", "Wealth", "Subterfuge", "Warfare", "Occult", "Cruelty", "Mercy",
+"Detachment", "Camarilla", "Sabbat", "Anarchs", "Animalism", "Auspex", "Celerity", "Dominate", "Fortitude",
+"Obfuscate", "Oblivion", "Potence", "Presence", "Protean", "Blood_Sorcery" }
+
 C.GamePhases = {
 	"NONE",
 	"SETUP",
@@ -33,6 +37,34 @@ C.GamePhases = {
 	"MISSIONS",
 	"AFTERMATH",
 	"END"
+}
+
+-- C.ObjectCategories = {
+-- 	mission = {"Mission", {"Mission"}},
+-- 	unlockedScheme = {"Clan Scheme", {"Card", "ClanScheme"}},
+-- 	lockedScheme = {"Clan Scheme (Locked)", {"Card", "ClanScheme", "LockedScheme"}},
+-- 	chapter = {"Chapter Card", {"ChapterCard"}},
+-- 	letterOfIntroduction = {"Letter of Introduction", {"Card", "LetterOfIntroduction"}},
+-- 	character = {"Character", {"Card", "Character"}},
+-- 	clan
+
+-- }
+
+C.CategoryColors = {
+	default = Color(0, 0, 0, 188/255),
+	strand = Color(139/255, 69/255, 19/255, 40/255),
+	letterOfIntroduction = Color(222/255, 184/255, 135/255, 40/255),
+	clanLeader = Color(0/255, 191/255, 255/255, 40/255),
+	era = Color(95/255, 158/255, 160/255, 40/255),
+	character = Color(106/255, 90/255, 205/255, 40/255)
+}
+
+C.CategoryNames = {
+	strand = "Strands of Time",
+	letterOfIntroduction = "Letters of Introduction",
+	clanLeader = "Clan Leaders",
+	era = "Era Cards",
+	character = "Characters"
 }
 
 C.TraitAbbvs = {

@@ -6,20 +6,25 @@ local Z = require("core.zones")
 
 local M = {}
 
+local chapterCard, missionDeck
+local masterStorage, masterStorageStagingPos
+local clanChoiceAlertShowing = false
+
+--#region *** UTILITY FUNCTIONS ***
 local function lockObjects(objGUIDs)
 	for _, guid in pairs(objGUIDs) do
-		 local obj = getObjectFromGUID(guid)
-		 obj.interactable = false
+		local obj = getObjectFromGUID(guid)
+		obj.interactable = false
 	end
 end
 local function invisObjects(objGUIDs)
 	U.forEach(objGUIDs, function(guid)
 		if S.isInPhase("SCORING") and guid == G.victoryTable
-			or S.isInPhase("INIT") and guid == G.highlighters.clanSelection then
+				or S.isInPhase("INIT") and guid == G.highlighters.clanSelection then
 			return
 		end
 		local obj = getObjectFromGUID(guid)
-		obj.setInvisibleTo({"Red","Blue","Yellow"})
+		obj.setInvisibleTo({ "Red", "Blue", "Yellow" })
 	end)
 end
 
@@ -38,7 +43,6 @@ function M.getRandomCard(cardOrDeck, callback)
 		callback(cardOrDeck)
 	end
 end
-
 
 function M.sequence(funcs, waitStep)
 	if waitStep == nil then waitStep = 0.5 end -- default step of 0.5s
@@ -62,8 +66,149 @@ function M.translateObj(obj, translation)
 	obj.setPositionSmooth(pos)
 end
 
--- *** GAME STATE ***
+function M.initializeGlobals()
+	missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+	if missionDeck == nil then
+		U.alertGM("Mission Deck not found.")
+	end
 
+	masterStorage = getObjectFromGUID(G.mainStorage.id)
+	if masterStorage == nil then
+		U.alertGM("Master Storage not found.")
+	else
+		masterStorageStagingPos = masterStorage.getPosition()
+		masterStorageStagingPos.x = masterStorageStagingPos.x + 5
+		masterStorageStagingPos.z = masterStorageStagingPos.z - 5
+	end
+end
+
+local function getSchemesDeck(color)
+	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDeck), "Deck")[1]
+	if deck == nil then
+		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDeck), "Card")[1]
+	end
+	return deck
+end
+
+local function getSchemesDiscard(color)
+	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscard), "Deck")[1]
+	if deck == nil then
+		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscard), "Card")[1]
+	end
+	return deck
+end
+
+--#region Card Zooming
+local targetCard
+function M.zoomCard(player)
+	if player == nil then U.forEach(C.Colors, function(col) M.zoomCard(Player[col]) end) end
+	if targetCard ~= nil then
+		targetCard.setLock(false)
+		targetCard.setRotationSmooth({ x = 0, y = 180, z = 0 }, false, true)
+		targetCard.setPositionSmooth({ x = 8.83, y = 2, z = 1.13 }, false, true)
+	end
+
+	local sourceDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+	if sourceDeck == nil then return end
+
+	targetCard = sourceDeck.takeObject({
+		position = { x = -0.5, y = 5.47, z = 2 },
+		rotation = { x = 19.28, y = 180, z = 0 },
+		callback_function = (function(obj) obj.setLock(true) end)
+	})
+
+	M.setCamera(player, "ZoomCard")
+end
+
+function M.clearZoom()
+	if targetCard ~= nil then
+		targetCard.setLock(false)
+		targetCard.setRotationSmooth({ x = 0, y = 180, z = 0 }, false, true)
+		targetCard.setPositionSmooth({ x = 8.83, y = 2, z = 1.13 }, false, true)
+	end
+	targetCard = nil
+end
+
+--#endregion
+
+--#region Havens & Pouches
+function M.showHavens()
+	for _, color in pairs(C.Colors) do
+		local haven = getObjectFromGUID(G.playerObjs[color].haven)
+		if haven and haven.tooltip == false then
+			haven.setLock(true)
+			haven.tooltip = true
+			local havenPos = haven.getPosition()
+			havenPos.y = 2
+			haven.setPosition(havenPos)
+			havenPos.y = -0.40
+			haven.setInvisibleTo({})
+			haven.setPositionSmooth(havenPos)
+		end
+	end
+end
+
+function M.hideHavens()
+	for _, color in pairs(C.Colors) do
+		local haven = getObjectFromGUID(G.playerObjs[color].haven)
+		if haven and haven.tooltip == true then
+			haven.setLock(true)
+			haven.tooltip = false
+			local havenPos = haven.getPosition()
+			havenPos.y = 2
+			haven.setPositionSmooth(havenPos)
+			Wait.time(function()
+				haven.setInvisibleTo(C.Colors)
+				havenPos.y = -5
+				Wait.frames(function() haven.setPosition(havenPos) end)
+			end, 0.5)
+		end
+	end
+end
+
+function M.showPouches()
+	for _, color in pairs(C.Colors) do
+		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
+		if pouch then
+			pouch.setLock(true)
+			local pouchPos = pouch.getPosition()
+			if pouchPos.y < -2 then
+				pouchPos.y = 2
+				pouch.setPosition(pouchPos)
+				pouchPos.y = -0.13
+				pouch.setInvisibleTo({})
+				pouch.setPositionSmooth(pouchPos)
+				pouch.tooltip = true
+			end
+		end
+	end
+end
+
+function M.hidePouches()
+	for _, color in pairs(C.Colors) do
+		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
+		if pouch then
+			pouch.setLock(true)
+			local pouchPos = pouch.getPosition()
+			if pouchPos.y > -2 then
+				pouchPos.y = 2
+				pouch.setPositionSmooth(pouchPos)
+				Wait.time(function()
+					pouch.setInvisibleTo(C.Colors)
+					pouch.tooltip = false
+					pouchPos.y = -10
+					Wait.frames(function() pouch.setPosition(pouchPos) end)
+				end, 0.5)
+			end
+		end
+	end
+end
+
+--#endregion
+
+--#endregion
+
+--#region *** EVENT LISTENERS ***
 function M.onLoad(script_state)
 	local newState = JSON.decode(script_state)
 	if newState then
@@ -105,59 +250,20 @@ function M.onLoad(script_state)
 			index = 1,
 			smooth = false,
 			position = pointerPos,
-			rotation = {x = 0, y = 180, z = 180}
+			rotation = { x = 0, y = 180, z = 180 }
 		})
 	end)
-	lockObjects(G.lockedObjects)
-	invisObjects(G.invisObjects)
-	M.removeUnusedClanRefs()
-	M.syncState()
-	UI.show("adminControls")
-	Wait.time(function()
-		Z.onLoad()
 
-		-- Z.updateTestObject()
-		M.highlightBattlegrounds()
-		M.syncPhase()
-
-		local victoryBoard = getObjectFromGUID(G.victoryBoard)
-		if victoryBoard ~= nil then
-			local snapPoints = victoryBoard.getSnapPoints()
-			table.sort(snapPoints, function(a, b)
-				if (math.abs(a.position.z - b.position.z) <= 0.2) then
-					return a.position.x > b.position.x
-				end
-				return a.position.z < b.position.z
-			end)
-			victoryBoard.setSnapPoints(snapPoints)
-			log("Snap Points Set!")
-		end
-
-		-- S.setStateVal({
-		-- 	"Kindred1", "Kindred2", "Mortals1", "Mortals2", "Wealth1", "Wealth2", "Subterfuge1", "Subterfuge2", "Subterfuge3", "Warfare1", "Occult1", "Occult2", "Occult3", "Occult4", "Cruelty1", "Cruelty2", "Mercy1", "Mercy2", "Mercy3", "Detachment1", "Detachment2", "Sabbat1", "Animalism1", "Dominate1", "Oblivion1", "Potence1", "Presence2", "Blood_Sorcery1"
-		-- }, "usedAbilityStickers")
-		-- S.setStateVal({
-		-- 	Brujah = 2, Gangrel = 4, Lasombra = 2, Malkavian = 0, Nosferatu = 2, Toreador = 1, Tremere = 4, Tzimisce = 3, Ventrue = 2
-		-- }, "usedClanStickers")
-	end, 1)
-end
-
-function M.syncPhase()
-	local phase = S.getStateVal("gamePhase")
-	if phase == nil then
-		broadcastToAll("Error determining game phase.", "Red")
-		return
-	end
-	if phase == "INIT" then
-		local clans = S.getStateVal("clans")
-		if clans ~= nil then
-			for color, clan in pairs(S.getStateVal("clans")) do
-				UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clan)
-				UI.show(color .. "ClanChoice")
-			end
-		end
-		M.doNextClan()
-	end
+	M.sequence({
+		function()
+			invisObjects(G.invisObjects)
+			M.syncState()
+			lockObjects(G.lockedObjects)
+			M.syncPhase()
+			M.initializeGlobals()
+		end,
+		M.highlightBattlegrounds
+	}, 1)
 end
 
 function M.onPlayerTurn(player, previous_player)
@@ -169,21 +275,27 @@ function M.onPlayerTurn(player, previous_player)
 		Turns.enable = false
 	end
 end
+
 function M.tryObjectEnterContainer(container, object)
-	if object.hasTag("LetterOfIntroduction") then return false end
-	if container.type == "Card" and object.type == "Card" and object.getPosition().z < -6.5 then return false end
+	if not container.hasAnyTag() then return true end
+	-- if object.hasTag("LetterOfIntroduction") then return false end
+	if container.hasTag("ClanScheme") and object.hasTag("ClanScheme") then return true end
+	if container.type == "Card" and object.type == "Card" and object.getPosition().z < -3.5 then return false end
+	if not container.hasMatchingTag(object) then return false end
+	-- if S.isInPhase("INIT") and not object.hasTag("ClanScheme") then return false end
 	-- if container.type == "Card" and object.hasTag("ClanScheme") and not container.hasTag("ClanScheme") then return false end
 	-- if U.hasAnyTag(object, {"TopChar", "Monstrosity_1", "Monstrosity_2", "Monstrosity_3", "Monstrosity_4"}) then return false end
 	-- if U.hasAnyTag(container, {"TopChar", "Monstrosity_1", "Monstrosity_2", "Monstrosity_3", "Monstrosity_4"}) then return false end
 	return true
 end
+
 function M.onObjectEnterZone(zone, object)
 	if S.getStateVal("allZonesLocked") == true then return end
 	Z.onObjectEnterZone(zone, object)
 	if S.getStateVal("playerZonesLocked") == true or not Z.isPlayerCardZone(zone) then return end
 	local color = Z.getZoneColor(zone)
 	if color == nil then return end
-	if S.isInPhase("INIT") and object.hasTag("ClanLeader")  then
+	if S.isInPhase("INIT") and object.hasTag("ClanLeader") then
 		M.updateMoralityToken(color)
 	end
 	if S.isInPhase("SCORING") then
@@ -192,197 +304,189 @@ function M.onObjectEnterZone(zone, object)
 		end, 1)
 	end
 end
+--#endregion
 
--- *** GAME STATUS ***
--- === Player Storage === --
-function M.showHavens()
-	for _, color in pairs(C.Colors) do
-		local haven = getObjectFromGUID(G.playerObjs[color].haven)
-		if haven then
-			local havenPos = haven.getPosition()
-			if havenPos.y < -2 then
-				havenPos.y = 2
-				haven.setPosition(havenPos)
-				havenPos.y = -0.40
-				haven.setInvisibleTo({})
-				haven.setPositionSmooth(havenPos)
-				haven.tooltip = true
+function M.removeUnusedClanRefs()
+	local clans = M.getClans()
+	local round, turn = M.getRoundAndTurn()
+	if round > 0 and round < 10 then
+		for _, clan in pairs(C.Clans) do
+			if not U.isIn(clan, clans) then
+				for _, color in pairs({ "Red", "Yellow", "Blue" }) do
+					UI.hide("hudRef" .. clan .. color)
+					UI.hide("hudRef" .. clan .. color .. "Overlay")
+				end
 			end
+		end
+		for _, col in pairs(C.Colors) do
+			UI.setAttributes("hudSidebar" .. col, {
+				rectAlignment = "MiddleRight",
+				height = "360",
+				offsetXY = "0 0"
+			})
 		end
 	end
 end
 
-function M.hideHavens()
-	for _, color in pairs(C.Colors) do
-		local haven = getObjectFromGUID(G.playerObjs[color].haven)
-		if haven then
-			local havenPos = haven.getPosition()
-			if havenPos.y > -2 then
-				havenPos.y = 2
-				haven.setPositionSmooth(havenPos)
-				Wait.time(function()
-					haven.setInvisibleTo(C.Colors)
-					haven.tooltip = false
-					havenPos.y = -10
-					Wait.frames(function() haven.setPosition(havenPos) end)
-				end, 0.5)
-			end
-		end
+function M.refreshGlobalOverlay()
+	local phase = S.getStateVal("gamePhase")
+	if S.isInPhase("PLAY") then
+		UI.hide("RedClanChoice")
+		UI.hide("YellowClanChoice")
+		UI.hide("BlueClanChoice")
+		UI.hide("clanChoiceAlert")
+		UI.hide("chooseStrandsOfTimeNotice")
+		M.removeUnusedClanRefs()
 	end
 end
 
-function M.showPouches()
-	for _, color in pairs(C.Colors) do
-		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
-		if pouch then
-			local pouchPos = pouch.getPosition()
-			if pouchPos.y < -2 then
-				pouchPos.y = 2
-				pouch.setPosition(pouchPos)
-				pouchPos.y = -0.13
-				pouch.setInvisibleTo({})
-				pouch.setPositionSmooth(pouchPos)
-				pouch.tooltip = true
+function M.syncPhase()
+	local phase = S.getStateVal("gamePhase")
+	if phase == nil then
+		broadcastToAll("Error determining game phase.", "Red")
+		return
+	end
+	M.refreshGlobalOverlay()
+	if phase == "INIT" then
+		local clans = S.getStateVal("clans")
+		if clans == nil or #U.getKeys(clans) < 3 then
+			M.setHighlighter("ClanSelection", "active")
+		end
+		if clans ~= nil then
+			for color, clan in pairs(S.getStateVal("clans")) do
+				UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clan)
+				UI.setAttribute(color .. "ClanChoice", "active", "true")
 			end
 		end
+		M.doNextClan()
 	end
 end
 
-function M.hidePouches()
-	for _, color in pairs(C.Colors) do
-		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
-		if pouch then
-			local pouchPos = pouch.getPosition()
-			if pouchPos.y > -2 then
-				pouchPos.y = 2
-				pouch.setPositionSmooth(pouchPos)
-				Wait.time(function()
-					pouch.setInvisibleTo(C.Colors)
-					pouch.tooltip = false
-					pouchPos.y = -10
-					Wait.frames(function() pouch.setPosition(pouchPos) end)
-				end, 0.5)
-			end
-		end
-	end
-end
-
--- === LastChapterStandings ===
+--#region === LastChapterStandings ===
 function M.checkLastChapterStandings(data)
-  if data == nil then data = S.getStateVal("lastChapterStandings") end
-  if not (type(data) == "table" and #data == #Player.getPlayers()) then return false end
+	if data == nil then data = S.getStateVal("lastChapterStandings") end
+	if not (type(data) == "table" and #data == #Player.getPlayers()) then return false end
 	data = table.sort(U.clone(data))
 	if data ~= nil and table.concat(data) ~= "BlueRedYellow" then return false end
-  return true
+	return true
 end
+
 function M.getLastChapterStandings()
-  if (M.checkLastChapterStandings()) then
-    return S.getStateVal("lastChapterStandings")
-  end
-  -- broadcastToColor("[getLastChapterStandings] " .. logString(H.getStateVal("lastChapterStandings")) .. " is invalid state! Using fallback value.", "Red", "Red")
-  return C.Colors
+	if (M.checkLastChapterStandings()) then
+		return S.getStateVal("lastChapterStandings")
+	end
+	-- broadcastToColor("[getLastChapterStandings] " .. logString(H.getStateVal("lastChapterStandings")) .. " is invalid state! Using fallback value.", "Red", "Red")
+	return C.Colors
 end
+
 function M.getLastChapterVictor()
-  return M.getLastChapterStandings()[1]
+	return M.getLastChapterStandings()[1]
 end
+
 function M.getLastChapterMiddle()
-  return M.getLastChapterStandings()[2]
+	return M.getLastChapterStandings()[2]
 end
+
 function M.getLastChapterVanquished()
-  return M.getLastChapterStandings()[3]
+	return M.getLastChapterStandings()[3]
 end
+
 function M.determineLastChapterStandings(callback)
-  if not M.checkLastChapterStandings() then
-    M.askLastChapterStandings(function() M.determineLastChapterStandings(callback) end)
-  end
+	if not M.checkLastChapterStandings() then
+		M.askLastChapterStandings(function() M.determineLastChapterStandings(callback) end)
+	end
 end
+
 function M.setLastChapterStandings(data)
-  if (M.checkLastChapterStandings(data)) then
-    S.setStateVal(data, "lastChapterStandings")
-    return
-  end
-  broadcastToColor("[setLastChapterStandings] " .. logString(data) .. " is invalid data!", "Red", "Red")
+	if (M.checkLastChapterStandings(data)) then
+		S.setStateVal(data, "lastChapterStandings")
+		return
+	end
+	broadcastToColor("[setLastChapterStandings] " .. logString(data) .. " is invalid data!", "Red", "Red")
 end
+
 function M.askLastChapterStandings(callback)
-  local chapterStandings = {}
-  local hostPlayer = U.getHost()
-  local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
-  hostPlayer.showOptionsDialog("Who won the last chapter?", playerOptions, 1,
-    function (color, index)
-      table.insert(chapterStandings, color)
-      hostPlayer.showOptionsDialog("Who came in second?", playerOptions, 1,
-        function (color, index)
-          table.insert(chapterStandings, color)
-          hostPlayer.showOptionsDialog("Who came in last?", playerOptions, 1,
-            function (color, index)
-              table.insert(chapterStandings, color)
-              M.setLastChapterStandings(chapterStandings)
-              if (callback) then callback() end
-            end
-          )
-        end
-      )
-    end
-  )
+	local chapterStandings = {}
+	local hostPlayer = U.getHost()
+	local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
+	hostPlayer.showOptionsDialog("Who won the last chapter?", playerOptions, 1,
+		function(color, index)
+			table.insert(chapterStandings, color)
+			hostPlayer.showOptionsDialog("Who came in second?", playerOptions, 1,
+				function(color, index)
+					table.insert(chapterStandings, color)
+					hostPlayer.showOptionsDialog("Who came in last?", playerOptions, 1,
+						function(color, index)
+							table.insert(chapterStandings, color)
+							M.setLastChapterStandings(chapterStandings)
+							if (callback) then callback() end
+						end
+					)
+				end
+			)
+		end
+	)
 end
+
 function M.askChapterData(callback)
-  local chapterData = {}
-  local hostPlayer = U.getHost()
+	local chapterData = {}
+	local hostPlayer = U.getHost()
 
-  hostPlayer.showInputDialog("Upcoming Chapter Number (Roman Numerals)",
-      function (text)
-        chapterData.chapterNum = text
-        hostPlayer.showInputDialog("Last Chapter Number (Roman Numerals)",
-            function (text)
-              chapterData.lastChapterNum = text
-              hostPlayer.showInputDialog("Upcoming Chapter Location",
-                  function (text)
-                    chapterData.location = text
-                    hostPlayer.showInputDialog("Upcoming Chapter Years",
-                        function (text)
-                          chapterData.years = text
-                          hostPlayer.showInputDialog("Upcoming Chapter Blurb",
-                              function (text)
-                                chapterData.chapterBlurb = text
-                                S.setStateVal(chapterData, "chapterData")
-                              end
-                          )
-                        end
-                    )
-                  end
-              )
-            end
-        )
-      end
-  )
+	hostPlayer.showInputDialog("Upcoming Chapter Number (Roman Numerals)",
+		function(text)
+			chapterData.chapterNum = text
+			hostPlayer.showInputDialog("Last Chapter Number (Roman Numerals)",
+				function(text)
+					chapterData.lastChapterNum = text
+					hostPlayer.showInputDialog("Upcoming Chapter Location",
+						function(text)
+							chapterData.location = text
+							hostPlayer.showInputDialog("Upcoming Chapter Years",
+								function(text)
+									chapterData.years = text
+									hostPlayer.showInputDialog("Upcoming Chapter Blurb",
+										function(text)
+											chapterData.chapterBlurb = text
+											S.setStateVal(chapterData, "chapterData")
+										end
+									)
+								end
+							)
+						end
+					)
+				end
+			)
+		end
+	)
 end
 
--- === Turn Order ===
+--#endregion
+--#region === Turn Order ===
 -- This is strictly for the game's Turns object, not for clan selection --> use lastChapterStandings for that.
 local turnOrderMap = {
-  Red = {"Red", "Yellow", "Blue"},
-  Yellow = {"Yellow", "Blue", "Red"},
-  Blue = {"Blue", "Red", "Yellow"}
+	Red = { "Red", "Yellow", "Blue" },
+	Yellow = { "Yellow", "Blue", "Red" },
+	Blue = { "Blue", "Red", "Yellow" }
 }
 local function getColorOfClan(clan)
-  local clans = M.getClans()
-  if clans.Red == clan then return "Red" end
-  if clans.Yellow == clan then return "Yellow" end
-  if clans.Blue == clan then return "Blue" end
-  return ""
+	local clans = M.getClans()
+	if clans.Red == clan then return "Red" end
+	if clans.Yellow == clan then return "Yellow" end
+	if clans.Blue == clan then return "Blue" end
+	return ""
 end
 local function getMoralityToken(playerColor)
 	-- if not isLoaded then return false end
-  local clan = S.getStateVal("clans")[playerColor]
-  if (clan == nil) then return nil end
-  local tokenName = clan .. " Morality"
-  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == tokenName end)
+	local clan = S.getStateVal("clans")[playerColor]
+	if (clan == nil) then return nil end
+	local tokenName = clan .. " Morality"
+	local token = U.find(Global.getObjects(), function(obj) return obj.getName() == tokenName end)
 	return token
 end
 local function moveCurrentMoralityTokenToTop()
-  local round, turn = M.getRoundAndTurn()
-  if (round < 1 or round > 9) then return end
-  local curMoralityToken = getMoralityToken(M.getCurrentPlayer())
+	local round, turn = M.getRoundAndTurn()
+	if (round < 1 or round > 9) then return end
+	local curMoralityToken = getMoralityToken(M.getCurrentPlayer())
 	if curMoralityToken ~= nil then
 		local tokenPos = curMoralityToken.getPosition()
 		tokenPos.y = tokenPos.y + 1
@@ -392,272 +496,277 @@ local function moveCurrentMoralityTokenToTop()
 end
 
 function M.readTurnOrderFromBG()
+	local turnOrder = M.getTurnOrder()
+	local lastFirstPlayer = turnOrder[1]
+	local bg = getObjectFromGUID(G.battlegrounds.b)
+	local bgSnapPoints = U.getSnapPointPositions(bg)
+	local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok)
+		return string.find(tok.getName(), "Morality") ~= nil
+	end)
 
-  local turnOrder = M.getTurnOrder()
-  local lastFirstPlayer = turnOrder[1]
-  local bg = getObjectFromGUID(G.battlegrounds.b)
-  local bgSnapPoints = U.getSnapPointPositions(bg)
-  local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok) return string.find(tok.getName(), "Morality") ~= nil end)
-
-  local function getTokenSlot(tk)
-    local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
+	local function getTokenSlot(tk)
+		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
 		local clan = U.findClanTag(tk)
 		local color = getColorOfClan(clan)
-    if (slot >= 6 and slot <= 9) then slot = 7 end
-    if (color == lastFirstPlayer) then
-      slot = slot + 0.5
-    end
-    return slot, color, clan
-  end
+		if (slot >= 6 and slot <= 9) then slot = 7 end
+		if (color == lastFirstPlayer) then
+			slot = slot + 0.5
+		end
+		return slot, color, clan
+	end
 
-  local curTopTokenSlot = 0
-  local curTopTokenColors = {}
-  for _, tok in pairs(pTokens) do
-    local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tok.getPosition()))
-    local slot, color, clan = getTokenSlot(tok)
-    if (slot > curTopTokenSlot) then
-      curTopTokenSlot = slot
-      curTopTokenColors = {}
-      table.insert(curTopTokenColors, color)
-    elseif (slot == curTopTokenSlot) then
-      table.insert(curTopTokenColors, color)
-    end
-  end
+	local curTopTokenSlot = 0
+	local curTopTokenColors = {}
+	for _, tok in pairs(pTokens) do
+		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tok.getPosition()))
+		local slot, color, clan = getTokenSlot(tok)
+		if (slot > curTopTokenSlot) then
+			curTopTokenSlot = slot
+			curTopTokenColors = {}
+			table.insert(curTopTokenColors, color)
+		elseif (slot == curTopTokenSlot) then
+			table.insert(curTopTokenColors, color)
+		end
+	end
 
-  if (#curTopTokenColors == 1) then
-    return turnOrderMap[curTopTokenColors[1]]
+	if (#curTopTokenColors == 1) then
+		return turnOrderMap[curTopTokenColors[1]]
 	end
 
 	return turnOrderMap[lastFirstPlayer]
 end
+
 function M.checkTurnOrder(data)
-  if data == nil then data = S.getStateVal("turnOrder") end
-  -- if not (type(data) == "table" and #data == 3) then return false end
-  -- if not (table.concat(turnOrderMap[data[1]]) == table.concat(data)) then return false end
-  return true
+	if data == nil then data = S.getStateVal("turnOrder") end
+	if not (type(data) == "table" and #data == 3) then return false end
+	if not (table.concat(turnOrderMap[data[1]]) == table.concat(data)) then return false end
+	return true
 end
+
 function M.getTurnOrder()
-  if (M.checkTurnOrder()) then
-    return S.getStateVal("turnOrder")
-  end
-  broadcastToColor("[getTurnOrder] " .. logString(S.getStateVal("turnOrder")) .. " is invalid state! Using order set in 'Turns'.", "Red", "Red")
-  return Turns.order
+	if (M.checkTurnOrder()) then
+		return S.getStateVal("turnOrder")
+	end
+	broadcastToColor(
+		"[getTurnOrder] " .. logString(S.getStateVal("turnOrder")) .. " is invalid state! Using order set in 'Turns'.",
+		"Red", "Red")
+	return Turns.order
 end
+
 function M.determineTurnOrder(callback)
-  local turnOrder = {}
-  local round, turn = M.getRoundAndTurn()
-  if round > 1 and round < 10 then
-    -- if S.getStateVal("isReadingMoralityBoard") then
-      turnOrder = M.readTurnOrderFromBG()
-      M.setTurnOrder(turnOrder)
-    -- else
-      -- M.askTurnOrder(function() M.determineTurnOrder(callback) end)
-      -- return
-    -- end
-  else
-    turnOrder = turnOrderMap[M.getLastChapterStandings()[3]]
-    M.setTurnOrder(turnOrder)
-  end
-  if callback then callback() end
+	local turnOrder = {}
+	local round, turn = M.getRoundAndTurn()
+	if round > 1 and round < 10 then
+		-- if S.getStateVal("isReadingMoralityBoard") then
+		turnOrder = M.readTurnOrderFromBG()
+		M.setTurnOrder(turnOrder)
+		-- else
+		-- M.askTurnOrder(function() M.determineTurnOrder(callback) end)
+		-- return
+		-- end
+	else
+		turnOrder = turnOrderMap[M.getLastChapterStandings()[3]]
+		M.setTurnOrder(turnOrder)
+	end
+	if callback then callback() end
 end
+
 function M.setTurnOrder(data)
-  if (M.checkTurnOrder(data)) then
-    S.setStateVal(data, "turnOrder")
-    return
-  end
-  broadcastToColor("[setTurnOrder] " .. logString(data) .. " is invalid data!", "Red", "Red")
+	if (M.checkTurnOrder(data)) then
+		S.setStateVal(data, "turnOrder")
+		return
+	end
+	broadcastToColor("[setTurnOrder] " .. logString(data) .. " is invalid data!", "Red", "Red")
 end
+
 function M.askTurnOrder(callback)
-  -- S.setStateVal("isReadingMoralityBoard", false)
-  local round, turn = M.getRoundAndTurn()
-  if round == 0 then
-    M.askLastChapterStandings(callback)
-  else
-    local turnOrder
-    local hostPlayer = U.getHost()
-    local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
-    hostPlayer.showOptionsDialog("Who is this round's first player?", playerOptions, 1,
-      function (color)
-        M.setTurnOrder(turnOrderMap[color])
-        if callback then callback() end
-      end
-    )
-  end
+	-- S.setStateVal("isReadingMoralityBoard", false)
+	local round, turn = M.getRoundAndTurn()
+	if round == 0 then
+		M.askLastChapterStandings(callback)
+	else
+		local turnOrder
+		local hostPlayer = U.getHost()
+		local playerOptions = U.map(Player.getPlayers(), function(player) return player.color end)
+		hostPlayer.showOptionsDialog("Who is this round's first player?", playerOptions, 1,
+			function(color)
+				M.setTurnOrder(turnOrderMap[color])
+				if callback then callback() end
+			end
+		)
+	end
 end
+
 function M.syncTurnOrder()
-  local round, turn = M.getRoundAndTurn()
-  if round > 0 and round < 10 then
-    local turnOrder = M.getTurnOrder()
-    if (table.concat(Turns.order) ~= table.concat(turnOrder)) then
-      Turns.order = M.getTurnOrder()
-    end
-    if (Turns.type ~= 2) then
-      Turns.type = 2
-    end
-    M.setHighlighter("TurnIndicator", "faint", Turns.order[turn])
-    if (Turns.turn_color ~= Turns.order[turn]) then
-      Turns.turn_color = Turns.order[turn]
-    end
-    if (not Turns.enable) then
-      Turns.enable = true
-    end
-    moveCurrentMoralityTokenToTop()
-    M.syncTurnTracker()
-  else
-    UI.hide("turnTracker")
-    Turns.enable = false
-  end
-end
-function M.syncTurnTracker()
-  local round, turn = M.getRoundAndTurn()
-  local turnOrder = M.getTurnOrder()
-  local curPlayer = turnOrder[turn]
-  local colors = {
-      hex = {
-          past = "white",
-          current = "white",
-          future = "white"
-      },
-      turn = {
-          past = "rgba(0.3, 0.3, 0.3, 0.75)",
-          current = {
-              Red = "rgba(1, 0.2, 0.2, 1)",
-              Yellow = "rgba(1, 1, 0, 1)",
-              Blue = "rgba(0, 0.4, 0.8, 1)"
-          },
-          future = {
-              Red = "rgba(1, 0.2, 0.2, 0.5)",
-              Yellow = "rgba(1, 1, 0, 0.5)",
-              Blue = "rgba(0, 0.4, 0.8, 0.5)",
-              none = "rgba(1, 1, 1, 0.5)"
-          }
-      },
-  }
-
-    if (round < 1 or round > 9) then
-        UI.hide("turnTracker")
-        return
-    else
-        UI.show("turnTracker")
-        for _, clr in pairs({"Red", "Yellow", "Blue"}) do
-          if (curPlayer == clr) then
-            M.setHighlighter("TurnIndicator", "faint", clr)
-          else
-            M.setHighlighter("TurnIndicator", "inactive", clr)
-          end
-        end
-    end
-
-    for i = 1, 9, 1 do
-        UI.setAttribute("tt-round-past-" .. i, "color", "clear")
-        UI.setAttribute("tt-round-current-" .. i, "color", "clear")
-        UI.setAttribute("tt-round-future-" .. i, "color", "clear")
-        if (i < round) then
-            UI.setAttribute("tt-round-past-" .. i, "color", colors.hex.past)
-        elseif (i == round) then
-            UI.setAttribute("tt-round-current-" .. i, "color", colors.hex.current)
-        elseif (i > round) then
-            UI.setAttribute("tt-round-future-" .. i, "color", colors.hex.future)
-        end
-
-        for j = 1, 3, 1 do
-            UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", "clear")
-            UI.setAttribute("tt-round-current-" .. i .. "-turn-" .. j, "color", "clear")
-            UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", "clear")
-            if (i < round) then
-                UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", colors.turn.past)
-            elseif (i == round) then
-                if (j < turn) then
-                    UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", colors.turn.past)
-                elseif (j == turn) then
-                    UI.setAttribute("tt-round-current-" .. i .. "-turn-" .. j, "color", colors.turn.current[turnOrder[j]])
-                elseif (j > turn) then
-                    UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", colors.turn.future[turnOrder[j]])
-                end
-            elseif (i > round) then
-                UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", colors.turn.future.none)
-            end
-        end
-    end
-end
-
--- === Clans ===
-function M.getClans()
-  local clans = S.getStateVal("clans")
-  if (clans == nil) then return {} end
-  return clans
-end
-local function getUnusedClanTokens()
-	local clans = S.getStateVal("clans")
-	return U.filter(
-		getAllObjects(),
-		function(obj)
-			return obj and obj.hasTag("ClanToken")
-				and string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Red")
-				and string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Yellow")
-				and string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Blue")
+	local round, turn = M.getRoundAndTurn()
+	if round > 0 and round < 10 then
+		local turnOrder = M.getTurnOrder()
+		if (table.concat(Turns.order) ~= table.concat(turnOrder)) then
+			Turns.order = M.getTurnOrder()
 		end
-	)
+		if (Turns.type ~= 2) then
+			Turns.type = 2
+		end
+		M.setHighlighter("TurnIndicator", "faint", Turns.order[turn])
+		if (Turns.turn_color ~= Turns.order[turn]) then
+			Turns.turn_color = Turns.order[turn]
+		end
+		if (not Turns.enable) then
+			Turns.enable = true
+		end
+		moveCurrentMoralityTokenToTop()
+		M.syncTurnTracker()
+	else
+		UI.hide("turnTracker")
+		Turns.enable = false
+	end
 end
 
+function M.syncTurnTracker()
+	local round, turn = M.getRoundAndTurn()
+	local turnOrder = M.getTurnOrder()
+	local curPlayer = turnOrder[turn]
+	local colors = {
+		hex = {
+			past = "white",
+			current = "white",
+			future = "white"
+		},
+		turn = {
+			past = "rgba(0.3, 0.3, 0.3, 0.75)",
+			current = {
+				Red = "rgba(1, 0.2, 0.2, 1)",
+				Yellow = "rgba(1, 1, 0, 1)",
+				Blue = "rgba(0, 0.4, 0.8, 1)"
+			},
+			future = {
+				Red = "rgba(1, 0.2, 0.2, 0.5)",
+				Yellow = "rgba(1, 1, 0, 0.5)",
+				Blue = "rgba(0, 0.4, 0.8, 0.5)",
+				none = "rgba(1, 1, 1, 0.5)"
+			}
+		},
+	}
 
--- === Round & Turn ===
+	if (round < 1 or round > 9) then
+		UI.hide("turnTracker")
+		return
+	else
+		UI.show("turnTracker")
+		for _, clr in pairs({ "Red", "Yellow", "Blue" }) do
+			if (curPlayer == clr) then
+				M.setHighlighter("TurnIndicator", "faint", clr)
+			else
+				M.setHighlighter("TurnIndicator", "inactive", clr)
+			end
+		end
+	end
+
+	for i = 1, 9, 1 do
+		UI.setAttribute("tt-round-past-" .. i, "color", "clear")
+		UI.setAttribute("tt-round-current-" .. i, "color", "clear")
+		UI.setAttribute("tt-round-future-" .. i, "color", "clear")
+		if (i < round) then
+			UI.setAttribute("tt-round-past-" .. i, "color", colors.hex.past)
+		elseif (i == round) then
+			UI.setAttribute("tt-round-current-" .. i, "color", colors.hex.current)
+		elseif (i > round) then
+			UI.setAttribute("tt-round-future-" .. i, "color", colors.hex.future)
+		end
+
+		for j = 1, 3, 1 do
+			UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", "clear")
+			UI.setAttribute("tt-round-current-" .. i .. "-turn-" .. j, "color", "clear")
+			UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", "clear")
+			if (i < round) then
+				UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", colors.turn.past)
+			elseif (i == round) then
+				if (j < turn) then
+					UI.setAttribute("tt-round-past-" .. i .. "-turn-" .. j, "color", colors.turn.past)
+				elseif (j == turn) then
+					UI.setAttribute("tt-round-current-" .. i .. "-turn-" .. j, "color", colors.turn.current[turnOrder[j]])
+				elseif (j > turn) then
+					UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", colors.turn.future[turnOrder[j]])
+				end
+			elseif (i > round) then
+				UI.setAttribute("tt-round-future-" .. i .. "-turn-" .. j, "color", colors.turn.future.none)
+			end
+		end
+	end
+end
+
+--#endregion
+--#region === Clans ===
+function M.getClans()
+	local clans = S.getStateVal("clans")
+	if (clans == nil) then return {} end
+	return clans
+end
+--#endregion
+--#region === Round, Turn & Turn Order ===
 function M.checkRoundAndTurn(dataRound, dataTurn)
-
-  if dataRound == nil then dataRound = S.getStateVal("round") end
-  if dataTurn == nil then dataTurn = S.getStateVal("turn") end
+	if dataRound == nil then dataRound = S.getStateVal("round") end
+	if dataTurn == nil then dataTurn = S.getStateVal("turn") end
 
 	dataRound = 1 * dataRound
 	dataTurn = 1 * dataTurn
-  -- if not (type(dataRound) == "number" and type(dataTurn) == "number") then return false end
-  if dataRound < 0 or dataRound > 10 then return false end
-  if dataTurn < 0 or dataTurn > 3 then return false end
-  if dataRound > 0 and dataTurn == 0 then return false end
-  if dataRound == 0 and dataTurn ~= 0 then return false end
-  return true
+	-- if not (type(dataRound) == "number" and type(dataTurn) == "number") then return false end
+	if dataRound < 0 or dataRound > 10 then return false end
+	if dataTurn < 0 or dataTurn > 3 then return false end
+	if dataRound > 0 and dataTurn == 0 then return false end
+	if dataRound == 0 and dataTurn ~= 0 then return false end
+	return true
 end
+
 function M.getRoundAndTurn()
-  if (M.checkRoundAndTurn()) then
-    return S.getStateVal("round"), S.getStateVal("turn")
-  end
-  local clans = M.getClans()
-  if not (clans and clans.Red and clans.Yellow and clans.Blue) then
-    M.setRoundAndTurn(0, 0)
-    return 0, 0
-  end
-  broadcastToColor("[getRoundAndTurn] Round: " .. logString(S.getStateVal("round")) .. ", Turn: " .. logString(S.getStateVal("turn")) .. " is invalid state! Falling back to default!", "Red", "Red")
-  local round = S.getStateVal("round")
-  local turn = S.getStateVal("turn")
-  if not (type(round) == "number" and round >= 0 and round <= 9) then -- Round is invalid, reset to 0, 0
-    M.setRoundAndTurn(0, 0)
-    return 0, 0
-  end
-  if (round == 0) then
-    M.setRoundAndTurn(0, 0)
-    return 0, 0
-  end
-  -- Round is valid: Extract turn number from turn order and current player
-  local turnOrder = M.getTurnOrder()
-  if (turnOrder[1] == Turns.turn_color) then turn = 1 end
-  if (turnOrder[2] == Turns.turn_color) then turn = 2 end
-  if (turnOrder[3] == Turns.turn_color) then turn = 3 end
-  M.setRoundAndTurn(round, turn)
-  return round, turn
+	if (M.checkRoundAndTurn()) then
+		return S.getStateVal("round"), S.getStateVal("turn")
+	end
+	local clans = M.getClans()
+	if not (clans and clans.Red and clans.Yellow and clans.Blue) then
+		M.setRoundAndTurn(0, 0)
+		return 0, 0
+	end
+	broadcastToColor(
+		"[getRoundAndTurn] Round: " ..
+		logString(S.getStateVal("round")) ..
+		", Turn: " .. logString(S.getStateVal("turn")) .. " is invalid state! Falling back to default!", "Red", "Red")
+	local round = S.getStateVal("round")
+	local turn = S.getStateVal("turn")
+	if not (type(round) == "number" and round >= 0 and round <= 9) then -- Round is invalid, reset to 0, 0
+		M.setRoundAndTurn(0, 0)
+		return 0, 0
+	end
+	if (round == 0) then
+		M.setRoundAndTurn(0, 0)
+		return 0, 0
+	end
+	-- Round is valid: Extract turn number from turn order and current player
+	local turnOrder = M.getTurnOrder()
+	if (turnOrder[1] == Turns.turn_color) then turn = 1 end
+	if (turnOrder[2] == Turns.turn_color) then turn = 2 end
+	if (turnOrder[3] == Turns.turn_color) then turn = 3 end
+	M.setRoundAndTurn(round, turn)
+	return round, turn
 end
+
 function M.setRoundAndTurn(dataRound, dataTurn)
-  if (M.checkRoundAndTurn(dataRound, dataTurn)) then
-    S.setStateVal(dataRound, "round")
-    S.setStateVal(dataTurn, "turn")
-    return
-  end
-  broadcastToColor("[setRoundAndTurn] Round: " .. logString(dataRound) .. ", Turn: " .. logString(dataTurn) .. " is invalid data!", "Red", "Red")
+	if (M.checkRoundAndTurn(dataRound, dataTurn)) then
+		S.setStateVal(dataRound, "round")
+		S.setStateVal(dataTurn, "turn")
+		return
+	end
+	broadcastToColor(
+		"[setRoundAndTurn] Round: " .. logString(dataRound) .. ", Turn: " .. logString(dataTurn) .. " is invalid data!",
+		"Red", "Red")
 end
+
 function M.askRoundAndTurn(callback)
-  local hostPlayer = U.getHost()
-  hostPlayer.showOptionsDialog("What round is it?", {0,1,2,3,4,5,6,7,8,9}, 1,
-    function(roundNum)
-      hostPlayer.showOptionsDialog("What turn is it?", {0,1,2,3}, 2,
-        function(turnNum)
+	local hostPlayer = U.getHost()
+	hostPlayer.showOptionsDialog("What round is it?", { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1,
+		function(roundNum)
+			hostPlayer.showOptionsDialog("What turn is it?", { 0, 1, 2, 3 }, 2,
+				function(turnNum)
 					roundNum = roundNum * 1
 					turnNum = turnNum * 1
 					-- log({round = roundNum, turn = turnNum})
@@ -670,159 +779,371 @@ function M.askRoundAndTurn(callback)
 							turnNum = turnNum - 1
 						end
 					end
-          M.setRoundAndTurn(roundNum, turnNum)
+					M.setRoundAndTurn(roundNum, turnNum)
 					M.advanceTurn()
-          if (callback) then callback() end
-        end
-      )
-    end
-  )
+					if (callback) then callback() end
+				end
+			)
+		end
+	)
 end
+
 function M.syncRoundAndTurn() M.syncTurnOrder() end
 
 function M.advanceTurn()
-  local round, turn = M.getRoundAndTurn()
-  if (round == 0) then return end
-  if (turn == 3) then return M.advanceRound() end
-  UI.setValue("roundOverNotice", "")
-  M.setRoundAndTurn(round, turn + 1)
-  M.syncTurnOrder()
-  -- Wait.time(H.syncTurnOrder, 1)
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then return end
+	if (turn == 3) then return M.advanceRound() end
+	UI.setValue("roundOverNotice", "")
+	M.setRoundAndTurn(round, turn + 1)
+	M.syncTurnOrder()
+	-- Wait.time(H.syncTurnOrder, 1)
 end
+
 function M.advanceRound()
-  local round, turn = M.getRoundAndTurn()
-  if (round == 0) then return end
-  local roundsLeft = 12 - #Player.getPlayers() - round
-  if (roundsLeft <= 0) then
-    M.setRoundAndTurn(10, 1)
-    U.splashUIElement("splash-backdrop", 6)
-    U.splashUIElement("gameOverNotice", 5, 0.5)
-    UI.hide("turnTracker")
-    Wait.time(function()
-      M.setHighlighter("TurnIndicator", "inactive", "Red")
-      M.setHighlighter("TurnIndicator", "inactive", "Yellow")
-      M.setHighlighter("TurnIndicator", "inactive", "Blue")
-      M.setHighlighter("BGIndicator", "inactive", "left")
-      M.setHighlighter("BGIndicator", "inactive", "center")
-      M.setHighlighter("BGIndicator", "inactive", "right")
-    end, 3)
-    return
-  end
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then return end
+	local roundsLeft = 12 - #Player.getPlayers() - round
+	if (roundsLeft <= 0) then
+		M.setRoundAndTurn(10, 1)
+		U.splashUIElement("splash-backdrop", 6)
+		U.splashUIElement("gameOverNotice", 5, 0.5)
+		UI.hide("turnTracker")
+		Wait.time(function()
+			M.setHighlighter("TurnIndicator", "inactive", "Red")
+			M.setHighlighter("TurnIndicator", "inactive", "Yellow")
+			M.setHighlighter("TurnIndicator", "inactive", "Blue")
+			M.setHighlighter("BGIndicator", "inactive", "left")
+			M.setHighlighter("BGIndicator", "inactive", "center")
+			M.setHighlighter("BGIndicator", "inactive", "right")
+		end, 3)
+		return
+	end
 	Wait.time(function() M.highlightBattlegrounds() end, 2)
-  local lastRoundFirstPlayer = M.getRoundFirstPlayer()
-  UI.setValue("roundOverNoticeText", "End of Round " .. round)
-  if (roundsLeft == 1) then
-    UI.setValue("roundsRemainingNoticeText", "FINAL ROUND!")
-  elseif (roundsLeft <= 3) then
-    UI.setValue("roundsRemainingNoticeText", roundsLeft .. " Rounds Remain...")
-  else
-    UI.setValue("roundsRemainingNoticeText", "")
-  end
-  UI.setValue("roundStartNoticeText", "Beginning Round " .. round + 1)
+	local lastRoundFirstPlayer = M.getRoundFirstPlayer()
+	UI.setValue("roundOverNoticeText", "End of Round " .. round)
+	if (roundsLeft == 1) then
+		UI.setValue("roundsRemainingNoticeText", "FINAL ROUND!")
+	elseif (roundsLeft <= 3) then
+		UI.setValue("roundsRemainingNoticeText", roundsLeft .. " Rounds Remain...")
+	else
+		UI.setValue("roundsRemainingNoticeText", "")
+	end
+	UI.setValue("roundStartNoticeText", "Beginning Round " .. round + 1)
 
-  M.setRoundAndTurn(round + 1, 1)
-  M.determineTurnOrder(function()
-    local initiativeElem
-    local roundFirstPlayer = M.getRoundFirstPlayer()
-    if (lastRoundFirstPlayer == roundFirstPlayer) then
-        UI.setValue("retainInitiativeNotice", "(" .. C.Names[roundFirstPlayer] .. " Retains His Initiative)")
-        UI.setValue("seizeInitiativeNotice", "")
-        initiativeElem = "retainInitiativeNotice"
-    else
-        UI.setValue("seizeInitiativeNotice", C.Names[roundFirstPlayer] .. " Seizes Initiative!")
-        UI.setValue("retainInitiativeNotice", "")
-        initiativeElem = "seizeInitiativeNotice"
-    end
-    U.splashUIElement("splash-backdrop", 4.5)
-    U.splashUIElement("roundOverNotice", 1)
-    U.splashUIElement("roundsRemainingNoticeText", 1)
-    U.splashUIElement("roundStartNotice", 2, 1.5)
-    U.splashUIElement(initiativeElem, 1, 1.5)
+	M.setRoundAndTurn(round + 1, 1)
+	M.determineTurnOrder(function()
+		local initiativeElem
+		local roundFirstPlayer = M.getRoundFirstPlayer()
+		if (lastRoundFirstPlayer == roundFirstPlayer) then
+			UI.setValue("retainInitiativeNotice", "(" .. C.Names[roundFirstPlayer] .. " Retains His Initiative)")
+			UI.setValue("seizeInitiativeNotice", "")
+			initiativeElem = "retainInitiativeNotice"
+		else
+			UI.setValue("seizeInitiativeNotice", C.Names[roundFirstPlayer] .. " Seizes Initiative!")
+			UI.setValue("retainInitiativeNotice", "")
+			initiativeElem = "seizeInitiativeNotice"
+		end
+		U.splashUIElement("splash-backdrop", 4.5)
+		U.splashUIElement("roundOverNotice", 1)
+		U.splashUIElement("roundsRemainingNoticeText", 1)
+		U.splashUIElement("roundStartNotice", 2, 1.5)
+		U.splashUIElement(initiativeElem, 1, 1.5)
 
-    M.syncTurnOrder()
-  end)
+		M.syncTurnOrder()
+	end)
 end
 
--- *** DERIVED GAME STATUSES ***
 function M.getCurrentPlayer()
-  local round, turn = M.getRoundAndTurn()
-  if (round == 0) then
-    return M.getNextPlayer() -- 'current' and 'next' player are both 'the player who is next to choose a clan'
-  end
-  if (round > 9) then return nil end
-  return M.getTurnOrder()[turn]
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then
+		return M.getNextPlayer() -- 'current' and 'next' player are both 'the player who is next to choose a clan'
+	end
+	if (round > 9) then return nil end
+	return M.getTurnOrder()[turn]
 end
+
 function M.getNextPlayer()
-  local round, turn = M.getRoundAndTurn()
-  local clans = M.getClans()
-  if (round == 0) then
-    for _, color in ipairs(U.reverse(M.getLastChapterStandings())) do
-      if (clans[color] == nil) then return color end
-    end
-    return nil
-  end
-  if (round == 9 and turn == 3) or round > 9 then return nil end
-  if (turn == 3) then return M.getNextRoundFirstPlayer() end
-  return M.getTurnOrder()[turn + 1]
+	local round, turn = M.getRoundAndTurn()
+	local clans = M.getClans()
+	if (round == 0) then
+		for _, color in ipairs(U.reverse(M.getLastChapterStandings())) do
+			if (clans[color] == nil) then return color end
+		end
+		return nil
+	end
+	if (round == 9 and turn == 3) or round > 9 then return nil end
+	if (turn == 3) then return M.getNextRoundFirstPlayer() end
+	return M.getTurnOrder()[turn + 1]
 end
+
 function M.getRoundFirstPlayer()
-  local round, turn = M.getRoundAndTurn()
-  if (round == 0) then
-    return M.getLastChapterStandings()[#Player.getPlayers()]
-  end
-  local curRoundTurnOrder = M.getTurnOrder()
-  return curRoundTurnOrder[1]
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then
+		return M.getLastChapterStandings()[#Player.getPlayers()]
+	end
+	local curRoundTurnOrder = M.getTurnOrder()
+	return curRoundTurnOrder[1]
 end
+
 function M.getNextRoundFirstPlayer()
-  local round, turn = M.getRoundAndTurn()
-  if (round == 0) then
-    return M.getLastChapterStandings()[#Player.getPlayers()]
-  end
-  if (round >= 9) then return nil end
-  -- if S.getStateVal("isReadingMoralityBoard") then
-    local nextRoundTurnOrder = M.readTurnOrderFromBG()
-    return nextRoundTurnOrder[1]
-  -- end
-  -- return nil
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then
+		return M.getLastChapterStandings()[#Player.getPlayers()]
+	end
+	if (round >= 9) then return nil end
+	-- if S.getStateVal("isReadingMoralityBoard") then
+	local nextRoundTurnOrder = M.readTurnOrderFromBG()
+	return nextRoundTurnOrder[1]
+	-- end
+	-- return nil
 end
 
+--#endregion
 
+--#region *** PHASE: SETUP ***
+function M.zoomAllToChapterCard() M.setCamera("ALL", "ZoomCard") end
 
-
-local targetCard = false
-function M.zoomCard(player)
-  pcall(function()
-    if targetCard then
-      targetCard.setLock(false)
-      targetCard.setRotationSmooth({x=0, y=180, z=0}, false, true)
-      targetCard.setPositionSmooth({x=8.83, y=2, z=1.13}, false, true)
-    end
-  end)
-
-  local sourceDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-  targetCard = sourceDeck.takeObject({
-    position = {x=-0.5, y=5.47, z=2},
-    rotation = {x=19.28, y=180, z=0},
-    callback_function = function(obj) obj.setLock(true) end
-   })
-   -- H.setCamera()
-	 M.setCamera(player, "ZoomCard")
-end
-function M.clearZoom(player)
-  pcall(function()
-    if targetCard then
-      targetCard.setLock(false)
-      targetCard.setRotationSmooth({x=0, y=180, z=0}, false, true)
-      targetCard.setPositionSmooth({x=8.83, y=2, z=1.13}, false, true)
-    end
-    targetCard = false
-  end)
+function M.displayChapterCard()
+	chapterCard = missionDeck.takeObject({
+		position = { x = -0.5, y = 5.47, z = 2 },
+		rotation = { x = 19.28, y = 180, z = 0 },
+		callback_function = function(obj)
+			obj.setLock(true)
+			M.processObj(obj, "chapter")
+		end
+	})
 end
 
--- *** GAME PHASE ACTIONS ***
-local chapterCard
-local missionDeck
+function M.flipChapterCardToBottomCorner()
+	if chapterCard ~= nil then
+		chapterCard.setPositionSmooth({ x = -3.50, y = 3.00, z = -0.50 })
+		chapterCard.setRotationSmooth({ x = 19.28, y = 180, z = 180 })
+	end
+end
 
+function M.populateMissions() getObjectFromGUID(G.charQueue).call("Populate_Missions") end
+
+function M.populateCharacterQueue() getObjectFromGUID(G.charQueue).call("Populate_Queue") end
+
+--#endregion
+
+function M.gameSETUP()
+	if (S.getStateVal("gamePhase") ~= "NONE") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'NONE' to enter 'SETUP'", "Red",
+			"Red")
+		return
+	end
+	S.setStateVal("SETUP", "gamePhase")
+
+	if missionDeck == nil then return end
+
+	-- Reset any tags set on player Leader Card spaces
+	getObjectFromGUID(G.playerObjs.Red.leaderCard).setTags({ "Red" })
+	getObjectFromGUID(G.playerObjs.Yellow.leaderCard).setTags({ "Yellow" })
+	getObjectFromGUID(G.playerObjs.Blue.leaderCard).setTags({ "Blue" })
+
+	M.sequence({
+		Z.deactivateZones,
+		-- M.showHavens,
+		M.hidePouches,
+		M.zoomAllToChapterCard,
+		M.displayChapterCard,
+		5,
+		M.flipChapterCardToBottomCorner,
+		M.populateMissions,
+		2,
+		M.populateCharacterQueue
+	})
+end
+
+--#region *** PHASE: INIT ***
+local timeBlurbAloneOnScreen = 5
+local timePadding = 0.5
+local timeScoresOnScreen = 6
+local timeBlurbOnScreen = timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen
+local timeStep = 1
+
+local function getUnusedClanTokens()
+	return U.filter(
+		getObjectsWithTag("ClanToken"),
+		function(obj)
+			return string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Red")
+					and string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Yellow")
+					and string.gsub(obj.getName(), " Clan Token", "") ~= S.getStateVal("clans", "Blue")
+		end
+	)
+end
+
+function M.showChapterIntroduction()
+	local chapterData = S.getStateVal("chapterData")
+
+	UI.setValue("lastChapterStandingsNotice-title", "Chapter " .. chapterData.lastChapterNum .. " Standings:")
+	UI.setValue("logoIntro-title",
+		"Chapter " .. chapterData.chapterNum .. " — " .. string.upper(chapterData.location))
+	UI.setValue("logoIntro-subtitle", "(" .. chapterData.years .. ")")
+	UI.setValue("logoIntro-body", chapterData.chapterBlurb)
+
+	U.splashUIElement("logoIntro", timeBlurbOnScreen)
+	U.splashUIElement("logoIntro-title", 10, timePadding)
+	U.splashUIElement("logoIntro-subtitle", 10, timePadding + timeStep)
+	U.splashUIElement("logoIntro-body", 10, timePadding + (timeStep * 2))
+
+	local timePassed = timeBlurbAloneOnScreen + (2 * timePadding)
+
+	U.splashUIElement("lastChapterStandingsNotice", timeScoresOnScreen, timePassed)
+	U.splashUIElement("lastChapterStandingsNotice-title", 10, timePassed)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle1", 10, timePassed + timeStep)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle2", 10, timePassed + timeStep * 1.5)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle3", 10, timePassed + timeStep * 2)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle4", 10, timePassed + timeStep * 3)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle5", 10, timePassed + timeStep * 3.5)
+	U.splashUIElement("lastChapterStandingsNotice-subtitle6", 10, timePassed + timeStep * 4)
+
+	U.splashUIElement("splash-backdrop",
+		timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen + timePadding)
+end
+
+function M.recallChapterCard()
+	if chapterCard then
+		chapterCard.setLock(false)
+		chapterCard.setRotationSmooth({ x = 0, y = 180, z = 0 })
+		missionDeck.putObject(chapterCard)
+	end
+end
+
+function M.zoomAllToClanSelection() M.setCamera("ALL", "ClanSelection") end
+
+function M.extractClanTokens()
+	for _, obj in pairs(U.filter(masterStorage.getObjects(), function(objData) return U.isIn("ClanToken", objData.tags) end)) do
+		masterStorageStagingPos.y = masterStorageStagingPos.y + 1
+		masterStorage.takeObject({ guid = obj.guid, position = masterStorageStagingPos })
+	end
+end
+
+function M.makeClanSelectionRing()
+	U.makeRing(
+		getObjectsWithTag("ClanToken"),
+		G.tableSpots.highlighters.clanSelection.active,
+		3,
+		{
+			scale = { x = 0.5, y = 1, z = 0.5 }
+		}
+	)
+	M.setHighlighter("ClanSelection", "active")
+end
+
+function M.displayClanSelectionRing()
+	M.setHighlighter("ClanSelection", "active")
+	if #getUnusedClanTokens() == 0 then
+		M.sequence({
+			M.extractClanTokens,
+			M.makeClanSelectionRing
+		})
+	end
+end
+
+function M.storeClanSelectionRing()
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	M.setHighlighter("ClanSelection", "inactive")
+	for _, token in pairs(getUnusedClanTokens()) do
+		mainStorage.putObject(token)
+	end
+end
+
+function M.doNextClan()
+	if (M.getNextPlayer()) then
+		M.promptPlayerClanChoice(M.getNextPlayer())
+	else
+		M.sequence({
+			M.storeClanSelectionRing,
+			Z.activateZones
+		})
+	end
+end
+
+function M.assignClan(clan, color)
+	S.setStateVal(clan, "clans", color)
+	UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clan)
+
+	M.sequence({
+		function()
+			if (color == M.getLastChapterMiddle()) then
+				U.splashUIElement("chooseStrandsOfTimeNotice", 5) -- Vanquished last Chapter, you may choose a Strand of time
+				local strandOfTimeSpot = getObjectFromGUID(G.decks.strandOfTimeSpot)
+				strandOfTimeSpot.highlightOn("Green")
+				M.presentStrandsOfTimeToMiddle()
+			end
+			UI.show(color .. "ClanChoice")
+		end,
+		function() M.updateMoralityToken(color) end,
+		M.doNextClan
+	})
+end
+
+function M.presentStrandsOfTimeToMiddle()
+	local color = M.getLastChapterMiddle()
+	local thirdChildeZone = getObjectFromGUID(G.zones[color].bloodline[2][3])
+	local pos = thirdChildeZone.getPosition()
+	pos.y = 1
+	M.presentDeck({ "StrandsOfTime" }, color, pos, { spread = -2.5 })
+end
+
+function M.hideUnusedStrandsOfTime(usedGuid)
+	local round, turn = M.getRoundAndTurn()
+	if (round ~= 0) then return end
+	local strandObjs = getObjectsWithTag("StrandsOfTime")
+	local cardPos = getObjectFromGUID(G.decks.unusedStrandsOfTime).getPosition()
+	cardPos.y = cardPos.y + 1
+	for _, card in pairs(strandObjs) do
+		if card.guid ~= usedGuid then
+			card.setRotation({ x = 0, y = 180, z = 0 })
+			card.setPosition(cardPos)
+		end
+	end
+end
+
+function M.presentObligations(color)
+	local player = Player[color]
+	if player == nil then return end
+	local pHaven = getObjectFromGUID(G.playerObjs[color].haven)
+	if pHaven == nil then return end
+	local oblData = U.filter(pHaven.getObjects(), function(oData) return U.isIn("Obligation", oData.tags) end)
+
+	local function displayObligation(oblID, num)
+		if num == nil then num = 1 end
+		local oblPos = G.tableSpots.obligations[color]
+		local oblRot = G.tableSpots.obligations.rotation
+		pHaven.takeObject({
+			guid = oblID,
+			position = {
+				x = oblPos.x + (num - 1) * 2.5,
+				y = oblPos.y,
+				z = oblPos.z
+			},
+			rotation = oblRot,
+			callback_function = function(obl)
+				obl.setLock(true)
+				obl.highlightOn("Red")
+			end
+		})
+	end
+
+	U.forEach(oblData, function(oData, i) displayObligation(oData.guid, i) end)
+end
+
+function M.promptPlayerClanChoice(color)
+	if color == nil then color = M.getNextPlayer() end
+	M.displayClanSelectionRing()
+	M.setHighlighter("TurnIndicator", "strong", color)
+	UI.setValue("chooseClanPlayer", C.Names[color])
+	UI.setAttribute("chooseClanPlayer", "color", color)
+	U.splashUIElement("chooseClanNotice", 5)
+	if not clanChoiceAlertShowing then
+		clanChoiceAlertShowing = true
+		UI.show("clanChoiceAlert")
+	end
+end
 
 function M.dealAssets()
 	for _, color in pairs(C.Colors) do
@@ -861,126 +1182,86 @@ function M.dealRetainer()
 	end
 end
 
-function M.displayClanSelectionRing()
-	if #getUnusedClanTokens() == 0 then
-    local masterStorage = getObjectFromGUID(G.mainStorage.id)
-    local clanTokenObjs = {}
-    local stagingPosition = masterStorage.getPosition()
-    stagingPosition.x = stagingPosition.x + 5
-    stagingPosition.z = stagingPosition.z - 5
+--#endregion
 
-    -- Extract clan token objects from storage.
-    for _, obj in pairs(U.filter(masterStorage.getObjects(), function(objData) return U.isIn("ClanToken", objData.tags) end)) do
-        stagingPosition.y = stagingPosition.y + 1
-        masterStorage.takeObject({guid = obj.guid, position = stagingPosition})
-    end
+function M.gameINIT()
+	if (S.getStateVal("gamePhase") ~= "SETUP") then
+		return broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SETUP' to enter 'INIT'",
+			"Red", "Red")
+	end
+	S.setStateVal("INIT", "gamePhase")
 
-    -- Arrange in ring for player selection.
-    Wait.time(function()
-        U.makeRing(
-            U.filter(getAllObjects(), function(obj) return obj.hasTag("ClanToken") end),
-            G.tableSpots.highlighters.clanSelection.active,
-            3,
-            {
-                scale = {x = 0.5, y = 1, z = 0.5}
-            }
-        )
-    end, 0.5)
+	if not M.checkLastChapterStandings() then return M.determineLastChapterStandings(M.gameINIT) end
+
+	if not missionDeck then
+		missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+		if missionDeck == nil then return end
 	end
 
-	-- Make clan selection highlight visible and position appropriately.
-	M.setHighlighter("ClanSelection", "active")
+	M.syncState()
+
+	M.sequence({
+		M.showChapterIntroduction,
+		timeBlurbAloneOnScreen + timeScoresOnScreen + (4 * timePadding),
+		M.recallChapterCard,
+		M.zoomAllToClanSelection,
+		M.extractClanTokens,
+		M.makeClanSelectionRing,
+		M.promptPlayerClanChoice,
+		1,
+		M.dealAssets,
+		M.dealRetainer
+	})
 end
 
-function M.storeClanSelectionRing()
-  local clans = S.getStateVal("clans")
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-	M.setHighlighter("ClanSelection", "inactive")
-	for _, token in pairs(getUnusedClanTokens()) do
-			mainStorage.putObject(token)
-	end
-end
-
-function M.promptPlayerClanChoice(color)
-	M.displayClanSelectionRing()
-	M.setHighlighter("TurnIndicator", "strong", color)
-	-- M.setHighlighter("ClanSelection", "active")
-	UI.setValue("chooseClanPlayer", C.Names[color])
-	UI.setAttribute("chooseClanPlayer", "color", color)
-	U.splashUIElement("chooseClanNotice", 5)
-end
-
-function M.doNextClan()
-	if (M.getNextPlayer()) then
-		M.promptPlayerClanChoice(M.getNextPlayer())
+--#region *** PHASE: PLAY ***
+function M.retrieveObligations(color)
+	if color == nil then
+		for _, color in pairs(C.Colors) do
+			M.retrieveObligations(color)
+		end
 	else
-		M.storeClanSelectionRing()
+		local playerZone = getObjectFromGUID(G.zones[color].aftermath)
+		if playerZone ~= nil then
+			local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
+			for _, obl in pairs(Z.getTaggedZoneObjects(playerZone, "Obligation")) do
+				if obl.guid ~= playerHaven.guid then
+					obl.highlightOff()
+					obl.setLock(false)
+					obl.setRotation({ x = 0, y = 180, z = 0 })
+					playerHaven.putObject(obl)
+				end
+			end
+		end
 	end
 end
 
-function M.assignClan(clan, color)
-  S.setStateVal(clan, "clans", color)
-  UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clan)
-  if (color == M.getLastChapterMiddle()) then
-    U.splashUIElement("chooseStrandsOfTimeNotice", 5) -- Vanquished last Chapter, you may choose a Strand of time
-    local strandOfTimeSpot = getObjectFromGUID(G.decks.strandOfTimeSpot)
-    strandOfTimeSpot.highlightOn("Green")
-    M.presentStrandsOfTimeToMiddle()
-  end
-  UI.show(color .. "ClanChoice")
-  Wait.time(M.doNextClan, 1)
+function M.clearUnusedClanLeaders()
+	local usedClanLeaderIDs = {
+		Z.getClanLeader("Red").guid,
+		Z.getClanLeader("Yellow").guid,
+		Z.getClanLeader("Blue").guid
+	}
+	local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"),
+		function(obj) return obj.type == "Card" and not U.isIn(obj.guid, usedClanLeaderIDs) end)
+	for _, obj in pairs(unusedClanLeaders) do
+		local targetContainer
+		if obj.hasTag("Red") then
+			targetContainer = getObjectFromGUID(G.playerObjs.Red.haven)
+		elseif obj.hasTag("Yellow") then
+			targetContainer = getObjectFromGUID(G.playerObjs.Yellow.haven)
+		elseif obj.hasTag("Blue") then
+			targetContainer = getObjectFromGUID(G.playerObjs.Blue.haven)
+		else
+			local clan = U.findClanTag(obj)
+			if (clan) then
+				targetContainer = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+			end
+		end
+		targetContainer.putObject(obj)
+	end
 end
 
-local function getSchemesDeck(color)
-  local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDeck), "Deck")[1]
-  if not deck then
-    local card = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDeck), "Card")[1]
-    if not card then return false end
-		return card
-	end
-  return deck
-end
-local function getSchemesDiscard(color)
-  local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscard), "Deck")[1]
-  if not deck then
-    local card = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscard), "Card")[1]
-    if not card then return false end
-    return card
-  end
-  return deck
-end
-function M.updateMoralityToken(color)
-  local leaderClan = M.getClans()[color]
-  local leaderCard = Z.getClanLeader(color)
-  local leaderName = leaderCard.getName()
-  local leaderMorality
-  if not leaderName then return false end
-  if leaderCard.hasTag("DoubleSided") then
-    local leaders = U.split(leaderName, "|")
-    if (U.isFlipped(leaderCard)) then
-      leaderName = leaders[2]
-    else
-      leaderName = leaders[1]
-    end
-  end
-  if string.match(leaderName, ":M") ~= nil then
-    leaderMorality = "M"
-  else
-    leaderMorality = "C"
-  end
-  local moralityToken = getMoralityToken(color)
-	if moralityToken == nil then return Wait.time(function() M.updateMoralityToken(color) end, 1) end
-	local moralityPosition = moralityToken.getPosition()
-	moralityPosition.y = moralityPosition.y + 1
-	local moralityRotation = moralityToken.getRotation()
-	if C.MoralityTokens[leaderClan] == leaderMorality then
-		moralityRotation.z = 0
-	else
-		moralityRotation.z = 180
-	end
-	moralityToken.setPosition(moralityPosition)
-	moralityToken.setRotation(moralityRotation)
-end
 function M.initializeClanLeader(col)
 	if col == nil then
 		M.sequence(U.map(C.Colors, function(color)
@@ -992,12 +1273,12 @@ function M.initializeClanLeader(col)
 
 	local leaderCard = Z.getClanLeader(col)
 	M.processObj(leaderCard, "clanLeader")
+	leaderCard.setLock(true)
 
 	local leaderSchemes = leaderCard.getDescription()
-  local schemesDeck = getSchemesDeck(col)
+	local schemesDeck = getSchemesDeck(col)
 
 	if schemesDeck ~= nil then
-
 		if leaderCard.hasTag("DoubleSided") then
 			local schemes = U.split(leaderSchemes, "|")
 			if (U.isFlipped(leaderCard)) then
@@ -1039,7 +1320,8 @@ function M.initializeClanLeader(col)
 				-- move existing objects out of position
 				local currentObjects = U.filter(U.findAboveObject(leaderCard),
 					function(obj)
-						return obj.guid ~= leaderCard.guid and obj.type ~= "Block" and not U.isIn(obj.guid, G.lockedObjects) and not U.isIn(obj.guid, G.invisObjects)
+						return obj.guid ~= leaderCard.guid and obj.type ~= "Block" and not U.isIn(obj.guid, G.lockedObjects) and
+								not U.isIn(obj.guid, G.invisObjects)
 					end)
 
 				currentObjects = U.map(currentObjects, function(obj)
@@ -1070,136 +1352,111 @@ function M.initializeClanLeader(col)
 					end)
 			end
 		}, 1)
-
-		-- local leaderZone = getObjectFromGUID(G.zones[col].bloodline[1][1])
-		-- for _, token in pairs(Z.getTaggedZoneObjects(leaderZone, {"Power", "Boon", "Infamy"})) do
-		-- 	token.setLock(false)
-		-- end
-		-- local leaderName = leaderCard.getName()
-
-		-- local leaderMorality
-		-- if not leaderName then return false end
-
-		-- M.updateMoralityToken(col)
-		-- leaderName = string.gsub(leaderName, ":.", "")
-		end
-end
-function M.clearUnusedClanLeaders()
-  local usedClanLeaderIDs = {
-    Z.getClanLeader("Red").guid,
-    Z.getClanLeader("Yellow").guid,
-    Z.getClanLeader("Blue").guid
-  }
-  local unusedClanLeaders = U.filter(getObjectsWithTag("ClanLeader"), function(obj) return obj.type == "Card" and not U.isIn(obj.guid, usedClanLeaderIDs) end)
-  for _, obj in pairs(unusedClanLeaders) do
-		local targetContainer
-    if obj.hasTag("Red") then
-			targetContainer = getObjectFromGUID(G.playerObjs.Red.haven)
-    elseif obj.hasTag("Yellow") then
-      targetContainer = getObjectFromGUID(G.playerObjs.Yellow.haven)
-    elseif obj.hasTag("Blue") then
-      targetContainer = getObjectFromGUID(G.playerObjs.Blue.haven)
-    else
-      local clan = U.findClanTag(obj)
-      if (clan) then
-        targetContainer = getObjectFromGUID(G.mainStorage.clanStorage[clan])
-      end
-    end
-		targetContainer.putObject(obj)
-  end
-end
-
-function M.removeUnusedClanRefs()
-	local clans = M.getClans()
-	local round, turn = M.getRoundAndTurn()
-	if round > 0 and round < 10 then
-		for _, clan in pairs(C.Clans) do
-			if not U.isIn(clan, clans) then
-				for _, color in pairs({"Red", "Yellow", "Blue"}) do
-					UI.hide("hudRef" .. clan .. color)
-					UI.hide("hudRef" .. clan .. color .. "Overlay")
-				end
-			end
-		end
-		for _, col in pairs(C.Colors) do
-      UI.setAttributes("hudSidebar" .. col, {
-        rectAlignment = "MiddleRight",
-        height = "360",
-        offsetXY = "0 0"
-      })
-    end
 	end
 end
 
-function M.presentObligations(color)
-	local player = Player[color]
-	if player == nil then return end
-	local pHaven = getObjectFromGUID(G.playerObjs[color].haven)
-	if pHaven == nil then return end
-	local oblData = U.filter(pHaven.getObjects(), function(oData) return U.isIn("Obligation", oData.tags) end)
+function M.startGame()
+	U.splashUIElement("splash-backdrop", 2)
+	U.splashUIElement("gameStartNotice", 1, 0.5)
 
-	local function displayObligation(oblID, num)
-		if num == nil then num = 1 end
-		local oblPos = G.tableSpots.obligations[color]
-		local oblRot = G.tableSpots.obligations.rotation
-		pHaven.takeObject({
-			guid = oblID,
-			position = {
-				x = oblPos.x + (num - 1) * 2.5,
-				y = oblPos.y,
-				z = oblPos.z
-			},
-			rotation = oblRot,
-			callback_function = function(obl)
-				obl.setLock(true)
-				obl.highlightOn("Red")
-			end
-		})
+	M.setRoundAndTurn(1, 1)
+	M.determineTurnOrder(M.syncTurnOrder)
+	M.removeUnusedClanRefs()
+end
+--#endregion
+
+function M.gameSTART()
+	if (S.getStateVal("gamePhase") ~= "INIT") then
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'INIT' to enter 'PLAY'", "Red", "Red")
+		return
 	end
+	S.setStateVal("PLAY", "gamePhase")
 
-	U.forEach(oblData, function(oData, i) displayObligation(oData.guid, i) end)
+	M.sequence({
+		function()
+			M.showHavens()
+			Z.deactivateZones()
+			M.refreshGlobalOverlay()
+		end,
+		M.retrieveObligations,
+		M.clearUnusedClanLeaders,
+		function() M.initializeClanLeader("Red") end, 1,
+		function() M.initializeClanLeader("Yellow") end, 1,
+		function() M.initializeClanLeader("Blue") end, 1,
+		function()
+			M.hideHavens()
+			M.hidePouches()
+		end,
+		M.startGame,
+		Z.activateZones
+	})
 end
 
-function M.retrieveObligations(color)
-	if color == nil then
-		for _, color in pairs(C.Colors) do
-			M.retrieveObligations(color)
+
+
+-- *** GAME PHASE ACTIONS ***
+
+function M.updateMoralityToken(color)
+	local leaderClan = M.getClans()[color]
+	local leaderCard = Z.getClanLeader(color)
+	if leaderCard == nil then
+		return Wait.time(function() M.updateMoralityToken(color) end, 1)
+	end
+	local leaderName = leaderCard.getName()
+	local leaderMorality
+	if not leaderName then return nil end
+	if leaderCard.hasTag("DoubleSided") then
+		local leaders = U.split(leaderName, "|")
+		if (U.isFlipped(leaderCard)) then
+			leaderName = leaders[2]
+		else
+			leaderName = leaders[1]
 		end
+	end
+	if string.match(leaderName, ":M") ~= nil then
+		leaderMorality = "M"
 	else
-		local playerZone = getObjectFromGUID(G.zones[color].aftermath)
-		if playerZone ~= nil then
-			local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
-			for _, obl in pairs(Z.getTaggedZoneObjects(playerZone, "Obligation")) do
-				obl.highlightOff()
-				obl.setLock(false)
-				obl.setRotation({x = 0, y = 180, z = 0})
-				playerHaven.putObject(obl)
-			end
-		end
+		leaderMorality = "C"
 	end
+	local moralityToken = getMoralityToken(color)
+	if moralityToken == nil then return Wait.time(function() M.updateMoralityToken(color) end, 1) end
+	local moralityPosition = moralityToken.getPosition()
+	if moralityToken == nil then
+		return Wait.time(function() M.updateMoralityToken(color) end, 1)
+	end
+	moralityPosition.y = moralityPosition.y + 1
+	local moralityRotation = moralityToken.getRotation()
+	if C.MoralityTokens[leaderClan] == leaderMorality then
+		moralityRotation.z = 0
+	else
+		moralityRotation.z = 180
+	end
+	moralityToken.setPosition(moralityPosition)
+	moralityToken.setRotation(moralityRotation)
 end
 
 local function getSortedVictoryBoardSnapPoints(victoryBoard)
-  local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard), function(posData) return U.roundTableVals(posData) end)
+	local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard),
+		function(posData) return U.roundTableVals(posData) end)
 	snapPointPositions = U.getSnapPointPositions(victoryBoard)
-  table.sort(snapPointPositions, function(a,b)
-    if (math.abs(a.z - b.z) <= 0.2) then
-      return a.x > b.x
-    end
-    return a.z < b.z
-  end)
+	table.sort(snapPointPositions, function(a, b)
+		if (math.abs(a.z - b.z) <= 0.2) then
+			return a.x > b.x
+		end
+		return a.z < b.z
+	end)
 	-- log({localSnapPoints = snapPointPositions,
 	-- localSnapPointZs = U.map(snapPointPositions, function(pos) return pos.z end)})
-  return snapPointPositions
+	return snapPointPositions
 end
 
 local function getClanToken(playerColor)
-  local clan = S.getStateVal("clans", playerColor)
-  if (clan == nil) then return false end
-  local tokenName = clan .. " Clan Token"
-  local token = U.find(Global.getObjects(), function (obj) return obj.getName() == clan .. " Clan Token" end)
-  if (token == nil) then return false end
-  return token
+	local clan = S.getStateVal("clans", playerColor)
+	if (clan == nil) then return nil end
+	local tokenName = clan .. " Clan Token"
+	local token = U.find(Global.getObjects(), function(obj) return obj.getName() == clan .. " Clan Token" end)
+	if (token == nil) then return nil end
+	return token
 end
 
 function M.updatePlayerScore(color)
@@ -1211,11 +1468,14 @@ function M.updatePlayerScore(color)
 	local token = getClanToken(color)
 	local victoryBoard = getObjectFromGUID(G.victoryBoard)
 	if (token and victoryBoard) then
-		local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard), function(pos) return victoryBoard.positionToWorld({
-			x = pos.x,
-			y = pos.y + 0.5,
-			z = pos.z - 0.02-- - 0.2 -- + 0.2
-		}) end)
+		local positions = U.map(getSortedVictoryBoardSnapPoints(victoryBoard),
+			function(pos)
+				return victoryBoard.positionToWorld({
+					x = pos.x,
+					y = pos.y + 0.5,
+					z = pos.z - 0.02 -- - 0.2 -- + 0.2
+				})
+			end)
 		-- log({snapPoint4 = positions[4]})
 		local scorePos
 		if playerScore > 0 then
@@ -1235,10 +1495,12 @@ function M.getScoreFromBoard(color)
 	local victoryBoard = getObjectFromGUID(G.victoryBoard)
 	if victoryBoard ~= nil then
 		local playerToken = getClanToken(color)
-		return U.findSnapPoint(
-			victoryBoard.getSnapPoints(),
-			victoryBoard.positionToLocal(playerToken.getPosition()),
-			0.25)
+		if playerToken ~= nil then
+			return U.findSnapPoint(
+				victoryBoard.getSnapPoints(),
+				victoryBoard.positionToLocal(playerToken.getPosition()),
+				0.25)
+		end
 	end
 end
 
@@ -1247,16 +1509,19 @@ function M.showScoreboard()
 	U.forEach(C.Colors, function(col) UI.show(col .. "Score") end)
 end
 
-
 function M.updateScoreFromBoard(color, isSilent)
 	if color == nil then return U.forEach(C.Colors, M.updateScoreFromBoard) end
 	local victoryBoard = getObjectFromGUID(G.victoryBoard)
 	if victoryBoard ~= nil then
 		local playerName = C.Names[color]
 		local score = M.getScoreFromBoard(color)
-		if score == nil or score == 0 then score = "no points."
-		elseif score == 1 then score = "one point."
-		else score = score .. " points." end
+		if score == nil or score == 0 then
+			score = "no points."
+		elseif score == 1 then
+			score = "one point."
+		else
+			score = score .. " points."
+		end
 
 		UI.setValue(color .. "Score", playerName .. "'s Score: " .. score)
 	end
@@ -1278,9 +1543,9 @@ function M.setStandingsFromBoard()
 	local standings = M.getStandingsFromBoard()
 	if M.getScoreFromBoard(standings[1]) == M.getScoreFromBoard(standings[2]) then
 		UI.setAttributes("anarchRevoltText", {
-				color = "#FF0000",
-				outline = "#550000"
-			})
+			color = "#FF0000",
+			outline = "#550000"
+		})
 		UI.setValue("anarchRevoltText", "Consult the Primogen, then Break the Tie on the Board!")
 		U.splashUIElement("anarchRevoltNotice", 3, 0.25)
 		return false
@@ -1291,88 +1556,73 @@ function M.setStandingsFromBoard()
 	end
 end
 
-	-- M.setLastChapterStandings(standings)
-
-	-- local red, yellow, blue = M.getScoreFromBoard("Red"), M.getScoreFromBoard("Yellow"), M.getScoreFromBoard("Blue")
-	-- local standings =
-	-- if red > yellow and red > blue then
-
-	-- 	M.setLastChapterStandings(chapterStandings)
-
-	-- if victoryBoard ~= nil then
-	-- 	local snapPoints = victoryBoard.getSnapPoints()
-	-- 	local tokenPos = getObjectFromGUID("463574").getPosition()
-	-- 	log(snapPoints)
-	-- 	log(tokenPos)
-	-- 	log()
-	-- end
-
-
 local function scoreBloodlines()
-  Z.showScores()
-  local waitStep = 2
-  UI.show("scoreAlert")
-  for i, color in pairs(C.Colors) do
+	Z.showScores()
+	local waitStep = 2
+	UI.show("scoreAlert")
+	for i, color in pairs(C.Colors) do
 		Wait.time(function() M.updatePlayerScore(color) end, waitStep * (i - 1))
-  end
+	end
 end
+
 local function hideBloodlinesScore()
-  Z.hideScores()
-  UI.hide("scoreAlert")
-  for _, color in pairs(C.Colors) do
-    UI.hide(color .. "Score")
-    Wait.time(function() UI.setValue(color .. "Score", "") end, 1)
-  end
+	Z.hideScores()
+	UI.hide("scoreAlert")
+	for _, color in pairs(C.Colors) do
+		UI.hide(color .. "Score")
+		Wait.time(function() UI.setValue(color .. "Score", "") end, 1)
+	end
 end
 
 function M.showVictoryBoard()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  local victoryTable = getObjectFromGUID(G.victoryTable)
-  victoryTable.setInvisibleTo({})
-  victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
-  victoryTable.setRotationSmooth(G.tableSpots.victory.rotation, false, true)
-  mainStorage.takeObject({
-    position = G.tableSpots.victory.board,
-    rotation = G.tableSpots.victory.rotation,
-    guid = G.victoryBoard,
-    smooth = false,
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local victoryTable = getObjectFromGUID(G.victoryTable)
+	victoryTable.setInvisibleTo({})
+	victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
+	victoryTable.setRotationSmooth(G.tableSpots.victory.rotation, false, true)
+	mainStorage.takeObject({
+		position = G.tableSpots.victory.board,
+		rotation = G.tableSpots.victory.rotation,
+		guid = G.victoryBoard,
+		smooth = false,
 		callback_function = function(vBoard) vBoard.setLock(true) end
-  })
-  for _, pColor in pairs(C.Colors) do
-    local token = getClanToken(pColor)
-    if (token) then
-      token.setPosition(G.tableSpots.clanTokenVictory[pColor], false, true)
-      token.setRotation(G.tableSpots.clanTokenVictory.rotation, false, true)
-      token.setScale(G.tableSpots.clanTokenVictory.scale)
-      token.setColorTint(pColor)
-    end
-  end
+	})
+	for _, pColor in pairs(C.Colors) do
+		local token = getClanToken(pColor)
+		if (token) then
+			token.setPosition(G.tableSpots.clanTokenVictory[pColor], false, true)
+			token.setRotation(G.tableSpots.clanTokenVictory.rotation, false, true)
+			token.setScale(G.tableSpots.clanTokenVictory.scale)
+			token.setColorTint(pColor)
+		end
+	end
 end
 
 function M.hideVictoryBoard()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  local victoryTable = getObjectFromGUID(G.victoryTable)
-  local victoryBoard = getObjectFromGUID(G.victoryBoard)
-  local clanTokens = U.filter(Global.getObjects(), function (obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
-  -- log({TOKENS = clanTokens})
-  mainStorage.putObject(victoryBoard)
-  for _, token in pairs(clanTokens) do
-    token.setColorTint("White")
-    token.setScale({x = 0.24, y = 1, z = 0.24})
-    mainStorage.putObject(token)
-  end
-  victoryTable.setInvisibleTo({"Red", "Yellow", "Blue"})
-  victoryTable.setPosition({x = 0, y = 50, z = 0})
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local victoryTable = getObjectFromGUID(G.victoryTable)
+	local victoryBoard = getObjectFromGUID(G.victoryBoard)
+	local clanTokens = U.filter(Global.getObjects(),
+		function(obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
+	-- log({TOKENS = clanTokens})
+	mainStorage.putObject(victoryBoard)
+	for _, token in pairs(clanTokens) do
+		token.setColorTint("White")
+		token.setScale({ x = 0.24, y = 1, z = 0.24 })
+		mainStorage.putObject(token)
+	end
+	victoryTable.setInvisibleTo({ "Red", "Yellow", "Blue" })
+	victoryTable.setPosition({ x = 0, y = 50, z = 0 })
 end
 
 function M.recallSchemesToDiscard()
 	local schemeDiscardPos = {}
-	local schemeDiscardRot = {x = 0, y = 180, z = 180}
+	local schemeDiscardRot = { x = 0, y = 180, z = 180 }
 	for color, clan in pairs(M.getClans()) do
 		local schemesDeck = getSchemesDeck(color)
-		if schemesDeck ~= false then schemesDeck.addTag(clan) end
+		if schemesDeck ~= nil then schemesDeck.addTag(clan) end
 		local schemesDiscard = getSchemesDiscard(color)
-		if schemesDiscard ~= false then
+		if schemesDiscard ~= nil then
 			schemesDiscard.addTag(clan)
 			schemesDiscard.flip()
 		end
@@ -1384,7 +1634,8 @@ function M.recallSchemesToDiscard()
 	local schemeCards = getObjectsWithTag("ClanScheme")
 
 	U.forEach(C.Colors, function(color)
-		schemeCards = U.concat(schemeCards, U.filter(Player[color].getHandObjects(), function(obj) return obj.hasTag("ClanScheme") end))
+		schemeCards = U.concat(schemeCards,
+			U.filter(Player[color].getHandObjects(), function(obj) return obj.hasTag("ClanScheme") end))
 	end)
 
 	local function moveSchemeToDiscard(card)
@@ -1395,7 +1646,7 @@ function M.recallSchemesToDiscard()
 		card.use_hands = false
 		local schemePos = schemeDiscardPos[schemeClan]
 		card.use_hands = false
-		card.setScale({1, 1, 1})
+		card.setScale({ 1, 1, 1 })
 		card.setPosition(schemePos)
 		card.setRotation(schemeDiscardRot)
 		card.use_hands = true
@@ -1410,18 +1661,18 @@ function M.recallSchemesToDiscard()
 end
 
 function M.recallStrandsOfTime()
-  local strand = U.findAboveObject(getObjectFromGUID(G.decks.strandOfTimeSpot), "Card")[1]
+	local strand = U.findAboveObject(getObjectFromGUID(G.decks.strandOfTimeSpot), "Card")[1]
 	if strand == nil then return end
-  local strandStaging = getObjectFromGUID(G.decks.unusedStrandsOfTime)
-  local strandStagingPos = strandStaging.getPosition()
-  strandStagingPos.y = strandStagingPos.y + 1
-  strand.setRotation({x = 0, y = 180, z = 0})
-  strand.setPosition(strandStagingPos)
-  Wait.time(function()
-    local strandsDeck = U.findAboveObject(strandStaging, "Deck")[1]
-    local mainStorage = getObjectFromGUID(G.mainStorage.id)
-    mainStorage.putObject(strandsDeck)
-  end, 1)
+	local strandStaging = getObjectFromGUID(G.decks.unusedStrandsOfTime)
+	local strandStagingPos = strandStaging.getPosition()
+	strandStagingPos.y = strandStagingPos.y + 1
+	strand.setRotation({ x = 0, y = 180, z = 0 })
+	strand.setPosition(strandStagingPos)
+	Wait.time(function()
+		local strandsDeck = U.findAboveObject(strandStaging, "Deck")[1]
+		local mainStorage = getObjectFromGUID(G.mainStorage.id)
+		mainStorage.putObject(strandsDeck)
+	end, 1)
 end
 
 function M.returnAssetsToHaven()
@@ -1444,18 +1695,16 @@ function M.returnAssetsToHaven()
 end
 
 function M.recallSchemeDiscard()
-  for _, color in pairs(C.Colors) do
-    local sDiscardDeck = getSchemesDiscard(color)
-    if (sDiscardDeck) then
-      local schemeDeckPos = getObjectFromGUID(G.playerObjs[color].schemeDeck).getPosition()
-      schemeDeckPos.y = schemeDeckPos.y + 1
-      sDiscardDeck.setPosition(schemeDeckPos)
-      sDiscardDeck.setRotation({x = 0, y = 180, z = 180})
-    end
-  end
+	for _, color in pairs(C.Colors) do
+		local sDiscardDeck = getSchemesDiscard(color)
+		if (sDiscardDeck) then
+			local schemeDeckPos = getObjectFromGUID(G.playerObjs[color].schemeDeck).getPosition()
+			schemeDeckPos.y = schemeDeckPos.y + 1
+			sDiscardDeck.setPosition(schemeDeckPos)
+			sDiscardDeck.setRotation({ x = 0, y = 180, z = 180 })
+		end
+	end
 end
-
-
 
 local function showObligationToPlayer(color, card, highlightColor)
 	local oblPos = G.tableSpots.obligations[color]
@@ -1466,17 +1715,17 @@ local function showObligationToPlayer(color, card, highlightColor)
 	card.highlightOn(highlightColor)
 	if highlightColor == "Green" then
 		card.addTag("OblDiscard")
-		Wait.time(function() card.highlightOn({0,100/255,0}) end, 5)
+		Wait.time(function() card.highlightOn({ 0, 100 / 255, 0 }) end, 5)
 	else
 		card.addTag("OblDraw")
 		card.addTag(color)
-		Wait.time(function() card.highlightOn({100/255,0,0}) end, 5)
+		Wait.time(function() card.highlightOn({ 100 / 255, 0, 0 }) end, 5)
 	end
 end
 
 local obligationsDeck
 function M.presentObligationsToVictor()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
 	local stagingPos = G.tableSpots.obligations.staging
 	local oblData = U.find(mainStorage.getObjects(), function(objData)
 		return U.isIn("Obligation", objData.tags)
@@ -1526,7 +1775,7 @@ function M.discardMonstrousVamps(color)
 	if color == nil then return U.forEach(C.Colors, M.discardMonstrousVamps) end
 	local discardPos = getObjectFromGUID(G.decks.characterDiscardSpot).getPosition()
 	discardPos.y = discardPos.y + 0.5
-	local discardRot = {x = 0, y = 180, z = 0}
+	local discardRot = { x = 0, y = 180, z = 0 }
 	for i = 1, 4 do
 		local tag = "Monstrosity_" .. i
 		U.forEach(getObjectsWithTag(tag), function(obj)
@@ -1541,25 +1790,25 @@ function M.discardMonstrousVamps(color)
 	end
 end
 
-
 function M.recoverObligations()
 	U.forEach(C.Colors, function(pColor)
 		local aftermathZone = getObjectFromGUID(G.zones[pColor].aftermath)
 		U.forEach(Z.getTaggedZoneObjects(aftermathZone, "Obligation"), function(obl)
-			if obl == nil then return end
-			obl.setLock(false)
-			obl.highlightOff()
-			if obl.hasTag("OblDraw") then
-				local playerHaven = getObjectFromGUID(G.playerObjs[pColor].haven)
-				obl.removeTag("OblDraw")
-				playerHaven.putObject(obl)
-			else
-				obl.removeTag("OblDiscard")
-				obl.removeTag("Red")
-				obl.removeTag("Yellow")
-				obl.removeTag("Blue")
-				obl.setRotation(G.tableSpots.obligations.stagingRot)
-				obl.setPositionSmooth(G.tableSpots.obligations.staging)
+			if obl.type == "Card" then
+				obl.setLock(false)
+				obl.highlightOff()
+				if obl.hasTag("OblDraw") then
+					local playerHaven = getObjectFromGUID(G.playerObjs[pColor].haven)
+					obl.removeTag("OblDraw")
+					playerHaven.putObject(obl)
+				else
+					obl.removeTag("OblDiscard")
+					obl.removeTag("Red")
+					obl.removeTag("Yellow")
+					obl.removeTag("Blue")
+					obl.setRotation(G.tableSpots.obligations.stagingRot)
+					obl.setPositionSmooth(G.tableSpots.obligations.staging)
+				end
 			end
 		end)
 	end)
@@ -1597,7 +1846,7 @@ function M.sendRetainerToTable()
 				y = 1,
 				z = G.tableSpots.stagingArea[color].z
 			})
-			charCard.setRotation({x = 0, y = 180, z = 0})
+			charCard.setRotation({ x = 0, y = 180, z = 0 })
 			Wait.time(function() charCard.use_hands = true end, 0.5)
 		end)
 	end
@@ -1621,15 +1870,14 @@ end
 
 function M.resetBattlegrounds()
 	local bgF = getObjectFromGUID(G.battlegrounds.f)
-	local bgD = getObjectFromGUID(G.battlegrounds.d)
+	local bgG = getObjectFromGUID(G.battlegrounds.g)
 	local bgB = getObjectFromGUID(G.battlegrounds.b)
 	M.sequence({
-		function() bgD.call("Reset") end,
+		function() bgG.call("Reset") end,
 		function() bgF.call("Reset") end,
 		function() bgB.call("Reset") end
 	}, 1)
 end
-
 
 function M.packObligations()
 	local oblDeck = U.filter(getObjectsWithTag("Obligation"), function(obj) return obj.type == "Deck" end)[1]
@@ -1639,11 +1887,11 @@ function M.packObligations()
 end
 
 function M.packClanStorageBoxes()
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  for color, clan in pairs(M.getClans()) do
-    local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[clan])
-    mainStorage.putObject(clanChest)
-  end
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	for color, clan in pairs(M.getClans()) do
+		local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+		mainStorage.putObject(clanChest)
+	end
 end
 
 function M.clearPlayerZones(clearanceLevel)
@@ -1660,7 +1908,7 @@ function M.clearPlayerZones(clearanceLevel)
 		else
 			local charDeckPos = characterDeckSpot.getPosition()
 			charDeckPos.y = charDeckPos.y + 1
-			characterDiscardDeck.setRotation({x = 0, y = 180, z = 180})
+			characterDiscardDeck.setRotation({ x = 0, y = 180, z = 180 })
 			characterDiscardDeck.setPosition(charDeckPos)
 			characterDeck = characterDiscardDeck
 		end
@@ -1719,9 +1967,9 @@ function M.clearPlayerZones(clearanceLevel)
 					local leaderPos = leaderCard.getPosition()
 					leaderPos.y = leaderPos.y + 1
 					local clanBoonPos = {
-						{x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z - 1},
-						{x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z},
-						{x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z + 1}
+						{ x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z - 1 },
+						{ x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z },
+						{ x = leaderPos.x + 2, y = leaderPos.y, z = leaderPos.z + 1 }
 					}
 					U.forEach(boons, function(boon, i)
 						boon.setPositionSmooth(clanBoonPos[i])
@@ -1736,18 +1984,21 @@ function M.clearPlayerZones(clearanceLevel)
 
 			if clearanceLevel < 2 then return end
 
-			U.forEach(Z.getTaggedZoneObjects(pZone, {"ClanLeader"}),
+			U.forEach(Z.getTaggedZoneObjects(pZone, { "ClanLeader" }),
 				function(leaderCard)
 					leaderCard.removeTag("TopChar")
 					local leaderColor = U.findColorTag(leaderCard)
-					if leaderColor then pPouch.putObject(leaderCard)
-					else pChest.putObject(leaderCard) end
+					if leaderColor then
+						pPouch.putObject(leaderCard)
+					else
+						pChest.putObject(leaderCard)
+					end
 				end)
 
 			if clearanceLevel < 3 then return end
 
 			U.forEach(Z.getTaggedZoneObjects(pZone, "Character"),
-				function (charCard)
+				function(charCard)
 					charCard.setLock(false)
 					charCard.removeTag("TopChar")
 					charCard.removeTag("Monstrosity_1")
@@ -1756,7 +2007,7 @@ function M.clearPlayerZones(clearanceLevel)
 					charCard.removeTag("Monstrosity_4")
 					local yAngle = U.pAngle(charCard.getRotation().y, 90)
 					if yAngle == 90 or yAngle == 270 then
-						charCard.setRotationSmooth({x = 0, y = 180, z = 0})
+						charCard.setRotationSmooth({ x = 0, y = 180, z = 0 })
 						pHaven.putObject(charCard)
 					else
 						characterDeck.putObject(charCard)
@@ -1766,7 +2017,7 @@ function M.clearPlayerZones(clearanceLevel)
 end
 
 function M.highlightBattlegrounds()
-	for _, loc in pairs({"left", "center", "right"}) do
+	for _, loc in pairs({ "left", "center", "right" }) do
 		M.setHighlighter("BGIndicator", "active", loc)
 	end
 end
@@ -1774,117 +2025,117 @@ end
 -- *** GAME STATE VALUE CONTROL ***
 
 function M.syncState()
-    local clans = M.getClans()
-    if (clans == nil) then S.setStateVal("clans", {Red = nil, Yellow = nil, Blue = nil}) end
-    clans = M.getClans()
+	local clans = M.getClans()
+	if (clans == nil) then S.setStateVal("clans", { Red = nil, Yellow = nil, Blue = nil }) end
+	clans = M.getClans()
 
-    M.determineTurnOrder(function()
-      M.syncTurnOrder()
-      local lastChapterStandings = M.getLastChapterStandings()
-      local round, turn = M.getRoundAndTurn()
-      local clans = M.getClans()
-      local turnOrder = M.getTurnOrder()
-      if (round > 0 and round < 10) then
-        M.readTurnOrderFromBG()
-      end
+	M.determineTurnOrder(function()
+		M.syncTurnOrder()
+		local lastChapterStandings = M.getLastChapterStandings()
+		local round, turn = M.getRoundAndTurn()
+		local clans = M.getClans()
+		local turnOrder = M.getTurnOrder()
+		if (round > 0 and round < 10) then
+			M.readTurnOrderFromBG()
+		end
 
-			for i = 1, 3, 1 do
-				if lastChapterStandings[i] ~= nil then
-        	UI.setValue("lastChapterStandingsNotice-subtitle" .. i, C.Names[lastChapterStandings[i]])
-        	UI.setAttribute("lastChapterStandingsNotice-subtitle" .. i, "color", lastChapterStandings[i])
-				end
-      end
-
-      for _, color in ipairs(turnOrder) do
-        if (clans[color] ~= nil) then
-          UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clans[color])
-        end
-      end
-
-			if lastChapterStandings[3] ~= nil then
-      	UI.setValue("lastChapterStandingsNotice-subtitle5", C.Names[lastChapterStandings[3]])
-      	UI.setAttribute("lastChapterStandingsNotice-subtitle5", "color", lastChapterStandings[3])
+		for i = 1, 3, 1 do
+			if lastChapterStandings[i] ~= nil then
+				UI.setValue("lastChapterStandingsNotice-subtitle" .. i, C.Names[lastChapterStandings[i]])
+				UI.setAttribute("lastChapterStandingsNotice-subtitle" .. i, "color", lastChapterStandings[i])
 			end
+		end
 
-      -- S.refreshStateDebug(state)
+		for _, color in ipairs(turnOrder) do
+			if (clans[color] ~= nil) then
+				UI.setValue(color .. "ClanChoice", C.Names[color] .. " chooses Clan " .. clans[color])
+			end
+		end
 
-      M.setHighlighter("ClanSelection", "inactive")
-      M.setHighlighter("TurnIndicator", "inactive", "Red")
-      M.setHighlighter("TurnIndicator", "inactive", "Yellow")
-      M.setHighlighter("TurnIndicator", "inactive", "Blue")
+		if lastChapterStandings[3] ~= nil then
+			UI.setValue("lastChapterStandingsNotice-subtitle5", C.Names[lastChapterStandings[3]])
+			UI.setAttribute("lastChapterStandingsNotice-subtitle5", "color", lastChapterStandings[3])
+		end
 
-      if (round == 0) then
-        if (clans.Red or clans.Yellow or clans.Blue) then
-          local clanChooser = M.getNextPlayer()
-          if (clanChooser ~= nil) then
-            M.setHighlighter("ClanSelection", "active")
-            M.setHighlighter("TurnIndicator", "strong", clanChooser)
-            UI.setValue("chooseClanPlayer", C.Names[clanChooser])
-            UI.setAttribute("chooseClanPlayer", "color", clanChooser)
-            U.splashUIElement("chooseClanNotice", 5)
-          end
-          for color, clan in pairs(clans) do
-            if (clan ~= nil) then
-              UI.show(color .. "ClanChoice")
-            else
-              UI.hide(color .. "ClanChoice")
-            end
-          end
-          UI.show("clanChoiceAlert")
-        end
-      else
-        -- UI.hide("setupReminder")
-        UI.hide("clanChoiceAlert")
-      end
+		-- S.refreshStateDebug(state)
 
-      if (round >= 1 and round <= 9) then
-        UI.show("turnTracker")
-        M.syncTurnTracker()
-      else
-        UI.hide("turnTracker")
-      end
-  end)
+		M.setHighlighter("ClanSelection", "inactive")
+		M.setHighlighter("TurnIndicator", "inactive", "Red")
+		M.setHighlighter("TurnIndicator", "inactive", "Yellow")
+		M.setHighlighter("TurnIndicator", "inactive", "Blue")
+
+		if (round == 0) then
+			if (clans.Red or clans.Yellow or clans.Blue) then
+				local clanChooser = M.getNextPlayer()
+				if (clanChooser ~= nil) then
+					M.setHighlighter("ClanSelection", "active")
+					M.setHighlighter("TurnIndicator", "strong", clanChooser)
+					UI.setValue("chooseClanPlayer", C.Names[clanChooser])
+					UI.setAttribute("chooseClanPlayer", "color", clanChooser)
+					U.splashUIElement("chooseClanNotice", 5)
+				end
+				for color, clan in pairs(clans) do
+					if (clan ~= nil) then
+						UI.show(color .. "ClanChoice")
+					else
+						UI.hide(color .. "ClanChoice")
+					end
+				end
+				UI.show("clanChoiceAlert")
+			end
+		else
+			-- UI.hide("setupReminder")
+			UI.hide("clanChoiceAlert")
+		end
+
+		if (round >= 1 and round <= 9) then
+			UI.show("turnTracker")
+			M.syncTurnTracker()
+		else
+			UI.hide("turnTracker")
+		end
+	end)
 end
 
 function M.refresh() M.syncState() end
 
 function M.setHighlighter(ref, mode, subRef)
-  -- local round, turn = H.getRoundAndTurn()
-    local obj
-    if (ref == "ClanSelection") then
-        obj = getObjectFromGUID(G.highlighters.clanSelection)
-        obj.setPosition(G.tableSpots.highlighters.clanSelection[mode])
-    elseif (ref == "TurnIndicator") then
-      -- if round > 9 then
-        -- mode = "inactive"
-      -- end
-      if not subRef then
-        for _, color in pairs({"Red", "Yellow", "Blue"}) do
-          M.setHighlighter(ref, mode, color)
-          return
-        end
-      end
-      obj = getObjectFromGUID(G.highlighters.turnIndicator[subRef])
-      obj.setPosition(G.tableSpots.highlighters.turnIndicator[subRef][mode])
-    elseif (ref == "BGIndicator") then
-      -- if round > 9 then
-        -- mode = "inactive"
-      -- end
-      if not subRef then
-        for _, loc in pairs({"left", "center", "right"}) do
-          M.setHighlighter(ref, mode, loc)
-          return
-        end
-      end
-      obj = getObjectFromGUID(G.highlighters.bgIndicator[subRef])
-      obj.setPosition(G.tableSpots.highlighters.bgIndicator[subRef][mode])
-    end
+	-- local round, turn = H.getRoundAndTurn()
+	local obj
+	if (ref == "ClanSelection") then
+		obj = getObjectFromGUID(G.highlighters.clanSelection)
+		obj.setPosition(G.tableSpots.highlighters.clanSelection[mode])
+	elseif (ref == "TurnIndicator") then
+		-- if round > 9 then
+		-- mode = "inactive"
+		-- end
+		if not subRef then
+			for _, color in pairs({ "Red", "Yellow", "Blue" }) do
+				M.setHighlighter(ref, mode, color)
+				return
+			end
+		end
+		obj = getObjectFromGUID(G.highlighters.turnIndicator[subRef])
+		obj.setPosition(G.tableSpots.highlighters.turnIndicator[subRef][mode])
+	elseif (ref == "BGIndicator") then
+		-- if round > 9 then
+		-- mode = "inactive"
+		-- end
+		if not subRef then
+			for _, loc in pairs({ "left", "center", "right" }) do
+				M.setHighlighter(ref, mode, loc)
+				return
+			end
+		end
+		obj = getObjectFromGUID(G.highlighters.bgIndicator[subRef])
+		obj.setPosition(G.tableSpots.highlighters.bgIndicator[subRef][mode])
+	end
 
-    if (mode == "inactive") then
-        obj.setInvisibleTo({"Red","Blue","Yellow"})
-    else
-        obj.setInvisibleTo({})
-    end
+	if (mode == "inactive") then
+		obj.setInvisibleTo({ "Red", "Blue", "Yellow" })
+	else
+		obj.setInvisibleTo({})
+	end
 end
 
 function M.processContainer(container, objCat, destContainer)
@@ -1915,8 +2166,8 @@ function M.processContainer(container, objCat, destContainer)
 	processNextObj()
 end
 
-function M.processDeck(deck, cardCat, dest)
-
+function M.processDeck(deck, cardCat, dest, isForcing)
+	if deck == nil then return end
 	if dest == nil then
 		dest = deck.getPosition()
 		dest.y = dest.y + 4
@@ -1926,7 +2177,7 @@ function M.processDeck(deck, cardCat, dest)
 		dest.y = dest.y + 0.04
 		if remainderCard ~= nil then
 			remainderCard.setPosition(dest)
-			if M.processObj(remainderCard, cardCat) == false then
+			if M.processObj(remainderCard, cardCat, isForcing) == false then
 				U.alertGM("Error processing final card in deck.")
 			end
 		else
@@ -1935,7 +2186,7 @@ function M.processDeck(deck, cardCat, dest)
 				top = false,
 				smooth = false,
 				callback_function = function(card)
-					if M.processObj(card, cardCat) == false then
+					if M.processObj(card, cardCat, isForcing) == false then
 						return U.alertGM("STOPPING: Error processing most recent card moved.")
 					end
 					if deck.remainder then
@@ -1951,22 +2202,30 @@ function M.processDeck(deck, cardCat, dest)
 	processNextCard()
 end
 
-
-
-
-function M.processObj(obj, objCat)
+function M.processObj(obj, objCat, isForcing)
 	if objCat == nil then
-		if obj.hasTag("Mission") then objCat = "mission"
-		elseif obj.hasTag("LockedScheme") then objCat = "lockedScheme"
-		elseif obj.hasTag("ClanScheme") then objCat = "unlockedScheme"
-		elseif obj.hasTag("ChapterCard") then objCat = "chapter"
-		elseif obj.hasTag("letterOfIntroduction") then objCat = "letterOfIntroduction"
-		elseif obj.hasTag("ClanLeader") then objCat = "clanLeader"
-		elseif obj.hasTag("Character") then objCat = "character"
-		elseif obj.hasTag("Asset") then objCat = "asset"
-		elseif obj.hasTag("Obligation") then objCat = "obligation"
-		elseif obj.hasTag("EraCard") then objCat = "era"
-		elseif obj.hasTag("StrandsOfTime") then objCat = "strand"
+		if obj.hasTag("Mission") then
+			objCat = "mission"
+		elseif obj.hasTag("LockedScheme") then
+			objCat = "lockedScheme"
+		elseif obj.hasTag("ClanScheme") then
+			objCat = "unlockedScheme"
+		elseif obj.hasTag("ChapterCard") then
+			objCat = "chapter"
+		elseif obj.hasTag("letterOfIntroduction") then
+			objCat = "letterOfIntroduction"
+		elseif obj.hasTag("ClanLeader") then
+			objCat = "clanLeader"
+		elseif obj.hasTag("Character") then
+			objCat = "character"
+		elseif obj.hasTag("Asset") then
+			objCat = "asset"
+		elseif obj.hasTag("Obligation") then
+			objCat = "obligation"
+		elseif obj.hasTag("EraCard") then
+			objCat = "era"
+		elseif obj.hasTag("StrandsOfTime") then
+			objCat = "strand"
 		end
 	end
 
@@ -1980,11 +2239,11 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = false
 		obj.hide_when_face_down = false
-		obj.setTags({"Mission"})
+		obj.setTags({ "Mission" })
 		obj.tooltip = false
 	elseif objCat == "unlockedScheme" then
 		local clan = U.findClanTag(obj)
-		if clan == nil then return false end
+		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
 		obj.grid_projection = false
@@ -1992,10 +2251,15 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = true
-		obj.setTags({"Card", "ClanScheme", clan})
+		if clan == nil then
+			obj.setTags({ "Card", "ClanScheme" })
+			return U.alertGM("Unlocked Scheme has been set with no clan.")
+		else
+			obj.setTags({ "Card", "ClanScheme", clan })
+		end
 	elseif objCat == "lockedScheme" then
 		local clan = U.findClanTag(obj)
-		if clan == nil then return false end
+		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
 		obj.grid_projection = false
@@ -2003,7 +2267,12 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = true
-		obj.setTags({"Card", "ClanScheme", clan, "LockedScheme"})
+		if clan == nil then
+			obj.setTags({ "Card", "ClanScheme", "LockedScheme" })
+			return U.alertGM("Locked Scheme has been set with no clan.")
+		else
+			obj.setTags({ "Card", "ClanScheme", clan, "LockedScheme" })
+		end
 	elseif objCat == "chapter" then
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2012,7 +2281,7 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = false
 		obj.hide_when_face_down = true
-		obj.setTags({"ChapterCard"})
+		obj.setTags({ "ChapterCard" })
 	elseif objCat == "letterOfIntroduction" then
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2021,9 +2290,9 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = true
-		obj.setTags({"Card", "LetterOfIntroduction"})
+		obj.setTags({ "Card", "LetterOfIntroduction" })
 	elseif objCat == "character" then
-		if obj.hasTag("ClanLeader") then return false end
+		if obj.hasTag("ClanLeader") and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
 		obj.grid_projection = false
@@ -2031,10 +2300,10 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = true
-		obj.setTags({"Card", "Character"})
+		obj.setTags({ "Card", "Character" })
 	elseif objCat == "clanLeader" then
 		local clan = U.findClanTag(obj)
-		if clan == nil then return false end
+		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
 		obj.grid_projection = false
@@ -2042,11 +2311,23 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = false
 		obj.hide_when_face_down = false
-		local tags = {"Card", "ClanLeader", clan}
-		if obj.hasTag("DoubleSided") then table.insert(tags, "DoubleSided")
-		elseif obj.hasTag("Red") then table.insert(tags, "Red")
-		elseif obj.hasTag("Yellow") then table.insert(tags, "Yellow")
-		elseif obj.hasTag("Blue") then table.insert(tags, "Blue") end
+		local tags = { "Card", "ClanLeader"}
+		if obj.hasTag("DoubleSided") then
+			table.insert(tags, "DoubleSided")
+		elseif obj.hasTag("Red") then
+			table.insert(tags, "Red")
+		elseif obj.hasTag("Yellow") then
+			table.insert(tags, "Yellow")
+		elseif obj.hasTag("Blue") then
+			table.insert(tags, "Blue")
+		end
+		if clan == nil then
+			obj.setTags(tags)
+			return U.alertGM("Clan Leader has been set with no clan.")
+		else
+			table.insert(tags, clan)
+			obj.setTags(tags)
+		end
 		obj.setTags(tags)
 	elseif objCat == "asset" then
 		obj.auto_raise = true
@@ -2056,7 +2337,7 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = false
-		obj.setTags({"Asset", "Card"})
+		obj.setTags({ "Asset", "Card" })
 	elseif objCat == "obligation" then
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2065,7 +2346,7 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = true
 		obj.hide_when_face_down = true
-		obj.setTags({"Card", "Obligation"})
+		obj.setTags({ "Card", "Obligation" })
 	elseif objCat == "era" then
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2074,7 +2355,7 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = false
 		obj.hide_when_face_down = true
-		obj.setTags({"EraCard"})
+		obj.setTags({ "EraCard" })
 	elseif objCat == "strand" then
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2083,7 +2364,7 @@ function M.processObj(obj, objCat)
 		obj.tooltip = false
 		obj.use_hands = false
 		obj.hide_when_face_down = false
-		obj.setTags({"Card", "StrandsOfTime"})
+		obj.setTags({ "Card", "StrandsOfTime" })
 	else
 		return false
 	end
@@ -2093,242 +2374,245 @@ end
 local decksOnBoard = {}
 
 function M.presentDeck(deckTags, playerColor, position, options)
-  local mainStorage = getObjectFromGUID(G.mainStorage.id)
-  if (position == nil) then
-    position = G.tableSpots.deckStaging[playerColor]
-  end
-  local deckData = U.find(mainStorage.getObjects(), function (obj)
-    for _, tag in pairs(deckTags) do
-      if not U.isIn(tag, obj.tags) then return false end
-    end
-    return true
-  end)
+	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	if (position == nil) then
+		position = G.tableSpots.deckStaging[playerColor]
+	end
+	local deckData = U.find(mainStorage.getObjects(), function(obj)
+		for _, tag in pairs(deckTags) do
+			if not U.isIn(tag, obj.tags) then return false end
+		end
+		return true
+	end)
 	if deckData == nil then return end
-	local rotation = {x = 0, y = 180, z = 180}
+	local rotation = { x = 0, y = 180, z = 180 }
 	if options and options.isFlipped then
 		rotation.z = 0
 	end
 
-  decksOnBoard[deckTags[1]] = mainStorage.takeObject({
-      position = position,
-      rotation = rotation,
-			smooth = false,
-      guid = deckData.guid,
-			callback_function = function(deck)
-				Wait.frames(function()
-					if options and options.spread then
-						decksOnBoard[deckTags[1]].spread(options.spread)
-					end
-				end)
-			end
-    })
+	decksOnBoard[deckTags[1]] = mainStorage.takeObject({
+		position = position,
+		rotation = rotation,
+		smooth = false,
+		guid = deckData.guid,
+		callback_function = function(deck)
+			Wait.frames(function()
+				if options and options.spread then
+					decksOnBoard[deckTags[1]].spread(options.spread)
+				end
+			end)
+		end
+	})
 	return decksOnBoard[deckTags[1]]
 end
 
 function M.presentLockedSchemesToVanquished()
-	M.presentDeck({"ClanScheme", S.getStateVal("clans", M.getLastChapterVanquished())}, M.getLastChapterVanquished()).highlightOn("Orange")
-end
-function M.presentStrandsOfTimeToVanquished()
-  M.presentDeck({"StrandsOfTime"}, M.getLastChapterVanquished(), G.tableSpots.strandsOfTime, {spread = -2.5})
-end
-function M.presentStrandsOfTimeToMiddle()
-	local color = M.getLastChapterMiddle()
-	local thirdChildeZone = getObjectFromGUID(G.zones[color].bloodline[2][3])
-	local pos = thirdChildeZone.getPosition()
-	pos.y = 1
-  M.presentDeck({"StrandsOfTime"}, color, pos, {spread = -2.5})
-end
-
-function M.hideUnusedStrandsOfTime(usedGuid)
-  local round, turn = M.getRoundAndTurn()
-  if (round ~= 0) then return end
-  local strandObjs = getObjectsWithTag("StrandsOfTime")
-  local cardPos = getObjectFromGUID(G.decks.unusedStrandsOfTime).getPosition()
-  cardPos.y = cardPos.y + 1
-  for _, card in pairs(strandObjs) do
-    if card.guid ~= usedGuid then
-      card.setRotation({x = 0, y = 180, z = 0})
-      card.setPosition(cardPos)
-    end
-  end
+	M.presentDeck({ "ClanScheme", S.getStateVal("clans", M.getLastChapterVanquished()) }, M.getLastChapterVanquished())
+			.highlightOn("Orange")
 end
 
 function M.ignorePlayerTurn(currentTurnColor)
-  local round, turn = M.getRoundAndTurn()
-    if (round == 0) then return true end
-    local turnOrder = M.getTurnOrder()
-    local curColor = turnOrder[turn] or "NULL"
-    if (M.getTurnOrder()[turn] == currentTurnColor) then return true end
-    return false
+	local round, turn = M.getRoundAndTurn()
+	if (round == 0) then return true end
+	local turnOrder = M.getTurnOrder()
+	local curColor = turnOrder[turn] or "NULL"
+	if (M.getTurnOrder()[turn] == currentTurnColor) then return true end
+	return false
 end
 
 function M.setCamera(player, zoomTarget)
 	if player == nil or player == "ALL" then return U.forEach(C.Colors, function(color) M.setCamera(color, zoomTarget) end) end
 	if type(player) == "string" then player = Player[player] end
-  Player[player.color].setCameraMode("ThirdPerson")
-  Player[player.color].lookAt(C.CameraAngles[zoomTarget])
-  Wait.time(function() Player[player.color].setCameraMode("ThirdPerson") end, 0.5)
+	Player[player.color].setCameraMode("ThirdPerson")
+	Player[player.color].lookAt(C.CameraAngles[zoomTarget])
+	Wait.time(function() Player[player.color].setCameraMode("ThirdPerson") end, 0.5)
 end
 
 function M.askTraitsUpdate()
-  local hostPlayer = U.getHost()
-  local playerOptions = {"Gaius Marcellus", "Baron Samedi", "Jalan-Aayav"}
-  local traitOptions = {"Kindred", "Mortals", "Wealth", "Subterfuge", "Warfare", "Occult", "Cruelty", "Mercy", "Detachment", "Camarilla", "Sabbat", "Anarchs", "Animalism", "Auspex", "Celerity", "Dominate", "Fortitude", "Obfuscate", "Oblivion", "Potence", "Presence", "Protean", "Blood_Sorcery"}
-  hostPlayer.showOptionsDialog("Whose trait is increasing?", playerOptions, 1,
-    function (playerName, _)
-      hostPlayer.showOptionsDialog("What trait has increased?", traitOptions, 1,
-        function (trait, index)
-          local color
-          if (playerName == "Gaius Marcellus") then color = "Red" end
-          if (playerName == "Baron Samedi") then color = "Yellow" end
-          if (playerName == "Jalan-Aayav") then color = "Blue" end
-          M.addTraitDot(color, trait)
-        end
-      )
-    end
-  )
+	local hostPlayer = U.getHost()
+	local playerOptions = { "Gaius Marcellus", "Baron Samedi", "Jalan-Aayav" }
+	local traitOptions = C.StickerTraits
+	hostPlayer.showOptionsDialog("Whose trait is increasing?", playerOptions, 1,
+		function(playerName, _)
+			hostPlayer.showOptionsDialog("What trait has increased?", traitOptions, 1,
+				function(trait, index)
+					local color
+					if (playerName == "Gaius Marcellus") then color = "Red" end
+					if (playerName == "Baron Samedi") then color = "Yellow" end
+					if (playerName == "Jalan-Aayav") then color = "Blue" end
+					M.addTraitDot(color, trait)
+				end
+			)
+		end
+	)
+end
+
+function M.askStickerUpdate()
+	local hostPlayer = U.getHost()
+	hostPlayer.showInputDialog("Which sticker and number was used?",
+		function(text)
+			local stickerNum = string.match(text, "%d")
+			local stickerName = string.gsub(string.gsub(string.gsub(text, "%d", ""), "Blood Sorcery", "Blood_Sorcery"), " ", "")
+			if stickerName == nil then return end
+			if U.isIn(stickerName, C.StickerTraits) then
+				if stickerNum == nil then return end
+				local usedAbilityStickers = S.getStateVal("usedAbilityStickers")
+				local stickerTag = stickerName .. stickerNum
+				if U.isIn(stickerTag, usedAbilityStickers) then
+					U.alertGM("Sticker '" .. stickerTag .. "' Already Taken!")
+					return
+				end
+				table.insert(usedAbilityStickers, stickerTag)
+				S.setStateVal(usedAbilityStickers, "usedAbilityStickers")
+			elseif U.isIn(stickerName, C.Clans) then
+				local usedClanStickers = S.getStateVal("usedClanStickers")
+				if usedClanStickers[stickerName] == nil then return end
+				usedClanStickers[stickerName] = usedClanStickers[stickerName] + 1
+				if usedClanStickers[stickerName] > 6 then
+					U.alertGM("No Clan " .. stickerName .. " Stickers Left!")
+					return
+				end
+				S.setStateVal(usedClanStickers, "usedClanStickers")
+			end
+		end
+	)
 end
 
 function M.addTraitDot(color, trait, rowNum)
-  local playerData = S.getStateVal("traits", color)
-  -- log("Player Data for " .. color .. ", Adding to '" .. trait .. "'")
-  -- log(playerData)
-  for i = 1, 5, 1 do
-    -- log(playerData[i])
-    for traitName, traitVal in pairs(playerData[i]) do
-      -- log("... traitName = " .. traitName .. ", traitVal = " .. traitVal)
-      if (trait == traitName) then
-        -- log("MATCH!")
-        playerData[i][traitName] = playerData[i][traitName] + 1
-        S.setStateVal(playerData, "traits", color)
-        M.showUpdatedTraits(color)
-        return
-      end
-    end
-  end
+	local playerData = S.getStateVal("traits", color)
+	-- log("Player Data for " .. color .. ", Adding to '" .. trait .. "'")
+	-- log(playerData)
+	for i = 1, 5, 1 do
+		-- log(playerData[i])
+		for traitName, traitVal in pairs(playerData[i]) do
+			-- log("... traitName = " .. traitName .. ", traitVal = " .. traitVal)
+			if (trait == traitName) then
+				-- log("MATCH!")
+				playerData[i][traitName] = playerData[i][traitName] + 1
+				S.setStateVal(playerData, "traits", color)
+				M.showUpdatedTraits(color)
+				return
+			end
+		end
+	end
 end
 
 local function parseTraitsToXMLTable(traitsTable)
-  local function countTraitRows(ttable)
-    local rowCount = 0
-    for _, rowData in pairs(ttable) do
-      if (U.count(U.filter(rowData, function(tVal) return tVal > 0 end)) > 0) then
-        rowCount = rowCount + 1
-      end
-    end
-    return rowCount
-  end
+	local function countTraitRows(ttable)
+		local rowCount = 0
+		for _, rowData in pairs(ttable) do
+			if (U.count(U.filter(rowData, function(tVal) return tVal > 0 end)) > 0) then
+				rowCount = rowCount + 1
+			end
+		end
+		return rowCount
+	end
 
-  local XMLTable = {
-    {
-      tag = "Defaults",
-      children = {
-        {
-          tag = "Panel",
-          attributes = {
-            class = "traits",
-            color = "#000000",
-            height = tostring(countTraitRows(traitsTable) * 60),
-            width = "740",
-            scale = "0.25 0.25 0.25 0.25",
-            position = "45 35 -15",
-            rotation = "0 0 180",
-            -- active = "false",
-            showAnimation = "FadeIn",
-            hideAnimation = "FadeOut",
-            animationDuration = "2"
-          }
-        },
-        {
-          tag = "Text",
-          attributes = {
-            color = "#999999",
-            fontSize = "32",
-            fontStyle = "Bold",
-            flexibleWidth = "0"
-          }
-        },
-        {
-          tag = "Text",
-          attributes = {
-            class = "gold",
-            color = "#FFFF00"
-          }
-        }
-      }
-    },
-    {
-      tag = "Panel",
-      attributes = {
-        class = "traits"
-      },
-      children = {
-        {
-          tag = "VerticalLayout",
-          children = {}
-        }
-      }
-    }
-  }
+	local XMLTable = {
+		{
+			tag = "Defaults",
+			children = {
+				{
+					tag = "Panel",
+					attributes = {
+						class = "traits",
+						color = "#000000",
+						height = tostring(countTraitRows(traitsTable) * 60),
+						width = "740",
+						scale = "0.25 0.25 0.25 0.25",
+						position = "45 35 -15",
+						rotation = "0 0 180",
+						-- active = "false",
+						showAnimation = "FadeIn",
+						hideAnimation = "FadeOut",
+						animationDuration = "2"
+					}
+				},
+				{
+					tag = "Text",
+					attributes = {
+						color = "#999999",
+						fontSize = "32",
+						fontStyle = "Bold",
+						flexibleWidth = "0"
+					}
+				},
+				{
+					tag = "Text",
+					attributes = {
+						class = "gold",
+						color = "#FFFF00"
+					}
+				}
+			}
+		},
+		{
+			tag = "Panel",
+			attributes = {
+				class = "traits"
+			},
+			children = {
+				{
+					tag = "VerticalLayout",
+					children = {}
+				}
+			}
+		}
+	}
 
-  local function parseRow(rowTable, class)
+	local function parseRow(rowTable, class)
 		local hasNonZeroChildren
-    local rowXMLTable = {
-      tag = "HorizontalLayout",
-      children = {}
-    }
-    if class == nil then class = "" end
-    for traitName, traitNum in pairs(rowTable) do
-      if (traitNum > 0) then
-        hasNonZeroChildren = true
+		local rowXMLTable = {
+			tag = "HorizontalLayout",
+			children = {}
+		}
+		if class == nil then class = "" end
+		for traitName, traitNum in pairs(rowTable) do
+			if (traitNum > 0) then
+				hasNonZeroChildren = true
 				if C.TraitAbbvs[traitName] ~= nil then
 					traitName = C.TraitAbbvs[traitName]
 				end
-        table.insert(rowXMLTable.children,
-          {
-            tag = "Text",
-            value = string.gsub(traitName, "_", " ") .. " " .. traitNum,
-            attributes = {class = class}
-          })
-      end
-    end
-    if (hasNonZeroChildren) then return rowXMLTable end
-    return false
-  end
+				table.insert(rowXMLTable.children,
+					{
+						tag = "Text",
+						value = string.gsub(traitName, "_", " ") .. " " .. traitNum,
+						attributes = { class = class }
+					})
+			end
+		end
+		if (hasNonZeroChildren) then return rowXMLTable end
+		return false
+	end
 
-  for index, rowData in pairs(traitsTable) do
-    local class
-    if (index < #traitsTable) then
-      class = "gold"
-    else
-      class = ""
-    end
-    local rowXML = parseRow(rowData, class)
-    if (rowXML) then
-      table.insert(XMLTable[2].children[1].children, parseRow(rowData, class))
-    end
-  end
+	for index, rowData in pairs(traitsTable) do
+		local class
+		if (index < #traitsTable) then
+			class = "gold"
+		else
+			class = ""
+		end
+		local rowXML = parseRow(rowData, class)
+		if (rowXML) then
+			table.insert(XMLTable[2].children[1].children, parseRow(rowData, class))
+		end
+	end
 
-  return XMLTable
+	return XMLTable
 end
 
 function M.showUpdatedTraits(playerColor)
 	if playerColor == nil then return U.forEach(C.Colors, function(color) M.showUpdatedTraits(color) end) end
-  local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
-  local playerData = S.getStateVal("traits", playerColor)
-  local playerXML = parseTraitsToXMLTable(playerData)
-  -- log(JSON.encode_pretty(playerXML))
-  playerBoard.UI.setXmlTable(playerXML)
-  Wait.time(function() playerBoard.UI.show("traits") end, 1)
-end
-
-function M.hideUpdatedTraits(playerColor)
-	if playerColor == nil then return U.forEach(C.Colors, function(color) M.hideUpdatedTraits(color) end) end
-  local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
-  playerBoard.UI.setXmlTable({{}})
+	local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
+	local playerData = S.getStateVal("traits", playerColor)
+	local playerXML = parseTraitsToXMLTable(playerData)
+	-- log(JSON.encode_pretty(playerXML))
+	playerBoard.UI.setXmlTable(playerXML)
+	Wait.time(function() playerBoard.UI.show("traits") end, 1)
 end
 
 local function parseStickersToXMLTable(stickerData, playerColor)
+	local clan = M.getClans()[playerColor]
 	local function parseAbilityStickerRows()
 		local vertChildren = {}
 		local index = 1
@@ -2361,8 +2645,6 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 		return vertChildren
 	end
 	local function parseClanStickerRow()
-		local clan = M.getClans()[playerColor]
-		-- log({color = playerColor, clan = clan})
 		local clanStickersUsed = S.getStateVal("usedClanStickers", clan)
 		local clanStickersAvailable = 6 - clanStickersUsed
 		local clanMessage
@@ -2389,29 +2671,55 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 		}
 	end
 	local numRows = 1 + math.ceil(#stickerData / 4) + 1
+	local childXML = U.concat({
+		{
+			tag = "Text",
+			attributes = {
+				color = "#FFFFFF",
+				fontSize = "36"
+			},
+			value = "Available Ability Stickers:",
+			children = {}
+		},
+		{
+			tag = "Text",
+			attributes = {
+				color = "#FFFFFF",
+				fontSize = "36"
+			},
+			value = "",
+			flexibleHeight = "0",
+			preferredHeight = "50",
+			children = {}
+		}
+	}, parseAbilityStickerRows())
+	if clan ~= nil then
+		childXML = U.concat(childXML, parseClanStickerRow())
+	end
+
 	local XMLTable = {
-    {
-      tag = "Defaults",
-      children = {
-        {
-          tag = "Panel",
-          attributes = {
-            class = "traits",
-            color = "#000000",
-            height = "400",
-            width = "800",
+		{
+			tag = "Defaults",
+			children = {
+				{
+					tag = "Panel",
+					attributes = {
+						class = "traits",
+						color = "#000000",
+						height = "400",
+						width = "800",
 						padding = "0 0 50 50",
-            scale = "0.25 0.25 0.25 0.25",
-            position = "35 35 -15",
-            rotation = "0 0 180",
-            -- active = "false",
-            showAnimation = "FadeIn",
-            hideAnimation = "FadeOut",
-            animationDuration = "2",
+						scale = "0.25 0.25 0.25 0.25",
+						position = "35 35 -15",
+						rotation = "0 0 180",
+						-- active = "false",
+						showAnimation = "FadeIn",
+						hideAnimation = "FadeOut",
+						animationDuration = "2",
 						-- childAlignment = "UpperCenter",
 						-- childForceExpandHeight = "false"
-          }
-        },
+					}
+				},
 				{
 					tag = "VerticalLayout",
 					attributes = {
@@ -2426,64 +2734,39 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 						preferredHeight = "50"
 					}
 				},
-        {
-          tag = "Text",
-          attributes = {
-            color = "#999999",
-            fontSize = "32",
-            fontStyle = "Bold",
-            flexibleWidth = "0",
+				{
+					tag = "Text",
+					attributes = {
+						color = "#999999",
+						fontSize = "32",
+						fontStyle = "Bold",
+						flexibleWidth = "0",
 						flexibleHeight = "0",
 						preferredHeight = "50"
-          }
-        },
-        {
-          tag = "Text",
-          attributes = {
-            class = "gold",
-            color = "#FFFF00"
-          }
-        }
-      }
-    },
-    {
-      tag = "Panel",
-      attributes = {
-        class = "traits"
-      },
-      children = {
-        {
-          tag = "VerticalLayout",
-          children = U.concat(
-						U.concat({
-							{
-								tag = "Text",
-								attributes = {
-									color = "#FFFFFF",
-									fontSize = "36"
-								},
-								value = "Available Ability Stickers:",
-								children = {}
-							},
-							{
-								tag = "Text",
-								attributes = {
-									color = "#FFFFFF",
-									fontSize = "36"
-								},
-								value = "",
-								flexibleHeight = "0",
-								preferredHeight = "50",
-								children = {}
-							}
-						},
-						parseAbilityStickerRows()),
-						parseClanStickerRow()
-					)
-        }
-      }
-    }
-  }
+					}
+				},
+				{
+					tag = "Text",
+					attributes = {
+						class = "gold",
+						color = "#FFFF00"
+					}
+				}
+			}
+		},
+		{
+			tag = "Panel",
+			attributes = {
+				class = "traits"
+			},
+			children = {
+				{
+					tag = "VerticalLayout",
+					children = childXML
+				}
+			}
+		}
+	}
 	return XMLTable
 end
 
@@ -2516,161 +2799,16 @@ function M.showStickerUnlocks(playerColor)
 	end, 0.25)
 end
 
-function M.gameSETUP()
-	if (S.getStateVal("gamePhase") ~= "NONE") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'NONE' to enter 'SETUP'", "Red", "Red")
-		return
-	end
-	S.setStateVal("SETUP", "gamePhase")
-
-	missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-
-	-- Reset any tags set on player Leader Card spaces
-  getObjectFromGUID(G.playerObjs.Red.leaderCard).setTags({"Red"})
-  getObjectFromGUID(G.playerObjs.Yellow.leaderCard).setTags({"Yellow"})
-  getObjectFromGUID(G.playerObjs.Blue.leaderCard).setTags({"Blue"})
-
-	M.sequence({
-		M.showHavens,
-		M.hidePouches,
-		function() M.setCamera("ALL", "ZoomCard") end,
-		function()
-			chapterCard = missionDeck.takeObject({
-				position = {x=-0.5, y=5.47, z=2},
-				rotation = {x=19.28, y=180, z=0},
-				callback_function = function(obj)
-					obj.setLock(true)
-					M.processObj(obj, "chapter")
-				end
-			})
-		end,
-		5,
-		function()
-			chapterCard.setPositionSmooth({x=-3.50, y=3.00, z=-0.50})
-			chapterCard.setRotationSmooth({x=19.28, y=180, z=180})
-		end,
-		function() getObjectFromGUID("afb371").call("Populate_Missions") end,
-		2,
-		function() getObjectFromGUID("afb371").call("Populate_Queue") end
-	})
-
+function M.hidePlayerboardXML(playerColor)
+	if playerColor == nil then return U.forEach(C.Colors, function(color) M.hidePlayerboardXML(color) end) end
+	local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
+	playerBoard.UI.setXmlTable({ {} })
 end
-function M.gameINIT()
-	if (S.getStateVal("gamePhase") ~= "SETUP") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SETUP' to enter 'INIT'", "Red", "Red")
-		return
-	end
-	S.setStateVal("INIT", "gamePhase")
 
-  if not M.checkLastChapterStandings() then
-    M.determineLastChapterStandings(M.gameINIT)
-    return
-  end
-
-  if not missionDeck then
-    missionDeck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
-  end
-
-  M.syncState()
-
-	local timeBlurbAloneOnScreen = 5
-	local timePadding = 0.5
-	local timeScoresOnScreen = 6
-	local timeBlurbOnScreen = timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen
-	local timeStep = 1
-
-	M.sequence({
-		function()
-			local chapterData = S.getStateVal("chapterData")
-
-			UI.setValue("lastChapterStandingsNotice-title", "Chapter " .. chapterData.lastChapterNum .. " Standings:")
-			UI.setValue("logoIntro-title", "Chapter " .. chapterData.chapterNum .. " — " .. string.upper(chapterData.location))
-			UI.setValue("logoIntro-subtitle", "(" .. chapterData.years .. ")")
-			UI.setValue("logoIntro-body", chapterData.chapterBlurb)
-
-
-			U.splashUIElement("logoIntro", timeBlurbOnScreen)
-			U.splashUIElement("logoIntro-title", 10, timePadding)
-			U.splashUIElement("logoIntro-subtitle", 10, timePadding + timeStep)
-			U.splashUIElement("logoIntro-body", 10, timePadding + (timeStep * 2))
-
-			local timePassed = timeBlurbAloneOnScreen + (2 * timePadding)
-
-			U.splashUIElement("lastChapterStandingsNotice", timeScoresOnScreen, timePassed)
-			U.splashUIElement("lastChapterStandingsNotice-title", 10, timePassed)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle1", 10, timePassed + timeStep)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle2", 10, timePassed + timeStep * 1.5)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle3", 10, timePassed + timeStep * 2)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle4", 10, timePassed + timeStep * 3)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle5", 10, timePassed + timeStep * 3.5)
-			U.splashUIElement("lastChapterStandingsNotice-subtitle6", 10, timePassed + timeStep * 4)
-
-
-			U.splashUIElement("splash-backdrop", timeBlurbAloneOnScreen + (2 * timePadding) + timeScoresOnScreen + timePadding)
-		end,
-		timeBlurbAloneOnScreen + timeScoresOnScreen + (4 * timePadding),
-		function()
-			if chapterCard then
-				chapterCard.setLock(false)
-				chapterCard.setRotationSmooth({x=0, y=180, z=0})
-				missionDeck.putObject(chapterCard)
-			end
-		end,
-		function() M.setCamera("ALL", "ClanSelection") end,
-		M.displayClanSelectionRing,
-		1,
-		M.dealAssets,
-		M.dealRetainer,
-		function()
-			local clanChooser = M.getNextPlayer()
-			M.setHighlighter("TurnIndicator", "strong", clanChooser)
-			UI.setValue("chooseClanPlayer", C.Names[clanChooser])
-			UI.setAttribute("chooseClanPlayer", "color", clanChooser)
-		end,
-		function()
-			U.splashUIElement("chooseClanNotice", 5)
-			UI.show("clanChoiceAlert")
-		end
-	})
-end
-function M.gameSTART()
-	if (S.getStateVal("gamePhase") ~= "INIT") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'INIT' to enter 'PLAY'", "Red", "Red")
-		return
-	end
-	S.setStateVal("PLAY", "gamePhase")
-
-	M.sequence({
-		function()
-			UI.hide("RedClanChoice")
-			UI.hide("YellowClanChoice")
-			UI.hide("BlueClanChoice")
-			UI.hide("clanChoiceAlert")
-			UI.hide("chooseStrandsOfTimeNotice")
-			M.removeUnusedClanRefs()
-		end,
-		M.showHavens,
-		1,
-		M.retrieveObligations,
-		M.clearUnusedClanLeaders,
-		M.removeUnusedClanRefs,
-		M.hideHavens,
-		M.hidePouches,
-		function() M.initializeClanLeader("Red") end, 1,
-		function() M.initializeClanLeader("Yellow") end, 1,
-		function() M.initializeClanLeader("Blue") end, 1,
-		function()
-			U.splashUIElement("splash-backdrop", 2)
-			U.splashUIElement("gameStartNotice", 1, 0.5)
-
-			M.setRoundAndTurn(1, 1)
-			M.determineTurnOrder(M.syncTurnOrder)
-		end
-	})
-end
 function M.gameSCORE()
 	if (S.getStateVal("gamePhase") ~= "PLAY") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'PLAY' to enter 'SCORING'", "Red", "Red")
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'PLAY' to enter 'SCORING'", "Red",
+			"Red")
 		return
 	end
 	S.setStateVal("SCORING", "gamePhase")
@@ -2683,9 +2821,111 @@ function M.gameSCORE()
 		scoreBloodlines
 	})
 end
+
+function M.processSpot(objCat)
+	if objCat == nil then
+		log("Process Spot Called: NIL")
+		M.processSpot("strand")
+		M.processSpot("letterOfIntroduction")
+		M.processSpot("clanLeader")
+		M.processSpot("era")
+		M.processSpot("character")
+		-- M.sequence({
+		-- 	function() M.processSpot("strand") end,
+		-- 	function() M.processSpot("letterOfIntroduction") end,
+		-- 	function() M.processSpot("clanLeader") end,
+		-- 	function() M.processSpot("era") end,
+		-- 	function() M.processSpot("character") end
+		-- }, 2)
+		return
+		-- return M.sequence(U.map(G.decks.processing, function(_, cat)
+		-- 	log("Inside Sequence:")
+		-- 	log({first = _, cat = cat})
+		-- 	return function() M.processSpot(cat) end
+		-- end), 2)
+	end
+	log("Process Spot Called: " .. objCat)
+
+	local spot = G.decks.processing[objCat]
+	if spot == nil then return end
+	spot = getObjectFromGUID(spot)
+	if spot == nil then return end
+	local deckOnTop = U.findAboveObject(spot, "Deck")[1]
+	if deckOnTop == nil then
+		local cardOnTop = U.findAboveObject(spot, "Card")
+		if #cardOnTop > 1 then
+			return U.alertGM("Stopping processing of " .. objCat .. ": Multiple cards on top.")
+		end
+		cardOnTop = cardOnTop[1]
+		if cardOnTop == nil then return end
+		cardOnTop.translate({ x = 0, y = 5, z = 0 })
+		M.processObj(cardOnTop, objCat, true)
+	end
+
+	local destPos = spot.getPosition()
+	destPos.y = destPos.y + 5
+	destPos.x = destPos.x
+	M.processDeck(deckOnTop, objCat, destPos, true)
+end
+
+-- C.CategoryColors = {
+-- 	strand = "Teal",
+-- 	letterOfIntroduction = "Orange",
+-- 	clanLeader = "Blue",
+-- 	era = "Purple",
+-- 	character = "Yellow"
+-- }
+
+-- C.CategoryNames = {
+-- 	strand = "Strands of Time",
+-- 	letterOfIntroduction = "Letters of Introduction",
+-- 	clanLeader = "Clan Leaders",
+-- 	era = "Era Cards",
+-- 	character = "Characters"
+-- }
+
+function M.setupProcessingSpots()
+	U.forEach(G.decks.processing, function(guid, objCat)
+		local spot = getObjectFromGUID(guid)
+		spot.setSnapPoints(U.map(spot.getSnapPoints(), function(sPt)
+			sPt.tags = nil
+			return sPt
+		end))
+		spot.setName(C.CategoryNames[objCat])
+		spot.setColorTint(C.CategoryColors[objCat])
+		-- spot.highlightOn(C.CategoryColors[objCat])
+	end)
+	local processingKey = getObjectFromGUID(G.decks.processingKey.id)
+	processingKey.setPositionSmooth(G.decks.processingKey.active)
+end
+
+function M.clearProcessingSpots()
+	U.forEach(G.decks.processing, function(guid, objCat)
+		local spot = getObjectFromGUID(guid)
+		spot.setSnapPoints(U.map(spot.getSnapPoints(), function(sPt)
+			if objCat == "strand" then
+				sPt.tags = { "StrandOfTime" }
+			else
+				sPt.tags = { "ClanScheme" }
+			end
+			return sPt
+		end))
+		if objCat == "strand" then
+			spot.setName("Strand of Time")
+		else
+			spot.setName("Ongoing Scheme")
+		end
+		spot.setColorTint(C.CategoryColors.default)
+		-- spot.highlightOff()
+		local processingKey = getObjectFromGUID(G.decks.processingKey.id)
+		processingKey.setPositionSmooth(G.decks.processingKey.inactive)
+	end)
+end
+
 function M.gameMISSIONS()
 	if (S.getStateVal("gamePhase") ~= "SCORING") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SCORING' to enter 'MISSIONS'", "Red", "Red")
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'SCORING' to enter 'MISSIONS'", "Red",
+			"Red")
 		return
 	end
 
@@ -2693,39 +2933,57 @@ function M.gameMISSIONS()
 		S.setStateVal("MISSIONS", "gamePhase")
 		S.setStateVal(true, "playerZonesLocked")
 		M.sequence({
-			hideBloodlinesScore,
-			M.showUpdatedTraits,
-			M.discardMonstrousVamps,
-			Z.discardTorporedVamps,
+			function()
+				Z.deactivateZones()
+				hideBloodlinesScore()
+				M.showUpdatedTraits()
+			end,
+			function()
+				M.discardMonstrousVamps()
+				Z.discardTorporedVamps()
+			end,
 			M.clearAllTokens,
-			M.recallSchemeDiscard,
-			M.presentLockedSchemesToVanquished,
-			function() M.clearPlayerZones(1) end,
-			M.hideVictoryBoard,
-			function() M.resetBattleground("d") end,
+			function()
+				Z.refreshUI()
+				M.recallSchemeDiscard()
+				M.presentLockedSchemesToVanquished()
+			end,
+			function()
+				M.clearPlayerZones()
+				M.hideVictoryBoard()
+				M.showHavens()
+				M.showPouches()
+			end,
+			function()
+				M.presentObligationsToVictor()
+				M.revealLostObligationsToNonVictors()
+			end,
+			M.setupProcessingSpots,
+			function() M.resetBattleground("g") end,
+			function() M.resetBattleground("b") end,
 			function() M.resetBattleground("f") end,
-			M.showHavens,
-			M.showPouches,
-			M.presentObligationsToVictor,
-			M.revealLostObligationsToNonVictors
+			Z.activateZones
 		}, 1)
 	end
 end
+
 function M.gameAFTERMATH()
 	if (S.getStateVal("gamePhase") ~= "MISSIONS") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'MISSIONS' to enter 'AFTERMATH'", "Red", "Red")
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'MISSIONS' to enter 'AFTERMATH'",
+			"Red", "Red")
 		return
-  end
+	end
 	S.setStateVal("AFTERMATH", "gamePhase")
 
+	M.showStickerUnlocks()
+
 	M.sequence({
-		-- M.hideUpdatedTraits,
 		M.recoverObligations,
 		M.dealLettersOfIntroduction,
 		M.sendRetainerToTable,
 		function()
 			local schemeDeck = getSchemesDeck(M.getLastChapterVanquished())
-			if schemeDeck ~= false then
+			if schemeDeck ~= nil then
 				M.processDeck(schemeDeck, "unlockedScheme")
 				-- M.processSchemesDeck(schemeDeck)
 			end
@@ -2753,34 +3011,35 @@ function M.gameAFTERMATH()
 			end)
 		end,
 		1,
-		M.showStickerUnlocks,
-		function() M.clearPlayerZones(2) end,
-		M.packObligations
-		}
+		function() M.clearPlayerZones(2) end
+	}
 	)
 end
+
 function M.gameEND()
 	if (S.getStateVal("gamePhase") ~= "AFTERMATH") then
-		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'AFTERMATH' to enter 'END'", "Red", "Red")
+		broadcastToColor("Game Phase is '" .. S.getStateVal("gamePhase") .. "', must be 'AFTERMATH' to enter 'END'", "Red",
+			"Red")
 		return
 	end
 	S.setStateVal("END", "gamePhase")
 
-	M.sequence({
-		M.showUpdatedTraits,
-		M.returnLettersOfIntroduction,
-		M.packObligations,
-		function() M.clearPlayerZones(3) end,
-		M.packClanStorageBoxes,
+	M.showUpdatedTraits()
 
+	M.sequence({
+		M.returnLettersOfIntroduction,
+		function() M.clearPlayerZones(3) end,
+		function()
+			M.packObligations()
+			M.packClanStorageBoxes()
+		end,
 		function()
 			S.resetGameState()
 			M.showHavens()
 			M.showPouches()
-		end
-	}, 1)
+		end,
+		M.clearProcessingSpots
+	})
 end
-
-
 
 return M

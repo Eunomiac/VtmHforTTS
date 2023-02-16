@@ -50,18 +50,22 @@
     rectAlignment="MiddleLeft"
     childAlignment="UpperLeft"
     width="160"
-    offsetXY="0 -300"
+    offsetXY="0 -250"
     scale="0.5"
     flexibleWidth="0"
     flexibleHeight="0"
     childForceExpandWidth="false"
     childForceExpandHeight="false" />
 	<HorizontalLayout class="subButtonControls"
-		spacing="0"
-		offsetXY="75 -155"
+		spacing="5"
+		offsetXY="75 -105"
 		width="200"
 		height="500"
 		rectAlignment="MiddleLeft"
+    flexibleWidth="0"
+    flexibleHeight="0"
+    childForceExpandWidth="false"
+    childForceExpandHeight="false"
 	/>
 
   <Panel class="debugState"
@@ -110,54 +114,63 @@
 </Defaults>
 
 
-<Panel id="adminControls" visibility="Host">
-  <VerticalLayout class="buttonControls" visibility="Host">
-  	<Button onClick="HUD_refreshUI">Refresh</Button>
-  	<Button onClick="HUD_checkSuspicion" color="#FFFF00">SUSPICION</Button>
-  	<Text class="vertical-spacer-2"></Text>
+<Panel id="adminControls" visibility="Host|Red" active="true">
+  <VerticalLayout class="buttonControls" visibility="Host|Red">
 		<Button onClick="HUD_setupGame" color="#770000">0 - SETUP</Button>
 		<Button onClick="HUD_initGame" color="#880000">1 - INIT</Button>
 		<Button onClick="HUD_startGame" color="#990000">2 - START</Button>
+		<Button onClick="HUD_askRoundAndTurn" color="#FFFF00" minWidth="100" preferredWidth="100">Fix Turn</Button>
+		<Button onClick="HUD_toggleHavens" color="#FFFF00" minWidth="100" preferredWidth="100">Havens</Button>
 		<Text class="vertical-spacer-2"></Text>
 		<Button onClick="HUD_scoreGame" color="#AA0000">3 - SCORING</Button>
+		<Button onClick="HUD_updateScore" color="#00FF00" minWidth="100" preferredWidth="100">Refresh</Button>
+		<Text class="vertical-spacer-2"></Text>
 		<Button onClick="HUD_missionsGame" color="#BB0000">4 - MISSIONS</Button>
 		<Button onClick="HUD_updateTraits" color="#00BBBB" minWidth="100" preferredWidth="100">+Trait</Button>
+		<Text class="vertical-spacer-2"></Text>
 		<Button onClick="HUD_afterGame" color="#CC0000">5 - AFTERMATH</Button>
+		<Button onClick="HUD_updateSticker" color="#00BBBB" minWidth="100" preferredWidth="100">+Sticker</Button>
+		<Button onClick="HUD_switchStickerTraits" color="#00FFFF" minWidth="100" preferredWidth="100">Switch</Button>
+		<Button onClick="HUD_processCardSpots" color="#FFFF00" minWidth="100" preferredWidth="100">Process</Button>
+		<Text class="vertical-spacer-2"></Text>
 		<Button onClick="HUD_endGame" color="#DD0000">6 - END</Button>
 		<Text class="vertical-spacer-2"></Text>
 		<!-- <Button onClick="HUD_recallNorth" color="#444444">North</Button>
 		<Button onClick="HUD_recallSouth" color="#FFFFFF">South</Button>
 		<Button onClick="HUD_recallEast" color="#D2691E">East</Button>
 		<Button onClick="HUD_recallWest" color="#40E0D0">West</Button> -->
-		<Text class="vertical-spacer-2"></Text>
+		<Text class="vertical-spacer-3"></Text>
 		<Button onClick="HUD_toggleDebug">Debug</Button>
-		<Text class="vertical-spacer-2"></Text>
-		<Text class="vertical-spacer-2"></Text>
-		<Button onClick="HUD_toggleHavens">Havens</Button>
-		<Button onClick="HUD_togglePouches">Pouches</Button>
   </VerticalLayout>
-  <HorizontalLayout id="debugControls" class="subButtonControls" active="false" visibility="Host">
-    <VerticalLayout class="buttonControls subButtonControls" visibility="Host">
-      <Button id="debugZoomCard" onClick="HUD_debugCardZoom">Zoom</Button>
-      <Button id="debugClearZoom" onClick="HUD_debugClearZoom">End</Button>
-      <Text class="vertical-spacer-2"></Text>
-      <Button onClick="HUD_setChapterData" color="#993399">Chapter Text</Button>
-      <Text class="vertical-spacer-2"></Text>
-      <Button onClick="HUD_showTraits" color="#00BBBB">TRAITS</Button>
+  <HorizontalLayout id="debugControls" class="subButtonControls" active="false" visibility="Host|Red">
+    <VerticalLayout class="buttonControls subButtonControls" visibility="Host|Red">
+			<Button id="debugToggleZones" onClick="HUD_toggleZonesActive" color="#00FF00">Zones (Active)</Button>
+      <Text class="vertical-spacer-3"></Text>
+      <Text class="vertical-spacer-3"></Text>
       <Button onClick="HUD_toggleScores" color="#00FF00">SCORES</Button>
-    	<Button onClick="HUD_setChapterStandings" color="#993399">STANDINGS</Button>
+      <Text class="vertical-spacer-1"></Text>
+      <Text class="vertical-spacer-1"></Text>
+      <Button onClick="HUD_showTraits" color="#00BBBB">TRAITS</Button>
+      <Button onClick="HUD_showStickers" color="#00BBBB">STICKERS</Button>
     	<Text class="vertical-spacer-1"></Text>
-    	<Button onClick="HUD_askRoundAndTurn" color="#FF8C00">ROUND</Button>
-      <Text class="vertical-spacer-2"></Text>
+      <Button onClick="HUD_setChapterData" color="#993399">Chapter Text</Button>
+      <Text class="vertical-spacer-1"></Text>
+      <Text class="vertical-spacer-1"></Text>
+      <Text class="vertical-spacer-1"></Text>
     	<Button onClick="HUD_processCharacterDeck" color="#FF8C00">Process CDeck</Button>
 			<Button onClick="HUD_sortCharacterDeck" color="#FF8C00">Sort CDeck</Button>
       <Text class="vertical-spacer-2"></Text>
-      <Button id="debugToggleSetup" onClick="HUD_toggleTraits">Traits</Button>
-      <Button id="debugToggleSetup" onClick="HUD_toggleZones">Zones</Button>
+      <Button onClick="HUD_toggleTraitDebug">Traits</Button>
+      <Button onClick="HUD_toggleZoneVisibility">Zones (Hide)</Button>
       <Text class="vertical-spacer-2"></Text>
     	<Button onClick="HUD_debugEndGame" color="#444444">End Game</Button>
+      <Text class="vertical-spacer-2"></Text>
+  	<Button onClick="HUD_refreshState">Refresh</Button>
     </VerticalLayout>
-    <VerticalLayout class="buttonControls subButtonControls" visibility="Host" ignoreLayout="true" offsetXY="75 0">
+    <VerticalLayout class="buttonControls subButtonControls" visibility="Host|Red" ignoreLayout="true" offsetXY="75 0">
+      <Button id="debugZoomCard" onClick="HUD_debugCardZoom">Zoom</Button>
+      <Button id="debugClearZoom" onClick="HUD_debugClearZoom">End</Button>
+      <Text class="vertical-spacer-2"></Text>
       <Button id="debugResetState" onClick="HUD_resetGameState" color="Red">Reset</Button>
       <Text class="vertical-spacer-2"></Text>
       <Button id="debugTestFunc1" onClick="HUD_testFunc1">TestFunc 1</Button>

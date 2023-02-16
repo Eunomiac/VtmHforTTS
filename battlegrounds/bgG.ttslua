@@ -1,0 +1,222 @@
+local U = require("lib.utilities")
+local C = require("lib.constants")
+local S = require("core.state")
+local Z = require("core.zones")
+local M = require("core.main")
+local G = require("lib.guids")
+
+local bg, bgZone, cityZone, titleZone
+local isVoting = false
+local titles = {"Harpy", "Sheriff", "Primogen", "Prince"}
+local titleStands = {
+	Harpy = "7d34bd",
+	Sheriff = "3b4d12",
+	Primogen = "e250a5",
+	Prince = "028baf"
+}
+
+local function getClassTokens() return getObjectsWithTag("ClassToken") end
+local function getCityTokens() return Z.getTaggedZoneObjects(cityZone, {"ClassToken"}) end
+local function getOutsideTokens()
+	local cityTokenGUIDs = U.map(getCityTokens(), function(tok) return tok.guid end)
+	return U.filter(Z.getTaggedZoneObjects(bgZone, {"ClassToken"}), function (tok)
+		return not U.isIn(tok.guid, cityTokenGUIDs)
+	end)
+end
+local function getTimerToken()
+	return getObjectsWithTag("TimerToken")[1]
+end
+local function getTimerTitle()
+	local timerSlot = U.findSnapPoint(bg, getTimerToken())
+	if timerSlot ~= nil and timerSlot >= 5 and timerSlot <= 8 then
+		return titles[timerSlot - 4]
+	end
+end
+
+local function getTitleToken(title)
+	if title == nil then
+		return getTitleToken(getTimerTitle())
+	end
+	return getObjectsWithTag(title)[1]
+end
+
+local function getTitlePodium(title)
+	if title == nil then
+		title = getTimerTitle()
+	elseif type(title) == "userdata" then
+		title = title.getName()
+	end
+
+	if type(title) ~= "string" or titleStands[title] == nil then return end
+
+	return getObjectFromGUID(titleStands[title])
+end
+
+local function recallTitle(titleToken)
+	if type(titleToken) == "string" then
+		titleToken = getTitleToken(titleToken)
+	end
+	local titlePodium = getTitlePodium(titleToken)
+	if titleToken ~= nil and titlePodium ~= nil then
+		local titlePos = titlePodium.getPosition()
+		titlePos.y = 5
+		titleToken.setPositionSmooth(titlePos)
+		titleToken.setRotation({x = 0, y = 0, z = 0})
+	end
+end
+
+local function extendTitleStand(titleToken)
+	local titlePodium = getTitlePodium(titleToken.getName())
+	if titlePodium == nil then return end
+
+	local podiumPos = titlePodium.getPosition()
+	if podiumPos.y > 3.5 then return end
+	podiumPos.y = podiumPos.y + 2
+	titleToken.setLock(true)
+	local titlePos = titleToken.getPosition()
+	titlePos.y = titlePos.y + 2.1
+	titlePodium.setPositionSmooth(podiumPos)
+	titleToken.setPositionSmooth(titlePos)
+	Wait.time(function() titleToken.setLock(false) end, 1)
+end
+
+function CallVote()
+	local titleToken = getTitleToken()
+	if titleToken == nil then return end
+	local titlePos = titleToken.getPosition()
+	if titlePos.z < 0 then
+		return M.sequence({
+			function() recallTitle(titleToken) end,
+			CallVote
+		}, 2)
+	end
+	if isVoting == true then return end
+	isVoting = true
+
+	extendTitleStand(titleToken)
+
+	local cityTokens = getCityTokens()
+	local egalTokens = 0
+	U.forEach(cityTokens, function(tok)
+		if U.isFlipped(tok) then
+			egalTokens = egalTokens + 1
+		end
+	end)
+
+	if egalTokens >= 3 then
+		UI.setAttribute("courtVoteNotice-egalitarian", "active", "true")
+		UI.setAttribute("courtVoteNotice-elitist", "active", "false")
+	else
+		UI.setAttribute("courtVoteNotice-egalitarian", "active", "false")
+		UI.setAttribute("courtVoteNotice-elitist", "active", "true")
+	end
+
+	UI.setValue("courtVoteNotice-title", titleToken.getName())
+
+	UI.show("courtVoteNotice")
+	UI.show("courtVoteNotice_1")
+	UI.show("courtVoteNotice_2")
+
+	Z.showPowerOnly()
+end
+
+local function retractTitleStand()
+	local titleStand = getTitlePodium()
+	if titleStand == nil then return end
+	local pos = titleStand.getPosition()
+	if pos.y > 3.5 then
+		pos.y = pos.y - 2
+		titleStand.setPositionSmooth(pos)
+	end
+end
+
+local function advanceTimer()
+	local timerToken = getTimerToken()
+	if timerToken == nil then return end
+	local timerSlot = U.findSnapPoint(bg, getTimerToken())
+	if timerSlot ~= nil and timerSlot >= 5 and timerSlot <= 8 then
+		if timerSlot == 8 then
+			timerSlot = 5
+		else
+			timerSlot = timerSlot + 1
+		end
+		local timerPos = bg.positionToWorld(bg.getSnapPoints()[timerSlot].position)
+		timerPos.y = timerPos.y + 1
+		timerToken.setPositionSmooth(timerPos)
+	end
+end
+
+local function recallVotes()
+	local classTokens = getObjectsWithTag("ClassToken")
+	if #classTokens ~= 5 then
+		return U.alertGM("Wrong number of class tokens found (" .. #classTokens .. ")")
+	end
+	M.sequence(U.map({9, 10, 11, 12, 13}, function(snapIndex)
+		local token = classTokens[snapIndex - 8]
+		local tokenPos = bg.positionToWorld(bg.getSnapPoints()[snapIndex].position)
+		tokenPos.y = tokenPos.y + 1
+		local tokenRot
+		if snapIndex % 2 == 1 then
+			tokenRot = {x = 11.8, y = 150, z = 173.26}
+		else
+			tokenRot = {x = 11.8, y = 150, z = 353.26}
+		end
+		return function()
+			token.setPositionSmooth(tokenPos)
+			token.setRotationSmooth(tokenRot)
+		end
+	end), 0.1)
+end
+
+function EndVote()
+	retractTitleStand()
+	advanceTimer()
+	recallVotes()
+	Z.hideScores()
+	isVoting = false
+
+	UI.setAttribute("courtVoteNotice", "active", "false")
+	UI.setAttribute("courtVoteNotice_1", "active", "false")
+	UI.setAttribute("courtVoteNotice_2", "active", "false")
+end
+
+function onLoad()
+	bg = getObjectFromGUID(G.battlegrounds.g)
+	bgZone = getObjectFromGUID(G.zones.battlegroundZones.left[1])
+	cityZone = getObjectFromGUID(G.zones.bgGEndZone)
+	titleZone = getObjectFromGUID(G.zones.bgGTitleZone)
+end
+
+function OnObjectEnterZone(params)
+	local zone, object = params.zone, params.object
+	if not isVoting and zone.guid == cityZone.guid and object.hasTag("ClassToken") and #getCityTokens() == 5 then
+		CallVote()
+	end
+end
+
+function OnObjectLeaveZone(params)
+	log("Leaving Zone!")
+	local zone, object = params.zone, params.object
+	log({isVoting = isVoting, zoneGUID = zone.guid, titleGUID = titleZone.guid, hasTag = object.hasTag("TitleToken")})
+	if isVoting and zone.guid == titleZone.guid and object.hasTag("TitleToken") then
+		Wait.time(EndVote, 2)
+	end
+end
+
+function Reset()
+	M.sequence({
+		function()
+			local timerToken = getTimerToken()
+			local timerPos = bg.positionToWorld(bg.getSnapPoints()[5].position)
+			timerPos.y = timerPos.y + 1
+			timerToken.setPositionSmooth(timerPos)
+		end,
+		recallVotes,
+		function()
+			recallTitle("Harpy")
+			recallTitle("Sheriff")
+			recallTitle("Primogen")
+			recallTitle("Prince")
+		end
+	})
+end

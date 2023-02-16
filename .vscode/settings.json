@@ -28,7 +28,8 @@
 		"tryObjectEnterContainer",
 		"onUpdate",
 		"onSave",
-		"onCollisionEnter"
+		"onCollisionEnter",
+		"Color"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

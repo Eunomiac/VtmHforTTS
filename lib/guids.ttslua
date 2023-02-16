@@ -24,17 +24,17 @@ G.decks = {
 	strandOfTimeSpot = "d7029a",
 	unusedStrandsOfTime = "c70be2",
 	missionSpot = "eacf3f",
-	obligationsDeck = "5c2c36",
-	lockedSchemes = {
-		Brujah    = "ff5ddf",
-		Gangrel   = "85e0d5",
-		Lasombra  = "5598b7",
-		Malkavian = "7c0bf8",
-		Nosferatu = "7484cd",
-		Toreador  = "e5cb5a",
-		Tremere   = "594145",
-		Tzimisce  = "8e6499",
-		Ventrue   = "3329de"
+	processing = {
+		strand = "d7029a",
+		letterOfIntroduction = "f5861d",
+		clanLeader = "bd8cd5",
+		era = "896eab",
+		character = "128223"
+	},
+	processingKey = {
+		id = "ebb684",
+		active = {x = -1.22, y = 1.97, z = 0.12},
+		inactive = {x = -1.22, y = -10, z = 0.12}
 	}
 }
 
@@ -75,8 +75,10 @@ G.zones = {
 		Fire = "997422"
 	},
 	bgFEndZone = "a168dd",
+	bgGEndZone = "14d203",
+	bgGTitleZone = "23528c",
 	battlegroundZones = {
-		left = {"cccfc4", "b5bbb2"},
+		left = {"cccfc4", "14d203", "23528c"},
 		center = {"a79ca4", "a168dd"},
 		right = {"c41714"}
 	},
@@ -146,7 +148,7 @@ G.battlegrounds = {
 	d = "710eb1",
 	e = nil,
 	f = "b1d2ae",
-	g = nil
+	g = "ae2779"
 }
 
 G.charQueue = "afb371"
@@ -226,16 +228,16 @@ G.tableSpots = {
 		},
 		bgIndicator = {
 			left = {
-				active = { x = -14.50, y = 3.06, z = 19.02 },
-				inactive = { x = -14.50, y = -15, z = 19.02 }
+				active = { x = -10, y = 3.06, z = 19.02 },
+				inactive = { x = -10, y = -15, z = 19.02 }
 			},
 			center = {
 				active = { x = 0, y = 3.09, z = 19.05 },
 				inactive = { x = 0, y = -15, z = 19.02 }
 			},
 			right = {
-				active = { x = 14.5, y = 3.06, z = 19.02 },
-				inactive = { x = 14.5, y = -15, z = 19.02 }
+				active = { x = 10, y = 3.06, z = 19.02 },
+				inactive = { x = 10, y = -15, z = 19.02 }
 			}
 		}
 	}
