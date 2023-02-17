@@ -800,10 +800,40 @@ function M.advanceTurn()
 	-- Wait.time(H.syncTurnOrder, 1)
 end
 
+function M.recallBlackMarketBoons()
+	log("recallBlackMarketBoons Called")
+
+	local nosColor
+	local clans = M.getClans()
+	if clans.Red == "Nosferatu" then nosColor = "Red"
+	elseif clans.Yellow == "Nosferatu" then nosColor = "Yellow"
+	elseif clans.Blue == "Nosferatu" then nosColor = "Blue"
+	else return end
+	local schemeZone = getObjectFromGUID(G.zones.ongoingSchemes)
+	local boonTokens = Z.getTaggedZoneObjects(schemeZone, "Boon")
+	log({color = nosColor, schemeZone = schemeZone, boonTokens = boonTokens})
+	if #boonTokens == 0 then return end
+	local nosClanLeader = Z.getClanLeader(nosColor)
+	local nosPos = nosClanLeader.getPosition()
+	local nosBounds = nosClanLeader.getBounds()
+	local xDisp = nosBounds.size.x / 2
+	local zDisp = nosBounds.size.z / 2
+	M.sequence(U.map(boonTokens, function(tok)
+		return function()
+			tok.setPositionSmooth({
+				x = nosPos.x + (math.random(-100 * xDisp, 100 * xDisp) / 100),
+				y = 2,
+				z = nosPos.z + (math.random(-100 * zDisp, 100 * zDisp) / 100)
+			})
+		end
+	end), 0.25)
+end
+
 function M.advanceRound()
 	local round, turn = M.getRoundAndTurn()
 	if (round == 0) then return end
 	local roundsLeft = 12 - #Player.getPlayers() - round
+	M.recallBlackMarketBoons()
 	if (roundsLeft <= 0) then
 		M.setRoundAndTurn(10, 1)
 		U.splashUIElement("splash-backdrop", 6)
@@ -1984,7 +2014,7 @@ function M.clearPlayerZones(clearanceLevel)
 
 			if clearanceLevel < 2 then return end
 
-			U.forEach(Z.getTaggedZoneObjects(pZone, { "ClanLeader" }),
+			U.forEach(Z.getTaggedZoneObjects(pZone, { "Card", "ClanLeader" }, true),
 				function(leaderCard)
 					leaderCard.removeTag("TopChar")
 					local leaderColor = U.findColorTag(leaderCard)
@@ -1997,7 +2027,7 @@ function M.clearPlayerZones(clearanceLevel)
 
 			if clearanceLevel < 3 then return end
 
-			U.forEach(Z.getTaggedZoneObjects(pZone, "Character"),
+			U.forEach(Z.getTaggedZoneObjects(pZone, {"Character", "Card"}, true),
 				function(charCard)
 					charCard.setLock(false)
 					charCard.removeTag("TopChar")
@@ -2407,8 +2437,10 @@ function M.presentDeck(deckTags, playerColor, position, options)
 end
 
 function M.presentLockedSchemesToVanquished()
-	M.presentDeck({ "ClanScheme", S.getStateVal("clans", M.getLastChapterVanquished()) }, M.getLastChapterVanquished())
-			.highlightOn("Orange")
+	local schemeDeck = M.presentDeck({ "ClanScheme", S.getStateVal("clans", M.getLastChapterVanquished()) }, M.getLastChapterVanquished())
+	if schemeDeck ~= nil then
+			schemeDeck.highlightOn("Orange")
+	end
 end
 
 function M.ignorePlayerTurn(currentTurnColor)
@@ -2868,22 +2900,6 @@ function M.processSpot(objCat)
 	M.processDeck(deckOnTop, objCat, destPos, true)
 end
 
--- C.CategoryColors = {
--- 	strand = "Teal",
--- 	letterOfIntroduction = "Orange",
--- 	clanLeader = "Blue",
--- 	era = "Purple",
--- 	character = "Yellow"
--- }
-
--- C.CategoryNames = {
--- 	strand = "Strands of Time",
--- 	letterOfIntroduction = "Letters of Introduction",
--- 	clanLeader = "Clan Leaders",
--- 	era = "Era Cards",
--- 	character = "Characters"
--- }
-
 function M.setupProcessingSpots()
 	U.forEach(G.decks.processing, function(guid, objCat)
 		local spot = getObjectFromGUID(guid)
@@ -2998,7 +3014,7 @@ function M.gameAFTERMATH()
 		end,
 		function()
 			local lockedSchemeObjs = getObjectsWithTag("LockedScheme")
-			if #lockedSchemeObjs == 1 and lockedSchemeObjs[1].type == "Deck" then
+			if #lockedSchemeObjs == 1 then
 				getObjectFromGUID(G.mainStorage.id).putObject(lockedSchemeObjs[1])
 			end
 		end,

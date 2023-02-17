@@ -65,6 +65,7 @@ G.playerObjs = {
 G.zones = {
 	missionQueue = "c7d5d8",
 	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
+	ongoingSchemes = "83ba8c",
 	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
 	bgDEndZone = "b5bbb2",
 	bgEZones = {

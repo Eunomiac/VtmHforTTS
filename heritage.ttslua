@@ -116,8 +116,15 @@ function HUD_showStickers(player, value)
 	end
 end
 
-local isSwitchedStickerTraits = false
+local isSwitchedStickerTraits
 function HUD_switchStickerTraits()
+	if isSwitchedStickerTraits == nil then
+		if S.isInPhase("AFTERMATH") then
+			isSwitchedStickerTraits = true
+		else
+			isSwitchedStickerTraits = false
+		end
+	end
 	if isSwitchedStickerTraits == true then
 		isSwitchedStickerTraits = false
 		HUD_showTraits()

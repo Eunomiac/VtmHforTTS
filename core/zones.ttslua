@@ -885,7 +885,7 @@ function Z.hideSuspicion()
 end
 
 local function checkToLockCard(zone)
-	if #Z.getTaggedZoneObjects(zone, {"Power", "Infamy", "Boon", "Ankh", "TitleToken", "ExhaustTorpor", "ClanScheme"}) > 0 then
+	if S.isInPhase({"PLAY", "SCORING"}) and #Z.getTaggedZoneObjects(zone, {"Power", "Infamy", "Boon", "Ankh", "TitleToken", "ExhaustTorpor", "ClanScheme"}) > 0 then
 		Z.getCard(zone).setLock(true)
 	else
 		Z.getCard(zone).setLock(false)
