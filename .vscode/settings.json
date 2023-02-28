@@ -29,7 +29,8 @@
 		"onUpdate",
 		"onSave",
 		"onCollisionEnter",
-		"Color"
+		"Color",
+		"onPlayerAction"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

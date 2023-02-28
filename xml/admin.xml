@@ -119,6 +119,7 @@
 		<Button onClick="HUD_setupGame" color="#770000">0 - SETUP</Button>
 		<Button onClick="HUD_initGame" color="#880000">1 - INIT</Button>
 		<Button onClick="HUD_startGame" color="#990000">2 - START</Button>
+		<Button onClick="HUD_endCourtVote" color="#99FF99" minWidth="100" preferredWidth="100">End Vote</Button>
 		<Button onClick="HUD_askRoundAndTurn" color="#FFFF00" minWidth="100" preferredWidth="100">Fix Turn</Button>
 		<Button onClick="HUD_toggleHavens" color="#FFFF00" minWidth="100" preferredWidth="100">Havens</Button>
 		<Text class="vertical-spacer-2"></Text>

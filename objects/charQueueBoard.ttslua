@@ -8,12 +8,12 @@ local isPopulating = false
 local isRequeuing = false
 
 local function getCharacterDeck()
-	local deck = U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
 	if not deck then return nil end
 	return deck
 end
 local function getMissionDeck()
-	local deck = U.findAboveObject(getObjectFromGUID(G.decks.missionSpot), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
 	if not deck then return nil end
 	return deck
 end
@@ -84,7 +84,7 @@ function Populate_Missions()
 	table.insert(missionFuncs, 1)
 	table.insert(missionFuncs, function() missionDeck.setLock(false) end)
 
-	M.sequence(missionFuncs, 0.25)
+	U.sequence(missionFuncs, 0.25, false)
 end
 
 function Populate_Queue()
@@ -149,9 +149,9 @@ function Populate_Queue()
 					z = thisSnapPos.z - 0.1
 			}),
 			rotation = { x = 25, y = 180, z = 0 },
-			callback_function = function(charCard)
-				M.processObj(charCard, "character")
-			end
+			-- callback_function = function(charCard)
+				-- M.processObj(charCard, "character")
+			-- end
 		})
 	end
 
@@ -165,5 +165,5 @@ function Populate_Queue()
 		if isRequeuing then Populate_Queue() end
 	end)
 
-	M.sequence(charCardFuncs, 0.25)
+	U.sequence(charCardFuncs, 0.25, false)
 end

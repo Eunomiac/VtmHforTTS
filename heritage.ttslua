@@ -5,6 +5,7 @@ local C = require("lib.constants")
 local S = require("core.state")
 local G = require("lib.guids")
 local Z = require("core.zones")
+local F = require("core.fourthRow")
 
 gameState = {}
 
@@ -17,17 +18,38 @@ function HUD_testFunc1(player, value, id)
 	end
 end
 function HUD_testFunc2(player, value, id)
-	Z.makeSnapsForCourt()
+	getObjectFromGUID(G.battlegrounds.g).call("PresentTitle")
 end
 function HUD_testFunc3(player, value, id)
+	local assetContainer = getObjectFromGUID("1df0c9")
+	M.processContainer(assetContainer, nil, function(obj)
+		obj.setRotation({0, 180, 0})
+		return true
+	end)
 
+	U.forEach(C.Colors, function(color)
+		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
+		M.processContainer(pouch, nil, function(obj)
+			if obj.hasTag("ChapterCard") then
+				obj.setRotation({0, 180, 180})
+			elseif obj.hasTag("Mission") then
+				obj.setRotation({0, 180, 0})
+			elseif obj.hasTag("EraCard") then
+				obj.setRotation({0, 180, 0})
+			else
+				return false
+			end
+			return true
+		end)
+	end)
 end
+
 
 
 function ActivateZones()
-	onObjectEnterZone = M.onObjectEnterZone
+	onObjectEnterZone = Z.onObjectEnterZone
 	onObjectLeaveZone = Z.onObjectLeaveZone
-	Z.refreshUI()
+	-- Z.refreshUI()
 end
 
 function DeactivateZones()
@@ -35,18 +57,12 @@ function DeactivateZones()
 	onObjectLeaveZone = nil
 end
 
-function onLoad(script_state)
-	M.onLoad(script_state)
-	Z.onLoad()
+onLoad = M.onLoad
+onPlayerTurn = M.onPlayerTurn
+tryObjectEnterContainer = M.tryObjectEnterContainer
+onPlayerAction = M.onPlayerAction
 
-	Wait.time(function()
-		Z.activateZones()
-		onPlayerTurn = M.onPlayerTurn
-		tryObjectEnterContainer = M.tryObjectEnterContainer
-	end, 0.5)
-end
-
-function onUpdate() console.update() end
+-- function onUpdate() console.update() end
 
 function onSave() return JSON.encode(gameState) end
 
@@ -139,7 +155,7 @@ function HUD_updateSticker() return M.askStickerUpdate() end
 
 
 function HUD_processCharacterDeck()
-	local charDeck =  U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
+	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
   if not charDeck then return nil end
 	M.processDeck(charDeck, "character")
 end
@@ -148,7 +164,7 @@ local truePos = {x = -3.67, y = 4, z = -2.14}
 local falsePos = {x = 3.81, y = 4, z = -2.22}
 
 function HUD_sortCharacterDeck()
-	local charDeck =  U.findAboveObject(getObjectFromGUID(G.decks.characterSpot), "Deck")[1]
+	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
   if not charDeck then return nil end
 	local stagingPos = charDeck.getPosition()
 	stagingPos.y = stagingPos.y + 4
@@ -226,11 +242,17 @@ function HUD_debugEndGame()
 	M.advanceTurn()
 end
 
-
+function HUD_endCourtVote()
+	getObjectFromGUID(G.battlegrounds.g).call("EndVote")
+end
 
 
 function HUD_show(player, value, id)
   local imageID = string.gsub(id, "hud", "")
+	if string.match(id, "MakeFourthRow") ~= nil then
+		F.spawnFourthRowBoard(player.color)
+		return
+	end
 
   -- Get value of toggle element to see if it's currently toggled on
   local curVal = UI.getValue(id)
@@ -260,6 +282,11 @@ function HUD_dim(player, value, id)
     local overlayID = id .. "Overlay"
     UI.setAttribute(overlayID, "color", "clear")
   end
+end
+function HUD_generateFourthRowBoard(player, value, id)
+
+
+
 end
 
 function HUD_cameraSet(player, value, id)

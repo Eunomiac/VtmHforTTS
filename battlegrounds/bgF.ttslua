@@ -41,6 +41,18 @@ local function updateInvestigatorSnaps()
 	investigatorSnaps.east = iSnaps[2]
 	investigatorSnaps.west = iSnaps[3]
 	investigatorSnaps.south = iSnaps[4]
+	local investigatorTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.center[1]), "Investigator")
+	log(investigatorTokens)
+	table.sort(investigatorTokens, function(a, b) return a.getPosition().z > b.getPosition().z end)
+	log(investigatorTokens)
+	investigatorTokens[1].highlightOn({0, 0, 0})
+	investigatorTokens[2].highlightOn(C.AnkhColors.East)
+	investigatorTokens[3].highlightOn(C.AnkhColors.West)
+	investigatorTokens[4].highlightOn(C.AnkhColors.South)
+	investigatorTokens[1].setName("Investigator (North)")
+	investigatorTokens[2].setName("Investigator (East)")
+	investigatorTokens[3].setName("Investigator (West)")
+	investigatorTokens[4].setName("Investigator (South)")
 end
 
 local function updateAnkhSnaps()
@@ -49,7 +61,6 @@ local function updateAnkhSnaps()
 		ankhSnaps[lowDir] = U.filter(translateSnapCoords(), function(sPt) return U.isIn(dir, sPt.tags) end)
 		table.sort(ankhSnaps[lowDir], function(a, b) return a.position.x > b.position.x end)
 	end)
-
 end
 
 function onLoad()
@@ -113,7 +124,9 @@ function OnObjectEnterZone(params)
 end
 
 function OnObjectLeaveZone(params)
-	params.object.highlightOff()
+	if params.object.hasTag("Ankh") then
+		params.object.highlightOff()
+	end
 end
 
 function SendObjectHome(obj)

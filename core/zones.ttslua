@@ -11,27 +11,8 @@ local maxInfamy = 0
 local isCheckingSuspicion = false
 local isShowingPowerOnly = false
 local bloodlineZones = {}
-
 local higherBloodlineZones = {}
-
-function Z.onLoad()
-	bloodlineZones = U.map(G.zones.allPlayer, function(zoneGUID) return getObjectFromGUID(zoneGUID) end)
-	U.forEach(C.Colors, function(color)
-		higherBloodlineZones[G.zones[color].bloodline[2][2]] = G.zones[color].bloodline[1][1]
-		for i = 1, 3 do
-			higherBloodlineZones[G.zones[color].bloodline[i + 2][2]] = G.zones[color].bloodline[2][i]
-		end
-	end)
-	U.forEach(Z.getPlayerZones(), function(zone)
-		zone.addTag("TitleToken")
-	end)
-	Z.refreshUI()
-end
-
-local zoneTags = {
-	aftermath = { "Obligation" }
-}
---#endregion
+local zoneThrottle = {}
 
 local battlegrounds = {
 	left = "g",
@@ -39,12 +20,46 @@ local battlegrounds = {
 	right = "b"
 }
 
+local function throttleZone(zone, func, delay)
+	if delay == nil then delay = 0.4 end
+	zoneThrottle[zone.guid] = true
+	Wait.time(function()
+		func()
+		zoneThrottle[zone.guid] = nil
+	end, delay)
+end
+
+local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
+
+local function getBattleground(dir) return getObjectFromGUID(G.battlegrounds[battlegrounds[dir]]) end
+
+local function getBattlegroundOfZone(zone)
+	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then return getBattleground("left") end
+	if U.isIn(zone.guid, G.zones.battlegroundZones.center) then return getBattleground("center") end
+	if U.isIn(zone.guid, G.zones.battlegroundZones.right) then return getBattleground("right") end
+	return nil
+end
+
+function Z.onLoad()
+	Z.updateBloodlineZones()
+end
+--#endregion
+
+function Z.updateBloodlineZones()
+	U.forEach(C.Colors, function(color)
+		higherBloodlineZones[G.zones[color].bloodline[2][2]] = G.zones[color].bloodline[1][1]
+		for i = 1, 3 do
+			higherBloodlineZones[G.zones[color].bloodline[i + 2][2]] = G.zones[color].bloodline[2][i]
+		end
+	end)
+end
+
 function Z.getZoneColor(zone)
-	if U.isIn(zone.guid, U.flatten(G.zones.Red)) then
+	if U.isIn(zone.guid, U.map(G.getBloodlineZones("Red"), function(zn) return zn.guid end)) then
 		return "Red"
-	elseif U.isIn(zone.guid, U.flatten(G.zones.Yellow)) then
+	elseif U.isIn(zone.guid, U.map(G.getBloodlineZones("Yellow"), function(zn) return zn.guid end)) then
 		return "Yellow"
-	elseif U.isIn(zone.guid, U.flatten(G.zones.Blue)) then
+	elseif U.isIn(zone.guid, U.map(G.getBloodlineZones("Blue"), function(zn) return zn.guid end)) then
 		return "Blue"
 	end
 end
@@ -53,7 +68,7 @@ function Z.isInOtherBloodlineZone(zone, object)
 	local zoneGUID = zone.guid
 	local objGUID = object.guid
 	local zonePosX = U.round(zone.getPosition().x, 0)
-	for _, otherZone in pairs(bloodlineZones) do
+	for _, otherZone in pairs(G.getBloodlineZones()) do
 		if zoneGUID ~= otherZone.guid and zonePosX ~= U.round(otherZone.getPosition().x, 0) then
 			if U.find(otherZone.getObjects(), function(obj) return obj.guid == objGUID end) ~= nil then
 				return true
@@ -124,7 +139,7 @@ function Z.activateZones()
 	S.setStateVal(false, "allZonesLocked")
 	UI.setAttribute("debugToggleZones", "color", "#00FF00")
 	UI.setAttribute("debugToggleZones", "text", "Zones (Active)")
-	Z.refreshUI()
+	-- Z.refreshUI()
 end
 
 function Z.hideZones()
@@ -154,6 +169,10 @@ function Z.showZones()
 	Wait.time(Z.activateZones, 0.25)
 end
 
+function Z.spawnChildZones(color, centerPos, spacing)
+
+end
+
 function Z.writePosToTaggedObjectsInZone(zone, tags, mode, stateKey, stateSubKey)
 	if mode == nil then mode = "desc" end
 	U.forEach(Z.getTaggedZoneObjects(zone, tags), function(obj)
@@ -175,38 +194,35 @@ function Z.writePosToTaggedObjectsInZone(zone, tags, mode, stateKey, stateSubKey
 end
 
 -- *** Events ***
-local zoneThrottle = {}
-local function throttleZone(zone, func, delay)
-	if delay == nil then delay = 0.4 end
-	zoneThrottle[zone.guid] = true
-	Wait.time(function()
-		func()
-		zoneThrottle[zone.guid] = nil
-	end, delay)
-end
-
-local function isThrottled(zone) return zoneThrottle[zone.guid] == true end
-
-local function getBattleground(dir) return getObjectFromGUID(G.battlegrounds[battlegrounds[dir]]) end
-
-local function getBattlegroundOfZone(zone)
-	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then return getBattleground("left") end
-	if U.isIn(zone.guid, G.zones.battlegroundZones.center) then return getBattleground("center") end
-	if U.isIn(zone.guid, G.zones.battlegroundZones.right) then return getBattleground("right") end
-	return nil
-end
 
 function Z.onObjectEnterZone(zone, object)
 	if S.getStateVal("allZonesLocked") == true then return end
-	if isThrottled(zone) then return end
+	if Z.isAftermathZone(zone) then return end
+	if Z.isMainQueueZone(zone) then return end
+	if S.isInPhase("INIT") and zone.hasTag("ClanLeader") and object.hasTag("ClanLeader") then
+		local bg = getObjectFromGUID(G.battlegrounds.right)
+		if bg == nil then return end
+		local color = Z.getZoneColor(zone)
+		-- log("Unlocked. Color = " .. color)
+		if color == nil then return end
+		bg.call("UpdateMoralityToken", {color = color})
+		return
+	end
+	-- if S.isInPhase("SCORING") then
+	-- 	Wait.time(function()
+	-- 		M.updatePlayerScore(color)
+	-- 	end, 1)
+	-- end
 	if Z.isPlayerCardZone(zone) then
 		if S.getStateVal("playerZonesLocked") == true then return end
 		throttleZone(zone, function()
 			if S.isInPhase("AFTERMATH") or S.isInPhase("END") then return end
+			-- log("Player Zone, Phase OK, Aligning Card.")
 			Z.alignCard(zone)
 			Wait.time(function() Z.refreshUI(zone) end, 0.5)
 			if not S.isInPhase("PLAY") then return end
 			if object.type == "Card" then
+				-- object.use_hands = false
 				getObjectFromGUID(G.charQueue).call("Populate_Queue")
 			end
 			if isCheckingSuspicion and (object.hasTag("ExhaustTorpor") or object.hasTag("Infamy")) then
@@ -237,8 +253,15 @@ function Z.onObjectEnterZone(zone, object)
 end
 
 function Z.onObjectLeaveZone(zone, object)
+
 	if S.getStateVal("allZonesLocked") == true then return end
+	if Z.isAftermathZone(zone) then return end
+	if Z.isMainQueueZone(zone) then return end
+
 	if Z.isPlayerCardZone(zone) then
+		if object.type == "Card" then
+			object.use_hands = true
+		end
 		if object.hasTag("Character") or object.hasTag("ClanLeader") then
 			object.removeTag("TopChar")
 			object.removeTag("Monstrosity_1")
@@ -255,9 +278,9 @@ function Z.onObjectLeaveZone(zone, object)
 		return
 	end
 	if not S.isInPhase("PLAY") then return end
-	if Z.isMainQueueZone(zone) and object.type == "Card" then
-		object.setRotation(U.pRotation(object.getRotation(), 180))
-	elseif Z.isBattlegroundZone(zone) then
+	-- if Z.isMainQueueZone(zone) and object.type == "Card" then
+		-- object.setRotation(U.pRotation(object.getRotation(), 180))
+	if Z.isBattlegroundZone(zone) then
 		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			dimBattleground(zone)
 		end
@@ -266,22 +289,16 @@ function Z.onObjectLeaveZone(zone, object)
 	end
 end
 
-function Z.getPlayerZones(color)
-	if color == nil then
-		return U.map(G.zones.allPlayer, function(zoneID) return getObjectFromGUID(zoneID) end)
-	else
-		return U.map(G.zones[color].all, function(zoneID) return getObjectFromGUID(zoneID) end)
-	end
-end
-
 -- *** Zone Type Checking ***
-function Z.isPlayerCardZone(zone) return U.isIn(zone.guid, G.zones.allPlayer) end
+function Z.isPlayerCardZone(zone) return U.isIn(zone.guid, U.map(G.getBloodlineZones(), function(zn) return zn.guid end)) end
 
 function Z.isTokenClearZone(zone) return U.isIn(zone.guid, G.zones.clearZones) end
 
 function Z.isBattlegroundZone(zone) return U.isIn(zone.guid, U.flatten(G.zones.battlegroundZones)) end
 
 function Z.isMainQueueZone(zone) return U.isIn(zone.guid, U.flatten({ G.zones.missionQueue, G.zones.charQueue })) end
+
+function Z.isAftermathZone(zone) return U.isIn(zone.guid, G.zones.allAftermath) end
 
 -- *** Zone Object Retrieval ***
 function Z.getTaggedZoneObjects(zone, tags, requireAll)
@@ -414,7 +431,7 @@ function Z.scoreZone(zone) return Z.countPower(zone) + Z.countBoons(zone) - Z.co
 
 function Z.scoreBloodline(color)
 	local scoreTotal = 0
-	for _, zone in pairs(Z.getPlayerZones(color)) do
+	for _, zone in pairs(G.getBloodlineZones(color)) do
 		scoreTotal = scoreTotal + Z.scoreZone(zone)
 	end
 	return scoreTotal
@@ -566,7 +583,7 @@ local function getScoreXML(scoreData)
 		powerPanelXML.attributes.width = "100"
 		powerPanelXML.attributes.rectAlignment = "MiddleCenter"
 		if Z.hasTitle(scoreData.zone) then
-			log("HAS TITLE")
+			-- log("HAS TITLE")
 			powerPanelXML.children = {}
 		else
 			powerPanelXML.children[1].attributes.rectAlignment = "MiddleCenter"
@@ -825,7 +842,7 @@ end
 
 function Z.refreshUI(zone)
 	if zone == nil then
-		for _, z in pairs(Z.getPlayerZones()) do
+		for _, z in pairs(G.getBloodlineZones()) do
 			refreshUI(z)
 		end
 	else
@@ -834,7 +851,7 @@ function Z.refreshUI(zone)
 end
 
 function Z.showScores()
-	for _, zone in pairs(Z.getPlayerZones()) do
+	for _, zone in pairs(G.getBloodlineZones()) do
 		initXML(zone)
 		uiData[zone.guid].scoreXML = {}
 	end
@@ -843,7 +860,7 @@ end
 
 function Z.hideScores()
 	isShowingPowerOnly = false
-	for _, zone in pairs(Z.getPlayerZones()) do
+	for _, zone in pairs(G.getBloodlineZones()) do
 		initXML(zone)
 		uiData[zone.guid].scoreXML = nil
 	end
@@ -857,7 +874,7 @@ end
 
 local function refreshMaxInfamy()
 	maxInfamy = 0
-	for _, zone in pairs(Z.getPlayerZones()) do
+	for _, zone in pairs(G.getBloodlineZones()) do
 		local infamyCount = Z.countInfamy(zone)
 		if infamyCount > maxInfamy then
 			maxInfamy = infamyCount
@@ -892,11 +909,14 @@ local function checkToLockCard(zone)
 	end
 end
 
-local vertBase = -0.11
+local vertBases = {standard = -0.11, fourthRow = 0.17}
 local vertStep = 0.03
 local zoneVertDisp = 0.12
 local mDownDisp = 1
+
 function Z.alignCard(zone)
+	local vertBase = vertBases.standard
+	if zone.hasTag("FourthRow") then vertBase = vertBases.fourthRow end
 	local monstrosityTags = { "Monstrosity_1", "Monstrosity_2", "Monstrosity_3" }
 	local allTags = U.concat({ "TopChar" }, monstrosityTags)
 
@@ -955,6 +975,7 @@ function Z.alignCard(zone)
 			local thisCard = U.find(zoneCharCards,
 				function(card) return card.hasTag(tag) and not Z.isInHigherBloodlineZone(zone, card) end)
 			if thisCard then
+				-- thisCard.use_hands = false
 				if #monstrosityCards < 3 then
 					table.insert(monstrosityCards, thisCard)
 				end
@@ -1016,7 +1037,11 @@ function Z.alignCard(zone)
 	local zoneSchemeCards = Z.getTaggedZoneObjects(zone, { "ClanScheme", "Brujah" }, true)
 	if #zoneSchemeCards == 0 then return end
 	if #zoneCharCards == 0 then
-		U.forEach(zoneSchemeCards, Z.discardEnemyScheme)
+		U.forEach(zoneSchemeCards, function(card)
+			card.setLock(false)
+			card.setScale({1, 1, 1})
+			card.use_hands = true
+		end)
 	else
 		local zoneBounds = U.getZoneBounds(zone)
 		for i = 1, #zoneSchemeCards do
@@ -1169,16 +1194,16 @@ function Z.discardEnemyScheme(enemyScheme)
 	else
 		return
 	end
-	local schemeDiscard = getObjectFromGUID(G.playerObjs[playerColor].schemeDiscard)
+	local schemeDiscard = getObjectFromGUID(G.playerObjs[playerColor].schemeDiscardSpot)
 	pos = schemeDiscard.getPosition()
 	pos.y = pos.y + 0.5
 	enemyScheme.setPositionSmooth(pos)
 end
 
 function Z.discardTorporedVamps()
-	local discardPos = getObjectFromGUID(G.decks.characterDiscardSpot).getPosition()
+	local discardPos = getObjectFromGUID(G.globalSpots.charDiscard).getPosition()
 	discardPos.y = discardPos.y + 1
-	for _, zone in pairs(Z.getPlayerZones()) do
+	for _, zone in pairs(G.getBloodlineZones()) do
 		if (Z.isTorpored(zone)) then
 			-- for _, obj in pairs(Z.getTaggedZoneObjects(zone, { "Power", "Infamy", "ExhaustTorpor" })) do
 			-- 	obj.destruct()
@@ -1204,7 +1229,7 @@ function Z.returnAnkhs(dir, isAwardingPower)
 	if isAwardingPower == nil then isAwardingPower = true end
 	if not S.isInPhase("PLAY") then isAwardingPower = false end
 
-	for _, zone in pairs(Z.getPlayerZones()) do
+	for _, zone in pairs(G.getBloodlineZones()) do
 		local returningAnkhs = Z.getAnkhs(zone, dir)
 		-- U.forEach(returningAnkhs, function(obj) BGE.sendAnkhHome(obj) end)
 		if (isAwardingPower and #returningAnkhs > 0) then
@@ -1263,11 +1288,11 @@ function Z.makeSnapsForCourt()
 	-- end
 
 	-- local tableSnaps = U.concat(
-	-- 	U.map(Z.getPlayerZones(), makeCourtSnap),
-	-- 	U.map(Z.getPlayerZones(), transferSlotSnap)
+	-- 	U.map(G.getBloodlineZones(), makeCourtSnap),
+	-- 	U.map(G.getBloodlineZones(), transferSlotSnap)
 	-- )
 
-	local tableSnaps = U.map(Z.getPlayerZones(), makeCourtSnap)
+	local tableSnaps = U.map(G.getBloodlineZones(), makeCourtSnap)
 
 	table.setSnapPoints(tableSnaps)
 end

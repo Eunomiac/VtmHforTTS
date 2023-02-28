@@ -8,28 +8,35 @@ local G = require("lib.guids")
 local bg, bgZone, cityZone, titleZone
 local isVoting = false
 local titles = {"Harpy", "Sheriff", "Primogen", "Prince"}
+local titleCoins = {
+	Harpy = "df10c6",
+	Sheriff = "a39f31",
+	Primogen = "62df39",
+	Prince = "6b1e96"
+}
 local titleStands = {
-	Harpy = "7d34bd",
-	Sheriff = "3b4d12",
-	Primogen = "e250a5",
-	Prince = "028baf"
+	Harpy = "ed9143",
+	Sheriff = "586ef2",
+	Primogen = "dffb3e",
+	Prince = "117a9a"
+}
+local titleRisers = {
+	Harpy = "5ad580",
+	Sheriff = "1a0d2a",
+	Primogen = "39b1e4",
+	Prince = "83eccc"
 }
 
-local function getClassTokens() return getObjectsWithTag("ClassToken") end
-local function getCityTokens() return Z.getTaggedZoneObjects(cityZone, {"ClassToken"}) end
-local function getOutsideTokens()
-	local cityTokenGUIDs = U.map(getCityTokens(), function(tok) return tok.guid end)
-	return U.filter(Z.getTaggedZoneObjects(bgZone, {"ClassToken"}), function (tok)
-		return not U.isIn(tok.guid, cityTokenGUIDs)
-	end)
-end
-local function getTimerToken()
-	return getObjectsWithTag("TimerToken")[1]
-end
+local tokenColors = {
+	faded = {8/255, 8/255, 8/255, 1},
+	default = {42/255, 0, 0, 1},
+	highlighted = {127/255, 85/255, 16/255, 1}
+}
+
 local function getTimerTitle()
-	local timerSlot = U.findSnapPoint(bg, getTimerToken())
-	if timerSlot ~= nil and timerSlot >= 5 and timerSlot <= 8 then
-		return titles[timerSlot - 4]
+	local timerSlot = U.findSnapPoint(bg, getObjectsWithTag("TimerToken")[1])
+	if type(timerSlot) == "number" and timerSlot <= 4 then
+		return titles[timerSlot]
 	end
 end
 
@@ -40,79 +47,249 @@ local function getTitleToken(title)
 	return getObjectsWithTag(title)[1]
 end
 
-local function getTitlePodium(title)
+local function getTitleObj(title, guidIndex)
+	if guidIndex == nil then return end
 	if title == nil then
 		title = getTimerTitle()
 	elseif type(title) == "userdata" then
 		title = title.getName()
 	end
+	if type(title) ~= "string" or guidIndex[title] == nil then return end
 
-	if type(title) ~= "string" or titleStands[title] == nil then return end
-
-	return getObjectFromGUID(titleStands[title])
+	return getObjectFromGUID(guidIndex[title])
 end
 
-local function recallTitle(titleToken)
-	if type(titleToken) == "string" then
-		titleToken = getTitleToken(titleToken)
+local function getTitleStand(title) return getTitleObj(title, titleStands) end
+local function getTitleCoin(title) return getTitleObj(title, titleCoins) end
+local function getTitleRiser(title) return getTitleObj(title, titleRisers) end
+
+local titleTokens, cityTokens, curTitleToken, titleStand, titleCoin, titleRiser, timerToken
+local function updateCityTokens() cityTokens = Z.getTaggedZoneObjects(cityZone, {"ClassToken"}) end
+local function updateTitleObjs()
+	titleTokens = U.map(titles, function(title) return getTitleToken(title) end)
+	curTitleToken = getTitleToken()
+	titleStand = getTitleStand()
+	titleCoin = getTitleCoin()
+	titleRiser = getTitleRiser()
+	timerToken = getObjectsWithTag("TimerToken")[1]
+end
+local function tallyVotes()
+	if #U.filter(cityTokens, function(token) return U.isFlipped(token) end) >= 3 then
+		UI.setAttribute("courtVoteNotice-elitist", "active", "true")
+		UI.setAttribute("courtVoteNotice-egalitarian", "active", "false")
+	else
+		UI.setAttribute("courtVoteNotice-elitist", "active", "false")
+		UI.setAttribute("courtVoteNotice-egalitarian", "active", "true")
 	end
-	local titlePodium = getTitlePodium(titleToken)
-	if titleToken ~= nil and titlePodium ~= nil then
-		local titlePos = titlePodium.getPosition()
-		titlePos.y = 5
-		titleToken.setPositionSmooth(titlePos)
-		titleToken.setRotation({x = 0, y = 0, z = 0})
-	end
+	UI.setValue("courtVoteNotice-title", getTimerTitle())
 end
 
-local function extendTitleStand(titleToken)
-	local titlePodium = getTitlePodium(titleToken.getName())
-	if titlePodium == nil then return end
+local function recallTitle(tToken)
+	local tCoin
+	if tToken == nil then
+		tToken = curTitleToken
+		tCoin = titleCoin
+	elseif type(tToken) == "string" then
+		tToken = getTitleToken(tToken)
+		tCoin = getTitleCoin(tToken)
+	end
+	if tToken == nil or tCoin == nil then return end
 
-	local podiumPos = titlePodium.getPosition()
-	if podiumPos.y > 3.5 then return end
-	podiumPos.y = podiumPos.y + 2
-	titleToken.setLock(true)
-	local titlePos = titleToken.getPosition()
-	titlePos.y = titlePos.y + 2.1
-	titlePodium.setPositionSmooth(podiumPos)
-	titleToken.setPositionSmooth(titlePos)
-	Wait.time(function() titleToken.setLock(false) end, 1)
+	local titlePos = tCoin.getPosition()
+	titlePos.y = titlePos.y + 0.5
+	tToken.setPositionSmooth(titlePos)
+	tToken.setRotation({x = 0, y = 0, z = 0})
+	return tToken
 end
 
-function CallVote()
-	local titleToken = getTitleToken()
-	if titleToken == nil then return end
-	local titlePos = titleToken.getPosition()
-	if titlePos.z < 0 then
-		return M.sequence({
-			function() recallTitle(titleToken) end,
-			CallVote
-		}, 2)
+local function elevateObj(obj, height)
+	if height == nil then height = 1 end
+	local pos = obj.getPosition()
+	pos.y = pos.y + height
+	obj.setPositionSmooth(pos, false, false)
+	return obj
+end
+
+local function raiseTitleStand()
+	U.waitRestingSequence({
+		function()
+			elevateObj(titleCoin)
+			elevateObj(titleStand)
+			elevateObj(titleRiser)
+			if curTitleToken.getPosition().z > 0 then
+				curTitleToken.setLock(true)
+				curTitleToken.setRotation({0, 0, 0})
+				elevateObj(curTitleToken)
+			end
+			return titleStand
+		end,
+		function()
+			curTitleToken.setLock(false)
+		end
+	})
+	return titleStand  -- 16.35
+end
+
+local function raiseTitleRiser()
+	U.waitRestingSequence({
+		function()
+			elevateObj(titleRiser, 1.5)
+			if curTitleToken.getPosition().z > 0 then
+				curTitleToken.setLock(true)
+				curTitleToken.setRotation({0, 0, 0})
+				elevateObj(curTitleToken, 1.5)
+			end
+			return titleRiser
+		end,
+		function()
+			curTitleToken.setLock(false)
+		end
+	})
+	return titleRiser
+end
+
+local function raiseNextTitle()
+	updateTitleObjs()
+	local funcs = {}
+	if titleCoin.getPosition().y < 4 then
+		table.insert(funcs, raiseTitleStand)
 	end
-	if isVoting == true then return end
+
+	U.waitRestingSequence(funcs)
+end
+
+local function presentTitle()
 	isVoting = true
 
-	extendTitleStand(titleToken)
-
-	local cityTokens = getCityTokens()
-	local egalTokens = 0
-	U.forEach(cityTokens, function(tok)
-		if U.isFlipped(tok) then
-			egalTokens = egalTokens + 1
-		end
+	local funcs = {}
+	if curTitleToken.getPosition().z < 0 then
+		table.insert(funcs, recallTitle)
+	end
+	if titleCoin.getPosition().y < 4 then
+		table.insert(funcs, raiseTitleStand)
+	end
+	table.insert(funcs, raiseTitleRiser)
+	table.insert(funcs, function()
+		U.forEach(titleTokens, function(tToken)
+			if tToken.hasTag(getTimerTitle()) then
+				tToken.setColorTint(tokenColors.highlighted)
+			else
+				tToken.setColorTint(tokenColors.faded)
+			end
+		end)
 	end)
 
-	if egalTokens >= 3 then
-		UI.setAttribute("courtVoteNotice-egalitarian", "active", "true")
-		UI.setAttribute("courtVoteNotice-elitist", "active", "false")
-	else
-		UI.setAttribute("courtVoteNotice-egalitarian", "active", "false")
-		UI.setAttribute("courtVoteNotice-elitist", "active", "true")
+	U.waitRestingSequence(funcs)
+end
+
+local function lowerObj(obj, height)
+	if height == nil then height = -1 end
+	local pos = obj.getPosition()
+	pos.y = pos.y + height
+	obj.setPositionSmooth(pos, false, false)
+	return obj
+end
+
+local function lowerTitleStand()
+	U.waitRestingSequence({
+		function()
+			lowerObj(titleCoin)
+			lowerObj(titleStand)
+			lowerObj(titleRiser)
+			-- if titleToken.getPosition().z > 0 then
+			-- 	titleToken.setLock(true)
+			-- 	titleToken.setRotation({0, 0, 0})
+			-- 	lowerObj(titleToken)
+			-- end
+			return titleStand
+		end,
+		function()
+			curTitleToken.setLock(false)
+		end
+	})
+	return titleStand  -- 16.35
+end
+
+local function lowerTitleRiser()
+	U.waitRestingSequence({
+		function()
+			lowerObj(titleRiser, -1.5)
+			-- if titleToken.getPosition().z > 0 then
+			-- 	titleToken.setLock(true)
+			-- 	titleToken.setRotation({0, 0, 0})
+			-- 	lowerObj(titleToken, 1.5)
+			-- end
+			return titleRiser
+		end,
+		function()
+			curTitleToken.setLock(false)
+		end
+	})
+	return titleRiser
+end
+
+local function advanceTimer()
+	local timerSlot = U.findSnapPoint(bg, timerToken)
+	if type(timerSlot) == "number" then
+		if timerSlot == 4 then timerSlot = 1
+		else timerSlot = timerSlot + 1 end
+		local timerPos = bg.positionToWorld(bg.getSnapPoints()[timerSlot].position)
+		timerPos.y = timerPos.y + 1
+		timerToken.setPositionSmooth(timerPos)
 	end
+	return timerToken
+end
 
-	UI.setValue("courtVoteNotice-title", titleToken.getName())
+local function restoreBaseTitleColors()
+	U.forEach(titleTokens, function(tToken) tToken.setColorTint(tokenColors.default) end)
+	return curTitleToken
+end
+local function unPresentTitle()
+	local funcs = {}
+	table.insert(funcs, restoreBaseTitleColors)
+	if titleRiser.getPosition().y > 2 then
+		table.insert(funcs, lowerTitleRiser)
+	end
+	if titleCoin.getPosition().y > 4 then
+		table.insert(funcs, lowerTitleStand)
+	end
+	table.insert(funcs, advanceTimer)
+	table.insert(funcs, raiseNextTitle)
 
+	U.waitRestingSequence(funcs)
+end
+
+PresentTitle = presentTitle
+
+-- local function extendTitleStand(tToken)
+-- 	local tPodium
+-- 	if tToken == nil then
+-- 		tToken = titleToken
+-- 		tPodium = titlePodium
+-- 	elseif type(tToken) == "string" then
+-- 		tToken = getTitleToken(tToken)
+-- 		tPodium = getTitlePodium(tToken)
+-- 	end
+-- 	if tPodium == nil then return end
+
+-- 	local podiumPos = tPodium.getPosition()
+-- 	if podiumPos.y > 3.5 then return end
+-- 	podiumPos.y = podiumPos.y + 2
+-- 	tToken.setLock(true)
+-- 	local titlePos = tToken.getPosition()
+-- 	titlePos.y = titlePos.y + 2.1
+-- 	tPodium.setPositionSmooth(podiumPos)
+-- 	tToken.setPositionSmooth(titlePos)
+-- 	Wait.time(function() tToken.setLock(false) end, 1)
+-- end
+
+function OnTitlePickup(params)
+	if isVoting == true and params.token.hasTag(getTimerTitle()) then
+		unPresentTitle()
+	end
+end
+
+local function showVoteResults()
 	UI.show("courtVoteNotice")
 	UI.show("courtVoteNotice_1")
 	UI.show("courtVoteNotice_2")
@@ -120,39 +297,66 @@ function CallVote()
 	Z.showPowerOnly()
 end
 
-local function retractTitleStand()
-	local titleStand = getTitlePodium()
-	if titleStand == nil then return end
-	local pos = titleStand.getPosition()
-	if pos.y > 3.5 then
-		pos.y = pos.y - 2
-		titleStand.setPositionSmooth(pos)
+function CheckForVote(skipChecks)
+	local funcs = {}
+
+	if skipChecks ~= true then
+		if isVoting == true then return end
+		updateCityTokens()
+		if #cityTokens < 5 then return end
+		updateTitleObjs()
+		if curTitleToken == nil then return end
+		isVoting = true
+		local titleTokenPos = curTitleToken.getPosition()
+		if titleTokenPos.z < 0 then
+			recallTitle()
+			U.waitTillRestingThen(curTitleToken, function() CheckForVote(true) end)
+			return
+		end
 	end
+
+	U.sequence({
+		tallyVotes,
+		presentTitle,
+		showVoteResults
+	}, 1, true)
+
 end
 
-local function advanceTimer()
-	local timerToken = getTimerToken()
-	if timerToken == nil then return end
-	local timerSlot = U.findSnapPoint(bg, getTimerToken())
-	if timerSlot ~= nil and timerSlot >= 5 and timerSlot <= 8 then
-		if timerSlot == 8 then
-			timerSlot = 5
-		else
-			timerSlot = timerSlot + 1
-		end
-		local timerPos = bg.positionToWorld(bg.getSnapPoints()[timerSlot].position)
-		timerPos.y = timerPos.y + 1
-		timerToken.setPositionSmooth(timerPos)
-	end
+local function retractTitleStand(tToken)
+	-- local tStand
+	-- if tToken == nil then
+	-- 	tToken = titleToken
+	-- 	tStand = titleStand
+	-- elseif type(tToken) == "string" then
+	-- 	tToken = getTitleToken(tToken)
+	-- 	tStand = getTitlePodium(tToken)
+	-- end
+	-- if tStand == nil then return end
+
+	-- local pos = tStand.getPosition()
+	-- if pos.y > 3.5 then
+	-- 	local titleTokenPos = titleToken.getPosition()
+	-- 	if titleTokenPos.z > 0 and titleTokenPos.y > 3 then
+	-- 		titleTokenPos.y = titleTokenPos.y - 2
+	-- 		tToken.setLock(true)
+	-- 		tToken.setPositionSmooth(titleTokenPos)
+	-- 	end
+	-- 	pos.y = pos.y - 2
+	-- 	tStand.setPositionSmooth(pos)
+	-- 	Wait.time(function() tToken.setLock(false) end, 1.5)
+	-- end
 end
+
+
 
 local function recallVotes()
 	local classTokens = getObjectsWithTag("ClassToken")
 	if #classTokens ~= 5 then
 		return U.alertGM("Wrong number of class tokens found (" .. #classTokens .. ")")
 	end
-	M.sequence(U.map({9, 10, 11, 12, 13}, function(snapIndex)
-		local token = classTokens[snapIndex - 8]
+	U.sequence(U.map({5, 6, 7, 8, 9}, function(snapIndex)
+		local token = classTokens[snapIndex - 4]
 		local tokenPos = bg.positionToWorld(bg.getSnapPoints()[snapIndex].position)
 		tokenPos.y = tokenPos.y + 1
 		local tokenRot
@@ -165,19 +369,27 @@ local function recallVotes()
 			token.setPositionSmooth(tokenPos)
 			token.setRotationSmooth(tokenRot)
 		end
-	end), 0.1)
+	end), 0.1, false)
 end
 
 function EndVote()
-	retractTitleStand()
-	advanceTimer()
-	recallVotes()
-	Z.hideScores()
-	isVoting = false
+	U.sequence({
+		retractTitleStand,
+		recallVotes,
+		advanceTimer,
+		Z.hideScores,
+		function()
+			isVoting = false
 
-	UI.setAttribute("courtVoteNotice", "active", "false")
-	UI.setAttribute("courtVoteNotice_1", "active", "false")
-	UI.setAttribute("courtVoteNotice_2", "active", "false")
+			UI.setAttribute("courtVoteNotice", "active", "false")
+			UI.setAttribute("courtVoteNotice_1", "active", "false")
+			UI.setAttribute("courtVoteNotice_2", "active", "false")
+		end,
+		1,
+		function()
+			isVoting = false
+		end
+	})
 end
 
 function onLoad()
@@ -185,29 +397,32 @@ function onLoad()
 	bgZone = getObjectFromGUID(G.zones.battlegroundZones.left[1])
 	cityZone = getObjectFromGUID(G.zones.bgGEndZone)
 	titleZone = getObjectFromGUID(G.zones.bgGTitleZone)
+	updateTitleObjs()
+	updateCityTokens()
 end
+
 
 function OnObjectEnterZone(params)
 	local zone, object = params.zone, params.object
-	if not isVoting and zone.guid == cityZone.guid and object.hasTag("ClassToken") and #getCityTokens() == 5 then
-		CallVote()
+	if not isVoting and zone.guid == cityZone.guid and object.hasTag("ClassToken") then
+		Wait.time(CheckForVote, 2)
 	end
 end
 
 function OnObjectLeaveZone(params)
-	log("Leaving Zone!")
+	-- log("Leaving Zone!")
 	local zone, object = params.zone, params.object
-	log({isVoting = isVoting, zoneGUID = zone.guid, titleGUID = titleZone.guid, hasTag = object.hasTag("TitleToken")})
+	-- log({isVoting = isVoting, zoneGUID = zone.guid, titleGUID = titleZone.guid, hasTag = object.hasTag("TitleToken")})
 	if isVoting and zone.guid == titleZone.guid and object.hasTag("TitleToken") then
 		Wait.time(EndVote, 2)
 	end
 end
 
 function Reset()
-	M.sequence({
+	U.sequence({
 		function()
-			local timerToken = getTimerToken()
-			local timerPos = bg.positionToWorld(bg.getSnapPoints()[5].position)
+			local timerToken = getObjectsWithTag("TimerToken")[1]
+			local timerPos = bg.positionToWorld(bg.getSnapPoints()[1].position)
 			timerPos.y = timerPos.y + 1
 			timerToken.setPositionSmooth(timerPos)
 		end,
@@ -218,5 +433,5 @@ function Reset()
 			recallTitle("Primogen")
 			recallTitle("Prince")
 		end
-	})
+	}, 0.5, false)
 end

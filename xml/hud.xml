@@ -25,7 +25,7 @@
   <!-- Right Sidebar -->
   <Panel class="hud-sidebar-right"
     rectAlignment="LowerRight"
-    height="500" width="120"
+    height="605" width="125"
     offsetXY="0 100" />
   <VerticalLayout class="hud-sidebar-right"
     height="100%" width="100%"
@@ -50,6 +50,8 @@
   <Image class="hud-ref-image-clan" width="60%" />
 
 </Defaults>
+
+
 <Panel id="heritageHUDRed" visibility="Red">
   <Panel id="hudSidebarRed" class="hud-sidebar-right" visibility="Red">
     <VerticalLayout class="hud-sidebar-right">
@@ -61,9 +63,15 @@
       <Image id="hudRefAssetsRed"
         class="hud-ref-button hud-ref-button-base"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeRed"
+      <Image id="hudRefAncillaeARed"
         class="hud-ref-button hud-ref-button-base"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBRed"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCRed"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -111,6 +119,12 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowRed"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
     <VerticalLayout class="hud-sidebar-right">
 
@@ -121,9 +135,15 @@
       <Image id="hudRefAssetsRedOverlay"
         class="hud-ref-button hud-ref-button-overlay"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeRedOverlay"
+      <Image id="hudRefAncillaeARedOverlay"
         class="hud-ref-button hud-ref-button-overlay"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBRedOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCRedOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -171,6 +191,12 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowRedOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
   </Panel>
   <Panel childForceExpandWidth="false" childForceExpandHeight="false" visibility="Red">
@@ -191,9 +217,15 @@
     <Image id="RefAssetsRed"
       class="hud-ref-image" height="25%"
       image="ref-assets" />
-    <Image id="RefAncillaeRed"
+    <Image id="RefAncillaeARed"
       class="hud-ref-image" height="100%"
-      image="ref-ancillae" />
+      image="ref-ancillaeA" />
+    <Image id="RefAncillaeBRed"
+      class="hud-ref-image" height="100%"
+      image="ref-ancillaeB" />
+    <Image id="RefAncillaeCRed"
+      class="hud-ref-image" width="90%"
+      image="ref-ancillaeC" />
     <Image id="RefExpansionsRed"
       class="hud-ref-image" height="90%"
       image="ref-expansions" />
@@ -229,6 +261,7 @@
 
   </Panel>
 </Panel>
+
 <Panel id="heritageHUDYellow" visibility="Yellow">
   <Panel id="hudSidebarYellow" class="hud-sidebar-right" visibility="Yellow">
     <VerticalLayout class="hud-sidebar-right">
@@ -240,9 +273,15 @@
       <Image id="hudRefAssetsYellow"
         class="hud-ref-button hud-ref-button-base"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeYellow"
+      <Image id="hudRefAncillaeAYellow"
         class="hud-ref-button hud-ref-button-base"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBYellow"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCYellow"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -290,6 +329,12 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowYellow"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
     <VerticalLayout class="hud-sidebar-right">
 
@@ -300,9 +345,15 @@
       <Image id="hudRefAssetsYellowOverlay"
         class="hud-ref-button hud-ref-button-overlay"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeYellowOverlay"
+      <Image id="hudRefAncillaeAYellowOverlay"
         class="hud-ref-button hud-ref-button-overlay"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBYellowOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCYellowOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -350,15 +401,21 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowYellowOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
   </Panel>
-  <Panel childForceExpandWidth="false" childForceExpandHeight="false"  visibility="Yellow">
+  <Panel childForceExpandWidth="false" childForceExpandHeight="false" visibility="Yellow">
 
     <!-- Rules References -->
     <Image id="RefPlayersYellow" height="95%"
       class="hud-ref-image"
       image="ref-players" />
-    <Image id="RefTraitsYellow" height="100%"
+    <Image id="RefTraitsYellow" width="95%"
       class="hud-ref-image"
       image="ref-traits" />
     <Image id="RefBattlegroundsYellow" height="80%"
@@ -370,9 +427,15 @@
     <Image id="RefAssetsYellow"
       class="hud-ref-image" height="25%"
       image="ref-assets" />
-    <Image id="RefAncillaeYellow"
+    <Image id="RefAncillaeAYellow"
       class="hud-ref-image" height="100%"
-      image="ref-ancillae" />
+      image="ref-ancillaeA" />
+    <Image id="RefAncillaeBYellow"
+      class="hud-ref-image" height="100%"
+      image="ref-ancillaeB" />
+    <Image id="RefAncillaeCYellow"
+      class="hud-ref-image" width="90%"
+      image="ref-ancillaeC" />
     <Image id="RefExpansionsYellow"
       class="hud-ref-image" height="90%"
       image="ref-expansions" />
@@ -408,6 +471,7 @@
 
   </Panel>
 </Panel>
+
 <Panel id="heritageHUDBlue" visibility="Blue">
   <Panel id="hudSidebarBlue" class="hud-sidebar-right" visibility="Blue">
     <VerticalLayout class="hud-sidebar-right">
@@ -419,9 +483,15 @@
       <Image id="hudRefAssetsBlue"
         class="hud-ref-button hud-ref-button-base"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeBlue"
+      <Image id="hudRefAncillaeABlue"
         class="hud-ref-button hud-ref-button-base"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBBlue"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCBlue"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -469,6 +539,12 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowBlue"
+        class="hud-ref-button hud-ref-button-base"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
     <VerticalLayout class="hud-sidebar-right">
 
@@ -479,9 +555,15 @@
       <Image id="hudRefAssetsBlueOverlay"
         class="hud-ref-button hud-ref-button-overlay"
         image="hud-toggle-assets" />
-      <Image id="hudRefAncillaeBlueOverlay"
+      <Image id="hudRefAncillaeABlueOverlay"
         class="hud-ref-button hud-ref-button-overlay"
-        image="hud-toggle-ancillae" />
+        image="hud-toggle-ancillaeA" />
+      <Image id="hudRefAncillaeBBlueOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeB" />
+      <Image id="hudRefAncillaeCBlueOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-ancillaeC" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
       <Image class="hud-ref-border" image="hud-border-gold-top" />
@@ -529,15 +611,21 @@
         image="hud-toggle-expansions" />
       <Image class="hud-ref-border" image="hud-border-silver-bottom" />
 
+      <Image class="hud-ref-border" image="hud-border-gold-top" />
+			<Image id="hudMakeFourthRowBlueOverlay"
+        class="hud-ref-button hud-ref-button-overlay"
+        image="hud-toggle-fourthRow" />
+      <Image class="hud-ref-border" image="hud-border-gold-bottom" />
+
     </VerticalLayout>
   </Panel>
-  <Panel childForceExpandWidth="false" childForceExpandHeight="false"  visibility="Blue" >
+  <Panel childForceExpandWidth="false" childForceExpandHeight="false" visibility="Blue">
 
     <!-- Rules References -->
     <Image id="RefPlayersBlue" height="95%"
       class="hud-ref-image"
       image="ref-players" />
-    <Image id="RefTraitsBlue" height="100%"
+    <Image id="RefTraitsBlue" width="95%"
       class="hud-ref-image"
       image="ref-traits" />
     <Image id="RefBattlegroundsBlue" height="80%"
@@ -549,9 +637,15 @@
     <Image id="RefAssetsBlue"
       class="hud-ref-image" height="25%"
       image="ref-assets" />
-    <Image id="RefAncillaeBlue"
+    <Image id="RefAncillaeABlue"
       class="hud-ref-image" height="100%"
-      image="ref-ancillae" />
+      image="ref-ancillaeA" />
+    <Image id="RefAncillaeBBlue"
+      class="hud-ref-image" height="100%"
+      image="ref-ancillaeB" />
+    <Image id="RefAncillaeCBlue"
+      class="hud-ref-image" width="90%"
+      image="ref-ancillaeC" />
     <Image id="RefExpansionsBlue"
       class="hud-ref-image" height="90%"
       image="ref-expansions" />
@@ -587,6 +681,7 @@
 
   </Panel>
 </Panel>
+
 
 <Panel id="cameraControlPanel">
   <HorizontalLayout class="hud-camera-controls">

@@ -1,0 +1,237 @@
+# Query: log
+# Flags: CaseSensitive WordMatch RegExp
+# ContextLines: 1
+
+63 results - 14 files
+
+Lua • heritage.ttslua:
+  20  function HUD_testFunc2(player, value, id)
+  21: 	log(U.map(G.getBloodlineZones(), function(zone) return zone.guid end))
+  22  end
+
+Lua • .vscode\settings.json:
+  16  		"Physiecs",
+  17: 		"log",
+  18  		"onLoad",
+
+Lua • battlegrounds\bgD.ttslua:
+   85  function CheckForTrial()
+   86: 	-- log(getTokenData())
+   87  	local judicesTokens = U.filter(getTokenData(),
+
+  109  function EndTrial()
+  110: 	-- log("*** RETURN TO VATICANUM ***")
+  111: 	-- log(getTokenData())
+  112  	U.forEach(getTokenData(),
+
+Lua • battlegrounds\bgE.ttslua:
+  71  	local ankhObjs = U.filter(fireZone.getObjects(), function(obj) return obj.hasTag(dir) end)
+  72: 	-- log({burnedAnkhs = ankhObjs})
+  73  	return ankhObjs
+
+Lua • battlegrounds\bgF.ttslua:
+   70  
+   71: 	-- Wait.time(function() log(JSON.encode_pretty(ankhSnaps)) end, 1)
+   72  end
+
+  147  	U.forEach(bgObjs, SendObjectHome)
+  148: 	-- log(JSON.encode_pretty(ankhSnaps))
+  149  end
+
+Lua • battlegrounds\bgG.ttslua:
+  197  function OnObjectLeaveZone(params)
+  198: 	-- log("Leaving Zone!")
+  199  	local zone, object = params.zone, params.object
+  200: 	-- log({isVoting = isVoting, zoneGUID = zone.guid, titleGUID = titleZone.guid, hasTag = object.hasTag("TitleToken")})
+  201  	if isVoting and zone.guid == titleZone.guid and object.hasTag("TitleToken") then
+
+Lua • core\fourthRow.ttslua:
+  127  	if playerZones == nil then return end
+  128: 	-- log({playerZonesAll = playerZones})
+  129  	local boardZoneIDs = U.map(boardData, function(zn) return zn.guid end)
+  130: 	-- log({boardZoneIDs = boardZoneIDs})
+  131  	playerZones = U.filter(playerZones, function(zoneID) return not U.isIn(zoneID, boardZoneIDs) end)
+  132: 	-- log({playerZonesFiltered = playerZones})
+  133  	S.setStateVal(playerZones, "playerZones", color)
+
+  176  	end)
+  177: 	-- log(objs)
+  178  	local objString = ""
+
+  206  	local boardData = {}
+  207: 	-- log({zoneIDString = zoneIDString, savedObjString = savedObjString, splitObjString = U.split(savedObjString, "|")})
+  208  	if type(zoneIDString) == "string" and zoneIDString ~= "" then
+
+  212  		return U.map(U.split(savedObjString, "|"), function (objString, oString2)
+  213: 			-- log({objString = objString, oString2 = oString2})
+  214  			local objSplit = U.split(objString, ":")
+  215  			local objID, posString = objSplit[1], objSplit[2]
+  216: 			-- log({objId = objID, posString = posString})
+  217  			local posTerms = U.map(U.split(posString, ","), function(numStr) return 1 * numStr end)
+
+  219  			local worldPos = board.positionToWorld(localPos)
+  220: 			-- log({posTerms = posTerms, localPos = localPos, worldPos = worldPos})
+  221  			return {obj = getObjectFromGUID(objID), pos = worldPos}
+
+  228  	Wait.time(function()
+  229: 		-- log({boardData = boardData})
+  230  	if boardData ~= nil then
+
+Lua • core\main.ttslua:
+   746  					turnNum = turnNum * 1
+   747: 					-- log({round = roundNum, turn = turnNum})
+   748  					local isAdvancingTurn = roundNum > 0 and turnNum > 0
+
+   778  function M.recallBlackMarketBoons()
+   779: 	-- log("recallBlackMarketBoons Called")
+   780  
+
+   793  	local boonTokens = Z.getTaggedZoneObjects(schemeZone, "Boon")
+   794: 	-- log({color = nosColor, schemeZone = schemeZone, boonTokens = boonTokens})
+   795  	if #boonTokens == 0 then return end
+
+  1422  	end)
+  1423: 	-- log({localSnapPoints = snapPointPositions,
+  1424  	-- localSnapPointZs = U.map(snapPointPositions, function(pos) return pos.z end)})
+
+  1453  			end)
+  1454: 		-- log({snapPoint4 = positions[4]})
+  1455  		local scorePos
+
+  1588  		return function()
+  1589: 			-- log({schemeClan = U.findClanTag(card)})
+  1590  			moveSchemeToDiscard(card)
+
+  1615  		havenPos.y = havenPos.y + 4
+  1616: 		-- log({player = player, haven = playerHaven, hPos = havenPos})
+  1617  		local assetsInHand = U.filter(player.getHandObjects(), function(obj) return obj.hasTag("Asset") end)
+
+  1692  		function(obj) return string.match(obj.getName(), "Clan Token") ~= nil end)
+  1693: 	-- log({TOKENS = clanTokens})
+  1694  	mainStorage.putObject(victoryBoard)
+
+  2051  
+  2052: 	-- log({clanChests = clanChests})
+  2053  
+
+  2606  	local playerData = S.getStateVal("traits", color)
+  2607: 	-- log("Player Data for " .. color .. ", Adding to '" .. trait .. "'")
+  2608: 	-- log(playerData)
+  2609  	for i = 1, 5, 1 do
+  2610: 		-- log(playerData[i])
+  2611  		for traitName, traitVal in pairs(playerData[i]) do
+  2612: 			-- log("... traitName = " .. traitName .. ", traitVal = " .. traitVal)
+  2613  			if (trait == traitName) then
+  2614: 				-- log("MATCH!")
+  2615  				playerData[i][traitName] = playerData[i][traitName] + 1
+
+  2732  	local playerXML = parseTraitsToXMLTable(playerData)
+  2733: 	-- log(JSON.encode_pretty(playerXML))
+  2734  	playerBoard.UI.setXmlTable(playerXML)
+
+  2767  		end
+  2768: 		-- log(JSON.encode_pretty(vertChildren))
+  2769  		return vertChildren
+
+  2897  function M.showStickerUnlocks(playerColor)
+  2898: 	-- log(playerColor)
+  2899  	if playerColor == nil then return U.forEach(C.Colors, function(color) M.showStickerUnlocks(color) end) end
+  2900  	local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
+  2901: 	-- log(playerBoard)
+  2902  	-- playerBoard.UI.hide("traits")
+
+  2916  		Wait.time(function()
+  2917: 			-- log(availableStickers)
+  2918  			local playerXML = parseStickersToXMLTable(availableStickers, playerColor)
+
+  2920  			-- Wait.time(function() playerBoard.UI.show("traits") end, 1)
+  2921: 			-- log(availableStickers)
+  2922  		end, 0.25)
+
+  2933  	if objCat == nil then
+  2934: 		-- log("Process Spot Called: NIL")
+  2935  		M.processSpot("strand")
+
+  2948  		-- return U.sequence(U.map(G.decks.processing, function(_, cat)
+  2949: 		-- 	log("Inside Sequence:")
+  2950: 		-- 	log({first = _, cat = cat})
+  2951  		-- 	return function() M.processSpot(cat) end
+
+  2953  	end
+  2954: 	-- log("Process Spot Called: " .. objCat)
+  2955  
+
+Lua • core\zones.ttslua:
+   102  	local snapPoints = object.getSnapPoints()
+   103: 	-- log(snapPoints)
+   104  	local validSnapPoints = {}
+   105  	for _, point in pairs(snapPoints) do
+   106: 		-- log({point = point})
+   107  		if U.isInside(zone, object.positionToWorld(point.position)) then
+   108: 			-- log("IS INSIDE!")
+   109  			table.insert(validSnapPoints, point)
+
+   200  	local color = Z.getZoneColor(zone)
+   201: 	-- log("Unlocked. Color = " .. color)
+   202  	if color == nil then return end
+
+   217  			if S.isInPhase("AFTERMATH") or S.isInPhase("END") then return end
+   218: 			-- log("Player Zone, Phase OK, Aligning Card.")
+   219  			Z.alignCard(zone)
+
+   575  		if Z.hasTitle(scoreData.zone) then
+   576: 			-- log("HAS TITLE")
+   577  			powerPanelXML.children = {}
+
+   972  
+   973: 		-- log("Zone Char Cards: " .. #zoneCharCards)
+   974: 		-- log("Monstrosity Num: " .. #monstrosityCards)
+   975  
+
+  1007  			switchCharCardTag(mCard, "Monstrosity_" .. i)
+  1008: 			-- log("i = " .. i .. ", #mCards = " .. #monstrosityCards)
+  1009  			mPos.y = mPos.y - vertStep
+
+  1017  		if lastCard ~= nil then
+  1018: 			-- log("Unlocking last card")
+  1019: 			-- log(lastCard.getTags())
+  1020  			Wait.time(function() lastCard.setLock(false) end, 1)
+
+  1057  
+  1058: 	-- log({numCards = #zoneCharCards})
+  1059  
+
+Lua • lib\utilities.ttslua:
+  257  -- 	for _, tb in ipairs(arg) do
+  258: -- 		log("TB: " .. JSON.encode(tb))
+  259  -- 		for i = 1, #tb do
+  260: -- 			log("TB[" .. i .. "] " .. tb[i])
+  261  -- 			tb1[#tb1 + 1] = tb[i]
+
+  339      end
+  340:     -- log("Splashing '" .. messageData.title .. "' '" .. messageData.subTitle .. "' - isSplashActive = " .. tostring(isSplashActive))
+  341      if (isSplashActive) then
+
+Lua • objects\charQueueBoard.ttslua:
+  47  	end)
+  48: 	if (#objsInMissionZone > 0) then log(objsInMissionZone); return U.alertGM("Cards in way of Mission Queue!") end
+  49  
+
+Lua • objects\clanLeaderSlot.ttslua:
+   69  					for _, containedObject in ipairs(clanContainer.getObjects()) do
+   70: 						-- log(containedObject)
+   71  							waitTime = waitTime + waitStep
+
+  154  							else
+  155: 									-- log(JSON.encode_pretty(containedObject));
+  156  							end
+
+TTS Includes • .vscode\settings.json:
+  16  		"Physics",
+  17: 		"log",
+  18  		"getSeatedPlayers",
+
+Tabletop Simulator Lua • .vscode\settings.json:
+  16  		"Physics",
+  17: 		"log",
+  18  		"onCollisionEnter",

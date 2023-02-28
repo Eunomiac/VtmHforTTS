@@ -1,4 +1,7 @@
 local U = require("lib.utilities")
+local C = require("lib.constants")
+local S = require("core.state")
+
 
 local G = {}
 
@@ -18,12 +21,12 @@ local G = {}
 	-- AFTERMATH: Deal to Hand
 		-- END: Return to Haven
 
-G.decks = {
-	characterSpot = "20e59b",
-	characterDiscardSpot = "083e88",
-	strandOfTimeSpot = "d7029a",
-	unusedStrandsOfTime = "c70be2",
-	missionSpot = "eacf3f",
+G.globalSpots = {
+	character = "20e59b",
+	charDiscard = "083e88",
+	strandOfTime = "d7029a",
+	unusedStrandOfTime = "c70be2",
+	mission = "eacf3f",
 	processing = {
 		strand = "d7029a",
 		letterOfIntroduction = "f5861d",
@@ -39,26 +42,27 @@ G.decks = {
 }
 
 G.playerObjs = {
+	fourthRowBoard = "98b2b0",
 	Red = {
-		schemeDeck = "ce178f",
-		schemeDiscard = "0f4771",
-		leaderCard = "8880ab",
+		schemeSpot = "ce178f",
+		schemeDiscardSpot = "0f4771",
+		leaderSpot = "8880ab",
 		haven = "cb09de",
-		pouch = "6121d9"
+		pouch = "524a6e"
 	},
 	Yellow = {
-		schemeDeck = "989a32",
-		schemeDiscard = "e1a8c7",
-		leaderCard = "d5c85b",
+		schemeSpot = "989a32",
+		schemeDiscardSpot = "e1a8c7",
+		leaderSpot = "d5c85b",
 		haven = "b9ea0d",
-		pouch = "1412c4"
+		pouch = "56a44c"
 	},
 	Blue = {
-		schemeDeck = "66e043",
-		schemeDiscard = "21a28a",
-		leaderCard = "402e53",
+		schemeSpot = "66e043",
+		schemeDiscardSpot = "21a28a",
+		leaderSpot = "402e53",
 		haven = "c2ebbf",
-		pouch = "031999"
+		pouch = "21bfc1"
 	}
 }
 
@@ -67,6 +71,7 @@ G.zones = {
 	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
 	ongoingSchemes = "83ba8c",
 	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
+	childeSource = "859a85",
 	bgDEndZone = "b5bbb2",
 	bgEZones = {
 		North = "0a1fa7",
@@ -114,6 +119,19 @@ for color, zoneData in pairs(U.filter(G.zones, function(v, k) return U.isIn(k, {
 end
 
 G.zones.allPlayer = U.flatten({G.zones.Red.all, G.zones.Yellow.all, G.zones.Blue.all})
+G.zones.allAftermath = U.map(C.Colors, function(col) return G.zones[col].aftermath end)
+
+function G.getBloodlineZones(color)
+	if color == nil then
+		return U.flatten(U.map(C.Colors, function(col) return G.getBloodlineZones(col) end))
+	end
+	local bloodlineZones = U.map(G.zones[color].all, function(zoneGUID) return getObjectFromGUID(zoneGUID) end)
+	local fourthRowZones = S.getStateVal("playerZones", color)
+	if fourthRowZones == nil then
+		return bloodlineZones
+	end
+	return U.concat(bloodlineZones, U.map(fourthRowZones, function(zoneGUID) return getObjectFromGUID(zoneGUID) end))
+end
 
 G.playerCards = {
 	Red = "7f82f3",
@@ -152,6 +170,10 @@ G.battlegrounds = {
 	g = "ae2779"
 }
 
+G.battlegrounds.left = G.battlegrounds.g
+G.battlegrounds.center = G.battlegrounds.f
+G.battlegrounds.right = G.battlegrounds.b
+
 G.charQueue = "afb371"
 
 G.tableSpots = {
@@ -186,7 +208,12 @@ G.tableSpots = {
 	deckStaging = {
 		Red = { x = -30, y = 1, z = -6.93 },
 		Yellow = { x = -3, y = 1, z = -6.93 },
-		Blue = { x = 23, y = 1, z = -6.93 }
+		Blue = { x = 24, y = 1, z = -6.93 }
+	},
+	fourthRowStaging = {
+		Red = {x = -27, y = 2, z = -29},
+		Yellow = {x = 0, y = 2, z = -29},
+		Blue = {x = 27, y = 2, z = -29}
 	},
 	stagingArea = {
 		Red = {x = -23, y = 1, z = -9},
@@ -194,9 +221,9 @@ G.tableSpots = {
 		Blue = {x = 31, y = 1, z = -9}
 	},
 	obligations = {
-		Red = {x = -23, y = 1.4, z = -2},
-		Yellow = {x = 4, y = 1.4, z = -2},
-		Blue = {x = 31, y = 1.4, z = -2},
+		Red = {x = -20, y = 1.4, z = -2},
+		Yellow = {x = 7, y = 1.4, z = -2},
+		Blue = {x = 34, y = 1.4, z = -2},
 		rotation = {x = 45, y = 180, z = 0},
 		staging = {x = -43.08, y = 1, z = 21.98},
 		stagingRot = {x = 0, y = 135, z = 180}

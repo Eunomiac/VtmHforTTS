@@ -122,7 +122,7 @@ end
 function Reset()
 	local resetFuncs = {}
 	U.forEach(getTokenData(), function(tData, i)
-		M.sequence({
+		U.sequence({
 			function() tData.token.setPositionSmooth(tData.vaticanum) end,
 			0.75,
 			function()
@@ -131,6 +131,6 @@ function Reset()
 						tData.token.flip()
 				end
 			end
-		}, 0.5)
+		}, 0.5, false)
 	end)
 end

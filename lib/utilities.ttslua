@@ -17,15 +17,25 @@ function U.pRotation(rot, interval)
 	return U.map(rot, function(rVal) return U.pAngle(rVal, interval) end)
 end
 
-function U.findAboveObject(obj, type)
+function U.findAboveObject(obj, type, isInverted)
     local objBounds = obj.getBounds()
     objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) - 2.5
+		if isInverted == true then
+			objBounds.center.y = objBounds.center.y + 5
+		end
     objBounds.size.y = 5
+
+		local castDir
+		if isInverted == true then
+			castDir = {0, -1, 0}
+		else
+			castDir = {0, 1, 0}
+		end
 
     local hitList = Physics.cast({
 			origin = objBounds.center,
 			type = 3,
-			direction = {0,1,0},
+			direction = castDir,
 			size = objBounds.size,
 			max_distance = 0,
 			debug = (ISDEBUGGING or false)
@@ -178,25 +188,82 @@ function U.count(T)
 end
 
 function U.split(inputstr, sep)
+	if inputstr == nil then return {} end
     if sep == nil then
       sep = "%s"
     else
       inputstr = string.gsub(inputstr, sep .. " ", sep)
     end
     local t={}
+		if string.match(inputstr, "^" .. sep) then
+			table.insert(t, "")
+		end
     for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
       table.insert(t, str)
     end
     return t
 end
 
-function U.forEach(table, func, delayStep)
+function U.forEach(tbl, func, delayStep)
 	if delayStep == nil then delayStep = 0 end
-	local waitTime = 0
-  for k,v in pairs(table) do
-		Wait.time(function() func(v, k) end, waitTime)
-		waitTime = waitTime + delayStep
-  end
+
+	local funcs = U.map(tbl, function(val, key) return function() func(val, key) end end)
+
+	U.sequence(funcs, delayStep, false)
+end
+
+function U.forEachThen(table, func, thenFunc, delayStep)
+	if delayStep == nil then delayStep = 0 end
+	U.sequence({
+		U.forEach(table, func, delayStep),
+		thenFunc
+	}, delayStep, false)
+end
+
+function U.waitTillRestingThen(obj, func)
+	Wait.time(function()
+		Wait.condition(function()
+			func(obj)
+		end, function()
+			return obj.resting
+		end)
+	end, 0.5)
+end
+
+function U.waitRestingSequence(funcs, maxTime, isLoose)
+	-- funcs is a table of functions, each of which returns an object
+	-- U.waitRestingSequence will wait until the object is resting, before
+	-- calling the next function
+		-- can set a timeout optionally
+		-- can pass 'false' to have function error out rather than continue on timeout
+
+	local delay = 0.5
+	local objTarget
+
+	local function callNext()
+		if #funcs == 0 then return end
+		local func = table.remove(funcs, 1)
+		if type(func) == "function" then
+			if objTarget ~= nil then
+				Wait.time(function()
+					Wait.condition(function()
+						objTarget = func(objTarget)
+						callNext()
+					end, function()
+						return objTarget.resting
+					end, maxTime)
+				end, delay)
+				delay = 0.5
+			else
+				objTarget = func(objTarget)
+				callNext()
+			end
+		elseif type(func) == "number" then
+			delay = delay + func
+		end
+	end
+
+	callNext()
 end
 
 function U.map(table, func)
@@ -264,6 +331,8 @@ function U.concatMult(...)
 	end)
 	return tb
 end
+
+
 
 function U.flatten(tb)
 	local newTable = {}
@@ -496,6 +565,94 @@ function U.getKeys(table)
 		table.insert(keys, key)
 	end
 	return keys
+end
+
+local isPulsing = false
+local lightSettings = {
+	base = {
+		ambient_intensity = 0.5546665, 	-- Range: 0 - 4
+		ambient_type = 1,								-- Range: 1, 2
+		light_intensity = 0.5333346,		-- Range: 0 - 4
+		lut_contribution = 0,						-- Range: 0 - 1
+		lut_index = 1,									-- Range: 1 - 114
+		lut_url = "",
+		reflection_intensity = 0				-- Range: 0 - 1
+	},
+	automating = {
+		ambient_intensity = 0, 	-- Range: 0 - 4
+		ambient_type = 1,								-- Range: 1, 2
+		light_intensity = 0,		-- Range: 0 - 4
+		lut_contribution = 0.6,						-- Range: 0 - 1
+		lut_index = 108,									-- Range: 1 - 114
+		lut_url = "",
+		reflection_intensity = 1				-- Range: 0 - 1
+	}
+}
+
+function U.changeLighting(setting)
+	-- log({setting = setting, tp = type(setting), test = lightSettings[setting]})
+	if setting == nil then setting = "base" end
+	if type(setting) ~= "string" then return nil end
+	if lightSettings[setting] == nil then return nil end
+
+	for param, val in pairs(lightSettings[setting]) do
+		-- log("CHANGING " .. param .. " to " .. val)
+		if string.match(param, "^set") then
+			Lighting[param](val)
+		else
+			Lighting[param] = val
+		end
+	end
+	Wait.time(function() Lighting.apply() end, 0.5)
+
+end
+
+function Usequence(funcs, waitStep, isPulsing)
+
+
+	if waitStep == nil then waitStep = 0.5 end -- default step of 0.5s
+	local waitTime = 0
+	for _, func in ipairs(funcs) do
+		if type(func) == "function" then
+			if waitTime == 0 then
+				func()
+			else
+				Wait.time(func, waitTime)
+			end
+			waitTime = waitTime + waitStep
+		elseif type(func) == "number" then
+			-- can include a number, which becomes a delay in seconds
+			waitTime = waitTime + func
+		end
+	end
+
+end
+function U.sequence(funcs, timeDelay, isPulsing)
+	timeDelay = timeDelay or 0.5 -- Set default value if none provided
+	local delay = 0 -- Initialize delay to 0
+	if isPulsing ~= false then
+		-- log("IS PULSING")
+		U.changeLighting("automating")
+	end
+	for i, func in ipairs(funcs) do
+			if type(func) == "function" then
+				if delay == 0 then
+					func()
+				else
+					Wait.time(function()
+							func()
+					end, delay)
+				end
+				delay = delay + timeDelay -- Increment delay by timeDelay
+			elseif type(func) == "number" then
+				delay = delay + func + timeDelay -- Increment delay by func + timeDelay
+			else
+				error("Invalid element in funcs table")
+			end
+	end
+	if isPulsing ~= false then
+		Wait.time(function() U.changeLighting() end, delay)
+	end
 end
 
 function U.clone(t, isDeepCloning)
