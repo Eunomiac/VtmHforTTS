@@ -24,7 +24,9 @@ local function invisObjects(objGUIDs)
 			return
 		end
 		local obj = getObjectFromGUID(guid)
-		obj.setInvisibleTo({ "Red", "Blue", "Yellow" })
+		if obj ~= nil then
+			obj.setInvisibleTo({ "Red", "Blue", "Yellow" })
+		end
 	end)
 end
 
@@ -53,12 +55,12 @@ function M.translateObj(obj, translation)
 end
 
 function M.initializeGlobals()
-	missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
+	missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
 	if missionDeck == nil then
 		U.alertGM("Mission Deck not found.")
 	end
 
-	masterStorage = getObjectFromGUID(G.mainStorage.id)
+	masterStorage = getObjectFromGUID(G.storage.main)
 	if masterStorage == nil then
 		U.alertGM("Master Storage not found.")
 	else
@@ -69,17 +71,17 @@ function M.initializeGlobals()
 end
 
 local function getSchemesDeck(color)
-	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeSpot), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeSpot), function(obj) return obj.type == "Deck" end)[1]
 	if deck == nil then
-		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeSpot), "Card")[1]
+		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeSpot), function(obj) return obj.type == "Card" end)[1]
 	end
 	return deck
 end
 
 local function getSchemesDiscard(color)
-	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscardSpot), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscardSpot), function(obj) return obj.type == "Deck" end)[1]
 	if deck == nil then
-		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscardSpot), "Card")[1]
+		return U.findAboveObject(getObjectFromGUID(G.playerObjs[color].schemeDiscardSpot), function(obj) return obj.type == "Card" end)[1]
 	end
 	return deck
 end
@@ -94,7 +96,7 @@ function M.zoomCard(player)
 		targetCard.setPositionSmooth({ x = 8.83, y = 2, z = 1.13 }, false, true)
 	end
 
-	local sourceDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
+	local sourceDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
 	if sourceDeck == nil then return end
 
 	targetCard = sourceDeck.takeObject({
@@ -271,23 +273,48 @@ end
 
 function M.onPlayerAction(player, action, targets)
 	if action == Player.Action.Delete then
-		if S.isInPhase("NONE") then return true end
+		-- if player.color == "Red" and S.isInPhase("NONE") then return true end
 		for _, target in pairs(targets) do
-			if target.type == "Generic" and (target.hasTag("Power") or target.hasTag("Infamy"))
-				or target.type == "Tile" and target.hasTag("ExhaustTorpor") then
-						target.destroy()
+			if target.type == "Generic" then
+				if target.hasTag("Power") or target.hasTag("Infamy") then
+					target.destroy()
+					return false
 				end
+			elseif target.type == "Tile" then
+				if target.hasTag("ExhaustTorpor") then
+					target.destroy()
+					return false
+				elseif target.hasTag("Asset") then
+					getObjectFromGUID(G.storage.spentAssets).putObject(target)
+					return false
+				end
+			elseif target.type == "Card" then
+				if target.hasTag("Asset") then
+					getObjectFromGUID(G.storage.spentAssets).putObject(target)
+					return false
+				elseif target.hasTag("Character") then
+					local discardPos = getObjectFromGUID(G.globalSpots.charDiscard).getPosition()
+					discardPos.y = discardPos.y + 2
+					target.setRotationSmooth({0, 180, 0})
+					target.setPositionSmooth(discardPos)
+					return false
+				elseif target.hasTag("ClanScheme") then
+					local clan = U.findClanTag(target)
+					if clan == nil then return false end
+					local clanColor = M.getColorOfClan(clan)
+					if clanColor == "" then return false end
+					local discardPos = getObjectFromGUID(G.playerObjs[clanColor].schemeDiscardSpot).getPosition()
+					discardPos.y = discardPos.y + 2
+					target.setRotationSmooth({0, 180, 0})
+					target.setPositionSmooth(discardPos)
+					return false
+				end
+			end
 		end
 		return false
 	end
 
 	if #targets == 0 then return true end
-	if action == Player.Action.PickUp and targets[1].hasTag("TitleToken") then
-		if targets[1].getPosition().z > 0 then
-			getObjectFromGUID(G.battlegrounds.g).call("OnTitlePickup", {token = targets[1]})
-		end
-		return true
-	end
 
 	return true
 end
@@ -469,7 +496,7 @@ local turnOrderMap = {
 	Yellow = { "Yellow", "Blue", "Red" },
 	Blue = { "Blue", "Red", "Yellow" }
 }
-local function getColorOfClan(clan)
+function M.getColorOfClan(clan)
 	local clans = M.getClans()
 	if clans.Red == clan then return "Red" end
 	if clans.Yellow == clan then return "Yellow" end
@@ -501,14 +528,14 @@ function M.readTurnOrderFromBG()
 	local lastFirstPlayer = turnOrder[1]
 	local bg = getObjectFromGUID(G.battlegrounds.b)
 	local bgSnapPoints = U.getSnapPointPositions(bg)
-	local pTokens = U.filter(U.findAboveObject(bg, "Tile"), function(tok)
-		return string.find(tok.getName(), "Morality") ~= nil
-	end)
+	local pTokens = U.findAboveObject(bg, function(obj)
+		return obj.type == "Tile" and string.find(obj.getName(), "Morality") ~= nil
+	end, {box = true})
 
 	local function getTokenSlot(tk)
 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
 		local clan = U.findClanTag(tk)
-		local color = getColorOfClan(clan)
+		local color = M.getColorOfClan(clan)
 		if (slot >= 6 and slot <= 9) then slot = 7 end
 		if (color == lastFirstPlayer) then
 			slot = slot + 0.5
@@ -973,7 +1000,7 @@ function M.gameSETUP()
 	end
 
 	if missionDeck == nil then
-		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
+		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
 	end
 	if missionDeck == nil then
 		U.alertGM("Mission Deck not found.")
@@ -1088,7 +1115,7 @@ function M.displayClanSelectionRing()
 end
 
 function M.storeClanSelectionRing()
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	M.setHighlighter("ClanSelection", "inactive")
 	for _, token in pairs(getUnusedClanTokens()) do
 		mainStorage.putObject(token)
@@ -1242,7 +1269,7 @@ function M.gameINIT()
 	if not M.checkLastChapterStandings() then return M.determineLastChapterStandings(M.gameINIT) end
 
 	if not missionDeck then
-		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
+		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
 		if missionDeck == nil then return end
 	end
 
@@ -1303,7 +1330,7 @@ function M.clearUnusedClanLeaders()
 		else
 			local clan = U.findClanTag(obj)
 			if (clan) then
-				targetContainer = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+				targetContainer = getObjectFromGUID(G.storage.clan[clan])
 			end
 		end
 		targetContainer.putObject(obj)
@@ -1362,11 +1389,9 @@ local function recallTokensToClanLeader(color, clanLeader)
 	local aftermathZone = getObjectFromGUID(G.zones[color].aftermath)
 
 	-- move existing objects out of position, so they fall ontop of boons/Power tokens
-	local currentObjects = U.filter(U.findAboveObject(clanLeader),
-		function(obj)
-			return obj.guid ~= clanLeader.guid and obj.type ~= "Block" and not U.isIn(obj.guid, G.lockedObjects) and
-					not U.isIn(obj.guid, G.invisObjects)
-		end)
+	local currentObjects = U.findAboveObject(clanLeader, function(obj)
+		return obj.type ~= "Block" and not U.isIn(obj.guid, U.concat(clanLeader.guid, G.lockedObjects, G.invisObjects))
+	end, {box = true})
 
 	currentObjects = U.map(currentObjects, function(obj)
 		local pos = obj.getPosition()
@@ -1574,7 +1599,7 @@ local function scoreBloodlines()
 end
 
 function M.showVictoryBoard()
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	local victoryTable = getObjectFromGUID(G.victoryTable)
 	victoryTable.setInvisibleTo({})
 	victoryTable.setPositionSmooth(G.tableSpots.victory.table, false, true)
@@ -1643,7 +1668,7 @@ function M.recallSchemesToDiscard()
 end
 
 function M.recallStrandsOfTime()
-	local strand = U.findAboveObject(getObjectFromGUID(G.globalSpots.strandOfTime), "Card")[1]
+	local strand = U.findAboveObject(getObjectFromGUID(G.globalSpots.strandOfTime), function(obj) return obj.type == "Card" end)[1]
 	if strand == nil then return end
 	local strandStaging = getObjectFromGUID(G.globalSpots.unusedStrandOfTime)
 	local strandStagingPos = strandStaging.getPosition()
@@ -1651,8 +1676,8 @@ function M.recallStrandsOfTime()
 	strand.setRotation({ x = 0, y = 180, z = 0 })
 	strand.setPosition(strandStagingPos)
 	Wait.time(function()
-		local strandsDeck = U.findAboveObject(strandStaging, "Deck")[1]
-		local mainStorage = getObjectFromGUID(G.mainStorage.id)
+		local strandsDeck = U.findAboveObject(strandStaging, function(obj) return obj.type == "Deck" end)[1]
+		local mainStorage = getObjectFromGUID(G.storage.main)
 		mainStorage.putObject(strandsDeck)
 	end, 1)
 end
@@ -1735,7 +1760,7 @@ local function hideBloodlinesScore()
 end
 
 function M.hideVictoryBoard()
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	local victoryTable = getObjectFromGUID(G.victoryTable)
 	local victoryBoard = getObjectFromGUID(G.victoryBoard)
 	local clanTokens = U.filter(Global.getObjects(),
@@ -1770,7 +1795,7 @@ local function showObligationToPlayer(color, card, highlightColor)
 end
 
 function M.presentObligationsToVictor()
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	local stagingPos = G.tableSpots.obligations.staging
 	local oblData = U.find(mainStorage.getObjects(), function(objData)
 		return U.isIn("Obligation", objData.tags)
@@ -1977,21 +2002,21 @@ function M.gameAFTERMATH()
 		1,
 		function()
 			if obligationsDeck ~= nil then
-				local mainStorage = getObjectFromGUID(G.mainStorage.id)
+				local mainStorage = getObjectFromGUID(G.storage.main)
 				mainStorage.putObject(obligationsDeck)
 			end
 		end,
 		function()
 			local lockedSchemeObjs = getObjectsWithTag("LockedScheme")
 			if #lockedSchemeObjs == 1 then
-				getObjectFromGUID(G.mainStorage.id).putObject(lockedSchemeObjs[1])
+				getObjectFromGUID(G.storage.main).putObject(lockedSchemeObjs[1])
 			end
 		end,
 		function()
 			U.forEach(C.Colors, function(color)
 				local schemeDeck = getSchemesDeck(color)
 				if schemeDeck then
-					getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[color]]).putObject(schemeDeck)
+					getObjectFromGUID(G.storage.clan[M.getClans()[color]]).putObject(schemeDeck)
 				end
 			end)
 		end,
@@ -2016,14 +2041,14 @@ end
 function M.packObligations()
 	local oblDeck = U.filter(getObjectsWithTag("Obligation"), function(obj) return obj.type == "Deck" end)[1]
 	if oblDeck == nil then return end
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	mainStorage.putObject(oblDeck)
 end
 
 function M.packClanStorageBoxes()
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	for color, clan in pairs(M.getClans()) do
-		local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+		local clanChest = getObjectFromGUID(G.storage.clan[clan])
 		mainStorage.putObject(clanChest)
 	end
 end
@@ -2071,8 +2096,8 @@ function M.clearPlayerZones(clearanceLevel)
 	-- Clearance Level 3 --> Torpor, Characters
 	if (not clearanceLevel) then clearanceLevel = 1 end
 	local characterDeckSpot = getObjectFromGUID(G.globalSpots.character)
-	local characterDeck = U.findAboveObject(characterDeckSpot, "Deck")[1]
-	local characterDiscardDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.charDiscard), "Deck")[1]
+	local characterDeck = U.findAboveObject(characterDeckSpot, function(obj) return obj.type == "Deck" end)[1]
+	local characterDiscardDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.charDiscard), function(obj) return obj.type == "Deck" end)[1]
 	if (characterDiscardDeck) then
 		if (characterDeck) then
 			characterDeck.putObject(characterDiscardDeck)
@@ -2084,7 +2109,7 @@ function M.clearPlayerZones(clearanceLevel)
 			characterDeck = characterDiscardDeck
 		end
 	else
-		local charDiscard = U.findAboveObject(getObjectFromGUID(G.globalSpots.charDiscard), "Card")[1]
+		local charDiscard = U.findAboveObject(getObjectFromGUID(G.globalSpots.charDiscard), function(obj) return obj.type == "Card" end)[1]
 		if (charDiscard) then
 			characterDeck.putObject(charDiscard)
 		end
@@ -2096,7 +2121,7 @@ function M.clearPlayerZones(clearanceLevel)
 	local clanChests = {}
 
 	for _, clan in pairs(M.getClans()) do
-		clanChests[clan] = getObjectFromGUID(G.mainStorage.clanStorage[clan])
+		clanChests[clan] = getObjectFromGUID(G.storage.clan[clan])
 	end
 
 	-- log({clanChests = clanChests})
@@ -2119,7 +2144,7 @@ function M.clearPlayerZones(clearanceLevel)
 	U.forEach(C.Colors,
 		function(pColor)
 			local pZone = getObjectFromGUID(G.zones[pColor].aftermath)
-			local pChest = getObjectFromGUID(G.mainStorage.clanStorage[M.getClans()[pColor]])
+			local pChest = getObjectFromGUID(G.storage.clan[M.getClans()[pColor]])
 			local pHaven = getObjectFromGUID(G.playerObjs[pColor].haven)
 			local pPouch = getObjectFromGUID(G.playerObjs[pColor].pouch)
 
@@ -2133,7 +2158,7 @@ function M.clearPlayerZones(clearanceLevel)
 					table.insert(boonsByClan[boonClan], boon)
 				end)
 				U.forEach(boonsByClan, function(boons, clan)
-					local pColor = getColorOfClan(clan)
+					local pColor = M.getColorOfClan(clan)
 					local leaderCard = Z.getClanLeader(pColor)
 					local leaderPos = leaderCard.getPosition()
 					leaderPos.y = leaderPos.y + 1
@@ -2212,17 +2237,21 @@ function M.setHighlighter(ref, mode, subRef)
 		obj.setPosition(G.tableSpots.highlighters.turnIndicator[subRef][mode])
 	elseif (ref == "BGIndicator") then
 		-- if round > 9 then
-		-- mode = "inactive"
+		-- 	mode = "inactive"
 		-- end
 		if not subRef then
 			for _, loc in pairs({ "left", "center", "right" }) do
-				obj = M.setHighlighter(ref, mode, loc)
-				-- return
+				M.setHighlighter(ref, mode, loc)
 			end
-			return obj
+		else
+			local light = getObjectFromGUID(G.lights.battlegrounds[subRef])
+			if mode == "active" then
+				M.activateSpotlight(light)
+			else
+				M.deactivateSpotlight(light)
+			end
 		end
-		obj = getObjectFromGUID(G.highlighters.bgIndicator[subRef])
-		obj.setPosition(G.tableSpots.highlighters.bgIndicator[subRef][mode])
+		return
 	end
 
 	if (mode == "inactive") then
@@ -2554,7 +2583,7 @@ end
 local decksOnBoard = {}
 
 function M.presentDeck(deckTags, playerColor, position, options)
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	if (position == nil) then
 		position = G.tableSpots.deckStaging[playerColor]
 	end
@@ -3016,9 +3045,9 @@ function M.processSpot(objCat)
 	if spot == nil then return end
 	spot = getObjectFromGUID(spot)
 	if spot == nil then return end
-	local deckOnTop = U.findAboveObject(spot, "Deck")[1]
+	local deckOnTop = U.findAboveObject(spot, function(obj) return obj.type == "Deck" end)[1]
 	if deckOnTop == nil then
-		local cardOnTop = U.findAboveObject(spot, "Card")
+		local cardOnTop = U.findAboveObject(spot, function(obj) return obj.type == "Card" end)
 		if #cardOnTop > 1 then
 			return U.alertGM("Stopping processing of " .. objCat .. ": Multiple cards on top.")
 		end
@@ -3070,6 +3099,43 @@ function M.clearProcessingSpots()
 		local processingKey = getObjectFromGUID(G.globalSpots.processingKey.id)
 		processingKey.setPositionSmooth(G.globalSpots.processingKey.inactive)
 	end)
+end
+
+function M.activateSpotlight(spotlight)
+	spotlight.setGMNotes(string.gsub(spotlight.getGMNotes(), "false", "true"))
+	spotlight.call("apply")
+end
+
+function M.deactivateSpotlight(spotlight)
+	spotlight.setGMNotes(string.gsub(spotlight.getGMNotes(), "true", "false"))
+	spotlight.call("apply")
+end
+
+function M.setSpotlight(spotlight, params)
+	-- replace "true" with "+" and "false" with "-", remove: %a, %s, split by :
+	log("==================")
+	log(spotlight.getGMNotes())
+	local lightString = string.gsub(string.gsub(string.gsub(spotlight.getGMNotes(), "true", "+"), "false", "-"), "[%a%s%c]", "")
+	local lightVals = U.map(U.split(string.gsub(lightString, "^:", ""), ":"), function(val)
+		if val == "+" then return true end
+		if val == "-" then return false end
+		return 1 * val
+	end)
+	log(lightString)
+	log(lightVals)
+	log("-----------------")
+	log(" ")
+
+
+	-- obj.setGMNotes(string.format([[Range: %s
+		-- Angle: %s
+		-- Intensity: %s
+		-- Enabled: %s]], inputs[2].value, inputs[3].value, inputs[4].value, enabled))
+		-- 		obj.AssetBundle.playLoopingEffect(effect_id)
+		-- 		obj.setColorTint(self.getColorTint())
+		-- 		obj.call("apply")
+
+
 end
 
 return M

@@ -114,17 +114,19 @@ end
 
 local function dimBattleground(zone)
 	-- local highlighter, pos
-	local highlighter
+	local spotlight
 	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then
 		-- pos = G.tableSpots.highlighters.bgIndicator.left.inactive
-		highlighter = getObjectFromGUID(G.highlighters.bgIndicator["left"])
+		spotlight = getObjectFromGUID(G.lights.battlegrounds["left"])
 	elseif U.isIn(zone.guid, G.zones.battlegroundZones.center) then
-		highlighter = getObjectFromGUID(G.highlighters.bgIndicator["center"])
+		spotlight = getObjectFromGUID(G.lights.battlegrounds["center"])
 	elseif U.isIn(zone.guid, G.zones.battlegroundZones.right) then
-		highlighter = getObjectFromGUID(G.highlighters.bgIndicator["right"])
+		spotlight = getObjectFromGUID(G.lights.battlegrounds["right"])
 	end
+
+	Global.getTable("M").deactivateSpotlight(spotlight)
 	-- highlighter.setPosition(pos)
-	highlighter.setInvisibleTo(C.Colors)
+	-- spotlight.setInvisibleTo(C.Colors)
 end
 
 function Z.deactivateZones()
@@ -236,17 +238,9 @@ function Z.onObjectEnterZone(zone, object)
 		end)
 		return
 	end
-	if Z.isTokenClearZone(zone) then
-		if object.hasTag("Power") or object.hasTag("Infamy") or object.hasTag("ExhaustTorpor") then
-			object.destruct()
-		end
-		return
-	end
 	if not S.isInPhase("PLAY") then return end
 	if Z.isBattlegroundZone(zone) then
-		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			dimBattleground(zone)
-		end
 		local bg = getBattlegroundOfZone(zone)
 		if bg ~= nil then bg.call("OnObjectEnterZone", { zone = zone, object = object }) end
 	end
@@ -281,9 +275,7 @@ function Z.onObjectLeaveZone(zone, object)
 	-- if Z.isMainQueueZone(zone) and object.type == "Card" then
 		-- object.setRotation(U.pRotation(object.getRotation(), 180))
 	if Z.isBattlegroundZone(zone) then
-		if not U.isIn(object.guid, U.flatten(G.highlighters.bgIndicator)) then
 			dimBattleground(zone)
-		end
 		local bg = getBattlegroundOfZone(zone)
 		if bg ~= nil then bg.call("OnObjectLeaveZone", { zone = zone, object = object }) end
 	end
@@ -291,8 +283,6 @@ end
 
 -- *** Zone Type Checking ***
 function Z.isPlayerCardZone(zone) return U.isIn(zone.guid, U.map(G.getBloodlineZones(), function(zn) return zn.guid end)) end
-
-function Z.isTokenClearZone(zone) return U.isIn(zone.guid, G.zones.clearZones) end
 
 function Z.isBattlegroundZone(zone) return U.isIn(zone.guid, U.flatten(G.zones.battlegroundZones)) end
 
@@ -1210,7 +1200,7 @@ function Z.discardTorporedVamps()
 			-- end
 			-- U.forEach(Z.getBoons(zone), function(boon)
 			-- 	local boonClan = string.gsub(boon.getName(), " Boon", "")
-			-- 	local clanChest = getObjectFromGUID(G.mainStorage.clanStorage[boonClan])
+			-- 	local clanChest = getObjectFromGUID(G.storage.clan[boonClan])
 			-- 	clanChest.putObject(boon)
 			-- end)
 			U.forEach(Z.getCards(zone), function(card)

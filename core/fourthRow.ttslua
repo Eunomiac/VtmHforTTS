@@ -67,7 +67,10 @@ local boardXML = {
 --#endregion
 
 function onLoad()
-	if self.getLock() then
+	if self.guid == G.playerObjs.fourthRowBoard then
+		BOARD_Lock = nil
+		BOARD_Unlock = nil
+	elseif self.getLock() then
 		self.UI.setXmlTable(boardXML.locked)
 	else
 		self.highlightOn("Red")
@@ -174,16 +177,16 @@ local function spawnZones(board)
 end
 
 function F.spawnFourthRowBoard(color)
-	if S.isInPhase({"PLAY", "SCORING", "MISSIONS", "AFTERMATH"}) then
+	if S.isInPhase({"PLAY", "SCORING", "MISSIONS", "AFTERMATH", "NONE"}) then
 		local board = spawnBoard(color)
 		F.unlockBoard(board, true)
 	end
 end
 
 local function saveAndLockContents(board)
-	local objs = U.filter(U.findAboveObject(board, nil, true), function(obj)
+	local objs = U.findAboveObject(board, function(obj)
 		return obj.guid ~= board.guid and not U.isIn(obj.guid, G.lockedObjects)
-	end)
+	end, {invert = true, box = true})
 	-- log(objs)
 	local objString = ""
 	U.forEach(objs, function(obj)

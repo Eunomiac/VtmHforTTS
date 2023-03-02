@@ -15,9 +15,9 @@ local function setupPlayerSpace(color, clan, clanToken)
 	local waitTime = 0
 	local waitStep = 0.35
 	local guids = G.playerObjs[color]
-	local mainStorage = getObjectFromGUID(G.mainStorage.id)
+	local mainStorage = getObjectFromGUID(G.storage.main)
 	local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
-	local clanStorageGUID = G.mainStorage.clanStorage[clan]
+	local clanStorageGUID = G.storage.clan[clan]
 	local leaderPosition = getObjectFromGUID(guids.leaderCard).getPosition()
 	Disable()
 	local stagingPositions = {

@@ -30,7 +30,8 @@
 		"onSave",
 		"onCollisionEnter",
 		"Color",
-		"onPlayerAction"
+		"onPlayerAction",
+		"onObjectDrop"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

@@ -9,12 +9,15 @@ local F = require("core.fourthRow")
 
 gameState = {}
 
+
+local turnLight = 1
 function HUD_testFunc1(player, value, id)
-	local bg = getObjectFromGUID(G.battlegrounds.g)
 	if value == "-2" then
-		M.clearProcessingSpots()
+		U.forEach(C.Colors, function(color) M.deactivateSpotlight(getObjectFromGUID(G.lights[color].turn)) end)
 	else
-		M.setupProcessingSpots()
+		local color = C.Colors[turnLight]
+		M.activateSpotlight(getObjectFromGUID(G.lights[color].turn))
+		if turnLight == 3 then turnLight = 1 else turnLight = turnLight + 1 end
 	end
 end
 function HUD_testFunc2(player, value, id)
@@ -155,7 +158,7 @@ function HUD_updateSticker() return M.askStickerUpdate() end
 
 
 function HUD_processCharacterDeck()
-	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
+	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), function(obj) return obj.type == "Deck" end)[1]
   if not charDeck then return nil end
 	M.processDeck(charDeck, "character")
 end
@@ -164,7 +167,7 @@ local truePos = {x = -3.67, y = 4, z = -2.14}
 local falsePos = {x = 3.81, y = 4, z = -2.22}
 
 function HUD_sortCharacterDeck()
-	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
+	local charDeck =  U.findAboveObject(getObjectFromGUID(G.globalSpots.character), function(obj) return obj.type == "Deck" end)[1]
   if not charDeck then return nil end
 	local stagingPos = charDeck.getPosition()
 	stagingPos.y = stagingPos.y + 4

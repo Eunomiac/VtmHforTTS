@@ -70,7 +70,6 @@ G.zones = {
 	missionQueue = "c7d5d8",
 	charQueue = { "c8faa5", "af0603", "f1ec56", "4b7d04", "558327" },
 	ongoingSchemes = "83ba8c",
-	clearZones = { "72a2cd", "c0c9cc", "69b32b", "c50ff9" },
 	childeSource = "859a85",
 	bgDEndZone = "b5bbb2",
 	bgEZones = {
@@ -82,9 +81,8 @@ G.zones = {
 	},
 	bgFEndZone = "a168dd",
 	bgGEndZone = "14d203",
-	bgGTitleZone = "23528c",
 	battlegroundZones = {
-		left = {"cccfc4", "14d203", "23528c"},
+		left = {"14d203"},
 		center = {"a79ca4", "a168dd"},
 		right = {"c41714"}
 	},
@@ -138,9 +136,10 @@ G.playerCards = {
 	Yellow = "ba1cde",
 	Blue = "f9ff56"
 }
-G.mainStorage = {
-	id = "1c0050",
-	clanStorage = {
+G.storage = {
+	main = "1c0050",
+	spentAssets = "bcd555",
+	clan = {
 		Brujah    = "98a6cc",
 		Gangrel   = "5c13fb",
 		Lasombra  = "d28e5e",
@@ -175,6 +174,26 @@ G.battlegrounds.center = G.battlegrounds.f
 G.battlegrounds.right = G.battlegrounds.b
 
 G.charQueue = "afb371"
+
+G.lights = {
+	queue = "ec7de1",
+	battlegrounds = {
+		left = "bc4a8d",
+		center = "003166",
+		right = "a3427b"
+	},
+	title = "d0e7fc",
+	nextTitle = "ab022f",
+	Red = {
+		turn = "cf7125"
+	},
+	Yellow = {
+		turn = "2edd0c"
+	},
+	Blue = {
+		turn = "3782dd"
+	}
+}
 
 G.tableSpots = {
 	clanMorality = {
@@ -302,9 +321,9 @@ G.invisObjects = {
 	G.highlighters.turnIndicator.Red,
 	G.highlighters.turnIndicator.Yellow,
 	G.highlighters.turnIndicator.Blue,
-	G.highlighters.bgIndicator.left,
-	G.highlighters.bgIndicator.center,
-	G.highlighters.bgIndicator.right,
+	-- G.highlighters.bgIndicator.left,
+	-- G.highlighters.bgIndicator.center,
+	-- G.highlighters.bgIndicator.right,
 	G.victoryTable
 }
 

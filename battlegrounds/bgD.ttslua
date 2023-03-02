@@ -25,8 +25,11 @@ local function leftToRightObjectSort(a, b) return b.getPosition().x > a.getPosit
 local function leftToRightPosSort(a, b) return b.x < a.x end
 
 local function getTokens()
-	local classTokens = U.filter(U.findAboveObject(self, "Tile"),
-		function(obj) return obj.hasTag("ClassToken") end)
+	local classTokens = U.findAboveObject(
+		self,
+		function(obj) return obj.type == "Tile" and obj.hasTag("ClassToken") end,
+		{box = true}
+	)
 	table.sort(classTokens, leftToRightObjectSort)
 	return classTokens
 end

@@ -109,10 +109,30 @@ C.AnkhColors = {
 
 C.Lighting = {
 	standard = {
-		ambient_intensity = 0.5546665,
-		light_intensity = 0.5333346,
-		lut_contribution = 0,
-		lut_index = 78,
+		ambient_intensity = 0.5546665, 	-- Range: 0 - 4
+		ambient_type = 1,								-- Range: 1, 2
+		light_intensity = 0.5333346,		-- Range: 0 - 4
+		lut_contribution = 0,						-- Range: 0 - 1
+		lut_index = 1,									-- Range: 1 - 114
+		lut_url = "",
+		reflection_intensity = 0				-- Range: 0 - 1
+	},
+	automating = {
+		ambient_intensity = 0,
+		ambient_type = 1,
+		light_intensity = 0,
+		lut_contribution = 0.6,
+		lut_index = 108,
+		lut_url = "",
+		reflection_intensity = 1
+	},
+	courtVote = {
+		ambient_intensity = 0.3,
+		ambient_type = 1,
+		light_intensity = 0.3,
+		lut_contribution = 0.2,
+		lut_index = 108,
+		lut_url = "",
 		reflection_intensity = 0
 	},
 	suspicion = {

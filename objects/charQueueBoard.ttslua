@@ -8,12 +8,12 @@ local isPopulating = false
 local isRequeuing = false
 
 local function getCharacterDeck()
-	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.character), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.character), function(obj) return obj.type == "Deck" end)[1]
 	if not deck then return nil end
 	return deck
 end
 local function getMissionDeck()
-	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), "Deck")[1]
+	local deck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
 	if not deck then return nil end
 	return deck
 end

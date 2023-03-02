@@ -42,9 +42,9 @@ local function updateInvestigatorSnaps()
 	investigatorSnaps.west = iSnaps[3]
 	investigatorSnaps.south = iSnaps[4]
 	local investigatorTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.center[1]), "Investigator")
-	log(investigatorTokens)
+	-- log(investigatorTokens)
 	table.sort(investigatorTokens, function(a, b) return a.getPosition().z > b.getPosition().z end)
-	log(investigatorTokens)
+	-- log(investigatorTokens)
 	investigatorTokens[1].highlightOn({0, 0, 0})
 	investigatorTokens[2].highlightOn(C.AnkhColors.East)
 	investigatorTokens[3].highlightOn(C.AnkhColors.West)

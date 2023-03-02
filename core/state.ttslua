@@ -62,6 +62,7 @@ function S.resetGameState()
       clans = nil,
       notes = nil,
       lastChapterStandings = state.lastChapterStandings,
+			playerZones = state.playerZones,
       chapterData = state.chapterData,
       round = 0,
       turn = 0,

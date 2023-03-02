@@ -1,3 +1,5 @@
+local C = require("lib.constants")
+
 local U = {}
 
 local ISDEBUGGING = false
@@ -17,38 +19,72 @@ function U.pRotation(rot, interval)
 	return U.map(rot, function(rVal) return U.pAngle(rVal, interval) end)
 end
 
-function U.findAboveObject(obj, type, isInverted)
-    local objBounds = obj.getBounds()
-    objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) - 2.5
-		if isInverted == true then
-			objBounds.center.y = objBounds.center.y + 5
+function U.findAboveObject(obj, testFunc, params)
+	-- params:  invert = true/false
+	-- 					box = true/false (defaults to ray)
+	--					far = true/false (default limits distance to 5)
+	local guidTest
+	if params == nil then params = {} end
+	if testFunc == nil then testFunc = function() return true end end
+	if type(testFunc) == "userdata" then
+		guidTest = testFunc.guid
+		testFunc = function(testObj) return testObj.guid == guidTest end
+	end
+
+	local castParams = {}
+
+	if params.invert == true then
+		castParams.direction = {0, -1, 0}
+	else
+		castParams.direction = {0, 1, 0}
+	end
+
+	local objBounds = obj.getBounds()
+	if params.box == true then
+    objBounds.center.y = objBounds.center.y + (0.5 * objBounds.size.y) + 2.5
+		if params.invert == true then
+			objBounds.center.y = objBounds.center.y - 5
 		end
     objBounds.size.y = 5
 
-		local castDir
-		if isInverted == true then
-			castDir = {0, -1, 0}
-		else
-			castDir = {0, 1, 0}
+		castParams.type = 3
+		castParams.size = objBounds.size
+
+		if params.far ~= true then
+			castParams.max_distance = 0
 		end
+	end
 
-    local hitList = Physics.cast({
-			origin = objBounds.center,
-			type = 3,
-			direction = castDir,
-			size = objBounds.size,
-			max_distance = 0,
-			debug = (ISDEBUGGING or false)
-		})
-    if not hitList then return {} end
+	castParams.origin = objBounds.center
 
-    local refinedList = {}
-    for _, obj in ipairs(hitList) do
-			if (obj.hit_object.guid ~= obj.guid and (type == nil or obj.hit_object.type == type)) then
-				table.insert(refinedList, obj.hit_object)
-			end
-    end
-    return refinedList
+	if UI.getAttribute("debugStatePanel", "active") == "True" then
+		castParams.debug = true
+	end
+
+	local hitList = Physics.cast(castParams)
+	if not hitList then return {} end
+
+	return U.map(
+		U.filter(hitList, function(hitData)
+			return hitData ~= nil and hitData.hit_object ~= nil and hitData.hit_object.guid ~= obj.guid and testFunc(hitData.hit_object)
+		end), function(hitData)
+			return hitData.hit_object
+		end
+	)
+end
+
+function U.findBelowObject(obj, testFunc, params)
+	if params == nil then params = {} end
+	params.invert = params.invert ~= true
+	return U.findAboveObject(obj, testFunc, params)
+end
+
+function U.isObjectAbove(obj, testObj, params)
+	return #U.findAboveObject(obj, testObj, params) > 0
+end
+
+function U.isObjectBelow(obj, testObj, params)
+	return #U.findBelowObject(obj, testObj, params) > 0
 end
 
 function U.transferContents(fromObj, toObj)
@@ -231,31 +267,42 @@ function U.waitTillRestingThen(obj, func)
 end
 
 function U.waitRestingSequence(funcs, maxTime, isLoose)
-	-- funcs is a table of functions, each of which returns an object
+	-- funcs is a table of functions, each of which returns an object or a table of objects
 	-- U.waitRestingSequence will wait until the object is resting, before
 	-- calling the next function
 		-- can set a timeout optionally
 		-- can pass 'false' to have function error out rather than continue on timeout
 
 	local delay = 0.5
-	local objTarget
+	local objTargets
 
 	local function callNext()
 		if #funcs == 0 then return end
 		local func = table.remove(funcs, 1)
 		if type(func) == "function" then
-			if objTarget ~= nil then
+			if objTargets ~= nil then
 				Wait.time(function()
 					Wait.condition(function()
-						objTarget = func(objTarget)
+						objTargets = func(objTargets)
+						if objTargets ~= nil and type(objTargets) ~= "table" then
+							objTargets = {objTargets}
+						end
 						callNext()
 					end, function()
-						return objTarget.resting
+						if objTargets ~= nil and type(objTargets) ~= "table" then
+							objTargets = {objTargets}
+						end
+						for _, objTarget in pairs(objTargets) do
+							if objTarget.resting ~= true then
+								return false
+							end
+						end
+						return true
 					end, maxTime)
 				end, delay)
 				delay = 0.5
 			else
-				objTarget = func(objTarget)
+				objTargets = func(objTargets)
 				callNext()
 			end
 		elseif type(func) == "number" then
@@ -316,18 +363,18 @@ end
 -- 	end
 -- 	return tb1
 -- end
-function U.concat(t1,t2)
-    for i=1,#t2 do
-        t1[#t1+1] = t2[i]
-    end
-    return t1
-end
 
-function U.concatMult(...)
+function U.concat(...)
 	local args = {...}
 	local tb = {}
 	U.forEach(args, function(arg)
-		tb = U.concat(tb, arg)
+		if type(arg) == "table" then
+			for i = 1, #arg do
+        tb[#tb+1] = arg[i]
+    	end
+		else
+			table.insert(tb, arg)
+		end
 	end)
 	return tb
 end
@@ -568,65 +615,27 @@ function U.getKeys(table)
 end
 
 local isPulsing = false
-local lightSettings = {
-	base = {
-		ambient_intensity = 0.5546665, 	-- Range: 0 - 4
-		ambient_type = 1,								-- Range: 1, 2
-		light_intensity = 0.5333346,		-- Range: 0 - 4
-		lut_contribution = 0,						-- Range: 0 - 1
-		lut_index = 1,									-- Range: 1 - 114
-		lut_url = "",
-		reflection_intensity = 0				-- Range: 0 - 1
-	},
-	automating = {
-		ambient_intensity = 0, 	-- Range: 0 - 4
-		ambient_type = 1,								-- Range: 1, 2
-		light_intensity = 0,		-- Range: 0 - 4
-		lut_contribution = 0.6,						-- Range: 0 - 1
-		lut_index = 108,									-- Range: 1 - 114
-		lut_url = "",
-		reflection_intensity = 1				-- Range: 0 - 1
-	}
-}
-
 function U.changeLighting(setting)
 	-- log({setting = setting, tp = type(setting), test = lightSettings[setting]})
-	if setting == nil then setting = "base" end
+	if setting == nil then setting = "standard" end
 	if type(setting) ~= "string" then return nil end
-	if lightSettings[setting] == nil then return nil end
+	if C.Lighting[setting] == nil then return nil end
 
-	for param, val in pairs(lightSettings[setting]) do
-		-- log("CHANGING " .. param .. " to " .. val)
-		if string.match(param, "^set") then
-			Lighting[param](val)
-		else
-			Lighting[param] = val
-		end
-	end
-	Wait.time(function() Lighting.apply() end, 0.5)
-
-end
-
-function Usequence(funcs, waitStep, isPulsing)
-
-
-	if waitStep == nil then waitStep = 0.5 end -- default step of 0.5s
-	local waitTime = 0
-	for _, func in ipairs(funcs) do
-		if type(func) == "function" then
-			if waitTime == 0 then
-				func()
-			else
-				Wait.time(func, waitTime)
+	U.sequence({
+		function()
+			for param, val in pairs(C.Lighting[setting]) do
+				-- log("CHANGING " .. param .. " to " .. val)
+				if string.match(param, "^set") then
+					Lighting[param](val)
+				else
+					Lighting[param] = val
+				end
 			end
-			waitTime = waitTime + waitStep
-		elseif type(func) == "number" then
-			-- can include a number, which becomes a delay in seconds
-			waitTime = waitTime + func
-		end
-	end
-
+		end,
+		Lighting.apply
+	}, 0.5, false)
 end
+
 function U.sequence(funcs, timeDelay, isPulsing)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided
 	local delay = 0 -- Initialize delay to 0
