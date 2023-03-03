@@ -18,7 +18,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 	local mainStorage = getObjectFromGUID(G.storage.main)
 	local playerHaven = getObjectFromGUID(G.playerObjs[color].haven)
 	local clanStorageGUID = G.storage.clan[clan]
-	local leaderPosition = getObjectFromGUID(guids.leaderCard).getPosition()
+	local leaderPosition = getObjectFromGUID(guids.leaderSpot).getPosition()
 	Disable()
 	local stagingPositions = {
 			Red = {x = -51.5, y = -0.14, z = 33.5},
@@ -40,7 +40,7 @@ local function setupPlayerSpace(color, clan, clanToken)
 					leaderPos.y = leaderPos.y + 1
 					local positions = {
 							clanLeader = leaderPos,
-							clanScheme = getObjectFromGUID(guids.schemeDeck).getPosition(),
+							clanScheme = getObjectFromGUID(guids.schemeSpot).getPosition(),
 							clanMorality = G.tableSpots.clanMorality[color],
 							clanToken = G.tableSpots.clanToken[color]
 					}

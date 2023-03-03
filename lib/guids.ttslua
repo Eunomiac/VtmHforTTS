@@ -21,6 +21,51 @@ local G = {}
 	-- AFTERMATH: Deal to Hand
 		-- END: Return to Haven
 
+
+
+		-- if mode == "inactive" then
+		-- 	M.deactivateSpotlight(getSwivelLight())
+		-- else
+		-- 	local function parseParam(key)
+		-- 		local thisVal = swivelLightVals[mode][key]
+		-- 		if type(thisVal) == "table" and thisVal.Red ~= nil then
+		-- 			return thisVal[subRef]
+		-- 		else
+		-- 			return thisVal
+		-- 		end
+		-- 	end
+		-- 	local lightParams = {}
+		-- 	for _, key in pairs({"range", "angle", "intensity"}) do
+		-- 		lightParams[key] = parseParam(key)
+		-- 	end
+		-- 	local pos = parseParam("position")
+		-- 	local rot = parseParam("rotation")
+		-- 	local lightColor = parseParam("color")
+		-- 	log("CHANGING LIGHT")
+		-- 	log({lightParams = lightParams, position = pos, rotation = rot, color = lightColor})
+		-- 	getSwivelLight().setPositionSmooth(pos)
+		-- 	getSwivelLight().setRotationSmooth(rot)
+		-- 	getSwivelLight().setColorTint(lightColor)
+		-- 	M.setLightVals(getSwivelLight(), lightParams)
+		-- 	M.activateSpotlight(getSwivelLight())
+		-- end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 G.globalSpots = {
 	character = "20e59b",
 	charDiscard = "083e88",
@@ -123,9 +168,10 @@ function G.getBloodlineZones(color)
 	if color == nil then
 		return U.flatten(U.map(C.Colors, function(col) return G.getBloodlineZones(col) end))
 	end
+	-- log({GBLZones = G.zones[color]})
 	local bloodlineZones = U.map(G.zones[color].all, function(zoneGUID) return getObjectFromGUID(zoneGUID) end)
 	local fourthRowZones = S.getStateVal("playerZones", color)
-	if fourthRowZones == nil then
+	if fourthRowZones == nil or #fourthRowZones == 0 then
 		return bloodlineZones
 	end
 	return U.concat(bloodlineZones, U.map(fourthRowZones, function(zoneGUID) return getObjectFromGUID(zoneGUID) end))
@@ -177,22 +223,14 @@ G.charQueue = "afb371"
 
 G.lights = {
 	queue = "ec7de1",
+	swivel = "bd749a",
 	battlegrounds = {
 		left = "bc4a8d",
 		center = "003166",
 		right = "a3427b"
 	},
 	title = "d0e7fc",
-	nextTitle = "ab022f",
-	Red = {
-		turn = "cf7125"
-	},
-	Yellow = {
-		turn = "2edd0c"
-	},
-	Blue = {
-		turn = "3782dd"
-	}
+	nextTitle = "ab022f"
 }
 
 G.tableSpots = {
@@ -241,7 +279,7 @@ G.tableSpots = {
 	},
 	obligations = {
 		Red = {x = -20, y = 1.4, z = -2},
-		Yellow = {x = 7, y = 1.4, z = -2},
+		Yellow = {x = 10, y = 1.33, z = -1.22},
 		Blue = {x = 34, y = 1.4, z = -2},
 		rotation = {x = 45, y = 180, z = 0},
 		staging = {x = -43.08, y = 1, z = 21.98},

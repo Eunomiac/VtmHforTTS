@@ -112,23 +112,6 @@ function Z.getSnapPointsInZone(zone, object)
 	return validSnapPoints
 end
 
-local function dimBattleground(zone)
-	-- local highlighter, pos
-	local spotlight
-	if U.isIn(zone.guid, G.zones.battlegroundZones.left) then
-		-- pos = G.tableSpots.highlighters.bgIndicator.left.inactive
-		spotlight = getObjectFromGUID(G.lights.battlegrounds["left"])
-	elseif U.isIn(zone.guid, G.zones.battlegroundZones.center) then
-		spotlight = getObjectFromGUID(G.lights.battlegrounds["center"])
-	elseif U.isIn(zone.guid, G.zones.battlegroundZones.right) then
-		spotlight = getObjectFromGUID(G.lights.battlegrounds["right"])
-	end
-
-	Global.getTable("M").deactivateSpotlight(spotlight)
-	-- highlighter.setPosition(pos)
-	-- spotlight.setInvisibleTo(C.Colors)
-end
-
 function Z.deactivateZones()
 	Global.call("DeactivateZones")
 	S.setStateVal(true, "allZonesLocked")
@@ -151,8 +134,8 @@ function Z.hideZones()
 	Wait.time(function()
 		U.forEach(zones, function(zone)
 			local zonePos = zone.getPosition()
-			if zonePos.y < 30 then
-				zonePos.y = zonePos.y + 50
+			if zonePos.y > -30 then
+				zonePos.y = zonePos.y - 50
 			end
 			zone.setPosition(zonePos)
 		end)
@@ -161,10 +144,10 @@ end
 
 function Z.showZones()
 	local zones = U.filter(getObjects(), function(obj) return obj.type == "Scripting" end)
-	if #zones > 0 and zones[1].getPosition().y > 30 then
+	if #zones > 0 and zones[1].getPosition().y < -30 then
 		U.forEach(zones, function(zone)
 			local zonePos = zone.getPosition()
-			zonePos.y = zonePos.y - 50
+			zonePos.y = zonePos.y + 50
 			zone.setPosition(zonePos)
 		end)
 	end
@@ -198,10 +181,16 @@ end
 -- *** Events ***
 
 function Z.onObjectEnterZone(zone, object)
+	-- log(zone.guid .. ": We're Here!")
 	if S.getStateVal("allZonesLocked") == true then return end
+	-- log(zone.guid .. ": Not Locked")
 	if Z.isAftermathZone(zone) then return end
+	-- log(zone.guid .. ": Not Aftermath")
 	if Z.isMainQueueZone(zone) then return end
+	-- log(zone.guid .. ": Not Main Queue")
+	if Z.isBattlegroundZone(zone) then return end
 	if S.isInPhase("INIT") and zone.hasTag("ClanLeader") and object.hasTag("ClanLeader") then
+		-- log(zone.guid .. ": INIT & Clan Leader")
 		local bg = getObjectFromGUID(G.battlegrounds.right)
 		if bg == nil then return end
 		local color = Z.getZoneColor(zone)
@@ -210,15 +199,13 @@ function Z.onObjectEnterZone(zone, object)
 		bg.call("UpdateMoralityToken", {color = color})
 		return
 	end
-	-- if S.isInPhase("SCORING") then
-	-- 	Wait.time(function()
-	-- 		M.updatePlayerScore(color)
-	-- 	end, 1)
-	-- end
-	if Z.isPlayerCardZone(zone) then
+	if Z.isPlayerCardZone(zone) and not S.isInPhase("AFTERMATH") then
+		-- log("Player Card Zone")
 		if S.getStateVal("playerZonesLocked") == true then return end
+		-- log("Not Locked")
 		throttleZone(zone, function()
-			if S.isInPhase("AFTERMATH") or S.isInPhase("END") then return end
+			-- log("Checking Phase")
+			if S.isInPhase({"AFTERMATH", "END"}) then return end
 			-- log("Player Zone, Phase OK, Aligning Card.")
 			Z.alignCard(zone)
 			Wait.time(function() Z.refreshUI(zone) end, 0.5)
@@ -238,12 +225,8 @@ function Z.onObjectEnterZone(zone, object)
 		end)
 		return
 	end
+	-- log("NOT Player Card Zone")
 	if not S.isInPhase("PLAY") then return end
-	if Z.isBattlegroundZone(zone) then
-			dimBattleground(zone)
-		local bg = getBattlegroundOfZone(zone)
-		if bg ~= nil then bg.call("OnObjectEnterZone", { zone = zone, object = object }) end
-	end
 end
 
 function Z.onObjectLeaveZone(zone, object)
@@ -251,7 +234,7 @@ function Z.onObjectLeaveZone(zone, object)
 	if S.getStateVal("allZonesLocked") == true then return end
 	if Z.isAftermathZone(zone) then return end
 	if Z.isMainQueueZone(zone) then return end
-
+	if Z.isBattlegroundZone(zone) then return end
 	if Z.isPlayerCardZone(zone) then
 		if object.type == "Card" then
 			object.use_hands = true
@@ -265,6 +248,7 @@ function Z.onObjectLeaveZone(zone, object)
 			object.sticky = true
 		end
 		if object.hasTag("ClanScheme") then object.setScale({ 1, 1, 1 }) end
+		if S.isInPhase({"AFTERMATH", "END"}) then return end
 		Wait.time(function()
 			Z.alignCard(zone)
 			Z.refreshUI(zone)
@@ -274,11 +258,6 @@ function Z.onObjectLeaveZone(zone, object)
 	if not S.isInPhase("PLAY") then return end
 	-- if Z.isMainQueueZone(zone) and object.type == "Card" then
 		-- object.setRotation(U.pRotation(object.getRotation(), 180))
-	if Z.isBattlegroundZone(zone) then
-			dimBattleground(zone)
-		local bg = getBattlegroundOfZone(zone)
-		if bg ~= nil then bg.call("OnObjectLeaveZone", { zone = zone, object = object }) end
-	end
 end
 
 -- *** Zone Type Checking ***
@@ -761,7 +740,8 @@ local function refreshStatusXML(zone)
 		if #ankhs > 0 then
 			local bg = getBattleground("center")
 			if bg ~= nil then
-				U.forEach(ankhs, function(ankh) bg.call("SendObjectHome", ankh) end)
+				U.waitRestingSequence(U.map(ankhs, function(ankh) return function() return bg.call("SendObjectHome", ankh) end end))
+				-- U.forEach(ankhs, function(ankh) bg.call("SendObjectHome", ankh) end)
 				UI.setAttributes("anarchRevoltText", { color = nil, outline = nil })
 				UI.setValue("anarchRevoltText", "If a vampire caused the torpor, award them " .. #ankhs * 2 .. " Power.")
 				U.splashUIElement("anarchRevoltNotice", 3, 0.25)
@@ -1242,15 +1222,15 @@ function Z.burnAnkhs(zone)
 end
 
 function Z.makeSnapsForCourt()
-	local table = getObjectFromGUID("142de3")
-	if table == nil then return end
+	local gameTable = getObjectFromGUID("142de3")
+	if gameTable == nil then return end
 
 	local function makeCourtSnap(zone)
 		zone.setScale({ x = 2.37, y = 0.56, z = 4 })
 		local snapPos = zone.getPosition()
 		snapPos.y = -0.11
 		snapPos.z = snapPos.z + 2.33
-		snapPos = table.positionToLocal(snapPos)
+		snapPos = gameTable.positionToLocal(snapPos)
 		return {
 			position = snapPos,
 			rotation = { x = 0, y = 0, z = 0 },
@@ -1284,7 +1264,7 @@ function Z.makeSnapsForCourt()
 
 	local tableSnaps = U.map(G.getBloodlineZones(), makeCourtSnap)
 
-	table.setSnapPoints(tableSnaps)
+	gameTable.setSnapPoints(tableSnaps)
 end
 
 return Z

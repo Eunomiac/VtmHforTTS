@@ -140,7 +140,6 @@
 		<Button onClick="HUD_recallSouth" color="#FFFFFF">South</Button>
 		<Button onClick="HUD_recallEast" color="#D2691E">East</Button>
 		<Button onClick="HUD_recallWest" color="#40E0D0">West</Button> -->
-		<Text class="vertical-spacer-3"></Text>
 		<Button onClick="HUD_toggleDebug">Debug</Button>
   </VerticalLayout>
   <HorizontalLayout id="debugControls" class="subButtonControls" active="false" visibility="Host|Red">
@@ -161,8 +160,9 @@
     	<Button onClick="HUD_processCharacterDeck" color="#FF8C00">Process CDeck</Button>
 			<Button onClick="HUD_sortCharacterDeck" color="#FF8C00">Sort CDeck</Button>
       <Text class="vertical-spacer-2"></Text>
-      <Button onClick="HUD_toggleTraitDebug">Traits</Button>
-      <Button onClick="HUD_toggleZoneVisibility">Zones (Hide)</Button>
+      <Button onClick="HUD_toggleTraitDebug">View Traits</Button>
+      <Button onClick="HUD_toggleZoneVisibility">Zones</Button>
+			<Button onClick="HUD_toggleLightArrowVisibility">Light Arrows</Button>
       <Text class="vertical-spacer-2"></Text>
     	<Button onClick="HUD_debugEndGame" color="#444444">End Game</Button>
       <Text class="vertical-spacer-2"></Text>

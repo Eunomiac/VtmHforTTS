@@ -6,11 +6,63 @@ local Z = require("core.zones")
 
 local M = {}
 
-local chapterCard, missionDeck
+local chapterCard, missionDeck, swivelLight
 local masterStorage, masterStorageStagingPos
 local clanChoiceAlertShowing = false
 
+local swivelLightVals = {
+	faint = {
+		range = 78,
+		angle = 60,
+		intensity = 5.5,
+		position = {0, 20, 12},
+		rotation = {
+			Red = {55, 0, -45},
+			Yellow = {55, 0, 0},
+			Blue = {55, 0, 45}
+		},
+		color = {0.66, 0.66, 0.66}
+	},
+	strong = {
+		range = 75,
+		angle = 40,
+		intensity = 11,
+		position = {
+			Red = {-27.00, 20, -6.93},
+			Yellow = {0, 20, -6.93},
+			Blue = {27.00, 20, -6.93}
+		},
+		rotation = {0, 0, 0},
+		color = {
+			Red = {255/255, 106/255, 106/255},
+			Yellow = {193/255, 193/255, 80/255},
+			Blue = {80/255, 193/255, 193/255}
+		}
+	}
+}
+
 --#region *** UTILITY FUNCTIONS ***
+function M.showLightArrows()
+	U.forEach(U.filter(getObjects(), function(obj)
+		return string.match(obj.getData().GMNotes, "Intensity:")
+	end), function(light)
+		-- log("*** LIGHT *** " .. light.guid)
+		light.highlightOn(C.AnkhColors.West)
+		light.AssetBundle.playLoopingEffect(2)
+		light.call("apply")
+	end)
+end
+
+function M.hideLightArrows()
+	U.forEach(U.filter(getObjects(), function(obj)
+		return string.match(obj.getData().GMNotes, "Intensity:")
+	end), function(light)
+		light.highlightOff()
+		light.AssetBundle.playLoopingEffect(1)
+		light.call("apply")
+	end)
+end
+
 local function lockObjects(objGUIDs)
 	for _, guid in pairs(objGUIDs) do
 		local obj = getObjectFromGUID(guid)
@@ -28,6 +80,28 @@ local function invisObjects(objGUIDs)
 			obj.setInvisibleTo({ "Red", "Blue", "Yellow" })
 		end
 	end)
+end
+local function getMissionDeck()
+	if missionDeck == nil then
+		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
+	end
+	if missionDeck == nil then
+		U.alertGM("Unable to locate Mission Deck!")
+		return false
+	end
+
+	return missionDeck
+end
+local function getSwivelLight()
+	if swivelLight == nil then
+		swivelLight = getObjectFromGUID(G.lights.swivel)
+	end
+	if swivelLight == nil then
+		U.alertGM("Unable to locate Swivel Light!")
+		return false
+end
+
+return swivelLight
 end
 
 function M.getRandomCard(cardOrDeck, callback)
@@ -55,10 +129,7 @@ function M.translateObj(obj, translation)
 end
 
 function M.initializeGlobals()
-	missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
-	if missionDeck == nil then
-		U.alertGM("Mission Deck not found.")
-	end
+	missionDeck = getMissionDeck()
 
 	masterStorage = getObjectFromGUID(G.storage.main)
 	if masterStorage == nil then
@@ -68,6 +139,9 @@ function M.initializeGlobals()
 		masterStorageStagingPos.x = masterStorageStagingPos.x + 5
 		masterStorageStagingPos.z = masterStorageStagingPos.z - 5
 	end
+
+	swivelLight = getSwivelLight()
+
 end
 
 local function getSchemesDeck(color)
@@ -86,10 +160,21 @@ local function getSchemesDiscard(color)
 	return deck
 end
 
+function M.forPlayers(func)
+	-- func(player, color, clan, name)
+	U.forEach(C.Colors, function(color)
+		local player = Player[color]
+		local clan = M.getClans()[color]
+		local name = C.Names[color]
+		func(player, color, clan, name)
+	end)
+end
+
+
 --#region Card Zooming
 local targetCard
 function M.zoomCard(player)
-	if player == nil then U.forEach(C.Colors, function(col) M.zoomCard(Player[col]) end) end
+	if player == nil then M.forPlayers(M.zoomCard) end
 	if targetCard ~= nil then
 		targetCard.setLock(false)
 		targetCard.setRotationSmooth({ x = 0, y = 180, z = 0 }, false, true)
@@ -244,70 +329,67 @@ function M.onLoad(script_state)
 
 	U.sequence({
 		function()
+			M.initializeGlobals()
 			invisObjects(G.invisObjects)
 			M.syncState()
 			lockObjects(G.lockedObjects)
 			M.syncPhase()
-			M.initializeGlobals()
 		end,
 		Z.onLoad,
 		Z.activateZones,
 		Z.refreshUI,
 		M.highlightBattlegrounds
-	}, 1)
+	}, 0.5)
 end
 
 function M.onPlayerTurn(player, previous_player)
 	if S.isInPhase("PLAY") then
 		local turnMark = "[" .. S.getStateVal("round") .. "x" .. S.getStateVal("turn") .. "] "
-		log(turnMark .. previous_player.color .. " Ended; " .. player.color .. "'s Turn")
+		-- log(turnMark .. previous_player.color .. " Ended; " .. player.color .. "'s Turn")
 		Wait.time(M.highlightBattlegrounds, 1)
 		if M.ignorePlayerTurn(player.color) then return end
-		log(turnMark .. " advancing (not ignored) ...")
+		-- log(turnMark .. " advancing (not ignored) ...")
 		M.advanceTurn()
 	else
-		log("Player Turn Outside of 'PLAY' - Disabling Turns.")
+		-- log("Player Turn Outside of 'PLAY' - Disabling Turns.")
 		Turns.enable = false
 	end
 end
 
 function M.onPlayerAction(player, action, targets)
 	if action == Player.Action.Delete then
-		-- if player.color == "Red" and S.isInPhase("NONE") then return true end
+		-- log({player.admin, S.isInPhase("NONE"), S.isDebugging()})
+		if player.admin == true and S.isInPhase("NONE") and S.isDebugging() then return true end
 		for _, target in pairs(targets) do
 			if target.type == "Generic" then
 				if target.hasTag("Power") or target.hasTag("Infamy") then
 					target.destroy()
-					return false
+					-- return false
 				end
 			elseif target.type == "Tile" then
 				if target.hasTag("ExhaustTorpor") then
 					target.destroy()
-					return false
+					-- return false
 				elseif target.hasTag("Asset") then
 					getObjectFromGUID(G.storage.spentAssets).putObject(target)
-					return false
+					-- return false
 				end
 			elseif target.type == "Card" then
 				if target.hasTag("Asset") then
 					getObjectFromGUID(G.storage.spentAssets).putObject(target)
-					return false
+					-- return false
 				elseif target.hasTag("Character") then
-					local discardPos = getObjectFromGUID(G.globalSpots.charDiscard).getPosition()
-					discardPos.y = discardPos.y + 2
 					target.setRotationSmooth({0, 180, 0})
-					target.setPositionSmooth(discardPos)
-					return false
+					target.setPositionSmooth(getObjectFromGUID(G.globalSpots.charDiscard).getPosition():add(Vector(0, 2, 0)))
+					-- return false
 				elseif target.hasTag("ClanScheme") then
 					local clan = U.findClanTag(target)
 					if clan == nil then return false end
 					local clanColor = M.getColorOfClan(clan)
 					if clanColor == "" then return false end
-					local discardPos = getObjectFromGUID(G.playerObjs[clanColor].schemeDiscardSpot).getPosition()
-					discardPos.y = discardPos.y + 2
 					target.setRotationSmooth({0, 180, 0})
-					target.setPositionSmooth(discardPos)
-					return false
+					target.setPositionSmooth(getObjectFromGUID(G.playerObjs[clanColor].schemeDiscardSpot).getPosition():add(Vector(0, 2, 0)))
+					-- return false
 				end
 			end
 		end
@@ -336,23 +418,22 @@ end
 
 function M.removeUnusedClanRefs()
 	local clans = M.getClans()
-	local round, turn = M.getRoundAndTurn()
-	if round > 0 and round < 10 then
+	if S.isInPhase({"INIT", "PLAY"}) and #U.getValues(clans) == 3 then
 		for _, clan in pairs(C.Clans) do
-			if not U.isIn(clan, clans) then
-				for _, color in pairs({ "Red", "Yellow", "Blue" }) do
-					UI.hide("hudRef" .. clan .. color)
-					UI.hide("hudRef" .. clan .. color .. "Overlay")
-				end
+			if not U.isIn(clan, U.getValues(clans)) then
+				M.forPlayers(function(_, col)
+					UI.hide("hudRef" .. clan .. col)
+					UI.hide("hudRef" .. clan .. col .. "Overlay")
+				end)
 			end
 		end
-		for _, col in pairs(C.Colors) do
+		M.forPlayers(function(_, col)
 			UI.setAttributes("hudSidebar" .. col, {
 				rectAlignment = "MiddleRight",
 				height = "475",
 				offsetXY = "0 0"
 			})
-		end
+		end)
 	end
 end
 
@@ -528,9 +609,14 @@ function M.readTurnOrderFromBG()
 	local lastFirstPlayer = turnOrder[1]
 	local bg = getObjectFromGUID(G.battlegrounds.b)
 	local bgSnapPoints = U.getSnapPointPositions(bg)
-	local pTokens = U.findAboveObject(bg, function(obj)
-		return obj.type == "Tile" and string.find(obj.getName(), "Morality") ~= nil
-	end, {box = true})
+	local pTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.right[1]), "PoliticsToken")
+
+	-- log({
+	-- 	turnOrder = turnOrder,
+	-- 	lastFirstPlayer = lastFirstPlayer,
+	-- 	bg = bg,
+	-- 	pTokens = pTokens
+	-- })
 
 	local function getTokenSlot(tk)
 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
@@ -557,12 +643,57 @@ function M.readTurnOrderFromBG()
 		end
 	end
 
+	-- log({curTopTokenColors = curTopTokenColors})
+
 	if (#curTopTokenColors == 1) then
 		return turnOrderMap[curTopTokenColors[1]]
 	end
 
 	return turnOrderMap[lastFirstPlayer]
 end
+
+-- function M.readTurnOrderFromBG()
+-- 	local turnOrder = M.getTurnOrder()
+-- 	local lastFirstPlayer = turnOrder[1]
+-- 	local bg = getObjectFromGUID(G.battlegrounds.b)
+-- 	local bgSnapPoints = U.getSnapPointPositions(bg)
+-- 	local pTokens = U.findAboveObject(bg, function(obj)
+-- 		return obj.type == "Tile" and string.find(obj.getName(), "Morality") ~= nil
+-- 	end, {box = true})
+
+-- 	error("Fuck")
+
+-- 	local function getTokenSlot(tk)
+-- 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
+-- 		local clan = U.findClanTag(tk)
+-- 		local color = M.getColorOfClan(clan)
+-- 		if (slot >= 6 and slot <= 9) then slot = 7 end
+-- 		if (color == lastFirstPlayer) then
+-- 			slot = slot + 0.5
+-- 		end
+-- 		return slot, color, clan
+-- 	end
+
+-- 	local curTopTokenSlot = 0
+-- 	local curTopTokenColors = {}
+-- 	for _, tok in pairs(pTokens) do
+-- 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tok.getPosition()))
+-- 		local slot, color, clan = getTokenSlot(tok)
+-- 		if (slot > curTopTokenSlot) then
+-- 			curTopTokenSlot = slot
+-- 			curTopTokenColors = {}
+-- 			table.insert(curTopTokenColors, color)
+-- 		elseif (slot == curTopTokenSlot) then
+-- 			table.insert(curTopTokenColors, color)
+-- 		end
+-- 	end
+
+-- 	if (#curTopTokenColors == 1) then
+-- 		return turnOrderMap[curTopTokenColors[1]]
+-- 	end
+
+-- 	return turnOrderMap[lastFirstPlayer]
+-- end
 
 function M.checkTurnOrder(data)
 	if data == nil then data = S.getStateVal("turnOrder") end
@@ -650,6 +781,36 @@ function M.syncTurnOrder()
 	end
 end
 
+function M.setSwivelLight(mode, target)
+	local function parseParam(key)
+		local thisVal = swivelLightVals[mode][key]
+		if type(thisVal) == "table" and thisVal.Red ~= nil then
+			return thisVal[target]
+		else
+			return thisVal
+		end
+	end
+
+	if mode == "inactive" then
+		M.deactivateSpotlight(getSwivelLight())
+	else
+		local lightParams = {}
+		for _, key in pairs({"range", "angle", "intensity"}) do
+			lightParams[key] = parseParam(key)
+		end
+		local pos = parseParam("position")
+		local rot = parseParam("rotation")
+		local lightColor = parseParam("color")
+		-- log("CHANGING LIGHT")
+		-- log({lightParams = lightParams, position = pos, rotation = rot, color = lightColor})
+		getSwivelLight().setPositionSmooth(pos)
+		getSwivelLight().setRotationSmooth(rot)
+		getSwivelLight().setColorTint(lightColor)
+		M.setLightVals(getSwivelLight(), lightParams)
+		M.activateSpotlight(getSwivelLight())
+	end
+end
+
 function M.syncTurnTracker()
 	local round, turn = M.getRoundAndTurn()
 	local turnOrder = M.getTurnOrder()
@@ -681,6 +842,7 @@ function M.syncTurnTracker()
 		return
 	else
 		UI.show("turnTracker")
+		M.setSwivelLight("faint", curPlayer)
 		for _, clr in pairs({ "Red", "Yellow", "Blue" }) do
 			if (curPlayer == clr) then
 				M.setHighlighter("TurnIndicator", "faint", clr)
@@ -877,6 +1039,7 @@ function M.advanceRound()
 			M.setHighlighter("TurnIndicator", "inactive", "Red")
 			M.setHighlighter("TurnIndicator", "inactive", "Yellow")
 			M.setHighlighter("TurnIndicator", "inactive", "Blue")
+			M.setSwivelLight("inactive")
 			M.setHighlighter("BGIndicator", "inactive", "left")
 			M.setHighlighter("BGIndicator", "inactive", "center")
 			M.setHighlighter("BGIndicator", "inactive", "right")
@@ -999,13 +1162,7 @@ function M.gameSETUP()
 		return
 	end
 
-	if missionDeck == nil then
-		missionDeck = U.findAboveObject(getObjectFromGUID(G.globalSpots.mission), function(obj) return obj.type == "Deck" end)[1]
-	end
-	if missionDeck == nil then
-		U.alertGM("Mission Deck not found.")
-		return
-	end
+	if not getMissionDeck() then return end
 
 	S.setStateVal("SETUP", "gamePhase")
 
@@ -1128,6 +1285,7 @@ function M.doNextClan()
 	else
 		U.sequence({
 			M.storeClanSelectionRing,
+			function() M.setSwivelLight("inactive") end,
 			Z.activateZones
 		}, 0.5, false)
 	end
@@ -1143,6 +1301,11 @@ function M.assignClan(clan, color)
 				U.splashUIElement("chooseStrandsOfTimeNotice", 5) -- Vanquished last Chapter, you may choose a Strand of time
 				local strandOfTimeSpot = getObjectFromGUID(G.globalSpots.strandOfTime)
 				strandOfTimeSpot.highlightOn("Green")
+				strandOfTimeSpot.setSnapPoints(U.map(strandOfTimeSpot.getSnapPoints(), function(sPt)
+					sPt.tags = {"StrandsOfTime"}
+					return sPt
+				end))
+				strandOfTimeSpot.setName("Strand of Time")
 				M.presentStrandsOfTimeToMiddle()
 			end
 			UI.show(color .. "ClanChoice")
@@ -1211,6 +1374,7 @@ function M.promptPlayerClanChoice(color)
 	if color == nil then color = M.getNextPlayer() end
 	M.displayClanSelectionRing()
 	M.setHighlighter("TurnIndicator", "strong", color)
+	M.setSwivelLight("strong", color)
 	UI.setValue("chooseClanPlayer", C.Names[color])
 	UI.setAttribute("chooseClanPlayer", "color", color)
 	U.splashUIElement("chooseClanNotice", 5)
@@ -1223,12 +1387,14 @@ end
 function M.dealAssets()
 	for _, color in pairs(C.Colors) do
 		local haven = getObjectFromGUID(G.playerObjs[color].haven)
+		local havenPos = haven.getPosition():add(Vector({0, 2, 0}))
 		local havenObjGUIDs = U.map(U.filter(haven.getObjects(), function(obj)
 			return U.isIn("Asset", obj.tags)
 		end), function(obj) return obj.guid end)
 		U.forEach(havenObjGUIDs, function(guid)
 			haven.takeObject({
 				guid = guid,
+				position = havenPos,
 				callback_function = function(obj)
 					obj.deal(1, color)
 					if obj.hasTag("Card") then
@@ -1243,12 +1409,14 @@ end
 function M.dealRetainer()
 	for _, color in pairs(C.Colors) do
 		local haven = getObjectFromGUID(G.playerObjs[color].haven)
+		local havenPos = haven.getPosition():add(Vector({0, 2, 0}))
 		local havenObjGUIDs = U.map(U.filter(haven.getObjects(), function(obj)
 			return U.isIn("Character", obj.tags)
 		end), function(obj) return obj.guid end)
 		U.forEach(havenObjGUIDs, function(guid)
 			haven.takeObject({
 				guid = guid,
+				position = havenPos,
 				callback_function = function(obj)
 					obj.deal(1, color)
 				end
@@ -1447,7 +1615,7 @@ function M.updateMoralityToken(color)
 end
 
 function M.startGame()
-	U.splashUIElement("splash-backdrop", 2)
+	-- U.splashUIElement("splash-backdrop", 2)
 	U.splashUIElement("gameStartNotice", 1, 0.5)
 
 	M.setRoundAndTurn(1, 1)
@@ -1865,6 +2033,12 @@ function M.resetBattleground(bgRef)
 	bg.call("Reset")
 end
 
+function M.unlockAllVamps()
+	U.forEach(getObjectsWithAllTags({"Card", "Character"}), function(obj)
+		if obj.type == "Card" then obj.setLock(false) end
+	end)
+end
+
 --#endregion
 
 function M.gameMISSIONS()
@@ -1883,13 +2057,14 @@ function M.gameMISSIONS()
 				hideBloodlinesScore()
 				M.showUpdatedTraits()
 			end,
+			M.highlightBattlegrounds,
 			function()
 				M.discardMonstrousVamps()
 				Z.discardTorporedVamps()
 			end,
 			M.clearAllTokens,
+			Z.refreshUI,
 			function()
-				Z.refreshUI()
 				M.recallSchemeDiscard()
 				M.presentLockedSchemesToVanquished()
 			end,
@@ -1902,6 +2077,7 @@ function M.gameMISSIONS()
 			function()
 				M.presentObligationsToVictor()
 				M.revealLostObligationsToNonVictors()
+				M.unlockAllVamps()
 			end,
 			M.setupProcessingSpots,
 			function() M.resetBattleground("g") end,
@@ -1999,13 +2175,8 @@ function M.gameAFTERMATH()
 			end
 		end,
 		M.hidePouches,
-		1,
-		function()
-			if obligationsDeck ~= nil then
-				local mainStorage = getObjectFromGUID(G.storage.main)
-				mainStorage.putObject(obligationsDeck)
-			end
-		end,
+		M.clearProcessingSpots,
+		M.packObligations,
 		function()
 			local lockedSchemeObjs = getObjectsWithTag("LockedScheme")
 			if #lockedSchemeObjs == 1 then
@@ -2053,6 +2224,12 @@ function M.packClanStorageBoxes()
 	end
 end
 
+function M.killFourthRow()
+	local boards = U.forEach(U.filter(getObjectsWithTag("FourthRowBoard"), function(board) return board.guid ~= G.playerObjs.fourthRowBoard end), function(board) board.destruct() end)
+	local zones = U.forEach(U.flatten(S.getStateVal("playerZones")), function(zoneGUID) getObjectFromGUID(zoneGUID).destruct() end)
+	Wait.time(function() S.setStateVal({}, "playerZones") end, 1)
+end
+
 function M.restoreClanLeaderSpots()
 	U.forEach(C.Colors, function(color)
 		local leaderSpot = getObjectFromGUID(G.playerObjs[color].leaderSpot)
@@ -2076,16 +2253,13 @@ function M.gameEND()
 	U.sequence({
 		M.returnLettersOfIntroduction,
 		function() M.clearPlayerZones(3) end,
-		function()
-			M.packObligations()
-			M.packClanStorageBoxes()
-		end,
+		M.packClanStorageBoxes,
+		M.killFourthRow,
 		function()
 			S.resetGameState()
 			M.showHavens()
 			M.showPouches()
 		end,
-		M.clearProcessingSpots,
 		M.restoreClanLeaderSpots
 	})
 end
@@ -2223,22 +2397,44 @@ function M.setHighlighter(ref, mode, subRef)
 		obj = getObjectFromGUID(G.highlighters.clanSelection)
 		obj.setPosition(G.tableSpots.highlighters.clanSelection[mode])
 	elseif (ref == "TurnIndicator") then
-		-- if round > 9 then
-		-- mode = "inactive"
-		-- end
 		if not subRef then
-			for _, color in pairs({ "Red", "Yellow", "Blue" }) do
-				obj = M.setHighlighter(ref, mode, color)
-				-- return
-			end
-			return obj
+			M.forPlayers(function(_, col) M.setHighlighter(ref, mode, col) end)
+			return
 		end
 		obj = getObjectFromGUID(G.highlighters.turnIndicator[subRef])
 		obj.setPosition(G.tableSpots.highlighters.turnIndicator[subRef][mode])
+		-- M.setHighlighter("TurnIndicator", "strong", color)
+		-- if mode == "inactive" then
+		-- 	M.deactivateSpotlight(getSwivelLight())
+		-- else
+		-- 	local function parseParam(key)
+		-- 		local thisVal = swivelLightVals[mode][key]
+		-- 		if type(thisVal) == "table" and thisVal.Red ~= nil then
+		-- 			return thisVal[subRef]
+		-- 		else
+		-- 			return thisVal
+		-- 		end
+		-- 	end
+		-- 	local lightParams = {}
+		-- 	for _, key in pairs({"range", "angle", "intensity"}) do
+		-- 		lightParams[key] = parseParam(key)
+		-- 	end
+		-- 	local pos = parseParam("position")
+		-- 	local rot = parseParam("rotation")
+		-- 	local lightColor = parseParam("color")
+		-- 	log("CHANGING LIGHT")
+		-- 	log({lightParams = lightParams, position = pos, rotation = rot, color = lightColor})
+		-- 	getSwivelLight().setPositionSmooth(pos)
+		-- 	getSwivelLight().setRotationSmooth(rot)
+		-- 	getSwivelLight().setColorTint(lightColor)
+		-- 	M.setLightVals(getSwivelLight(), lightParams)
+		-- 	M.activateSpotlight(getSwivelLight())
+		-- end
 	elseif (ref == "BGIndicator") then
 		-- if round > 9 then
 		-- 	mode = "inactive"
 		-- end
+		if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then mode = "inactive" end
 		if not subRef then
 			for _, loc in pairs({ "left", "center", "right" }) do
 				M.setHighlighter(ref, mode, loc)
@@ -2264,8 +2460,12 @@ function M.setHighlighter(ref, mode, subRef)
 end
 
 function M.highlightBattlegrounds()
+	local mode = "active"
+	if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then
+		mode = "inactive"
+	end
 	for _, loc in pairs({ "left", "center", "right" }) do
-		M.setHighlighter("BGIndicator", "active", loc)
+		M.setHighlighter("BGIndicator", mode, loc)
 	end
 end
 
@@ -2310,6 +2510,7 @@ function M.syncState()
 		M.setHighlighter("TurnIndicator", "inactive", "Red")
 		M.setHighlighter("TurnIndicator", "inactive", "Yellow")
 		M.setHighlighter("TurnIndicator", "inactive", "Blue")
+		M.setSwivelLight("inactive")
 
 		if (round == 0) then
 			if (clans.Red or clans.Yellow or clans.Blue) then
@@ -2317,6 +2518,7 @@ function M.syncState()
 				if (clanChooser ~= nil) then
 					M.setHighlighter("ClanSelection", "active")
 					M.setHighlighter("TurnIndicator", "strong", clanChooser)
+					M.setSwivelLight("strong", clanChooser)
 					UI.setValue("chooseClanPlayer", C.Names[clanChooser])
 					UI.setAttribute("chooseClanPlayer", "color", clanChooser)
 					U.splashUIElement("chooseClanNotice", 5)
@@ -2709,7 +2911,7 @@ function M.addTraitDot(color, trait, rowNum)
 	end
 end
 
-local function parseTraitsToXMLTable(traitsTable)
+local function parseTraitsToXMLTable(traitsTable, clan)
 	local function countTraitRows(ttable)
 		local rowCount = 0
 		for _, rowData in pairs(ttable) do
@@ -2717,7 +2919,7 @@ local function parseTraitsToXMLTable(traitsTable)
 				rowCount = rowCount + 1
 			end
 		end
-		return rowCount
+		return rowCount + 1
 	end
 
 	local XMLTable = {
@@ -2810,6 +3012,34 @@ local function parseTraitsToXMLTable(traitsTable)
 		end
 	end
 
+	local function parseClanStickerRow()
+		local clanStickersUsed = S.getStateVal("usedClanStickers", clan)
+		local clanStickersAvailable = 6 - clanStickersUsed
+		local clanMessage
+		if clanStickersAvailable == 1 then
+			clanMessage = "There is 1 " .. clan .. " sticker left."
+		elseif clanStickersAvailable == 0 then
+			clanMessage = "There are no " .. clan .. " stickers left."
+		else
+			clanMessage = "There are " .. clanStickersAvailable .. " " .. clan .. " stickers left."
+		end
+		return {
+				tag = "Text",
+				attributes = {
+					color = "#FFFFFF",
+					fontSize = "36",
+					-- ignoreLayout = "true",
+					height = "50",
+					-- rectAlignment = "LowerCenter"
+				},
+				value = clanMessage,
+				children = {}
+		}
+	end
+	table.insert(XMLTable[2].children[1].children, parseClanStickerRow())
+
+	-- log({TRAITSXML = JSON.encode_pretty(XMLTable)})
+
 	return XMLTable
 end
 
@@ -2817,14 +3047,16 @@ function M.showUpdatedTraits(playerColor)
 	if playerColor == nil then return U.forEach(C.Colors, function(color) M.showUpdatedTraits(color) end) end
 	local playerBoard = getObjectFromGUID(G.playerCards[playerColor])
 	local playerData = S.getStateVal("traits", playerColor)
-	local playerXML = parseTraitsToXMLTable(playerData)
+	local playerXML = parseTraitsToXMLTable(playerData, M.getClans()[playerColor])
 	-- log(JSON.encode_pretty(playerXML))
 	playerBoard.UI.setXmlTable(playerXML)
 	Wait.time(function() playerBoard.UI.show("traits") end, 1)
 end
 
 local function parseStickersToXMLTable(stickerData, playerColor)
-	local clan = M.getClans()[playerColor]
+	if playerColor == "Red" then
+		-- log({stickerData = JSON.encode_pretty(stickerData)})
+	end
 	local function parseAbilityStickerRows()
 		local vertChildren = {}
 		local index = 1
@@ -2853,34 +3085,8 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 			end
 			table.insert(vertChildren, vertChild)
 		end
-		-- log(JSON.encode_pretty(vertChildren))
+		-- log({VERTCHILDREN = JSON.encode_pretty(vertChildren)})
 		return vertChildren
-	end
-	local function parseClanStickerRow()
-		local clanStickersUsed = S.getStateVal("usedClanStickers", clan)
-		local clanStickersAvailable = 6 - clanStickersUsed
-		local clanMessage
-		if clanStickersAvailable == 1 then
-			clanMessage = "There is 1 " .. clan .. " sticker left."
-		elseif clanStickersAvailable == 0 then
-			clanMessage = "There are no " .. clan .. " stickers left."
-		else
-			clanMessage = "There are " .. clanStickersAvailable .. " " .. clan .. " stickers left."
-		end
-		return {
-			{
-				tag = "Text",
-				attributes = {
-					color = "#FFFFFF",
-					fontSize = "36",
-					ignoreLayout = "true",
-					height = "50",
-					rectAlignment = "LowerCenter"
-				},
-				value = clanMessage,
-				children = {}
-			}
-		}
 	end
 	local numRows = 1 + math.ceil(#stickerData / 4) + 1
 	local childXML = U.concat({
@@ -2897,17 +3103,14 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 			tag = "Text",
 			attributes = {
 				color = "#FFFFFF",
-				fontSize = "36"
+				fontSize = "36",
+				flexibleHeight = "0",
+				preferredHeight = "50"
 			},
 			value = "",
-			flexibleHeight = "0",
-			preferredHeight = "50",
 			children = {}
 		}
 	}, parseAbilityStickerRows())
-	if clan ~= nil then
-		childXML = U.concat(childXML, parseClanStickerRow())
-	end
 
 	local XMLTable = {
 		{
@@ -2979,6 +3182,9 @@ local function parseStickersToXMLTable(stickerData, playerColor)
 			}
 		}
 	}
+
+	-- log({STICKERXML = JSON.encode_pretty(XMLTable)})
+
 	return XMLTable
 end
 
@@ -2991,18 +3197,31 @@ function M.showStickerUnlocks(playerColor)
 	local traitStrings = {}
 	local playerTraits = S.getStateVal("traits", playerColor)
 	U.forEach(playerTraits, function(traitCat)
-		U.forEach(traitCat, function(tVal, tName)
+		local theseKeys = U.getKeys(traitCat)
+		if (playerColor == "Red") then
+			-- log({theseKeys = theseKeys})
+		end
+		U.forEach(U.getKeys(traitCat), function(tName)
+			local tVal = traitCat[tName]
+			if (playerColor == "Red") then
+				-- log({tVal = tVal, tName = tName})
+			end
 			for i = 1, tVal do
 				table.insert(traitStrings, tName .. i)
 			end
 		end)
 	end)
 	Wait.time(function()
+		if playerColor == "Red" then
+			-- log({PLAYERTRAITS = JSON.encode_pretty(playerTraits), TRAITSTRINGS = JSON.encode_pretty(traitStrings)})
+		end
 		local availableStickers = U.filter(traitStrings, function(tString)
 			return not U.isIn(tString, S.getStateVal("usedAbilityStickers"))
 		end)
 		Wait.time(function()
-			-- log(availableStickers)
+			if playerColor == "Red" then
+				-- log({AVAILABLESTICKERS = JSON.encode_pretty(availableStickers)})
+			end
 			local playerXML = parseStickersToXMLTable(availableStickers, playerColor)
 			playerBoard.UI.setXmlTable(playerXML)
 			-- Wait.time(function() playerBoard.UI.show("traits") end, 1)
@@ -3082,8 +3301,8 @@ function M.clearProcessingSpots()
 	U.forEach(G.globalSpots.processing, function(guid, objCat)
 		local spot = getObjectFromGUID(guid)
 		spot.setSnapPoints(U.map(spot.getSnapPoints(), function(sPt)
-			if objCat == "strand" then
-				sPt.tags = { "StrandOfTime" }
+			if spot.guid == G.globalSpots.strandOfTime then
+				sPt.tags = {"StrandsOfTime"}
 			else
 				sPt.tags = { "ClanScheme" }
 			end
@@ -3096,9 +3315,11 @@ function M.clearProcessingSpots()
 		end
 		spot.setColorTint(C.CategoryColors.default)
 		-- spot.highlightOff()
+	end)
+	Wait.time(function()
 		local processingKey = getObjectFromGUID(G.globalSpots.processingKey.id)
 		processingKey.setPositionSmooth(G.globalSpots.processingKey.inactive)
-	end)
+	end, 1)
 end
 
 function M.activateSpotlight(spotlight)
@@ -3111,29 +3332,49 @@ function M.deactivateSpotlight(spotlight)
 	spotlight.call("apply")
 end
 
-function M.setSpotlight(spotlight, params)
-	-- replace "true" with "+" and "false" with "-", remove: %a, %s, split by :
-	log("==================")
-	log(spotlight.getGMNotes())
+function M.getLightVals(spotlight)
 	local lightString = string.gsub(string.gsub(string.gsub(spotlight.getGMNotes(), "true", "+"), "false", "-"), "[%a%s%c]", "")
 	local lightVals = U.map(U.split(string.gsub(lightString, "^:", ""), ":"), function(val)
-		if val == "+" then return true end
-		if val == "-" then return false end
+		if val == "+" then return "true" end
+		if val == "-" then return "false" end
 		return 1 * val
 	end)
-	log(lightString)
-	log(lightVals)
-	log("-----------------")
-	log(" ")
+	return {
+		range = lightVals[1],
+		angle = lightVals[2],
+		intensity = lightVals[3],
+		enabled = lightVals[4]
+	}
+end
 
+local function parseLightVals(vals)
+	return string.format([[Range: %s
+		Angle: %s
+		Intensity: %s
+		Enabled: %s]], vals.range, vals.angle, vals.intensity, vals.enabled)
+end
 
-	-- obj.setGMNotes(string.format([[Range: %s
-		-- Angle: %s
-		-- Intensity: %s
-		-- Enabled: %s]], inputs[2].value, inputs[3].value, inputs[4].value, enabled))
-		-- 		obj.AssetBundle.playLoopingEffect(effect_id)
-		-- 		obj.setColorTint(self.getColorTint())
-		-- 		obj.call("apply")
+function M.setLightVals(spotlight, vals)
+	local fullVals = M.getLightVals(spotlight)
+	for k,v in pairs(vals) do
+		fullVals[k] = v
+	end
+	spotlight.setGMNotes(parseLightVals(fullVals))
+	spotlight.call("apply")
+end
+
+function M.dimSpotlight(spotlight)
+	M.setLightVals(spotlight, {intensity = 0.5 * M.getLightVals(spotlight).intensity})
+end
+function M.brightenSpotlight(spotlight)
+	M.setLightVals(spotlight, {intensity = 2 * M.getLightVals(spotlight).intensity})
+end
+function M.pointSpotlight(spotlight, objOrPosition)
+	local pos = objOrPosition
+	if type(objOrPosition) == "userdata" then
+		pos = objOrPosition.getPosition()
+	end
+
 
 
 end

@@ -1,5 +1,6 @@
 local U = require("lib.utilities")
 local C = require("lib.constants")
+local M = require("core.main")
 local S = require("core.state")
 local Z = require("core.zones")
 local G = require("lib.guids")
@@ -8,16 +9,16 @@ local bgZone, endZone
 
 local investigatorSnaps = {}
 local ankhSnaps = {
-	north = {},
-	south = {},
-	east = {},
-	west = {}
+	North = {},
+	South = {},
+	East = {},
+	West = {}
 }
 local ankhColors = {
-	north = "Grey",
-	south = "White",
-	east = "Brown",
-	west = "Cyan"
+	North = "Grey",
+	South = "White",
+	East = "Brown",
+	West = "Cyan"
 }
 
 local function translateSnapCoords()
@@ -37,29 +38,32 @@ local function updateInvestigatorSnaps()
 	table.sort(iSnaps, function(a, b) return a.position.x < b.position.x end)
 	iSnaps = {iSnaps[1], iSnaps[2], iSnaps[3], iSnaps[4]}
 	table.sort(iSnaps, function(a, b) return a.position.z > b.position.z end)
-	investigatorSnaps.north = iSnaps[1]
-	investigatorSnaps.east = iSnaps[2]
-	investigatorSnaps.west = iSnaps[3]
-	investigatorSnaps.south = iSnaps[4]
+	investigatorSnaps.North = iSnaps[1]
+	investigatorSnaps.East = iSnaps[2]
+	investigatorSnaps.West = iSnaps[3]
+	investigatorSnaps.South = iSnaps[4]
 	local investigatorTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.center[1]), "Investigator")
 	-- log(investigatorTokens)
 	table.sort(investigatorTokens, function(a, b) return a.getPosition().z > b.getPosition().z end)
 	-- log(investigatorTokens)
-	investigatorTokens[1].highlightOn({0, 0, 0})
-	investigatorTokens[2].highlightOn(C.AnkhColors.East)
-	investigatorTokens[3].highlightOn(C.AnkhColors.West)
-	investigatorTokens[4].highlightOn(C.AnkhColors.South)
-	investigatorTokens[1].setName("Investigator (North)")
-	investigatorTokens[2].setName("Investigator (East)")
-	investigatorTokens[3].setName("Investigator (West)")
-	investigatorTokens[4].setName("Investigator (South)")
+	-- investigatorTokens[1].highlightOn({0, 0, 0})
+	-- investigatorTokens[2].highlightOn(C.AnkhColors.East)
+	-- investigatorTokens[3].highlightOn(C.AnkhColors.West)
+	-- investigatorTokens[4].highlightOn(C.AnkhColors.South)
+	-- investigatorTokens[1].setName("Investigator (North)")
+	-- investigatorTokens[2].setName("Investigator (East)")
+	-- investigatorTokens[3].setName("Investigator (West)")
+	-- investigatorTokens[4].setName("Investigator (South)")
+	-- investigatorTokens[1].setTags({"Investigator", "InvestigatorNorth"})
+	-- investigatorTokens[2].setTags({"Investigator", "InvestigatorEast"})
+	-- investigatorTokens[3].setTags({"Investigator", "InvestigatorWest"})
+	-- investigatorTokens[4].setTags({"Investigator", "InvestigatorSouth"})
 end
 
 local function updateAnkhSnaps()
 	U.forEach({"North", "South", "East", "West"}, function(dir)
-		local lowDir = string.lower(dir)
-		ankhSnaps[lowDir] = U.filter(translateSnapCoords(), function(sPt) return U.isIn(dir, sPt.tags) end)
-		table.sort(ankhSnaps[lowDir], function(a, b) return a.position.x > b.position.x end)
+		ankhSnaps[dir] = U.filter(translateSnapCoords(), function(sPt) return U.isIn(dir, sPt.tags) end)
+		table.sort(ankhSnaps[dir], function(a, b) return a.position.x > b.position.x end)
 	end)
 end
 
@@ -77,21 +81,29 @@ local function countAnkhs(dir)
 	if dir == nil then return #Z.getTaggedZoneObjects(bgZone, {"Ankh"}) end
 	return #Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true)
 end
-local function getAnkhByNum(dir, num)
-	return U.find(Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true), function(ankh)
-		return ankh.getDescription() == "" .. num
-	end)
+local function getNextAnkh(dir)
+	local ankhs = Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true)
+	if #ankhs == 0 then return nil end
+	table.sort(ankhs, function(a, b) return a.getPosition().x < b.getPosition().x end)
+	return ankhs[1]
 end
 
-function OnObjectEnterZone(params)
-	local zone, object = params.zone, params.object
+local function getTokenDir(token)
+	if token.hasTag("North") or token.hasTag("InvestigatorNorth") then return "North" end
+	if token.hasTag("South") or token.hasTag("InvestigatorSouth") then return "South" end
+	if token.hasTag("East") or token.hasTag("InvestigatorEast") then return "East" end
+	if token.hasTag("West") or token.hasTag("InvestigatorWest") then return "West" end
+end
+
+function onObjectEnterZone(zone, object)
+	if not S.isInPhase("PLAY") then return end
+	if zone.guid ~= bgZone.guid and zone.guid ~= endZone.guid then return end
+	M.deactivateSpotlight(getObjectFromGUID(G.lights.battlegrounds.center))
 	if zone.guid == endZone.guid and object.hasTag("Investigator") then
 		SendObjectHome(object)
-		local dir = object.getDescription()
-		local ankhNum = countAnkhs(dir)
-		if ankhNum == 0 then return end
-		local nextAnkh = getAnkhByNum(dir, ankhNum)
-		if getAnkhByNum == nil then return end
+		local dir = getTokenDir(object)
+		local nextAnkh = getNextAnkh(dir)
+		if nextAnkh == nil then return end
 		nextAnkh.highlightOn("Red")
 		local dirMap = {
 			North = "a Northern ankh",
@@ -123,31 +135,42 @@ function OnObjectEnterZone(params)
 	end
 end
 
-function OnObjectLeaveZone(params)
-	if params.object.hasTag("Ankh") then
-		params.object.highlightOff()
+function onObjectLeaveZone(zone, object)
+	if object.hasTag("Ankh") then
+		object.highlightOff()
 	end
 end
 
-function SendObjectHome(obj)
+function SendObjectHome(obj, isRebasing)
 	local homeSnap
 	if obj.hasTag("Investigator") then
-		homeSnap = investigatorSnaps[string.lower(obj.getDescription())]
+		homeSnap = investigatorSnaps[getTokenDir(obj)]
 	elseif obj.hasTag("Ankh") and obj.type == "Tile" then
-		local dir = obj.getName()
-		local index = obj.getDescription()
-		homeSnap = ankhSnaps[string.lower(dir)][index * 1]
+		local dir = getTokenDir(obj)
+		local index = obj.getDescription() * 1
+		if isRebasing ~= true then
+			local homeAnkhs = U.filter(Z.getTaggedZoneObjects(bgZone, {"Ankh", dir}, true), function(ankh)
+				return ankh.guid ~= obj.guid
+			end)
+			index = #homeAnkhs + 1
+		end
+		homeSnap = ankhSnaps[dir][index]
 	end
 
 	if homeSnap ~= nil then
 		obj.setPositionSmooth(homeSnap.position)
 		obj.setRotation(homeSnap.rotation)
 	end
+
+	return obj
 end
 
 function Reset()
-	local bgObjs = getObjectsWithTag("Investigator")
-	bgObjs = U.concat(bgObjs, getObjectsWithTag("Ankh"))
-	U.forEach(bgObjs, SendObjectHome)
-	-- log(JSON.encode_pretty(ankhSnaps))
+	local invObjs = getObjectsWithTag("Investigator")
+	local ankhObjs = U.filter(getObjectsWithTag("Ankh"), function(obj) return obj.type == "Tile" end)
+
+	U.sequence(U.concat(
+		U.map(invObjs, function(obj) return function() SendObjectHome(obj) end end),
+		U.map(ankhObjs, function(obj) return function() SendObjectHome(obj, true) end end)
+	), 0.25)
 end

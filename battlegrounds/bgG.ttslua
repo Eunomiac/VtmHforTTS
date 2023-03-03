@@ -84,7 +84,7 @@ end
 
 local function setTitleElevation(title, mode, isActivatingLight)
 	if mode == nil then
-		if title == currentTitle then mode = 2
+		if not S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) and title == currentTitle then mode = 2
 		else mode = 1
 		end
 	end
@@ -123,7 +123,7 @@ local function setTitleElevation(title, mode, isActivatingLight)
 		end)
 	end)
 
-	if mode == 2 and isActivatingLight then
+	if mode == 2 and isActivatingLight and not S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then
 		local nextLightPos = titleObjs.coin.getPosition()
 		nextLightPos.y = 8
 		objects.nextLight.setPosition(nextLightPos)
@@ -169,6 +169,11 @@ function onLoad()
 	currentTitle = getTimerTitle()
 
 	U.forEach(titles, function(title) setTitleElevation(title, nil, true) end)
+
+	if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then
+		M.deactivateSpotlight(objects.light)
+		M.deactivateSpotlight(objects.nextLight)
+	end
 end
 
 function onObjectEnterZone(zone, object)
@@ -314,6 +319,15 @@ function Reset()
 			recallTitle("Sheriff")
 			recallTitle("Primogen")
 			recallTitle("Prince")
+		end,
+		function()
+			U.forEach(titles, function(title)
+				setTitleElevation(title, 1)
+			end)
+		end,
+		function()
+			M.deactivateSpotlight(objects.nextLight)
+			M.deactivateSpotlight(objects.light)
 		end
 	}, 0.5, false)
 end

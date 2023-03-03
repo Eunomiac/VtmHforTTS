@@ -248,10 +248,10 @@ function U.forEach(tbl, func, delayStep)
 	U.sequence(funcs, delayStep, false)
 end
 
-function U.forEachThen(table, func, thenFunc, delayStep)
+function U.forEachThen(tb, func, thenFunc, delayStep)
 	if delayStep == nil then delayStep = 0 end
 	U.sequence({
-		U.forEach(table, func, delayStep),
+		U.forEach(tb, func, delayStep),
 		thenFunc
 	}, delayStep, false)
 end
@@ -313,9 +313,9 @@ function U.waitRestingSequence(funcs, maxTime, isLoose)
 	callNext()
 end
 
-function U.map(table, func)
+function U.map(tb, func)
   local new_table = {}
-  for k,v in pairs(table) do
+  for k,v in pairs(tb) do
     new_table[k] = func(v,k)
   end
   return new_table
@@ -385,7 +385,7 @@ function U.flatten(tb)
 	local newTable = {}
 	for _, val in pairs(tb) do
 		if type(val) == "table" then
-			U.concat(newTable, U.flatten(val))
+			newTable = U.concat(newTable, U.flatten(val))
 		else
 			table.insert(newTable, val)
 		end
@@ -407,21 +407,21 @@ function U.findIndex(tb, func)
 	return nil
 end
 
-function U.compact(table)
+function U.compact(tb)
 
 
 end
 
-function U.reverse(table)
+function U.reverse(tb)
     local rev = {}
-    for i = #table, 1, -1 do
-    	rev[#rev+1] = table[i]
+    for i = #tb, 1, -1 do
+    	rev[#rev+1] = tb[i]
     end
     return rev
 end
 
-function U.isIn(elem, table)
-  for _, value in pairs(table) do
+function U.isIn(elem, tb)
+  for _, value in pairs(tb) do
     if value == elem then
       return true
     end
@@ -590,25 +590,26 @@ function U.round(num, sigDigits)
 	return (math.floor(num * roundMult + 0.5)) / roundMult
 end
 
-function U.roundTableVals(table, sigDigits)
+function U.roundTableVals(tb, sigDigits)
   local newTable = {}
-  for key, val in pairs(table) do
+  for key, val in pairs(tb) do
     newTable[key] = U.round(val, sigDigits)
   end
   return newTable
 end
 
-function U.getValues(table)
+function U.getValues(tb)
 	local values = {}
-	for _, val in ipairs(table) do
+	for _, val in pairs(tb) do
+		-- log({key = key, val = val})
 		table.insert(values, val)
 	end
 	return values
 end
 
-function U.getKeys(table)
+function U.getKeys(tb)
 	local keys = {}
-	for _, key in ipairs(table) do
+	for key in pairs(tb) do
 		table.insert(keys, key)
 	end
 	return keys
@@ -639,7 +640,7 @@ end
 function U.sequence(funcs, timeDelay, isPulsing)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided
 	local delay = 0 -- Initialize delay to 0
-	if isPulsing ~= false then
+	if isPulsing == true then
 		-- log("IS PULSING")
 		U.changeLighting("automating")
 	end
@@ -659,7 +660,7 @@ function U.sequence(funcs, timeDelay, isPulsing)
 				error("Invalid element in funcs table")
 			end
 	end
-	if isPulsing ~= false then
+	if isPulsing == true then
 		Wait.time(function() U.changeLighting() end, delay)
 	end
 end

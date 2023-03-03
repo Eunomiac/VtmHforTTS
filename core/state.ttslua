@@ -81,4 +81,8 @@ function S.isInPhase(phases)
 	return U.isIn(S.getStateVal("gamePhase"), phases)
 end
 
+function S.isDebugging()
+	return UI.getAttribute("debugStatePanel", "active") == "True"
+end
+
 return S

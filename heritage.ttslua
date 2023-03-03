@@ -110,6 +110,14 @@ function HUD_toggleZoneVisibility(player, value, id)
 	end
 end
 
+function HUD_toggleLightArrowVisibility(player, value, id)
+	if value == "-2" then
+		M.hideLightArrows()
+	else
+		M.showLightArrows()
+	end
+end
+
 function HUD_toggleHavens(player, value, id)
 	if value == "-2" then
 		M.hideHavens()

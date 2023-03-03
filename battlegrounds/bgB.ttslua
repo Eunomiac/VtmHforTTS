@@ -1,12 +1,27 @@
 local U = require("lib.utilities")
 local C = require("lib.constants")
+local G = require("lib.guids")
 local Z = require("core.zones")
 local M = require("core.main")
+local S = require("core.state")
 
-function OnObjectEnterZone(zone, object) return end
+local objects, zones
+
+function onLoad()
+	zones = {
+		bg = getObjectFromGUID(G.zones.battlegroundZones.right[1])
+	}
+end
+
+function onObjectEnterZone(zone, object)
+	if not S.isInPhase("PLAY") then return end
+	if zone.guid ~= zones.bg.guid then return end
+	M.deactivateSpotlight(getObjectFromGUID(G.lights.battlegrounds.right))
+end
 
 function UpdateMoralityToken(params)
 	local color = params.color
+	-- log("UPDATE MORALITY TOKEN CALLED: " .. color)
 	if color == nil then return end
 	local leaderClan = M.getClans()[color]
 	local leaderCard = Z.getClanLeader(color)

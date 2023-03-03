@@ -31,7 +31,8 @@
 		"onCollisionEnter",
 		"Color",
 		"onPlayerAction",
-		"onObjectDrop"
+		"onObjectDrop",
+		"Vector"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [
