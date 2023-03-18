@@ -19,38 +19,38 @@ local titleCoins = {
 	Prince = "6b1e96"
 }
 local titleStands = {
-	Harpy = "ed9143",
-	Sheriff = "586ef2",
-	Primogen = "dffb3e",
-	Prince = "117a9a"
+	Harpy = "f89380",
+	Sheriff = "2f55a4",
+	Primogen = "f42cb9",
+	Prince = "0d56d1"
 }
 local titleRisers = {
-	Harpy = "5ad580",
-	Sheriff = "1a0d2a",
-	Primogen = "39b1e4",
-	Prince = "83eccc"
+	Harpy = "0f9d10",
+	Sheriff = "faf3b0",
+	Primogen = "fc5d0c",
+	Prince = "3b7675"
 }
 
-local vertLevels = {
+local vertLevels = { -- harpy - {-19.25, 4.31, 16.35}
 	Harpy = {
-		{token = 3.5, coin = 3.30, stand = 0.53, riser = 0.53},
-		{token = 4.75, coin = 4.31, stand = 1.55, riser = 1.55},
-		{token = 6, coin = 4.31, stand = 1.55, riser = 3.05}
+		{token = 3.5, coin = 3.30, stand = 0.11, riser = 0.11},
+		{token = 4.75, coin = 3.30, stand = 1.13, riser = 1.13},
+		{token = 6, coin = 3.30, stand = 1.13, riser = 2.63}
 	},
 	Sheriff = {
-		{token = 4, coin = 3.53, stand = 0.75, riser = 0.75},
-		{token = 5, coin = 4.53, stand = 1.75, riser = 1.75},
-		{token = 6.5, coin = 4.53, stand = 1.75, riser = 3.25}
+		{token = 4, coin = 3.53, stand = 0.33, riser = 0.33},
+		{token = 5, coin = 3.53, stand = 1.33, riser = 1.33},
+		{token = 6.5, coin = 3.53, stand = 1.33, riser = 2.83}
 	},
 	Primogen = {
-		{token = 4, coin = 3.64, stand = 0.87, riser = 0.87},
-		{token = 5, coin = 4.64, stand = 1.87, riser = 1.87},
-		{token = 6.5, coin = 4.64, stand = 1.87, riser = 3.37}
+		{token = 4, coin = 3.64, stand = 0.45, riser = 0.45},
+		{token = 5, coin = 3.64, stand = 1.45, riser = 1.45},
+		{token = 6.5, coin = 3.64, stand = 1.45, riser = 2.95}
 	},
 	Prince = {
-		{token = 4, coin = 3.72, stand = 0.92, riser = 0.92},
-		{token = 5, coin = 4.72, stand = 1.92, riser = 1.92},
-		{token = 6.5, coin = 4.72, stand = 1.92, riser = 3.42}
+		{token = 4, coin = 3.72, stand = 0.5, riser = 0.5},
+		{token = 5, coin = 3.72, stand = 1.5, riser = 1.5},
+		{token = 6.5, coin = 3.72, stand = 1.5, riser = 3}
 	}
 }
 
@@ -84,7 +84,7 @@ end
 
 local function setTitleElevation(title, mode, isActivatingLight)
 	if mode == nil then
-		if not S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) and title == currentTitle then mode = 2
+		if S.isInPhase("PLAY") and title == currentTitle then mode = 2
 		else mode = 1
 		end
 	end
@@ -168,12 +168,7 @@ function onLoad()
 
 	currentTitle = getTimerTitle()
 
-	U.forEach(titles, function(title) setTitleElevation(title, nil, true) end)
-
-	if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then
-		M.deactivateSpotlight(objects.light)
-		M.deactivateSpotlight(objects.nextLight)
-	end
+	Initialize()
 end
 
 function onObjectEnterZone(zone, object)
@@ -304,6 +299,20 @@ function EndVote()
 		end,
 		recallTokens,
 	})
+end
+
+function Initialize()
+	U.forEach(titles, function(title)
+		-- local coinPos = objects.titles[title].coin.getPosition()
+		-- objects.titles[title].stand.setPosition(coinPos)
+		-- objects.titles[title].riser.setPosition(coinPos)
+		setTitleElevation(title, nil, true)
+	end)
+
+	if not S.isInPhase("PLAY") then
+		M.deactivateSpotlight(objects.light)
+		M.deactivateSpotlight(objects.nextLight)
+	end
 end
 
 function Reset()

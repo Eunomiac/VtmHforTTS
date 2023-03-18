@@ -1,0 +1,227 @@
+local C = {}
+
+C.PlayerColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
+C.PlayerAngles = {
+	Red = 60,
+	Purple = 120,
+	Green = 180,
+	Yellow = 240,
+	Blue = 300
+}
+
+C.Modes = {
+	NONE = "NONE",
+	CAMPAIGNSETUP = "CAMPAIGNSETUP",
+	SETUP = "GAMESETUP",
+	PLAY = "PLAY",
+	END = "END"
+}
+
+C.Phases = {
+	NONE = "NONE",
+	CAMPAIGNSETUP = {},
+	SETUP = {},
+	PLAY = {
+		Draw = "Draw",
+		Balance = "Balance",
+		Vote = "Vote",
+		Result = "Result",
+		Resolution = "Resolution"
+	},
+	END = {
+		Score = "Score",
+		Realm = "Realm",
+		Achievements = "Achievements",
+		Alignments = "Alignments",
+		Cleanup = "Cleanup"
+	}
+}
+
+C.rotFaceDown = {0, 0, 0}
+C.rotFaceUp = {0, 180, 0}
+
+C.scanData = {
+	Blodyn = {
+		globalOffsets = {gx = 0.002, gy = 0.02},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.31, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 4, zFix = 0.45, zScale = 0.065},
+				{num = 2, zFix = 0.94, zScale = 0.065},
+				{num = 2, zFix = 1.25, zScale = 0.065}
+			}
+		}
+	},
+	Coden = {
+		globalOffsets = {gx = 0, gy = 0},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.31, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.445, zScale = 0.065},
+				{num = 3, zFix = 0.785, zScale = 0.065},
+				{num = 2, zFix = 1.18, zScale = 0.065}
+			}
+		}
+	},
+	Gamam = {
+		globalOffsets = {gx = 0, gy = 0.02},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.45, zScale = 0.065},
+				{num = 3, zFix = 0.81, zScale = 0.065},
+				{num = 3, zFix = 1.17, zScale = 0.065}
+			}
+		}
+	},
+	Natar = {
+		globalOffsets = {gx = 0.004, gy = 0.01},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 3, zFix = 0.43, zScale = 0.065},
+				{num = 2, zFix = 0.84, zScale = 0.065},
+				{num = 3, zFix = 1.1, zScale = 0.065}
+			}
+		}
+	},
+	Olwyn = {
+		globalOffsets = {gx = 0.005, gy = 0},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.49, zScale = 0.065},
+				{num = 2, zFix = 0.92, zScale = 0.065},
+				{num = 3, zFix = 1.25, zScale = 0.065}
+			}
+		}
+	},
+	Solad = {
+		globalOffsets = {gx = 0, gy = 0},
+		textWidth = 3600,
+		nameOffsets = {dx = -0.12, dy = -0.8},
+		prestigeGap = 0.065,
+		agendaGap = 0.79,
+		achievementButtons = {
+			offsets = {dx = 1.315, dy = -0.64, zStart = 0.14},
+			blocks = {
+				{num = 2, zFix = 0.44, zScale = 0.07},
+				{num = 2, zFix = 0.79, zScale = 0.07},
+				{num = 2, zFix = 1.12, zScale = 0.07}
+			}
+		}
+	},
+	Allwed = {
+		globalOffsets = {gx = 0.001, gy = 0.01},
+		textWidth = 3000,
+		nameOffsets = {dx = -0.19, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.45, zScale = 0.065},
+				{num = 4, zFix = 0.86, zScale = 0.065},
+				{num = 3, zFix = 1.33, zScale = 0.065}
+			}
+		}
+	},
+	Crann = {
+		globalOffsets = {gx = 0.001, gy = 0.01},
+		textWidth = 3000,
+		nameOffsets = {dx = -0.19, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.305, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.49, zScale = 0.065},
+				{num = 2, zFix = 0.85, zScale = 0.065},
+				{num = 3, zFix = 1.165, zScale = 0.065}
+			}
+		}
+	},
+	Dualak = {
+		globalOffsets = {gx = 0.001, gy = 0.01},
+		textWidth = 3000,
+		nameOffsets = {dx = -0.19, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.302, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 3, zFix = 0.411, zScale = 0.065},
+				{num = 2, zFix = 0.78, zScale = 0.065},
+				{num = 2, zFix = 1.1, zScale = 0.065}
+			}
+		}
+	},
+	Tiryll = {
+		globalOffsets = {gx = 0, gy = 0.01},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.14},
+			blocks = {
+				{num = 2, zFix = 0.46, zScale = 0.07},
+				{num = 2, zFix = 0.83, zScale = 0.07},
+				{num = 2, zFix = 1.15, zScale = 0.07}
+			}
+		}
+	},
+	Tork = {
+		globalOffsets = {gx = 0.002, gy = 0},
+		textWidth = 3400,
+		nameOffsets = {dx = -0.16, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.3, dy = -0.64, zStart = 0.13},
+			blocks = {
+				{num = 2, zFix = 0.46, zScale = 0.065},
+				{num = 2, zFix = 0.86, zScale = 0.065},
+				{num = 3, zFix = 1.19, zScale = 0.065}
+			}
+		}
+	},
+	Wylio = {
+		globalOffsets = {gx = 0, gy = 0.01},
+		textWidth = 3200,
+		nameOffsets = {dx = -0.18, dy = -0.8},
+		prestigeGap = 0.062,
+		agendaGap = 0.78,
+		achievementButtons = {
+			offsets = {dx = 1.305, dy = -0.64, zStart = 0.12},
+			blocks = {
+				{num = 3, zFix = 0.39, zScale = 0.065},
+				{num = 2, zFix = 0.79, zScale = 0.07},
+				{num = 3, zFix = 1.13, zScale = 0.065}
+			}
+		}
+	}
+}
+
+
+return C

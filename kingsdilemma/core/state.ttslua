@@ -1,31 +1,38 @@
 local U = require("lib.utilities")
+local C = require("kingsdilemma.lib.constants")
 
 local S = {}
 
-local function parseCode(val, isIncludingTraits)
-  if (val == nil) then return "nil" end
-  if (isIncludingTraits) then return JSON.encode_pretty(val.traits.Yellow) end
-  return JSON.encode_pretty(U.filter(val, function(val, key) return key ~= "traits" and key ~= "usedClanStickers" and key ~= "usedAbilityStickers" end))
-end
+local INITGAMESTATE = {
+	gameMode = C.Modes.NONE,
+	gamePhase = C.Phases.NONE,
+	playerData = {
+		Red = {},
+		Purple = {},
+		Green = {},
+		Yellow = {},
+		Blue = {}
+	},
+	curLeader = nil,
+	curModerator = nil
+}
 
 function S.refreshStateDebug(stateData)
-  if (stateData == nil) then
-    stateData = Global.getTable("gameState")
-  end
+	local function parseCode(val, excludeKeys)
+		if val == nil then return "nil" end
+		if excludeKeys == nil then return JSON.encode_pretty(val) end
+		return JSON.encode_pretty(U.filter(val, function(_, key) return not U.isIn(key, excludeKeys) end))
+	end
+
+  if (stateData == nil) then stateData = Global.getTable("gameState") end
   UI.setValue("debugState", parseCode(stateData))
-  UI.setValue("debugTraitsRed", JSON.encode_pretty(stateData.traits.Red))
-  UI.setValue("debugTraitsYellow", JSON.encode_pretty(stateData.traits.Yellow))
-  UI.setValue("debugTraitsBlue", JSON.encode_pretty(stateData.traits.Blue))
-  UI.setValue("debugStickers", JSON.encode_pretty({
-		ABILITY = stateData.usedAbilityStickers,
-		CLAN = stateData.usedClanStickers
-	}))
 end
 
 function S.getGameState()
-  -- S.refreshStateDebug()
+  S.refreshStateDebug()
   return Global.getTable("gameState")
 end
+
 function S.setGameState(data)
   Global.setTable("gameState", data)
   S.refreshStateDebug(data)
@@ -34,7 +41,7 @@ end
 
 function S.getStateVal(key, subKey)
   local state = Global.getTable("gameState")
-  -- S.refreshStateDebug(state)
+  S.refreshStateDebug(state)
   if not state[key] then return state[key] end
   if subKey then return state[key][subKey] end
   return state[key]
@@ -51,6 +58,7 @@ function S.setStateVal(value, key, subKey)
   Global.setTable("gameState", state)
   S.refreshStateDebug(state)
 end
+
 function S.setStateVals(stateData)
   local state = Global.getTable("gameState")
   for key, val in pairs(stateData) do
@@ -59,25 +67,22 @@ function S.setStateVals(stateData)
   Global.setTable("gameState", state)
   S.refreshStateDebug(state)
 end
+
 function S.resetGameState()
+	local newState = U.clone(INITGAMESTATE, true)
   local state = Global.getTable("gameState")
-  Global.setTable("gameState", {
-      turnOrder = nil,
-      clans = nil,
-      notes = nil,
-      lastChapterStandings = state.lastChapterStandings,
-			playerZones = state.playerZones,
-      chapterData = state.chapterData,
-      round = 0,
-      turn = 0,
-      traits = state.traits,
-			usedAbilityStickers = state.usedAbilityStickers,
-			usedClanStickers = state.usedClanStickers,
-			playerZonesLocked = false,
-			allZonesLocked = false,
-			gamePhase = "NONE"
-  })
+
+	if state.playerData ~= nil then
+		newState.playerData = state.playerData
+	end
+
+  Global.setTable("gameState", newState)
   S.refreshStateDebug()
+end
+
+function S.isInMode(modes)
+	if type(modes) == "string" then modes = {modes} end
+	return U.isIn(S.getStateVal("gameMode"), modes)
 end
 
 function S.isInPhase(phases)

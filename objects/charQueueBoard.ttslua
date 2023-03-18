@@ -138,7 +138,11 @@ function Populate_Queue()
 
 	-- Deal new character cards to remaining slots
 	local characterDeck = getCharacterDeck()
-	if not characterDeck then return U.alertGM("Error finding character deck!") end
+	if not characterDeck then
+		isPopulating = false
+		isRequeuing = false
+		return U.alertGM("Error finding character deck!")
+	end
 
 	local function dealNextChar(slot)
 		local thisSnapPos = queueCharSnaps[slot].position

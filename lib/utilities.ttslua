@@ -111,6 +111,47 @@ function U.mutateObjects(containerObj, mutateFunc)
   end
 end
 
+function U.getScatterPosition(boundsOrObj, yShift, padPercent)
+	if yShift == nil then yShift = 2 end
+	if padPercent == nil then padPercent = 0 end
+	local center, size
+	if type(boundsOrObj) == "userdata" then
+		if boundsOrObj.type == "Scripting" then
+			boundsOrObj = {
+				center = boundsOrObj.getPosition(),
+				size = boundsOrObj.getScale()
+			}
+		else
+			boundsOrObj = boundsOrObj.getBounds()
+		end
+	end
+	if type(boundsOrObj) == "table" and boundsOrObj.center ~= nil and boundsOrObj.size ~= nil then
+		center = Vector(boundsOrObj.center):add(Vector(0, yShift, 0))
+		size = boundsOrObj.size
+	else
+		U.alertGM("[U.scatterObjects] Error: Must provide an object or a table with 'center' and 'size'.")
+		return
+	end
+	local spanX = size.x * (1 - padPercent)
+	local spanZ = size.z * (1 - padPercent)
+	local mins = Vector(
+		center.x - 0.5 * spanX,
+		center.y,
+		center.z - 0.5 * spanZ
+	)
+	local maxs = Vector(
+		center.x + 0.5 * spanX,
+		center.y,
+		center.z + 0.5 * spanZ
+	)
+	local scatterVector = Vector(
+		U.randBetween(mins.x, maxs.x),
+		center.y,
+		U.randBetween(mins.z, maxs.z)
+	)
+	return scatterVector
+end
+
 function U.findOnObject(baseObj, type, cast)
 end
 
@@ -241,12 +282,19 @@ function U.split(inputstr, sep)
 end
 
 function U.forEach(tbl, func, delayStep)
-	if delayStep == nil then delayStep = 0 end
-
-	local funcs = U.map(tbl, function(val, key) return function() func(val, key) end end)
-
-	U.sequence(funcs, delayStep, false)
+	for key, val in pairs(tbl) do
+		func(val, key)
+	end
 end
+
+
+-- function U.forEach(tbl, func, delayStep)
+-- 	if delayStep == nil then delayStep = 0 end
+
+-- 	local funcs = U.map(tbl, function(val, key) return function() func(val, key) end end)
+
+-- 	U.sequence(funcs, delayStep, false)
+-- end
 
 function U.forEachThen(tb, func, thenFunc, delayStep)
 	if delayStep == nil then delayStep = 0 end
@@ -351,18 +399,13 @@ function U.invert(tb)
 	return new_table
 end
 
--- function U.conc(...)
--- 	local arg = {...}
--- 	local tb1 = table.remove(arg, 1)
--- 	for _, tb in ipairs(arg) do
--- 		log("TB: " .. JSON.encode(tb))
--- 		for i = 1, #tb do
--- 			log("TB[" .. i .. "] " .. tb[i])
--- 			tb1[#tb1 + 1] = tb[i]
--- 		end
--- 	end
--- 	return tb1
--- end
+function U.shuffle(arr)
+	for i = #arr, 2, -1 do
+		local j = math.random(i)
+		arr[i], arr[j] = arr[j], arr[i]
+	end
+	return arr
+end
 
 function U.concat(...)
 	local args = {...}
@@ -379,7 +422,10 @@ function U.concat(...)
 	return tb
 end
 
-
+function U.pop(arr) return table.remove(arr) end
+function U.push(elem, arr) table.insert(arr, elem) end
+function U.shift(arr) return table.remove(arr, 1) end
+function U.unshift(elem, arr) table.insert(arr, 1, elem) end
 
 function U.flatten(tb)
 	local newTable = {}
@@ -663,6 +709,15 @@ function U.sequence(funcs, timeDelay, isPulsing)
 	if isPulsing == true then
 		Wait.time(function() U.changeLighting() end, delay)
 	end
+end
+
+function U.randBetween(min, max, isInt)
+	if type(min) ~= "number" or type(max) ~= "number" then return end
+	if min > max then return end
+	if isInt == true then
+		return U.round(min + math.random() * (max - min))
+	end
+	return min + math.random() * (max - min)
 end
 
 function U.clone(t, isDeepCloning)

@@ -126,9 +126,11 @@ G.zones = {
 	},
 	bgFEndZone = "a168dd",
 	bgGEndZone = "14d203",
+	bgISabbatZone = "d5eaaa",
+	bgICamarillaZone = "c5edb2",
 	battlegroundZones = {
 		left = {"14d203"},
-		center = {"a79ca4", "a168dd"},
+		center = {"a79ca4"},
 		right = {"c41714"}
 	},
 	Red = {
@@ -212,18 +214,23 @@ G.battlegrounds = {
 	d = "710eb1",
 	e = nil,
 	f = "b1d2ae",
-	g = "ae2779"
+	g = "ae2779",
+	h = "dd4272",
+	i = "a80df7"
 }
 
 G.battlegrounds.left = G.battlegrounds.g
-G.battlegrounds.center = G.battlegrounds.f
-G.battlegrounds.right = G.battlegrounds.b
+G.battlegrounds.center = G.battlegrounds.i
+G.battlegrounds.right = G.battlegrounds.h
 
 G.charQueue = "afb371"
 
 G.lights = {
 	queue = "ec7de1",
 	swivel = "bd749a",
+	graveyardTop = "b462f2",
+	graveyardBottom = "5a69d4",
+	graveyardSky = "37941f",
 	battlegrounds = {
 		left = "bc4a8d",
 		center = "003166",
@@ -235,9 +242,9 @@ G.lights = {
 
 G.tableSpots = {
 	clanMorality = {
-		Red = { x = 11.96, y = 3.5, z = 15.23 },
-		Yellow = { x = 12.93, y = 3, z = 14.41 },
-		Blue = { x = 13.64, y = 3.4, z = 15.36 }
+		Red = {x = 10.50, y = 3.29, z = 16.29},
+		Yellow = {x = 10.50, y = 2.80, z = 14.69},
+		Blue = {x = 10.50, y = 2.41, z = 13.10}
 	},
 	clanToken = {
 		Red = { x = -27, y = 0, z = -4.5 },

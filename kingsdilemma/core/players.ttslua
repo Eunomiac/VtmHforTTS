@@ -1,0 +1,83 @@
+local U = require("lib.utilities")
+local S = require("kingsdilemma.core.state")
+local C = require("kingsdilemma.lib.constants")
+local O = require("kingsdilemma.lib.objects")
+
+local P = {}
+
+Players = {}
+
+function P.GetPlayers()
+	return U.map(C.PlayerColors, function(color) return Player[color] end)
+end
+
+function P.GetPlayerOf(obj)
+	if obj == nil then return nil end
+	if obj.hasTag("Player1") then return Player[C.PlayerColors[1]] end
+	if obj.hasTag("Player2") then return Player[C.PlayerColors[2]] end
+	if obj.hasTag("Player3") then return Player[C.PlayerColors[3]] end
+	if obj.hasTag("Player4") then return Player[C.PlayerColors[4]] end
+	if obj.hasTag("Player5") then return Player[C.PlayerColors[5]] end
+	error("[P.GetPlayerOf()] Object '" .. obj.guid .. "' lacks 'Player#' tag", 2)
+end
+
+local function getAngleOfPlayer(player)
+	if player == nil then return end
+	local playerNum = U.findIndex(C.PlayerColors, function(col) return col == player.color end)
+	if playerNum == nil then return end
+	return C.PlayerAngles[player.color]
+end
+
+local function rotateObjToPlayer(obj, toPlayer, fromPlayer)
+	if fromPlayer == nil then fromPlayer = P.GetPlayerOfObj(obj) end
+	if fromPlayer == nil then return end
+	local fromAngle = getAngleOfPlayer(fromPlayer)
+	local toAngle = getAngleOfPlayer(toPlayer)
+	local angleDelta = toAngle - fromAngle
+	return {
+		position = obj.getPosition():rotateOver("y", angleDelta),
+		rotation = obj.getRotation():add(Vector(0, angleDelta, 0)),
+		scale = obj.getScale()
+	}
+end
+
+function P.SpawnForAll(obj)
+	local objOwner = P.GetPlayerOf(obj)
+	if objOwner == nil then return end
+	local ownerNum = U.findIndex(C.PlayerColors, function(col) return col == objOwner.color end)
+	U.forEach(P.GetPlayers(), function(player, i)
+		if player.color == objOwner.color then return end
+		local transformData = rotateObjToPlayer(obj, player, objOwner)
+		if transformData == nil then return end
+		local objData = {
+			data = obj.getData(),
+			position = transformData.position,
+			rotation = transformData.rotation,
+			scale = transformData.scale,
+			callback_function = function(spawnedObj)
+				spawnedObj.removeTag("Player" .. ownerNum)
+				spawnedObj.addTag("Player" .. i)
+			end
+		}
+		spawnObjectData(objData)
+	end)
+end
+
+function P.MoveForAll(obj, guids, objOwner)
+	if objOwner == nil then objOwner = P.GetPlayerOf(obj) end
+	if objOwner == nil then return end
+	log({obj = obj, guids = guids, objOwner = objOwner})
+	U.forEach(guids, function(guid, color)
+		log({guid = guid, color = color})
+		local player = Player[color]
+		local targetObj = O.Get(guid)
+		local transformData = rotateObjToPlayer(obj, player, objOwner)
+		log({player = player, targetObj = targetObj, transformData = transformData})
+		if transformData == nil then return end
+		targetObj.setPosition(transformData.position)
+		targetObj.setRotation(transformData.rotation)
+		targetObj.setScale(transformData.scale)
+	end)
+end
+
+return P

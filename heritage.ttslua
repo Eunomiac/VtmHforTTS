@@ -13,38 +13,21 @@ gameState = {}
 local turnLight = 1
 function HUD_testFunc1(player, value, id)
 	if value == "-2" then
-		U.forEach(C.Colors, function(color) M.deactivateSpotlight(getObjectFromGUID(G.lights[color].turn)) end)
+		M.clearProcessingSpots()
 	else
-		local color = C.Colors[turnLight]
-		M.activateSpotlight(getObjectFromGUID(G.lights[color].turn))
-		if turnLight == 3 then turnLight = 1 else turnLight = turnLight + 1 end
+		M.setupProcessingSpots()
 	end
 end
 function HUD_testFunc2(player, value, id)
-	getObjectFromGUID(G.battlegrounds.g).call("PresentTitle")
+	if value == "-2" then
+		getObjectFromGUID(G.battlegrounds.i).call("Reset")
+	else
+		getObjectFromGUID(G.battlegrounds.i).call("Initialize")
+	end
 end
 function HUD_testFunc3(player, value, id)
-	local assetContainer = getObjectFromGUID("1df0c9")
-	M.processContainer(assetContainer, nil, function(obj)
-		obj.setRotation({0, 180, 0})
-		return true
-	end)
-
-	U.forEach(C.Colors, function(color)
-		local pouch = getObjectFromGUID(G.playerObjs[color].pouch)
-		M.processContainer(pouch, nil, function(obj)
-			if obj.hasTag("ChapterCard") then
-				obj.setRotation({0, 180, 180})
-			elseif obj.hasTag("Mission") then
-				obj.setRotation({0, 180, 0})
-			elseif obj.hasTag("EraCard") then
-				obj.setRotation({0, 180, 0})
-			else
-				return false
-			end
-			return true
-		end)
-	end)
+	local min =
+	U.randBetween(mins.x, maxs.x)
 end
 
 
@@ -64,6 +47,7 @@ onLoad = M.onLoad
 onPlayerTurn = M.onPlayerTurn
 tryObjectEnterContainer = M.tryObjectEnterContainer
 onPlayerAction = M.onPlayerAction
+onPlayerConnect = M.onPlayerConnect
 
 -- function onUpdate() console.update() end
 
@@ -117,6 +101,8 @@ function HUD_toggleLightArrowVisibility(player, value, id)
 		M.showLightArrows()
 	end
 end
+
+HUD_overrideFirstPlayer =  M.setFirstPlayerOverride
 
 function HUD_toggleHavens(player, value, id)
 	if value == "-2" then
@@ -260,7 +246,7 @@ end
 
 function HUD_show(player, value, id)
   local imageID = string.gsub(id, "hud", "")
-	if string.match(id, "MakeFourthRow") ~= nil then
+	if string.match(id, "MakeFourthRow") ~= nil and S.isInPhase("PLAY") then
 		F.spawnFourthRowBoard(player.color)
 		return
 	end

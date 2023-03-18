@@ -34,7 +34,12 @@ local function translateSnapCoords()
 	end)
 end
 local function updateInvestigatorSnaps()
-	local iSnaps = U.filter(translateSnapCoords(), function(sPt) return U.isIn("Investigator", sPt.tags) end)
+	local iSnaps = U.filter(translateSnapCoords(), function(sPt)
+		return U.isIn("InvestigatorNorth", sPt.tags)
+			or U.isIn("InvestigatorEast", sPt.tags)
+			or U.isIn("InvestigatorWest", sPt.tags)
+			or U.isIn("InvestigatorSouth", sPt.tags)
+	end)
 	table.sort(iSnaps, function(a, b) return a.position.x < b.position.x end)
 	iSnaps = {iSnaps[1], iSnaps[2], iSnaps[3], iSnaps[4]}
 	table.sort(iSnaps, function(a, b) return a.position.z > b.position.z end)
@@ -45,6 +50,7 @@ local function updateInvestigatorSnaps()
 	local investigatorTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.center[1]), "Investigator")
 	-- log(investigatorTokens)
 	table.sort(investigatorTokens, function(a, b) return a.getPosition().z > b.getPosition().z end)
+	-- log({investigatorSnaps = JSON.encode_pretty(investigatorSnaps)})
 	-- log(investigatorTokens)
 	-- investigatorTokens[1].highlightOn({0, 0, 0})
 	-- investigatorTokens[2].highlightOn(C.AnkhColors.East)
@@ -144,6 +150,7 @@ end
 function SendObjectHome(obj, isRebasing)
 	local homeSnap
 	if obj.hasTag("Investigator") then
+		-- log({InvestigatorDir = getTokenDir(obj), homeSnap = investigatorSnaps[getTokenDir(obj)]})
 		homeSnap = investigatorSnaps[getTokenDir(obj)]
 	elseif obj.hasTag("Ankh") and obj.type == "Tile" then
 		local dir = getTokenDir(obj)

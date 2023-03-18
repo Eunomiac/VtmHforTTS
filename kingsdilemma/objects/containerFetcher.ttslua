@@ -1,0 +1,55 @@
+local C = require("kingsdilemma.lib.constants")
+local O = require("kingsdilemma.lib.objects")
+local U = require("lib.utilities")
+
+DestShift = Vector(0, 3, -4)
+DestRot = C.rotFaceUp
+TargetContainer = nil
+FetchType = nil
+
+local function initXML()
+	self.UI.setXmlTable({
+		tag = "Inputfield",
+		attributes = {
+			id = "Input",
+			onEndEdit = "CardSearch",
+			height = "300",
+			width = "2500",
+			scale = "0.1 0.1 0.1",
+			textAlignment = "MiddleCenter",
+			playerholder = FetchType .. " Number",
+			position = "0 0 -60",
+			fontSize = "220"
+		}
+	})
+end
+
+
+function onLoad()
+	FetchType = string.gsub(self.getName(), "Fetch ", "") .. "s"
+	TargetContainer = O.Get("SecretContainers", targetRef)
+	FetchType = self.getName()
+	log({FetchType = FetchType})
+	if TargetContainer == nil then
+		error("'" .. targetRef .. "' Container Not Found: Fetcher Will Not Function")
+	end
+	initXML()
+end
+
+function CardSearch(_, value)
+	if TargetContainer == nil then return end
+	UI.setAttribute("text", value)
+	if value == nil or value == "" then return end
+	local fetchObjData = U.find(TargetContainer.getObjects(), function(objData)
+		return string.lower(objData.name) == string.lower(value)
+	end)
+	if fetchObjData == nil then
+		broadcastToAll("Card named " .. value .. " is not found. Check letters and cases.", {1,0,0})
+		return nil
+	end
+	return TargetContainer.takeObject({
+		position = self.getPosition():add(DestShift),
+		rotation = DestRot,
+		index = fetchObjData.index
+		})
+end

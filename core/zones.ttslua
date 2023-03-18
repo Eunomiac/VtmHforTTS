@@ -514,8 +514,8 @@ local function getScoreXML(scoreData)
 		},
 		children = {}
 	}
-	if scoreData.boons ~= nil and scoreData.infamy ~= nil and scoreData.power ~= nil then
-		scoreData.totalValue = scoreData.power + scoreData.boons - scoreData.infamy
+	if scoreData.boons ~= nil and scoreData.infamy ~= nil and scoreData.power ~= nil and scoreData.title ~= nil then
+		scoreData.totalValue = scoreData.power + scoreData.boons + scoreData.title - scoreData.infamy
 	end
 
 	if scoreData.power == 0 then scoreData.power = "" end
@@ -597,6 +597,46 @@ local function getScoreXML(scoreData)
 		}
 	})
 
+	if scoreData.title == 0 then
+		scoreData.title = ""
+	else
+		scoreData.title = "+" .. scoreData.title
+	end
+	if scoreData.title ~= "" then
+		table.insert(XMLData.children, {
+			tag = "Panel",
+			attributes = {
+				class = "titlePanel",
+				height = "100",
+				rectAlignment = "UpperCenter",
+				ignoreLayout = "True",
+				offsetXY = "0 100",
+				width = "35"
+			},
+			children = {
+				{
+					tag = "Text",
+					value = scoreData.title,
+					attributes = {
+						scale = "1 4 1",
+						color = "#000000",
+						outline = "#FFFFFF",
+						rectAlignment = "UpperLeft",
+						alignment = "UpperLeft",
+						height = "50",
+						class = "titleScore",
+						fontSize = "25",
+						fontStyle = "Bold",
+						id = "titleScore",
+						flexibleHeight = "0",
+						flexibleWidth = "0"
+					},
+					children = {}
+				}
+			}
+		})
+	end
+
 	if scoreData.infamy == 0 then scoreData.infamy = "" else scoreData.infamy = "-" .. scoreData.infamy end
 	table.insert(XMLData.children, {
 		tag = "Panel",
@@ -630,7 +670,7 @@ local function getScoreXML(scoreData)
 
 	if scoreData.totalValue == 0 then
 		scoreData.totalValue = "~"
-		if scoreData.infamy == "" and scoreData.power == "" and scoreData.boons == "" then
+		if scoreData.infamy == "" and scoreData.power == "" and scoreData.boons == "" and scoreData.title == "" then
 			return {
 				tag = "Panel",
 				attributes = {
@@ -774,9 +814,19 @@ local function refreshScoreXML(zone)
 
 
 	local scoreData = { zone = zone, power = Z.countPower(zone) }
+
+	if isShowingPowerOnly == true and scoreData.power == 0 then
+		uiData[zone.guid].scoreXML = {}
+		return
+	end
 	if isShowingPowerOnly ~= true then
 		scoreData.infamy = Z.countInfamy(zone)
 		scoreData.boons = Z.countBoons(zone)
+		if Z.hasTitle(zone) then
+			scoreData.title = 2
+		else
+			scoreData.title = 0
+		end
 	end
 
 	uiData[zone.guid].scoreXML = getScoreXML(scoreData)
@@ -872,10 +922,12 @@ function Z.hideSuspicion()
 end
 
 local function checkToLockCard(zone)
+	local card = Z.getCard(zone)
+	if card == nil then return end
 	if S.isInPhase({"PLAY", "SCORING"}) and #Z.getTaggedZoneObjects(zone, {"Power", "Infamy", "Boon", "Ankh", "TitleToken", "ExhaustTorpor", "ClanScheme"}) > 0 then
-		Z.getCard(zone).setLock(true)
+		card.setLock(true)
 	else
-		Z.getCard(zone).setLock(false)
+		card.setLock(false)
 	end
 end
 

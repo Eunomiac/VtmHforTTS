@@ -1,0 +1,22 @@
+<Defaults>
+	<Button
+		colors="#888888|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)"
+		height="25"
+		width="100"
+		preferredHeight="25"
+		preferredWidth="100"
+		padding="0 0 0 0"
+		textAlignment="MiddleCenter"
+		fontStyle="Bold" />
+
+	<VerticalLayout
+		width = "100"
+		padding = "0 0 0 0"
+		spacing = "3"
+		onClick = "HUD_Click"
+		childAlignment = "UpperMiddle"
+		raycastTarget =  "False"
+		childForceExpandWidth = "false"
+		childForceExpandHeight = "false" />
+
+</Defaults>

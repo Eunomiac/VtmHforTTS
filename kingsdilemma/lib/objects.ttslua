@@ -1,0 +1,29 @@
+local U = require("lib.utilities")
+
+local O = {}
+
+ObjTable = {}
+
+local function memoGetFromGUID(guid)
+	if ObjTable[guid] == nil then
+		ObjTable[guid] = getObjectFromGUID(guid)
+	end
+	return ObjTable[guid]
+end
+
+local function generateGetterFunction(guid)
+	return function() return memoGetFromGUID(guid) end
+end
+
+O.SecretContainers = {
+	Envelopes = generateGetterFunction(""),
+	Stickers = generateGetterFunction("")
+}
+
+O.UninteractableObjs = {
+	Table = generateGetterFunction("6a3d16")
+}
+
+O.Get = memoGetFromGUID
+
+return O

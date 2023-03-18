@@ -14,7 +14,7 @@
     offsetXY="0 -200" />
 
   <VerticalLayout class="splash-intro"
-    height="260" width="1100"
+    height="260" width="1300"
     padding="10 10 10 10"
     spacing="5" />
   <VerticalLayout class="splash-standings"
@@ -55,6 +55,10 @@
     height="100" width="700"
     padding="50 50 10 10"
     spacing="5" />
+	<VerticalLayout class="splash-gameStart"
+		height="300" width="1100"
+		offsetXY="0 -200"
+	/>
   <VerticalLayout class="splash-gameOver" scale="1.5" />
   <VerticalLayout class="splash-roundOver"
     rectAlignment="MiddleCenter"
@@ -252,10 +256,14 @@
 </Panel>
 
 <Panel id="gameStartNotice" class="splash-panel fade" active="False">
-  <!-- <Panel id="splash-backdrop" class="splash-backdrop"></Panel> -->
+
   <VerticalLayout class="splash-text splash-gameStart">
-    <Image class="splash-fill" image="ui-bg-6-1"></Image>
+		<Image class="splash-fill" image="ui-bg-2-1"></Image>
+    <!-- <Image class="splash-fill" image="ui-bg-6-1"></Image> -->
     <Text class="title">Starting Game ...</Text>
+		<Text id="factionRed" class="subtitle"></Text>
+		<Text id="factionYellow" class="subtitle"></Text>
+		<Text id="factionBlue" class="subtitle"></Text>
   </VerticalLayout>
 </Panel>
 

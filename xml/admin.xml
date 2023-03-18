@@ -50,7 +50,7 @@
     rectAlignment="MiddleLeft"
     childAlignment="UpperLeft"
     width="160"
-    offsetXY="0 -250"
+    offsetXY="0 -90"
     scale="0.5"
     flexibleWidth="0"
     flexibleHeight="0"
@@ -58,7 +58,7 @@
     childForceExpandHeight="false" />
 	<HorizontalLayout class="subButtonControls"
 		spacing="5"
-		offsetXY="75 -105"
+		offsetXY="75 50"
 		width="200"
 		height="500"
 		rectAlignment="MiddleLeft"
@@ -70,22 +70,23 @@
 
   <Panel class="debugState"
     color="rgba(0,0,0,0.75)"
-    height="700"
+    height="400"
     width="350"
     padding="5 5 5 5"
     scale="0.75"
-    rectAlignment="UpperLeft"
-    offsetXY="50 0" />
+    rectAlignment="MiddleLeft"
+    offsetXY="250 0" />
 
   <Panel class="debugTraits"
     height="900"
-    width="600"
+    width="800"
     rectAlignment="UpperRight"
     offsetXY="-400 -100" />
-  <Text class="debugText" alignment="UpperLeft" color="#FFFFFF" outline="#000000" outlineSize="1 1" />
+  <Text class="debugText" preferredWidth="200" alignment="UpperLeft" color="#FFFFFF" outline="#000000" outlineSize="1 1" />
   <Text class="debugTraitsRed" offsetXY="0 0" />
   <Text class="debugTraitsYellow" offsetXY="200 0" />
   <Text class="debugTraitsBlue" offsetXY="400 0" />
+  <Text class="debugStickers" offsetXY="600 0" />
 
 
   <Panel class="reminder-text"
@@ -120,6 +121,7 @@
 		<Button onClick="HUD_initGame" color="#880000">1 - INIT</Button>
 		<Button onClick="HUD_startGame" color="#990000">2 - START</Button>
 		<Button onClick="HUD_endCourtVote" color="#99FF99" minWidth="100" preferredWidth="100">End Vote</Button>
+		<Button onClick="HUD_overrideFirstPlayer" color="#99FFFF" minWidth="100" preferredWidth="100">First Player</Button>
 		<Button onClick="HUD_askRoundAndTurn" color="#FFFF00" minWidth="100" preferredWidth="100">Fix Turn</Button>
 		<Button onClick="HUD_toggleHavens" color="#FFFF00" minWidth="100" preferredWidth="100">Havens</Button>
 		<Text class="vertical-spacer-2"></Text>
@@ -162,7 +164,6 @@
       <Text class="vertical-spacer-2"></Text>
       <Button onClick="HUD_toggleTraitDebug">View Traits</Button>
       <Button onClick="HUD_toggleZoneVisibility">Zones</Button>
-			<Button onClick="HUD_toggleLightArrowVisibility">Light Arrows</Button>
       <Text class="vertical-spacer-2"></Text>
     	<Button onClick="HUD_debugEndGame" color="#444444">End Game</Button>
       <Text class="vertical-spacer-2"></Text>
@@ -186,5 +187,6 @@
     <Text id="debugTraitsRed" class="debugText debugTraitsRed"></Text>
     <Text id="debugTraitsYellow" class="debugText debugTraitsYellow"></Text>
     <Text id="debugTraitsBlue" class="debugText debugTraitsBlue"></Text>
+    <Text id="debugStickers" class="debugText debugTraitsBlue debugStickers"></Text>
   </Panel>
 </Panel>

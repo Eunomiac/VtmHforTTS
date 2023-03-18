@@ -6,7 +6,7 @@ local Z = require("core.zones")
 
 local M = {}
 
-local chapterCard, missionDeck, swivelLight
+local chapterCard, missionDeck, swivelLight, bgRight, bgCenter, bgLeft
 local masterStorage, masterStorageStagingPos
 local clanChoiceAlertShowing = false
 
@@ -14,14 +14,14 @@ local swivelLightVals = {
 	faint = {
 		range = 78,
 		angle = 60,
-		intensity = 5.5,
+		intensity = 5,
 		position = {0, 20, 12},
 		rotation = {
 			Red = {55, 0, -45},
 			Yellow = {55, 0, 0},
 			Blue = {55, 0, 45}
 		},
-		color = {0.66, 0.66, 0.66}
+		color = {0.46, 0.46, 0.46}
 	},
 	strong = {
 		range = 75,
@@ -141,6 +141,10 @@ function M.initializeGlobals()
 	end
 
 	swivelLight = getSwivelLight()
+
+	bgRight = getObjectFromGUID(G.battlegrounds.right)
+	bgCenter = getObjectFromGUID(G.battlegrounds.center)
+	bgLeft = getObjectFromGUID(G.battlegrounds.left)
 
 end
 
@@ -373,6 +377,16 @@ function M.onPlayerAction(player, action, targets)
 				elseif target.hasTag("Asset") then
 					getObjectFromGUID(G.storage.spentAssets).putObject(target)
 					-- return false
+				elseif target.hasTag("ClanToken") then
+					local clan = string.gsub(target.getName(), " Clan Token", "")
+					local clanColor = M.getColorOfClan(clan)
+					local pos = G.tableSpots.clanToken[clanColor]
+					pos.x = pos.x + 2
+					pos.y = pos.y + 0.5
+					target.setPositionSmooth(pos)
+					target.setRotationSmooth({0, 180, 0})
+				elseif target.hasTag("FactionToken") then
+					bgCenter.call("SendTokenHome", {token = target})
 				end
 			elseif target.type == "Card" then
 				if target.hasTag("Asset") then
@@ -399,6 +413,10 @@ function M.onPlayerAction(player, action, targets)
 	if #targets == 0 then return true end
 
 	return true
+end
+
+function M.onPlayerConnect(player)
+	player.promoted = true
 end
 
 function M.tryObjectEnterContainer(container, object)
@@ -430,7 +448,7 @@ function M.removeUnusedClanRefs()
 		M.forPlayers(function(_, col)
 			UI.setAttributes("hudSidebar" .. col, {
 				rectAlignment = "MiddleRight",
-				height = "475",
+				height = "610",
 				offsetXY = "0 0"
 			})
 		end)
@@ -604,96 +622,32 @@ local function moveCurrentMoralityTokenToTop()
 	end
 end
 
-function M.readTurnOrderFromBG()
-	local turnOrder = M.getTurnOrder()
-	local lastFirstPlayer = turnOrder[1]
-	local bg = getObjectFromGUID(G.battlegrounds.b)
-	local bgSnapPoints = U.getSnapPointPositions(bg)
-	local pTokens = Z.getTaggedZoneObjects(getObjectFromGUID(G.zones.battlegroundZones.right[1]), "PoliticsToken")
-
-	-- log({
-	-- 	turnOrder = turnOrder,
-	-- 	lastFirstPlayer = lastFirstPlayer,
-	-- 	bg = bg,
-	-- 	pTokens = pTokens
-	-- })
-
-	local function getTokenSlot(tk)
-		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
-		local clan = U.findClanTag(tk)
-		local color = M.getColorOfClan(clan)
-		if (slot >= 6 and slot <= 9) then slot = 7 end
-		if (color == lastFirstPlayer) then
-			slot = slot + 0.5
+function M.setFirstPlayerOverride()
+	local hostPlayer = U.getHost()
+	local playerOptions = { "Gaius Marcellus", "Baron Samedi", "Jalan-Aayav" }
+	hostPlayer.showOptionsDialog("Who has taken the First Player marker?", playerOptions, 1,
+		function(playerName, _)
+			if (playerName == "Gaius Marcellus") then return S.setStateVal("Red", "firstPlayerOverride") end
+			if (playerName == "Baron Samedi") then return S.setStateVal("Red", "firstPlayerOverride") end
+			if (playerName == "Jalan-Aayav") then return S.setStateVal("Red", "firstPlayerOverride") end
+			return S.setStateVal(nil, "firstPlayerOverride")
 		end
-		return slot, color, clan
-	end
-
-	local curTopTokenSlot = 0
-	local curTopTokenColors = {}
-	for _, tok in pairs(pTokens) do
-		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tok.getPosition()))
-		local slot, color, clan = getTokenSlot(tok)
-		if (slot > curTopTokenSlot) then
-			curTopTokenSlot = slot
-			curTopTokenColors = {}
-			table.insert(curTopTokenColors, color)
-		elseif (slot == curTopTokenSlot) then
-			table.insert(curTopTokenColors, color)
-		end
-	end
-
-	-- log({curTopTokenColors = curTopTokenColors})
-
-	if (#curTopTokenColors == 1) then
-		return turnOrderMap[curTopTokenColors[1]]
-	end
-
-	return turnOrderMap[lastFirstPlayer]
+	)
 end
 
--- function M.readTurnOrderFromBG()
--- 	local turnOrder = M.getTurnOrder()
--- 	local lastFirstPlayer = turnOrder[1]
--- 	local bg = getObjectFromGUID(G.battlegrounds.b)
--- 	local bgSnapPoints = U.getSnapPointPositions(bg)
--- 	local pTokens = U.findAboveObject(bg, function(obj)
--- 		return obj.type == "Tile" and string.find(obj.getName(), "Morality") ~= nil
--- 	end, {box = true})
+function M.readTurnOrderFromBG()
+	if S.getStateVal("firstPlayerOverride") ~= nil then
+		local firstPlayer = S.getStateVal("firstPlayerOverride")
+		S.setStateVal(nil, "firstPlayerOverride")
+		return turnOrderMap[firstPlayer]
+	end
 
--- 	error("Fuck")
+	local bgFirstPlayer = bgRight.call("GetFirstPlayer")
 
--- 	local function getTokenSlot(tk)
--- 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tk.getPosition()))
--- 		local clan = U.findClanTag(tk)
--- 		local color = M.getColorOfClan(clan)
--- 		if (slot >= 6 and slot <= 9) then slot = 7 end
--- 		if (color == lastFirstPlayer) then
--- 			slot = slot + 0.5
--- 		end
--- 		return slot, color, clan
--- 	end
-
--- 	local curTopTokenSlot = 0
--- 	local curTopTokenColors = {}
--- 	for _, tok in pairs(pTokens) do
--- 		local slot = U.findSnapPoint(bgSnapPoints, bg.positionToLocal(tok.getPosition()))
--- 		local slot, color, clan = getTokenSlot(tok)
--- 		if (slot > curTopTokenSlot) then
--- 			curTopTokenSlot = slot
--- 			curTopTokenColors = {}
--- 			table.insert(curTopTokenColors, color)
--- 		elseif (slot == curTopTokenSlot) then
--- 			table.insert(curTopTokenColors, color)
--- 		end
--- 	end
-
--- 	if (#curTopTokenColors == 1) then
--- 		return turnOrderMap[curTopTokenColors[1]]
--- 	end
-
--- 	return turnOrderMap[lastFirstPlayer]
--- end
+	if bgFirstPlayer ~= nil then
+		return turnOrderMap[bgFirstPlayer]
+	end
+end
 
 function M.checkTurnOrder(data)
 	if data == nil then data = S.getStateVal("turnOrder") end
@@ -709,6 +663,7 @@ function M.getTurnOrder()
 	broadcastToColor(
 		"[getTurnOrder] " .. logString(S.getStateVal("turnOrder")) .. " is invalid state! Using order set in 'Turns'.",
 		"Red", "Red")
+		S.setStateVal(Turns.order, "turnOrder")
 	return Turns.order
 end
 
@@ -773,7 +728,7 @@ function M.syncTurnOrder()
 		if (not Turns.enable) then
 			Turns.enable = true
 		end
-		moveCurrentMoralityTokenToTop()
+		-- moveCurrentMoralityTokenToTop()
 		M.syncTurnTracker()
 	else
 		UI.hide("turnTracker")
@@ -1319,6 +1274,7 @@ function M.presentStrandsOfTimeToMiddle()
 	local color = M.getLastChapterMiddle()
 	local thirdChildeZone = getObjectFromGUID(G.zones[color].bloodline[2][3])
 	local pos = thirdChildeZone.getPosition()
+	pos.x = pos.x + 3.5
 	pos.y = 1
 	M.presentDeck({ "StrandsOfTime" }, color, pos, { spread = -2.5 })
 end
@@ -1453,6 +1409,7 @@ function M.gameINIT()
 		M.dealAssets,
 		M.dealRetainer,
 		M.promptPlayerClanChoice,
+		Z.activateZones,
 		1,
 	})
 end
@@ -1616,7 +1573,7 @@ end
 
 function M.startGame()
 	-- U.splashUIElement("splash-backdrop", 2)
-	U.splashUIElement("gameStartNotice", 1, 0.5)
+	U.splashUIElement("gameStartNotice", 3, 0.5)
 
 	M.setRoundAndTurn(1, 1)
 	M.determineTurnOrder(M.syncTurnOrder)
@@ -1640,6 +1597,8 @@ function M.gameSTART()
 		end,
 		M.retrieveObligations,
 		M.clearUnusedClanLeaders,
+		function() bgLeft.call("Initialize") end,
+		function() bgCenter.call("Initialize") end,
 		function() M.initializeClanLeader("Red") end, 2.5,
 		function() M.initializeClanLeader("Yellow") end, 2.5,
 		function() M.initializeClanLeader("Blue") end, 2.5,
@@ -2434,7 +2393,9 @@ function M.setHighlighter(ref, mode, subRef)
 		-- if round > 9 then
 		-- 	mode = "inactive"
 		-- end
-		if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then mode = "inactive" end
+		if not S.isInPhase({"PLAY", "SCORING"}) then
+			mode = "inactive"
+		end
 		if not subRef then
 			for _, loc in pairs({ "left", "center", "right" }) do
 				M.setHighlighter(ref, mode, loc)
@@ -2460,12 +2421,8 @@ function M.setHighlighter(ref, mode, subRef)
 end
 
 function M.highlightBattlegrounds()
-	local mode = "active"
-	if S.isInPhase({"MISSIONS", "AFTERMATH", "END"}) then
-		mode = "inactive"
-	end
 	for _, loc in pairs({ "left", "center", "right" }) do
-		M.setHighlighter("BGIndicator", mode, loc)
+		M.setHighlighter("BGIndicator", "active", loc)
 	end
 end
 
@@ -2878,6 +2835,7 @@ function M.askStickerUpdate()
 				end
 				table.insert(usedAbilityStickers, stickerTag)
 				S.setStateVal(usedAbilityStickers, "usedAbilityStickers")
+				M.showStickerUnlocks()
 			elseif U.isIn(stickerName, C.Clans) then
 				local usedClanStickers = S.getStateVal("usedClanStickers")
 				if usedClanStickers[stickerName] == nil then return end
@@ -2887,6 +2845,7 @@ function M.askStickerUpdate()
 					return
 				end
 				S.setStateVal(usedClanStickers, "usedClanStickers")
+				M.showUpdatedTraits()
 			end
 		end
 	)
@@ -3283,22 +3242,28 @@ function M.processSpot(objCat)
 end
 
 function M.setupProcessingSpots()
-	U.forEach(G.globalSpots.processing, function(guid, objCat)
+	-- log({spots = G.globalSpots.processing})
+	for objCat, guid in pairs(G.globalSpots.processing) do
+		-- log({guid = guid, objCat = objCat})
 		local spot = getObjectFromGUID(guid)
-		spot.setSnapPoints(U.map(spot.getSnapPoints(), function(sPt)
-			sPt.tags = nil
+		local spotSnaps = spot.getSnapPoints()
+		local newSnaps = U.map(spot.getSnapPoints(), function(sPt)
+			sPt.tags = {}
 			return sPt
-		end))
+		end)
+		spot.setSnapPoints(newSnaps)
+
+		-- log({oldSnaps = spotSnaps, newSnaps = newSnaps, curSnaps = spot.getSnapPoints()})
 		spot.setName(C.CategoryNames[objCat])
 		spot.setColorTint(C.CategoryColors[objCat])
 		-- spot.highlightOn(C.CategoryColors[objCat])
-	end)
+	end
 	local processingKey = getObjectFromGUID(G.globalSpots.processingKey.id)
 	processingKey.setPositionSmooth(G.globalSpots.processingKey.active)
 end
 
 function M.clearProcessingSpots()
-	U.forEach(G.globalSpots.processing, function(guid, objCat)
+	for objCat, guid in pairs(G.globalSpots.processing) do
 		local spot = getObjectFromGUID(guid)
 		spot.setSnapPoints(U.map(spot.getSnapPoints(), function(sPt)
 			if spot.guid == G.globalSpots.strandOfTime then
@@ -3315,7 +3280,7 @@ function M.clearProcessingSpots()
 		end
 		spot.setColorTint(C.CategoryColors.default)
 		-- spot.highlightOff()
-	end)
+	end
 	Wait.time(function()
 		local processingKey = getObjectFromGUID(G.globalSpots.processingKey.id)
 		processingKey.setPositionSmooth(G.globalSpots.processingKey.inactive)
