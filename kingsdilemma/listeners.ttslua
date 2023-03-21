@@ -1,55 +1,13 @@
 local O = require("kingsdilemma.lib.objects")
 local U = require("lib.utilities")
-local P = require("kingsdilemma.core.players")
+-- local P = require("kingsdilemma.core.players")
 
-local isSpawning = true
+local HouseScreen = require("kingsdilemma.objs.p3screen")
+
 function onLoad(save_data)
 
-	-- Green: c9cdc7 12e119 983ced
-
-	-- Red: a2b3ef d8fd99 34684b
-	-- Purple: 29ebe8   5d89a3 2b86f2
-	-- Yellow: db52b9 156449 88c27c
-	-- Blue: 213772 d42d19 4a7b21
-
-	if isSpawning then
-		-- P.SpawnForAll(O.Get("b462f2"))
-		-- P.SpawnForAll(O.Get("d5842d"))
-		-- P.SpawnForAll(O.Get("dd1534"))
-		-- P.SpawnForAll(O.Get("05b53a"))
-		-- P.SpawnForAll(O.Get("437238"))
-		-- P.SpawnForAll(O.Get("d6e934"))
-		-- P.SpawnForAll(O.Get("f0eb64"))
-		P.MoveForAll(O.Get("c9cdc7"), {
-			Red = "a2b3ef",
-			Purple = "29ebe8",
-			Yellow = "db52b9",
-			Blue = "213772"
-		}, Player.Green)
-		P.MoveForAll(O.Get("12e119"), {
-			Red = "d8fd99",
-			Purple = "5d89a3",
-			Yellow = "156449",
-			Blue = "d42d19"
-		}, Player.Green)
-		P.MoveForAll(O.Get("983ced"), {
-			Red = "34684b",
-			Purple = "2b86f2",
-			Yellow = "88c27c",
-			Blue = "4a7b21"
-		}, Player.Green)
-		P.MoveForAll(O.Get("c20573"), {
-			Red = "5604a4",
-			Purple = "e4df0d",
-			Yellow = "32bf80",
-			Blue = "198170"
-		}, Player.Green)
-	end
-
-
-
 	U.forEach(O.UninteractableObjs, function(oFunc)
-		-- oFunc().interactable = false
+		oFunc().interactable = false
 	end)
 
 end
