@@ -1,0 +1,35 @@
+local P = require("kingsdilemma.core.players")
+local C = require("kingsdilemma.lib.constants")
+local U = require("lib.utilities")
+local S = require("kingsdilemma.core.state")
+local HouseScreen = require("kingsdilemma.objs.p3screen")
+
+function HUD_Click(player, id, value)
+	if id == "prompt_assignHouse" then
+
+		local players = P.GetPlayers()
+		local playerOptions = U.map(players, function(pl, i)
+			return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
+		end)
+
+		player.showOptionsDialogue("Assign to which player?", playerOptions, 1, function(_, i)
+			local targetPlayer = players[i]
+			local curHouse = S.getStateVal("playerData", targetPlayer.color).house
+			local houseOptions = U.filter(U.getKeys(C.scanData), function(hName)
+				if hName == curHouse then return true end
+				local playerData = U.getValues(S.getStateVal("playerData"))
+				return not U.isIn(hName, U.map(playerData, function (pData) return pData.house end))
+			end)
+			player.showOptionsDialogue("Which territory?", houseOptions, 1, function(houseName)
+				if curHouse ~= nil then
+					U.forEach(U.concat({
+						getObjectsWithAllTags({"Player" .. i, "HouseScreen"}),
+						getObjectsWithAllTags({"Player" .. i, "HouseCard"})
+					}), function(obj) obj.destruct() end)
+				end
+				HouseScreen.Spawn(i, houseName)
+				S.setStateVal(houseName, "playerData", targetPlayer.color)
+			end)
+		end)
+	end
+end

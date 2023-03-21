@@ -1,0 +1,143 @@
+
+local C = require("kingsdilemma.lib.constants")
+local U = require("lib.utilities")
+local OU = require("kingsdilemma.objects.objUtilities")
+
+local HouseScreen = {}
+
+local houseData = {
+	-- Top image = tab-left
+	-- Bottom image = tab-right
+	Blodyn = {
+		HouseScreen = {
+			top = "",
+			bottom = "",
+			sideTop = "",
+			sideBottom = ""
+		}
+	},
+	Coden = {
+		HouseScreen = {
+			top = "",
+			bottom = "",
+			sideTop = "",
+			sideBottom = ""
+		}
+	},
+	Gamam = {
+		HouseScreen = {
+			top = "",
+			bottom = "",
+			sideTop = "",
+			sideBottom = ""
+		}
+	},
+	Olwyn = {
+		HouseScreen = {
+			top = "http://cloud-3.steamusercontent.com/ugc/2064377033366082853/75AB016C3349F7269FEFABAC3814623D2508FF72/",
+			bottom = "http://cloud-3.steamusercontent.com/ugc/2064377033366091356/8BB69BF4756244B40037219F31A7CF87616109DD/",
+			sideTop = "http://cloud-3.steamusercontent.com/ugc/2064377033366083108/9414CA5CD6CD8582186AB12E883797530F273210/",
+			sideBottom = "http://cloud-3.steamusercontent.com/ugc/2064377033366083172/6E3BDBCB9FCB38BC07AB16C20282E21AFCA49D33/"
+		}
+	},
+	Solad = {
+		HouseScreen = {
+			top = "",
+			bottom = "",
+			sideTop = "",
+			sideBottom = ""
+		}
+	}
+}
+
+local centerPlayerTransforms = {
+	HouseScreen = {
+		left = {
+			pos = {-9.1, 6.45, -31.15},
+			rot = {88.54, 12.75, 58.32},
+			scale = {5, 1, 5}
+		},
+		center = {
+			pos = {0, 6.45, -30},
+			rot = {88, 0, 0},
+			scale = {5, 1, 5}
+		},
+		right = {
+			pos = {9.27, 6.45, -30.97},
+			rot = {88.04, 5.51, 140.54},
+			scale = {5, 1, 5}
+		},
+		card = {
+			pos = {0.00, 7.23, -30.72},
+			rot = {83.90, 180.00, 0.00},
+			scale = {3.40, 1.00, 3.40}
+		}
+	}
+}
+
+local function getScreenObjData(playerNum, houseName)
+	local hData = houseData[houseName]
+
+	local function getPartData(partName)
+		local oData
+
+		if partName == "card" then
+			oData = O.SpawnSources.HouseCards[houseName]().getData()
+		else
+			oData = O.SpawnSources.HouseScreen[partName]().getData()
+		end
+
+		-- Set Tags
+		oData.Tags = {partName == "card" and "HouseCard" or "HouseScreen", "Player" .. playerNum}
+
+		-- Set Image URLs
+		if partName == "center" then
+			oData.CustomImage.imageURL = hData.top
+			oData.CustomImage.ImageSecondaryURL = hData.bottom
+		elseif partName == "left" or partName == "right" then
+			oData.CustomImage.imageURL = hData.sideTop
+			oData.CustomImage.ImageSecondaryURL = hData.sideBottom
+		end
+
+		-- Rotate from Player 3 spot to given playerNum
+		local fromAngle = C.PlayerAngles[C.PlayerColors[3]]
+		local toAngle = C.PlayerAngles[C.PlayerColors[playerNum]]
+		local angleDelta = toAngle - fromAngle
+		local transformData = OU.RotateByAngle({
+			position = Vector(centerPlayerTransforms.HouseScreen[partName].pos),
+			rotation = Vector(centerPlayerTransforms.HouseScreen[partName].rot)
+		}, angleDelta)
+		oData.Transform = {
+			posX = transformData.position.x,
+			posY = transformData.position.y,
+			posZ = transformData.position.z,
+			rotX = transformData.rotation.x,
+			rotY = transformData.rotation.y,
+			rotZ = transformData.rotation.z,
+			scaleX = centerPlayerTransforms.HouseScreen[partName].scale[1],
+			scaleY = centerPlayerTransforms.HouseScreen[partName].scale[2],
+			scaleZ = centerPlayerTransforms.HouseScreen[partName].scale[3]
+		}
+
+		return oData
+	end
+
+
+	return {
+		left = getPartData("left"),
+		center = getPartData("center"),
+		right = getPartData("right"),
+		card = getPartData("card")
+	}
+
+end
+
+function HouseScreen.Spawn(playerNum, houseName)
+	log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
+	local objData = getScreenObjData(playerNum, houseName)
+	U.forEach(objData, function(oData)
+		log({Spawning = JSON.encode_pretty(oData)})
+		spawnObjectData({data = oData}) end)
+end
+
+return HouseScreen

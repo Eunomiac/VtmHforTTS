@@ -1,0 +1,34 @@
+ <!-- COLORBLOCK (for Buttons)
+ 		"(normalColor|highlightedColor|pressedColor|disabledColor)"
+			where each color is formatted as above, e.g.
+					"#FFFFFF|White|#C8C8C8|rgba(0.78,0.78,0.78,0.5)" -->
+<Defaults>
+	<HorizontalLayout id="adminControls"
+		height = "50%"
+		padding = "10 10 10 10"
+		rectAlignment = "UpperLeft"
+		offsetXY = "50 -30"
+		childForceExpandWidth = "False"
+		childForceExpandHeight = "True" />
+	<VerticalLayout class="buttonBar"
+		childForceExpandWidth = "False"
+		childForceExpandHeight = "False" />
+</Defaults>
+
+<Button id="toggleAdminControls"
+	width="25"
+	offsetXY = "50 -5"
+	rectAlignment="UpperLeft">►</Button>
+
+<HorizontalLayout id="adminControls">
+	<VerticalLayout id="phaseControls" class="buttonBar">
+		<Button id="setMode_NONE" font="Fonts/AlbertText-Bold">NONE</Button>
+		<Button id="setMode_CAMPAIGN" font="Fonts/AlbertText-Bold">CAMPAIGN</Button>
+		<Button id="setMode_SETUP" font="Fonts/AlbertText-Bold">SETUP</Button>
+		<Button id="setMode_PLAY" font="Fonts/AlbertText-Bold">PLAY</Button>
+		<Button id="setMode_END" font="Fonts/AlbertText-Bold">END</Button>
+	</VerticalLayout>
+	<VerticalLayout id="playerControls" class="buttonBar">
+		<Button id="prompt_assignHouse" font="Fonts/AlbertText-Bold">Assign House</Button>
+	</VerticalLayout>
+</HorizontalLayout>

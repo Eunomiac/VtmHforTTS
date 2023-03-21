@@ -289,6 +289,9 @@ end
 function M.onLoad(script_state)
 	local newState = JSON.decode(script_state)
 	if newState then
+		-- newState.usedAbilityStickers = U.filter(newState.usedAbilityStickers, function(st)
+		-- 	return st ~= "Kindred5"
+		-- end)
 		S.setGameState(newState)
 	end
 
@@ -342,7 +345,12 @@ function M.onLoad(script_state)
 		Z.onLoad,
 		Z.activateZones,
 		Z.refreshUI,
-		M.highlightBattlegrounds
+		M.highlightBattlegrounds,
+		-- function()
+		-- 	M.addTraitDot("Blue", "Kindred")
+
+
+		-- end
 	}, 0.5)
 end
 
@@ -386,7 +394,8 @@ function M.onPlayerAction(player, action, targets)
 					target.setPositionSmooth(pos)
 					target.setRotationSmooth({0, 180, 0})
 				elseif target.hasTag("FactionToken") then
-					bgCenter.call("SendTokenHome", {token = target})
+					target.destroy()
+					-- return false
 				end
 			elseif target.type == "Card" then
 				if target.hasTag("Asset") then
@@ -1307,7 +1316,7 @@ function M.presentObligations(color)
 		return pHaven.takeObject({
 			guid = oblID,
 			position = {
-				x = oblPos.x + (num - 1) * 2.5,
+				x = oblPos.x - (num - 1) * 2.5,
 				y = oblPos.y,
 				z = oblPos.z
 			},
@@ -2972,6 +2981,7 @@ local function parseTraitsToXMLTable(traitsTable, clan)
 	end
 
 	local function parseClanStickerRow()
+		if clan == nil then return {} end
 		local clanStickersUsed = S.getStateVal("usedClanStickers", clan)
 		local clanStickersAvailable = 6 - clanStickersUsed
 		local clanMessage

@@ -6,6 +6,7 @@
 		preferredHeight="25"
 		preferredWidth="100"
 		padding="0 0 0 0"
+		onClick = "HUD_Click"
 		textAlignment="MiddleCenter"
 		fontStyle="Bold" />
 
@@ -13,7 +14,6 @@
 		width = "100"
 		padding = "0 0 0 0"
 		spacing = "3"
-		onClick = "HUD_Click"
 		childAlignment = "UpperMiddle"
 		raycastTarget =  "False"
 		childForceExpandWidth = "false"

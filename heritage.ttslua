@@ -209,6 +209,12 @@ function HUD_toggleDebug()
 	UI.setAttribute("debugControls", "active", debugStatePanel)
 end
 
+function HUD_toggleHUD()
+	local debugStatePanel = UI.getAttribute("heritageHUDRed", "active") == "False" or UI.getAttribute("heritageHUDRed", "active") == "false"
+
+	UI.setAttribute("heritageHUDRed", "active", debugStatePanel)
+end
+
 function HUD_toggleTraitDebug()
   if (UI.getAttribute("debugStatePanel", "active") == "False" or UI.getAttribute("debugStatePanel", "active") == "false") then return end
   local debugTraitsPanel = UI.getAttribute("debugTraitsPanel", "active") == "False" or UI.getAttribute("debugTraitsPanel", "active") == "false"

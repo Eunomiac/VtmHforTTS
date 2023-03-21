@@ -143,6 +143,7 @@
 		<Button onClick="HUD_recallEast" color="#D2691E">East</Button>
 		<Button onClick="HUD_recallWest" color="#40E0D0">West</Button> -->
 		<Button onClick="HUD_toggleDebug">Debug</Button>
+		<Button onClick="HUD_toggleHUD">HUD</Button>
   </VerticalLayout>
   <HorizontalLayout id="debugControls" class="subButtonControls" active="false" visibility="Host|Red">
     <VerticalLayout class="buttonControls subButtonControls" visibility="Host|Red">

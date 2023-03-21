@@ -1,0 +1,29 @@
+-- local U = require("utilities")
+-- local C = require("constants")
+
+local OU = {}
+
+function OU.RotateByAngle(objOrTransform, angleDelta)
+	local pos, rot, sc
+	if type(objOrTransform) == "table" then
+		pos = Vector(objOrTransform.position)
+		rot = Vector(objOrTransform.rotation)
+		sc = Vector(objOrTransform.scale)
+	else
+		pos = objOrTransform.getPosition()
+		rot = objOrTransform.getRotation()
+		sc = objOrTransform.getScale()
+	end
+	if pos == nil then return {} end
+	if rot == nil then rot = Vector(0, 0, 0) end
+	if sc == nil then sc = Vector(1, 1, 1) end
+
+	return {
+		position = pos:rotateOver("y", angleDelta),
+		rotation = rot:add(Vector(0, angleDelta, 0)),
+		scale = sc
+	}
+end
+
+
+return OU
