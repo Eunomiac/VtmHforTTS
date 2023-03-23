@@ -26,8 +26,6 @@ function HUD_testFunc2(player, value, id)
 	end
 end
 function HUD_testFunc3(player, value, id)
-	local min =
-	U.randBetween(mins.x, maxs.x)
 end
 
 

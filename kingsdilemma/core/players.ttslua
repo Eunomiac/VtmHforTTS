@@ -8,9 +8,7 @@ local P = {}
 
 Players = {}
 
-function P.GetPlayers()
-	return U.map(C.PlayerColors, function(color) return Player[color] end)
-end
+
 
 local function getAngleOfPlayer(player)
 	if player == nil then return end
@@ -19,15 +17,7 @@ local function getAngleOfPlayer(player)
 	return C.PlayerAngles[player.color]
 end
 
-function P.GetPlayerOf(obj)
-	if obj == nil then return nil end
-	if obj.hasTag("Player1") then return Player[C.PlayerColors[1]] end
-	if obj.hasTag("Player2") then return Player[C.PlayerColors[2]] end
-	if obj.hasTag("Player3") then return Player[C.PlayerColors[3]] end
-	if obj.hasTag("Player4") then return Player[C.PlayerColors[4]] end
-	if obj.hasTag("Player5") then return Player[C.PlayerColors[5]] end
-	error("[P.GetPlayerOf()] Object '" .. obj.guid .. "' lacks 'Player#' tag", 2)
-end
+
 
 function P.RotateToPlayer(objOrTransform, toPlayer, fromPlayer)
 	if fromPlayer == nil then return end
@@ -38,10 +28,10 @@ function P.RotateToPlayer(objOrTransform, toPlayer, fromPlayer)
 end
 
 function P.SpawnForAll(obj)
-	local objOwner = P.GetPlayerOf(obj)
+	local objOwner = S.getPlayerOf(obj)
 	if objOwner == nil then return end
 	local ownerNum = U.findIndex(C.PlayerColors, function(col) return col == objOwner.color end)
-	U.forEach(P.GetPlayers(), function(player, i)
+	U.forEach(S.getPlayers(), function(player, i)
 		if player.color == objOwner.color then return end
 		local transformData = P.RotateToPlayer(obj, player, objOwner)
 		if transformData == nil then return end
@@ -60,7 +50,7 @@ function P.SpawnForAll(obj)
 end
 
 function P.MoveForAll(obj, guids, objOwner)
-	if objOwner == nil then objOwner = P.GetPlayerOf(obj) end
+	if objOwner == nil then objOwner = S.getPlayerOf(obj) end
 	if objOwner == nil then return end
 	-- log({obj = obj, guids = guids, objOwner = objOwner})
 	U.forEach(guids, function(guid, color)
@@ -84,6 +74,13 @@ function P.AssignTitle(playerNum, title)
 	elseif title == "Leader" then
 
 	end
+end
+
+function P.setPlayerHouseName(player, title)
+	S.setPlayerVal(title, player, "houseName")
+	local playerNum = S.getPlayerNum(player)
+	local houseScreen = getObjectsWithAllTags({"screenCenter", "Player" .. playerNum})[1]
+	houseScreen.reload()
 end
 
 return P

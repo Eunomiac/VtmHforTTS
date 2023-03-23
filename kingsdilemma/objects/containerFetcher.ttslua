@@ -27,11 +27,11 @@ end
 
 function onLoad()
 	FetchType = string.gsub(self.getName(), "Fetch ", "") .. "s"
-	TargetContainer = O.Get("SecretContainers", targetRef)
+	TargetContainer = O.Get("SecretContainers", FetchType)
 	FetchType = self.getName()
 	log({FetchType = FetchType})
 	if TargetContainer == nil then
-		error("'" .. targetRef .. "' Container Not Found: Fetcher Will Not Function")
+		error("'" .. FetchType .. "' Container Not Found: Fetcher Will Not Function")
 	end
 	initXML()
 end

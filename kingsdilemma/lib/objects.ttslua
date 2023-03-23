@@ -25,11 +25,6 @@ O.UninteractableObjs = {
 }
 
 O.SpawnSources = {
-	HouseScreen = {
-		left = generateGetterFunction("d5842d"), -- TEMP
-		center = generateGetterFunction("1b818a"),
-		right = generateGetterFunction("dd1534") -- TEMP
-	},
 	HouseCards = {
 		Blodyn = generateGetterFunction("d65448"),
 		Coden = generateGetterFunction("7161d6"),
@@ -43,7 +38,40 @@ O.SpawnSources = {
 		Tiryll = generateGetterFunction("e4df0d"),
 		Tork = generateGetterFunction("198170"),
 		Wylio = generateGetterFunction("5604a4")
-	}
+	},
+	chronicleCard = generateGetterFunction("10939d"),
+	screenFlapLeft = generateGetterFunction("d5842d"),
+	screenCenter = generateGetterFunction("1b818a"),
+	screenFlapRight = generateGetterFunction("dd1534"),
+	ayeCard = generateGetterFunction("437238"),
+	passCard = generateGetterFunction("d6e934"),
+	nayCard = generateGetterFunction("f0eb64"),
+	lightBehind = generateGetterFunction("05b53a"),
+	lightFront = generateGetterFunction("9bfae4"),
+	lightVote = generateGetterFunction("65fb31"),
+	plinthBase = generateGetterFunction("daa9ef"),
+	plinthRiser = generateGetterFunction("0c3949"),
+	zonePrivateAye = generateGetterFunction("065175"),
+	zonePrivateNay = generateGetterFunction("aab38f"),
+	zonePublic = generateGetterFunction("9100f3"),
+	zoneHiderHouseCard = generateGetterFunction("12e119"),
+	zoneHiderGeneral = generateGetterFunction("0a34f7")
+}
+
+O.Leader = {
+	Figure = generateGetterFunction("1b5aa3"),
+	Light = generateGetterFunction("6f9e66")
+}
+
+O.Moderator = {
+	Figure = generateGetterFunction("c9e65c"),
+	Light = generateGetterFunction("6a99d8")
+}
+
+O.Lights = {
+	MainBoardTop = generateGetterFunction("79ba9e"),
+	MainBoardBottom = generateGetterFunction("746f68"),
+	Debug = generateGetterFunction("a4527e")
 }
 
 O.Get = memoGetFromGUID

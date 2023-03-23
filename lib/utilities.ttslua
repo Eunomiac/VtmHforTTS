@@ -715,7 +715,7 @@ function U.randBetween(min, max, isInt)
 	if type(min) ~= "number" or type(max) ~= "number" then return end
 	if min > max then return end
 	if isInt == true then
-		return U.round(min + math.random() * (max - min))
+		return U.round(min + math.random() * (max - min), 0)
 	end
 	return min + math.random() * (max - min)
 end

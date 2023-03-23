@@ -1,4 +1,5 @@
 local C = require("kingsdilemma.lib.constants")
+local S = require("kingsdilemma.core.state")
 
 function onLoad()
 	if self.hasTag("SourceObj") then return end
@@ -10,16 +11,14 @@ function onLoad()
 	elseif self.hasTag("Player5") then playerNum = 5
 	end
 
-	local houseName = S.getStateVal("playerData", C.PlayerColors[playerNum]).house
-	if houseNam
-
+	local playerData = S.getStateVal("playerData", C.PlayerColors[playerNum])
 
 	self.UI.setXmlTable({
 		{
 			tag = "Panel",
 			attributes = {
 				height = "400",
-				width = "400",
+				width = "600",
 				color = "Clear",
 				outline = "Red",
 				position = "0 -100 -100",
@@ -28,7 +27,7 @@ function onLoad()
 			children = {
 				{
 					tag = "Text",
-					value = tempHouses[C.PlayerColors[playerNum]],
+					value = playerData.houseName or "",
 					attributes = {
 						ignoreLayout = "True",
 						rectAlignment = "UpperCenter",
@@ -36,8 +35,8 @@ function onLoad()
 						color = C.PlayerColors[playerNum],
 						outline = "Black",
 						outlineSize = "3",
-						font = "Script/Script2",
-						fontSize = "125"
+						font = "Fonts/CinzelBB",
+						fontSize = "80"
 					}
 				}
 			}

@@ -1,13 +1,21 @@
 local O = require("kingsdilemma.lib.objects")
 local U = require("lib.utilities")
--- local P = require("kingsdilemma.core.players")
-
-local HouseScreen = require("kingsdilemma.objs.p3screen")
+local S = require("kingsdilemma.core.state")
 
 function onLoad(save_data)
+
+	local newState = JSON.decode(save_data)
+	if newState then
+		S.setGameState(newState)
+	else
+		S.resetGameState()
+	end
 
 	U.forEach(O.UninteractableObjs, function(oFunc)
 		oFunc().interactable = false
 	end)
 
 end
+
+
+function onSave() return JSON.encode(S.getGameState()) end

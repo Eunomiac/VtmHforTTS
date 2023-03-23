@@ -1,4 +1,6 @@
 local C = require("kingsdilemma.lib.constants")
+local P = require("kingsdilemma.core.players")
+local S = require("kingsdilemma.core.state")
 
 local hideButtonBack = true
 
@@ -8,29 +10,32 @@ local gx, gy -- Global Offsets for calibrating against scan error
 local scanData, buttons, inputs
 local houseTitle, houseName, houseNum
 
-local function createTextField(name, type, x, z)
-	local input_parameters = {}
-	input_parameters.height = buttons[type].height
-	input_parameters.width = buttons[type].width
-	input_parameters.font_size = buttons[type].font
-	input_parameters.alignment = buttons[type].alignment
+local function createTextField(name)
+	local player = S.getPlayerOf(self)
+	if player == nil then return end
+	self.UI.setXmlTable({
+		{
+			tag = "InputField",
+			value = name,
+			attributes = {
+				visibility = player.color,
+				onEndEdit = "editTextField",
+				color = "Clear",
+				placeholder = " ",
+				textColor = "#000000",
+				font = "Fonts/Script2",
+				fontSize = "100",
+				width = "500",
+				height = "200",
+				rectAlignment = "MiddleCenter",
+				alignment = "MiddleLeft",
+				position = "13 -79 -15",
+				rotation = "0 0 180",
+				scale = "0.15 0.15 0.15"
+			}
+		}
+	})
 
-	input_parameters.input_function = "editTextField"
-	input_parameters.function_owner = self
-	input_parameters.label = name
-	input_parameters.scale = { 0.1, 0.1, 0.1 }
-	input_parameters.position = { gx + x, thick, gy + z }
-	input_parameters.font = "Script/Script"
-	input_parameters.font_size = 200
-	if hideButtonBack then
-		input_parameters.color = { 1, 1, 1, 0 }
-		input_parameters.font_color = { 1, 0, 0, 100 }
-	end
-
-	if inputs[name] ~= nil then
-		input_parameters.value = inputs[name]
-	end
-	self.createInput(input_parameters)
 end
 
 local function initButtonsTable()
@@ -170,7 +175,9 @@ local function setupButton(name, type, x, z)
 end
 
 local function initCustomButtons()
-	createTextField('Name', 'txt', scanData.nameOffsets.dx, scanData.nameOffsets.dy)
+	local player = S.getPlayerOf(self)
+	local houseName = S.getPlayerVal(player, "houseName") or ""
+	createTextField(houseName)
 
 	-- prestige tracker. Potentially worth simplifying the on_click to fill up to clicked square, rather than 1 by 1.
 	local dx = -2.05;
@@ -226,38 +233,36 @@ local function initCustomButtons()
 end
 
 function onLoad(saved_data)
-	houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
-	houseName = string.gsub(self.getName(), "^.*of ", "")
-	houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
-	scanData = C.scanData[houseName]
+	-- Wait.time(function()
+		houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
+		houseName = string.gsub(self.getName(), "^.*of ", "")
+		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
+		scanData = C.scanData[houseName]
 
-	log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
+		-- log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
 
-	if scanData == nil then
-		return error("[House Card] Error: '" .. houseName .. "' is not a recognized House.")
-	end
-
-	gx = scanData.globalOffsets.gx
-	gy = scanData.globalOffsets.gy
-
-	initButtonsTable()
-
-	local loaded_data = JSON.decode(saved_data)
-	if loaded_data ~= nil then
-		for i, v in pairs(loaded_data.buttons) do
-			buttons[i] = { label = v }
+		if scanData == nil then
+			return error("[House Card] Error: '" .. houseName .. "' is not a recognized House.")
 		end
-		for i, v in pairs(loaded_data.inputs) do
-			inputs[i] = v
+
+		gx = scanData.globalOffsets.gx
+		gy = scanData.globalOffsets.gy
+
+		initButtonsTable()
+
+		local loaded_data = JSON.decode(saved_data)
+		if loaded_data ~= nil then
+			for i, v in pairs(loaded_data.buttons) do
+				buttons[i] = { label = v }
+			end
+			for i, v in pairs(loaded_data.inputs) do
+				inputs[i] = v
+			end
 		end
-	end
-	initCustomButtons()
+		initCustomButtons()
+	-- end, 1)
 end
 
 function Dud() return end
 
-function editTextField(object, color, text, editing)
-	if not editing then
-		forceSave()
-	end
-end
+editTextField = P.setPlayerHouseName

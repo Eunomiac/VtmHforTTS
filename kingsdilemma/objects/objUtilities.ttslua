@@ -3,25 +3,90 @@
 
 local OU = {}
 
-function OU.RotateByAngle(objOrTransform, angleDelta)
-	local pos, rot, sc
-	if type(objOrTransform) == "table" then
-		pos = Vector(objOrTransform.position)
-		rot = Vector(objOrTransform.rotation)
-		sc = Vector(objOrTransform.scale)
-	else
-		pos = objOrTransform.getPosition()
-		rot = objOrTransform.getRotation()
-		sc = objOrTransform.getScale()
+function OU.foldTransform(objOrTransform)
+	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
+		objOrTransform = objOrTransform.getData().Transform
 	end
-	if pos == nil then return {} end
-	if rot == nil then rot = Vector(0, 0, 0) end
-	if sc == nil then sc = Vector(1, 1, 1) end
+	if type(objOrTransform) ~= "table" then return end
+	if type(objOrTransform.Transform) == "table" then
+		objOrTransform = objOrTransform.Transform
+	end
 
+	if objOrTransform.posX ~= nil then
+		if objOrTransform.rotX == nil then
+			objOrTransform.rotX = 0
+			objOrTransform.rotY = 0
+			objOrTransform.rotZ = 0
+		end
+		if objOrTransform.scaleX == nil then
+			objOrTransform.scaleX = 1
+			objOrTransform.scaleY = 1
+			objOrTransform.scaleZ = 1
+		end
+		objOrTransform = {
+			position = {objOrTransform.posX, objOrTransform.posY, objOrTransform.posZ},
+			rotation = {objOrTransform.rotX, objOrTransform.rotY, objOrTransform.rotZ},
+			scale = {objOrTransform.scaleX, objOrTransform.scaleY, objOrTransform.scaleZ},
+		}
+	end
+
+	if type(objOrTransform.position) == "table" then
+		return {
+			position = Vector(objOrTransform.position),
+			rotation = Vector(objOrTransform.rotation or {0, 0, 0}),
+			scale = Vector(objOrTransform.scale or {1, 1, 1})
+		}
+	end
+end
+
+function OU.unfoldTransform(objOrTransform)
+	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
+		return objOrTransform.getData().Transform
+	end
+	if type(objOrTransform) ~= "table" then return end
+	if type(objOrTransform.Transform) == "table" then
+		return objOrTransform.Transform
+	end
+
+	if objOrTransform.position ~= nil then
+		local position = Vector(objOrTransform.position)
+		local rotation = Vector(objOrTransform.rotation or {0, 0, 0})
+		local scale = Vector(objOrTransform.scale or {1, 1, 1})
+		return {
+			posX = objOrTransform.posX,
+			posY = position.y,
+			posZ = position.z,
+			rotX = rotation.x,
+			rotY = rotation.y,
+			rotZ = rotation.z,
+			scaleX = scale.x,
+			scaleY = scale.y,
+			scaleZ = scale.z
+		}
+	end
+
+	if objOrTransform.posX ~= nil then
+		return {
+			posX = objOrTransform.posX,
+			posY = objOrTransform.posY,
+			posZ = objOrTransform.posZ,
+			rotX = objOrTransform.rotX or 0,
+			rotY = objOrTransform.rotY or 0,
+			rotZ = objOrTransform.rotZ or 0,
+			scaleX = objOrTransform.scaleX or 1,
+			scaleY = objOrTransform.scaleY or 1,
+			scaleZ = objOrTransform.scaleZ or 1
+		}
+	end
+end
+
+function OU.RotateByAngle(objOrTransform, angleDelta)
+	local objTransform = OU.foldTransform(objOrTransform)
+	if objTransform == nil then return end
 	return {
-		position = pos:rotateOver("y", angleDelta),
-		rotation = rot:add(Vector(0, angleDelta, 0)),
-		scale = sc
+		position = objTransform.position:rotateOver("y", angleDelta),
+		rotation = objTransform.rotation:add(Vector(0, angleDelta, 0)),
+		scale = objTransform.scale
 	}
 end
 

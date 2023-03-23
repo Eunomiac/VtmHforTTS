@@ -47,6 +47,14 @@ function S.getStateVal(key, subKey)
   return state[key]
 end
 
+function S.getPlayerVal(player, key, subKey)
+	if player == nil then return end
+  local pState = S.getStateVal("playerData", player.color)
+  if not pState[key] then return pState[key] end
+  if subKey then return pState[key][subKey] end
+  return pState[key]
+end
+
 function S.setStateVal(value, key, subKey)
   local state = Global.getTable("gameState")
   if (subKey) then
@@ -68,11 +76,22 @@ function S.setStateVals(stateData)
   S.refreshStateDebug(state)
 end
 
-function S.resetGameState()
+function S.setPlayerVal(value, player, key, subKey)
+	local pState = S.getStateVal("playerData", player.color)
+	if (subKey) then
+		if (pState[key] == nil) then pState[key] = {} end
+		pState[key][subKey] = value
+	else
+		pState[key] = value
+	end
+	S.setStateVal(pState, "playerData", player.color)
+end
+
+function S.resetGameState(isWipingPlayerData)
 	local newState = U.clone(INITGAMESTATE, true)
   local state = Global.getTable("gameState")
 
-	if state.playerData ~= nil then
+	if not isWipingPlayerData and state.playerData ~= nil then
 		newState.playerData = state.playerData
 	end
 
@@ -93,5 +112,25 @@ end
 function S.isDebugging()
 	return UI.getAttribute("debugStatePanel", "active") == "True"
 end
+
+function S.getPlayers()
+	return U.map(C.PlayerColors, function(color) return Player[color] end)
+end
+
+function S.getPlayerNum(player)
+	return U.findIndex(C.PlayerColors, function(color) return player.color == color end)
+end
+
+function S.getPlayerOf(obj)
+	if obj == nil then return nil end
+	if obj.hasTag("Player1") then return Player[C.PlayerColors[1]] end
+	if obj.hasTag("Player2") then return Player[C.PlayerColors[2]] end
+	if obj.hasTag("Player3") then return Player[C.PlayerColors[3]] end
+	if obj.hasTag("Player4") then return Player[C.PlayerColors[4]] end
+	if obj.hasTag("Player5") then return Player[C.PlayerColors[5]] end
+	return nil
+end
+
+
 
 return S

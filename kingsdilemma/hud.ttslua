@@ -3,33 +3,64 @@ local C = require("kingsdilemma.lib.constants")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
+local L = require("kingsdilemma.core.lighting")
 
-function HUD_Click(player, id, value)
-	if id == "prompt_assignHouse" then
+local TESTFUNCS = {
+	function()
+		local modes = {"ambient", "aye", "nay"}
+		local index = U.randBetween(1, 3, true)
+		log({index = index})
+		local mode = modes[index]
+		local playerNum = U.randBetween(1, #S.getPlayers(), true)
 
-		local players = P.GetPlayers()
-		local playerOptions = U.map(players, function(pl, i)
-			return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
+		broadcastToAll("Setting Player " .. playerNum .. "'s Vote Light to '" .. string.upper(mode) .. "'")
+
+		L.SetLightMode("lightVote", mode, playerNum)
+	end,
+	function() end,
+	function() end,
+	function() end,
+	function() end,
+	function() end
+}
+
+local function promptAssignHouse(player)
+	local players = S.getPlayers()
+	local playerOptions = U.map(players, function(pl, i)
+		return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
+	end)
+
+	player.showOptionsDialog("Assign to which player?", playerOptions, 1, function(_, i)
+		local targetPlayer = players[i]
+		local curHouse = S.getStateVal("playerData", targetPlayer.color).house
+		local houseOptions = U.concat({"None"}, U.filter(U.getKeys(C.scanData), function(hName)
+			if hName == curHouse then return true end
+			local playerData = U.getValues(S.getStateVal("playerData"))
+			return not U.isIn(hName, U.map(playerData, function (pData) return pData.house end))
+		end))
+		player.showOptionsDialog("Which territory?", houseOptions, 1, function(houseName)
+			if houseName == "None" then houseName = nil end
+			HouseScreen.Spawn(i, houseName, curHouse)
+			local playerData = S.getStateVal("playerData", targetPlayer.color)
+			playerData.house = houseName
+			S.setStateVal(playerData, "playerData", targetPlayer.color)
 		end)
+	end)
+end
 
-		player.showOptionsDialogue("Assign to which player?", playerOptions, 1, function(_, i)
-			local targetPlayer = players[i]
-			local curHouse = S.getStateVal("playerData", targetPlayer.color).house
-			local houseOptions = U.filter(U.getKeys(C.scanData), function(hName)
-				if hName == curHouse then return true end
-				local playerData = U.getValues(S.getStateVal("playerData"))
-				return not U.isIn(hName, U.map(playerData, function (pData) return pData.house end))
-			end)
-			player.showOptionsDialogue("Which territory?", houseOptions, 1, function(houseName)
-				if curHouse ~= nil then
-					U.forEach(U.concat({
-						getObjectsWithAllTags({"Player" .. i, "HouseScreen"}),
-						getObjectsWithAllTags({"Player" .. i, "HouseCard"})
-					}), function(obj) obj.destruct() end)
-				end
-				HouseScreen.Spawn(i, houseName)
-				S.setStateVal(houseName, "playerData", targetPlayer.color)
-			end)
-		end)
+function HUD_Click(player, button, id)
+	log({player = player, button = button, id = id})
+	if id == "prompt_assignHouse" then promptAssignHouse(player) end
+
+	if string.match(id, "^debug_testFunc") then
+		id = string.gsub(id, "^debug_testFunc", "") * 1
+		TESTFUNCS[id]()
+	end
+
+	if id == "debug_resetState" then S.resetGameState(true) end
+
+	if id == "debug_setArrows" then
+		if button == "-1" then L.ShowArrows()
+		else L.HideArrows() end
 	end
 end

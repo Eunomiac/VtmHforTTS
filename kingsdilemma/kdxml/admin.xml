@@ -22,13 +22,24 @@
 
 <HorizontalLayout id="adminControls">
 	<VerticalLayout id="phaseControls" class="buttonBar">
-		<Button id="setMode_NONE" font="Fonts/AlbertText-Bold">NONE</Button>
-		<Button id="setMode_CAMPAIGN" font="Fonts/AlbertText-Bold">CAMPAIGN</Button>
-		<Button id="setMode_SETUP" font="Fonts/AlbertText-Bold">SETUP</Button>
-		<Button id="setMode_PLAY" font="Fonts/AlbertText-Bold">PLAY</Button>
-		<Button id="setMode_END" font="Fonts/AlbertText-Bold">END</Button>
+		<Button id="setMode_NONE" font="Fonts/FrizB">NONE</Button>
+		<Button id="setMode_CAMPAIGN" font="Fonts/FrizB">CAMPAIGN</Button>
+		<Button id="setMode_SETUP" font="Fonts/FrizB">SETUP</Button>
+		<Button id="setMode_PLAY" font="Fonts/FrizB">PLAY</Button>
+		<Button id="setMode_END" font="Fonts/FrizB">END</Button>
 	</VerticalLayout>
 	<VerticalLayout id="playerControls" class="buttonBar">
-		<Button id="prompt_assignHouse" font="Fonts/AlbertText-Bold">Assign House</Button>
+		<Button id="prompt_assignHouse" font="Fonts/FrizB">Assign House</Button>
+	</VerticalLayout>
+	<VerticalLayout id="debugControls" class="buttonBar">
+		<Button id="debug_resetState" font="Fonts/FrizB">Reset State</Button>
+		<Text preferredHeight="10"> </Text>
+		<Button id="debug_setArrows" font="Fonts/FrizB">Light Arrows</Button>
+		<Text preferredHeight="10"> </Text>
+		<Button id="debug_testFunc1" font="Fonts/FrizB">Test Func 1</Button>
+		<!-- <Button id="debug_testFunc2" font="Fonts/FrizB">Test Func 2</Button> -->
+		<!-- <Button id="debug_testFunc3" font="Fonts/FrizB">Test Func 3</Button> -->
+		<!-- <Button id="debug_testFunc4" font="Fonts/FrizB">Test Func 4</Button> -->
+		<!-- <Button id="debug_testFunc5" font="Fonts/FrizB">Test Func 5</Button> -->
 	</VerticalLayout>
 </HorizontalLayout>
