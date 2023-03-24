@@ -22,7 +22,7 @@ end
 
 function UpdateCount(num)
 	if num == nil or num == 0 then
-		self.UI.setXmlTable({})
+		self.UI.setXmlTable({{}})
 	else
 		self.UI.setXmlTable({
 			{
@@ -31,9 +31,9 @@ function UpdateCount(num)
 					height = "400",
 					width = "600",
 					-- color = "Clear",
-					color = "rgba(1, 0, 0, 0.5)",
-					position = "0 0 0",
-					rotation = "0 0 0"
+					-- color = "rgba(1, 0, 0, 0.5)",
+					position = "0 -50 -150",
+					rotation = "-80 0 0"
 				},
 				children = {
 					{
@@ -47,7 +47,8 @@ function UpdateCount(num)
 							outline = "Black",
 							outlineSize = "3",
 							font = "Fonts/FrizB",
-							fontSize = "80"
+							fontSize = "80",
+							scale = "1 2 1"
 						}
 					}
 				}
