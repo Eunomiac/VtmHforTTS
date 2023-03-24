@@ -1,5 +1,3 @@
-local C = require("lib.constants")
-
 local U = {}
 
 local ISDEBUGGING = false
@@ -661,16 +659,12 @@ function U.getKeys(tb)
 	return keys
 end
 
-local isPulsing = false
-function U.changeLighting(setting)
-	-- log({setting = setting, tp = type(setting), test = lightSettings[setting]})
-	if setting == nil then setting = "standard" end
-	if type(setting) ~= "string" then return nil end
-	if C.Lighting[setting] == nil then return nil end
+function U.changeLighting(params)
+	if params == nil then return nil end
 
 	U.sequence({
 		function()
-			for param, val in pairs(C.Lighting[setting]) do
+			for param, val in pairs(params) do
 				-- log("CHANGING " .. param .. " to " .. val)
 				if string.match(param, "^set") then
 					Lighting[param](val)
@@ -680,16 +674,12 @@ function U.changeLighting(setting)
 			end
 		end,
 		Lighting.apply
-	}, 0.5, false)
+	}, 0.5)
 end
 
-function U.sequence(funcs, timeDelay, isPulsing)
+function U.sequence(funcs, timeDelay)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided
 	local delay = 0 -- Initialize delay to 0
-	if isPulsing == true then
-		-- log("IS PULSING")
-		U.changeLighting("automating")
-	end
 	for i, func in ipairs(funcs) do
 			if type(func) == "function" then
 				if delay == 0 then
@@ -705,9 +695,6 @@ function U.sequence(funcs, timeDelay, isPulsing)
 			else
 				error("Invalid element in funcs table")
 			end
-	end
-	if isPulsing == true then
-		Wait.time(function() U.changeLighting() end, delay)
 	end
 end
 

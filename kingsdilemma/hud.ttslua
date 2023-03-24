@@ -1,4 +1,5 @@
 local P = require("kingsdilemma.core.players")
+local O = require("kingsdilemma.lib.objects")
 local C = require("kingsdilemma.lib.constants")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
@@ -6,10 +7,45 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
 
 local TESTFUNCS = {
-	function()
+	function(button)
+		if button == "-2" then
+			L.SetLightMode("lightLeader", "off")
+			L.SetLightMode("lightModerator", "off")
+			P.RotateToPlayerSmooth({
+				O.Leader.Figure(),
+				O.Leader.Light()
+			}, 0)
+			P.RotateToPlayerSmooth({
+				O.Moderator.Figure(),
+				O.Moderator.Light()
+			}, 0)
+		else
+			local index = {
+				U.randBetween(1, #S.getPlayers(), true),
+				U.randBetween(1, #S.getPlayers(), true)
+			}
+			local players = {
+				S.getPlayers()[index[1]],
+				S.getPlayers()[index[2]]
+			}
+			L.SetLightMode("lightLeader", "on")
+			L.SetLightMode("lightModerator", "on")
+
+			P.RotateToPlayerSmooth({
+				O.Leader.Figure(),
+				O.Leader.Light()
+			}, players[1])
+			P.RotateToPlayerSmooth({
+				O.Moderator.Figure(),
+				O.Moderator.Light()
+			}, players[2])
+		end
+		-- log({rotatingTo = player})
+
+	end,
+	function(button)
 		local modes = {"ambient", "aye", "nay"}
 		local index = U.randBetween(1, 3, true)
-		log({index = index})
 		local mode = modes[index]
 		local playerNum = U.randBetween(1, #S.getPlayers(), true)
 
@@ -17,11 +53,10 @@ local TESTFUNCS = {
 
 		L.SetLightMode("lightVote", mode, playerNum)
 	end,
-	function() end,
-	function() end,
-	function() end,
-	function() end,
-	function() end
+	function(button) end,
+	function(button) end,
+	function(button) end,
+	function(button) end
 }
 
 local function promptAssignHouse(player)
@@ -49,12 +84,12 @@ local function promptAssignHouse(player)
 end
 
 function HUD_Click(player, button, id)
-	log({player = player, button = button, id = id})
+	-- log({player = player, button = button, id = id})
 	if id == "prompt_assignHouse" then promptAssignHouse(player) end
 
 	if string.match(id, "^debug_testFunc") then
 		id = string.gsub(id, "^debug_testFunc", "") * 1
-		TESTFUNCS[id]()
+		TESTFUNCS[id](button)
 	end
 
 	if id == "debug_resetState" then S.resetGameState(true) end

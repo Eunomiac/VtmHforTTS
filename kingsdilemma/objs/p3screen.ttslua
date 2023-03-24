@@ -214,9 +214,9 @@ local ObjectData = {
 		},
 		zoneHand = {
 			source = "HandTrigger",
-			position = {0.00, 1.73, -52.70},
+			position = {0.00, 3, -52.70},
 			rotation = {0.00, 0.00, 0.00},
-			scale = {12.00, 0.46, 4.00},
+			scale = {12.00, 5, 4.00},
 			data = {
 				Name = "HandTrigger",
 				Tags = false

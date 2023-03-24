@@ -59,7 +59,7 @@ O.SpawnSources = {
 }
 
 O.Leader = {
-	Figure = generateGetterFunction("1b5aa3"),
+	Figure = generateGetterFunction("215a29"),
 	Light = generateGetterFunction("6f9e66")
 }
 

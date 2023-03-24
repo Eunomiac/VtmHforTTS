@@ -4,6 +4,32 @@ local S = require("kingsdilemma.core.state")
 local L = {}
 
 local LIGHTMODES = {
+	lightMainTop = {},
+	lightMainBottom = {},
+	lightLeader = {
+		off = {
+			enabled = false
+		},
+		on = {
+			enabled = true,
+			color = Color(1, 1, 1),
+			range = 66,
+			spotAngle = 30,
+			intensity = 10
+		}
+	},
+	lightModerator = {
+		off = {
+			enabled = false
+		},
+		on = {
+			enabled = true,
+			color = Color(1, 1, 1),
+			range = 66,
+			spotAngle = 30,
+			intensity = 10
+		}
+	},
 	lightVote = {
 		ambient = {
 			color = Color(0.5, 0.5, 0.5),

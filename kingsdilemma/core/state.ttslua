@@ -6,13 +6,14 @@ local S = {}
 local INITGAMESTATE = {
 	gameMode = C.Modes.NONE,
 	gamePhase = C.Phases.NONE,
-	playerData = { -- Need to change this to record player data by steam_id
-		Red = {},				-- so players can rotate in and out of games
+	playerData = { -- Extracts data from playerStorage for each player playing
+		Red = {},
 		Purple = {},
 		Green = {},
 		Yellow = {},
 		Blue = {}
 	},
+	playerStorage = {},
 	curLeader = nil,
 	curModerator = nil
 }
@@ -113,12 +114,48 @@ function S.isDebugging()
 	return UI.getAttribute("debugStatePanel", "active") == "True"
 end
 
+function S.getStoredPlayerData(player)
+	if player == nil then return nil end
+	if string.gmatch(player.steam_name or " ", "^Player ") then
+		-- This is a hotseat player used for debugging; return its data
+		return S.getStateVal("playerStorage", player.steam_name)
+	end
+	if U.isIn(player.color, C.PlayerColors) then
+		return S.getStateVal("playerStorage", tostring(player.steam_id))
+	end
+end
+
+function S.storePlayerData(player)
+	if player == nil then return U.forEach(S.getPlayers(), S.storePlayerData) end
+	local pData = S.getStateVal("playerData", player.color)
+	if pData == nil then return nil end
+	if string.gmatch(player.steam_name or " ", "^Player ") then
+		-- This is a hotseat player used for debugging; store its data under its name
+		return S.setStateVal(pData, "playerStorage", player.steam_name)
+	end
+	if U.isIn(player.color, C.PlayerColors) then
+		return S.setStateVal(pData, "playerStorage", tostring(player.steam_id))
+	end
+end
+
+function S.refreshPlayerData()
+	S.storePlayerData()
+	U.forEach(S.getPlayers(), function(player)
+		if U.isIn(player.color, C.PlayerColors) then
+			return S.setStateVal(S.getStoredPlayerData(player), "playerData", player.color)
+		end
+	end)
+end
+
 function S.getPlayers()
-	return U.map(C.PlayerColors, function(color) return Player[color] end)
+	return U.filter(
+		U.map(C.PlayerColors, function(color) return Player[color] end),
+		function(player) return player.steam_name ~= nil end
+	)
 end
 
 function S.getPlayerNum(player)
-	return U.findIndex(C.PlayerColors, function(color) return player.color == color end)
+	return U.findIndex(S.getPlayers(), function(pl) return player.color == pl.color end)
 end
 
 function S.getPlayerOf(obj)

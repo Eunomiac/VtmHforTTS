@@ -8,7 +8,77 @@ local P = {}
 
 Players = {}
 
+function P.GetHandZones()
+	return U.filter(getObjects(), function(obj) return obj.type == "Hand" end)
+end
 
+function P.GetPlayerHandZone(player)
+	return U.find(P.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. S.getPlayerNum(player) end)
+end
+
+function P.RotateToPlayerSmooth(objs, player)
+	if type(objs) ~= "table" then objs = {objs} end
+	local handZoneData = U.concat(
+		{{
+			playerColor = nil,
+			playerNum = 0,
+			handPos = Vector(0, 3, 52.7)
+		}},
+		U.map(P.GetHandZones(), function(hZone)
+			local pColor = hZone.getData().FogColor
+			return {
+				playerColor = pColor,
+				playerNum = S.getPlayerNum(Player[pColor]),
+				handPos = hZone.getPosition()
+			}
+		end)
+	)
+	-- log({handZoneData = handZoneData})
+
+	local objTransform = OU.foldTransform(objs[1])
+	-- log({objTransform = objTransform})
+
+	local sortedMinAngles = table.sort(handZoneData, function(a, b)
+		return objTransform.position:angle(a.handPos) < objTransform.position:angle(b.handPos)
+	end)
+	-- log({sortedMinAngles = sortedMinAngles})
+	if sortedMinAngles == nil then return end
+	local closestHZoneData = sortedMinAngles[1]
+	local fromPosition = closestHZoneData.handPos
+	local toPosition
+	if player == nil or player == 0 then
+		toPosition = Vector(0, 3, 52.7)
+	else
+		local playerHandZone = P.GetPlayerHandZone(player)
+		toPosition = playerHandZone.getPosition()
+	end
+	local angleDelta = U.round(fromPosition:angle(toPosition)/30, 0) * 30
+	log({from = {
+		playerNum = closestHZoneData.playerNum,
+		pos = fromPosition
+	}, to = {
+		playerNum = player ~= 0 and S.getPlayerNum(player) or 0,
+		pos = toPosition
+	}, angleDelta = angleDelta})
+	if angleDelta < 10 then return end
+	if fromPosition:rotateOver("y", 0.5):angle(toPosition) > angleDelta then angleDelta = -1 * angleDelta end
+
+	U.forEach(objs, function(obj)
+		local toData = OU.RotateByAngle(obj, angleDelta)
+		local finalPos = Vector(toData.position)
+		toData.position = toData.position:add(Vector(0, 2, 0))
+		U.waitRestingSequence({
+			function() obj.setPositionSmooth(obj.getPosition():add(Vector(0, 2, 0))); return obj end,
+			function()
+				local toData = OU.RotateByAngle(obj, angleDelta)
+				obj.setPositionSmooth(toData.position, false, false)
+				obj.setRotationSmooth(toData.rotation, false, false)
+				return obj
+			end,
+			function() obj.setPositionSmooth(finalPos) end
+		})
+	end)
+end
 
 local function getAngleOfPlayer(player)
 	if player == nil then return end

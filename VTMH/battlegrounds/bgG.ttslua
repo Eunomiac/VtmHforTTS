@@ -221,7 +221,7 @@ function CallVote()
 	isVoting = true
 	local funcSequence = {}
 
-	table.insert(funcSequence, function() U.changeLighting("courtVote") end)
+	table.insert(funcSequence, function() U.changeLighting(C.Lighting.courtVote) end)
 
 	if not isTitleTokenHome() then
 		table.insert(funcSequence, recallTitle)
@@ -275,7 +275,7 @@ function EndVote()
 	nextLightPos.y = 8
 
 	U.waitRestingSequence({
-		function() U.changeLighting("standard") end,
+		function() U.changeLighting(C.Lighting.standard) end,
 		Z.hideScores,
 		function()
 			isVoting = false

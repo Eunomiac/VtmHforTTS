@@ -1,0 +1,29 @@
+local S = require("kingsdilemma.core.state")
+
+
+
+local V = {}
+
+function V.updatePrivateCount(player)
+	local playerNum = S.getPlayerNum(player)
+	local ayeZone = getObjectsWithAllTags({"Player" .. playerNum, "zonePrivateAye"})[1]
+	local nayZone = getObjectsWithAllTags({"Player" .. playerNum, "zonePrivateNay"})[1]
+	local ayePowerTokens = ayeZone.getObjects()
+	local nayPowerTokens = nayZone.getObjects()
+	local ayePower, nayPower = 0, 0
+	U.forEach(ayeZone.getObjects(), function(token)
+		ayePower = ayePower + token.value
+	end)
+	U.forEach(nayZone.getObjects(), function(token)
+		nayPower = nayPower + token.value
+	end)
+	ayeZone.call("UpdateCount", ayePower)
+	nayZone.call("UpdateCount", nayPower)
+
+
+end
+
+
+
+
+return V
