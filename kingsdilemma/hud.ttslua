@@ -11,11 +11,11 @@ local TESTFUNCS = {
 		if button == "-2" then
 			L.SetLightMode("lightLeader", "off")
 			L.SetLightMode("lightModerator", "off")
-			P.RotateToPlayerSmooth({
+			P.RotateToPlayer({
 				O.Leader.Figure(),
 				O.Leader.Light()
 			}, 0)
-			P.RotateToPlayerSmooth({
+			P.RotateToPlayer({
 				O.Moderator.Figure(),
 				O.Moderator.Light()
 			}, 0)
@@ -31,11 +31,11 @@ local TESTFUNCS = {
 			L.SetLightMode("lightLeader", "on")
 			L.SetLightMode("lightModerator", "on")
 
-			P.RotateToPlayerSmooth({
+			P.RotateToPlayer({
 				O.Leader.Figure(),
 				O.Leader.Light()
 			}, players[1])
-			P.RotateToPlayerSmooth({
+			P.RotateToPlayer({
 				O.Moderator.Figure(),
 				O.Moderator.Light()
 			}, players[2])
@@ -77,24 +77,38 @@ local function promptAssignHouse(player)
 			if houseName == "None" then houseName = nil end
 			HouseScreen.Spawn(i, houseName, curHouse)
 			local playerData = S.getStateVal("playerData", targetPlayer.color)
+			if curHouse ~= houseName then
+				playerData.houseName = nil
+			end
 			playerData.house = houseName
-			S.setStateVal(playerData, "playerData", targetPlayer.color)
+			S.setPlayerData(targetPlayer, playerData)
 		end)
 	end)
 end
 
+local function toggleXmlElement(elemID)
+	log("Toggling " .. elemID)
+	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
+		UI.setAttribute(elemID, "active", "true")
+		UI.setValue("toggleElem_" .. elemID, "▼")
+	else
+		UI.setAttribute(elemID, "active", "false")
+		UI.setValue("toggleElem_" .. elemID, "►")
+	end
+end
+
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
-	if id == "prompt_assignHouse" then promptAssignHouse(player) end
-
-	if string.match(id, "^debug_testFunc") then
+	if string.match(id, "^toggleElem_") then
+		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
+	elseif id == "prompt_assignHouse" then
+		promptAssignHouse(player)
+	elseif string.match(id, "^debug_testFunc") then
 		id = string.gsub(id, "^debug_testFunc", "") * 1
 		TESTFUNCS[id](button)
-	end
-
-	if id == "debug_resetState" then S.resetGameState(true) end
-
-	if id == "debug_setArrows" then
+	elseif id == "debug_resetState" then
+		S.resetGameState(true)
+	elseif id == "debug_setArrows" then
 		if button == "-1" then L.ShowArrows()
 		else L.HideArrows() end
 	end

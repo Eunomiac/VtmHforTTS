@@ -1,6 +1,1 @@
-<Button id="toggleDebugControls"
-	onClick="HUD_Click"
-	colors="#888888|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)"
-	height="50"
-	width="50"
-	rectAlignment="UpperCenter">►</Button>
+<Panel></Panel>

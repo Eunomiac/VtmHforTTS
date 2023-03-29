@@ -420,6 +420,15 @@ function U.concat(...)
 	return tb
 end
 
+function U.join(tb, delim)
+	if delim == nil then delim = "|" end
+	local returnString = ""
+	for _, val in pairs(tb) do
+		returnString = returnString .. delim .. val
+	end
+	return string.gsub(returnString, "^|", "")
+end
+
 function U.pop(arr) return table.remove(arr) end
 function U.push(elem, arr) table.insert(arr, elem) end
 function U.shift(arr) return table.remove(arr, 1) end

@@ -1,9 +1,11 @@
 local C = require("kingsdilemma.lib.constants")
 local S = require("kingsdilemma.core.state")
+local U = require("lib.utilities")
+
+local playerNum, playerColor
 
 function onLoad()
 	if self.hasTag("SourceObj") then return end
-	local playerNum
 	if self.hasTag("Player1") then playerNum = 1
 	elseif self.hasTag("Player2") then playerNum = 2
 	elseif self.hasTag("Player3") then playerNum = 3
@@ -11,12 +13,15 @@ function onLoad()
 	elseif self.hasTag("Player5") then playerNum = 5
 	end
 
-	local playerData = S.getStateVal("playerData", C.PlayerColors[playerNum])
+	playerColor = S.getPlayers()[playerNum].color
+	local playerData = S.getPlayerData(S.getPlayers()[playerNum])
 
+	log(U.join(U.filter(Player.getAvailableColors(), function(col) return col ~= playerColor end)))
 	self.UI.setXmlTable({
 		{
 			tag = "Panel",
 			attributes = {
+				visibility = U.join(U.filter(Player.getAvailableColors(), function(col) return col ~= playerColor end)),
 				height = "400",
 				width = "600",
 				color = "Clear",

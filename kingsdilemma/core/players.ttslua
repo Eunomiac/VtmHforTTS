@@ -6,60 +6,23 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
-Players = {}
-
-function P.GetHandZones()
-	return U.filter(getObjects(), function(obj) return obj.type == "Hand" end)
-end
-
-function P.GetPlayerHandZone(player)
-	return U.find(P.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. S.getPlayerNum(player) end)
-end
-
-function P.RotateToPlayerSmooth(objs, player)
+function P.RotateToPlayer(objs, player)
 	if type(objs) ~= "table" then objs = {objs} end
-	local handZoneData = U.concat(
-		{{
-			playerColor = nil,
-			playerNum = 0,
-			handPos = Vector(0, 3, 52.7)
-		}},
-		U.map(P.GetHandZones(), function(hZone)
-			local pColor = hZone.getData().FogColor
-			return {
-				playerColor = pColor,
-				playerNum = S.getPlayerNum(Player[pColor]),
-				handPos = hZone.getPosition()
-			}
-		end)
-	)
-	-- log({handZoneData = handZoneData})
+	local closestPlayer = OU.GetPlayerFromAngle(objs[1])
+	local fromPosition, toPosition
+	if closestPlayer == 0 then
+		fromPosition = Vector(0, 3, 52.7)
+	else
+		fromPosition = OU.GetPlayerHandZone(closestPlayer).getPosition()
+	end
 
-	local objTransform = OU.foldTransform(objs[1])
-	-- log({objTransform = objTransform})
-
-	local sortedMinAngles = table.sort(handZoneData, function(a, b)
-		return objTransform.position:angle(a.handPos) < objTransform.position:angle(b.handPos)
-	end)
-	-- log({sortedMinAngles = sortedMinAngles})
-	if sortedMinAngles == nil then return end
-	local closestHZoneData = sortedMinAngles[1]
-	local fromPosition = closestHZoneData.handPos
-	local toPosition
 	if player == nil or player == 0 then
 		toPosition = Vector(0, 3, 52.7)
 	else
-		local playerHandZone = P.GetPlayerHandZone(player)
-		toPosition = playerHandZone.getPosition()
+		toPosition = OU.GetPlayerHandZone(player).getPosition()
 	end
+
 	local angleDelta = U.round(fromPosition:angle(toPosition)/30, 0) * 30
-	log({from = {
-		playerNum = closestHZoneData.playerNum,
-		pos = fromPosition
-	}, to = {
-		playerNum = player ~= 0 and S.getPlayerNum(player) or 0,
-		pos = toPosition
-	}, angleDelta = angleDelta})
 	if angleDelta < 10 then return end
 	if fromPosition:rotateOver("y", 0.5):angle(toPosition) > angleDelta then angleDelta = -1 * angleDelta end
 
@@ -77,62 +40,6 @@ function P.RotateToPlayerSmooth(objs, player)
 			end,
 			function() obj.setPositionSmooth(finalPos) end
 		})
-	end)
-end
-
-local function getAngleOfPlayer(player)
-	if player == nil then return end
-	local playerNum = U.findIndex(C.PlayerColors, function(col) return col == player.color end)
-	if playerNum == nil then return end
-	return C.PlayerAngles[player.color]
-end
-
-
-
-function P.RotateToPlayer(objOrTransform, toPlayer, fromPlayer)
-	if fromPlayer == nil then return end
-	local fromAngle = getAngleOfPlayer(fromPlayer)
-	local toAngle = getAngleOfPlayer(toPlayer)
-	local angleDelta = toAngle - fromAngle
-	return OU.RotateByAngle(objOrTransform, angleDelta)
-end
-
-function P.SpawnForAll(obj)
-	local objOwner = S.getPlayerOf(obj)
-	if objOwner == nil then return end
-	local ownerNum = U.findIndex(C.PlayerColors, function(col) return col == objOwner.color end)
-	U.forEach(S.getPlayers(), function(player, i)
-		if player.color == objOwner.color then return end
-		local transformData = P.RotateToPlayer(obj, player, objOwner)
-		if transformData == nil then return end
-		local objData = {
-			data = obj.getData(),
-			position = transformData.position,
-			rotation = transformData.rotation,
-			scale = transformData.scale,
-			callback_function = function(spawnedObj)
-				spawnedObj.removeTag("Player" .. ownerNum)
-				spawnedObj.addTag("Player" .. i)
-			end
-		}
-		spawnObjectData(objData)
-	end)
-end
-
-function P.MoveForAll(obj, guids, objOwner)
-	if objOwner == nil then objOwner = S.getPlayerOf(obj) end
-	if objOwner == nil then return end
-	-- log({obj = obj, guids = guids, objOwner = objOwner})
-	U.forEach(guids, function(guid, color)
-		-- log({guid = guid, color = color})
-		local player = Player[color]
-		local targetObj = O.Get(guid)
-		local transformData = P.RotateToPlayer(obj, player, objOwner)
-		-- log({player = player, targetObj = targetObj, transformData = transformData})
-		if transformData == nil then return end
-		targetObj.setPosition(transformData.position)
-		targetObj.setRotation(transformData.rotation)
-		targetObj.setScale(transformData.scale)
 	end)
 end
 

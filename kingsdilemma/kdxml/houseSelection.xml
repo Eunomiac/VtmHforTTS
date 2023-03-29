@@ -1,0 +1,51 @@
+<Defaults>
+
+	<GridLayout
+		height="340"
+		width="660"
+		spacing="20 20"
+		cellSize="150 100"
+		constraint="FixedColumnCount"
+		constraintCount="4"
+		rectAlignment="MiddleCenter"
+		offsetXY="0 200" />
+
+	<Panel class="houseInfoDisplay"
+		rectAlignment="MiddleCenter"
+		offsetXY="0 -100"
+		height="200"
+		width="400"
+		color="rgba(1, 0, 0, 0.5)" />
+
+	<Panel class="houseFlag"
+		color="rgba(0, 1, 0, 0.5)" />
+
+	<Text class="header"
+		font="Fonts/Title"
+		rectAlignment="UpperCenter"
+		fontSize="60"
+		color="White"
+		outline="Black"
+		fontStyle="Bold"
+		alignment="UpperCenter"
+		offsetXY="0 -100" />
+
+</Defaults>
+
+<Text class="header">Select Your Territory</Text>
+<GridLayout>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+	<Panel class="houseFlag"><Text>1</Text></Panel>
+</GridLayout>
+
+<Panel class="houseInfoDisplay"><Text>House Info</Text></Panel>

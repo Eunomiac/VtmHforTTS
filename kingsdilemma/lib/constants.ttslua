@@ -1,3 +1,4 @@
+local U = require("lib.utilities")
 local C = {}
 
 C.PlayerColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
@@ -8,6 +9,19 @@ C.PlayerAngles = {
 	Yellow = 240,
 	Blue = 300
 }
+C.GetPlayerAngles = function()
+	local colors = Player.getAvailableColors()
+	local angleData = {}
+	return ({
+		{}, {}, {
+			90, 180, 270
+		}, {
+			60, 140, 220, 300
+		}, {
+			60, 120, 180, 240, 300
+		}
+	})[#colors]
+end
 
 C.Modes = {
 	NONE = "NONE",
@@ -19,8 +33,17 @@ C.Modes = {
 
 C.Phases = {
 	NONE = "NONE",
-	CAMPAIGNSETUP = {},
-	SETUP = {},
+	CAMPAIGNSETUP = {
+		DilemmaDeck = "DilemmaDeck",
+		HouseSelection = "HouseSelection"
+	},
+	SETUP = {
+		MainBoard = "MainBoard",
+		Houses = "Houses",
+		SecretAgendas = "SecretAgendas",
+		LeaderModerator = "LeaderModerator",
+		LegacySetup = "LegacySetup"
+	},
 	PLAY = {
 		Draw = "Draw",
 		Balance = "Balance",

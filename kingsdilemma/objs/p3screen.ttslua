@@ -158,13 +158,13 @@ local ObjectData = {
 				Tags = {"HouseScreen"}
 			}
 		},
-		houseCard = {
+		houseCard = { -- This is at Player 0 position: Others should be moved to Player 0 position, too
 			source = O.SpawnSources.HouseCards,
-			position = {0.00, 7.52, -40.95},
-			rotation = {83.90, 180.00, 0.00},
+			position = {0.00, 7.52, 40.95},
+			rotation = {83.90, 0.00, 0.00},
 			scale = {3.75, 1.00, 3.75},
 			data = {
-				Tags = {}
+				Tags = {"HouseCard"}
 			}
 		},
 		zonePrivateAye = {
@@ -296,6 +296,42 @@ local ObjectData = {
 		}
 	}
 
+local function assignHouseCard(playerNum, houseName)
+
+	local function rebaseCard(houseCard)
+		local playerAngle = C.GetPlayerAngles()[playerNum]
+		local fromTransform = ObjectData.houseCard
+		local toTransform = OU.RotateByAngle(fromTransform, playerAngle)
+		houseCard.setPosition(toTransform.position)
+		houseCard.setRotation(toTransform.rotation)
+		houseCard.setScale(toTransform.scale)
+		houseCard.setTags({"Player" .. playerNum})
+	end
+
+	-- First check if it's in play, perhaps at another seat
+	local houseCard = U.find(getObjects(), function(obj) return string.match(obj.getName(), "^.* of " .. houseName) end)
+	if houseCard == nil then
+	-- If not, it better be in main storage
+		local cardIndex = U.findIndex(O.MainStorage(), function(objData)
+			return string.match(objData.name, "^.* of " .. houseName)
+		end)
+		if cardIndex == nil then
+			return U.alertGM("Error finding card given name = '" .. houseName .. "'")
+		end
+		O.MainStorage().takeObject({
+			position = O.MainStorage().getPosition():add(Vector(0, 5, 0)),
+			smooth = false,
+			index = 1,
+			callback_function = function(hCard)
+				Wait.frame(function()
+					rebaseCard(hCard)
+				end)
+			end
+		})
+	else
+		rebaseCard(houseCard)
+	end
+end
 
 local function getPlayerObjData(playerNum, houseName)
 	local hData = HouseData[houseName]
@@ -315,7 +351,7 @@ local function getPlayerObjData(playerNum, houseName)
 			sourceObj.destruct()
 		else
 			if partName == "houseCard" then
-				sourceObj = oParams.source[houseName]()
+				assignHouseCard(playerNum, houseName)
 			else
 				sourceObj = oParams.source()
 			end
@@ -417,7 +453,14 @@ function HouseScreen.Spawn(playerNum, houseName, curHouse)
 	if houseName == nil or curHouse ~= nil then
 		local playerObjects = getObjectsWithTag("Player" .. playerNum)
 		local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. playerNum end)
-		U.forEach(U.concat(playerObjects, playerZones), function(obj) obj.destruct() end)
+		U.forEach(U.concat(playerObjects, playerZones), function(obj)
+			if obj.hasTag("HouseCard") then
+				obj.setTags({"HouseCard"})
+				obj.putObject(O.MainStorage())
+			else
+				obj.destruct()
+			end
+		end)
 	end
 	if houseName == nil then return end
 	local objData = getPlayerObjData(playerNum, houseName)

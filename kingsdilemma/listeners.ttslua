@@ -19,3 +19,10 @@ end
 
 
 function onSave() return JSON.encode(S.getGameState()) end
+
+function onPlayerChangeColor(color)
+	if color == "Grey" then return end
+	local player = Player[color]
+
+	print(color)
+end

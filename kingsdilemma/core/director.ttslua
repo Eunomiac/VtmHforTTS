@@ -1,0 +1,79 @@
+local U = require("lib.utilities")
+local S = require("kingsdilemma.core.state")
+local C = require("kingsdilemma.lib.constants")
+local O = require("kingsdilemma.lib.objects")
+local OU = require("kingsdilemma.objects.objUtilities")
+local V = require("kingsdilemma.core.voting")
+local L = require("kingsdilemma.core.lighting")
+
+local DIR = {}
+
+function DIR.StartSession()
+	-- This assumes all players are seated at table, and is first function called when a "night" of gaming starts
+
+	-- Unassign any houses currently present around the table
+	-- Clear unused hand zones (if fewer than 5) and rearrange player start positions via rotateToPlayer()
+	-- Get ID of each player, store it as playerData.
+		-- FOR EACH:
+		-- Check playerStorage for entry for that player
+			-- If NO: Create a new one
+				-- { house = nil, houseName = nil, id = <id>, ... }
+				-- (will be prompted later)
+			-- If YES:
+				-- Assign that player's house to them
+				-- Move that house's sheet from storage to screen
+
+	-- If this is the very first game of a campaign:
+		-- Move "Harad" Chronicle Card to somewhere prominent
+		-- Prompt for Prologue or Normal Game, fetch appropriate envelope
+			-- Extract from container to directly above it
+			-- SmoothMove it past its destination so it can rebound back
+			-- SmoothMove it to hover over Cover Card
+			-- Extract First Card, have it hover over in front/above envelope
+			-- Elevate Cover Card an inch or so
+			-- Extract & Move other cards directly into new deck formed beneath Cover Card
+			-- Shuffle deck
+			-- Drop Cover Card on top
+			-- Move top Story Card to middle of the "Chronicle Stickers" zone for whoever to pick up and deal with it
+
+	-- HOUSE SCREEN ASSIGNMENT
+	-- If players with unassigned houses (i.e. new players) are present:
+		-- Show house selection screen
+		-- When all unassigned players have selected different, valid houses... show confirm dialogue
+		-- On Confirm:
+			-- assign house
+			-- move house card from storage to screen
+			-- clear/reset house card just in case
+
+	-- MAIN BOARD SETUP
+		-- Randomly shuffle sides of Resource Tokens
+		-- Stability token spawned at center
+		-- 3x Power to middle of balance
+		-- 8x Power and 10x Coins to each player
+
+	-- LEADER & MODERATOR
+		-- Assign Leader token to player with HIGHEST prestige
+		-- Assign Moderator token to player with LOWEST prestige
+
+	-- LEGACY EFFECTS
+		-- Apply 'em
+		-- Open Agendas too!
+
+	-- SECRET AGENDAS
+		-- Shuffle Secret Agendas, Randomly Remove One
+		-- sort a table of playerData by prestige, with lowest first
+			-- FOR EACH:
+			-- get CurrentPlayer = prestigeTable.shift()
+			-- "Deal" all SecretAgenda cards in DECKS or in HAND ZONES (but NOT in PLAY) to CurrentPlayer
+			-- They choose by dropping from hand onto mat
+				-- onObjectDrop() listener for CurrentPlayer dropping SecretAgenda
+				-- loop back, dealing all cards to next player
+				-- when all players have a SecretAgenda, END START SESSION!
+
+end
+
+
+
+
+
+return DIR

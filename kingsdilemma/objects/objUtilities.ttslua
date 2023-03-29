@@ -80,6 +80,47 @@ function OU.unfoldTransform(objOrTransform)
 	end
 end
 
+function OU.GetHandZones()
+	return U.filter(getObjects(), function(obj) return obj.type == "Hand" end)
+end
+
+function OU.GetPlayerHandZone(player)
+	return U.find(OU.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. S.getPlayerNum(player) end)
+end
+
+function OU.GetPlayerFromAngle(objOrTransform)
+	local handZoneData = U.concat(
+		{{
+			playerColor = nil,
+			playerNum = 0,
+			handPos = Vector(0, 3, 52.7)
+		}},
+		U.map(OU.GetHandZones(), function(hZone)
+			local pColor = hZone.getData().FogColor
+			return {
+				playerColor = pColor,
+				playerNum = S.getPlayerNum(Player[pColor]),
+				handPos = hZone.getPosition()
+			}
+		end)
+	)
+	-- log({handZoneData = handZoneData})
+
+	local objTransform = OU.foldTransform(objOrTransform)
+	-- log({objTransform = objTransform})
+
+	local sortedMinAngles = table.sort(handZoneData, function(a, b)
+		return objTransform.position:angle(a.handPos) < objTransform.position:angle(b.handPos)
+	end)
+	-- log({sortedMinAngles = sortedMinAngles})
+	if sortedMinAngles == nil then return end
+	local closestHZoneData = sortedMinAngles[1]
+	if closestHZoneData.playerNum == 0 then
+		return 0
+	end
+	return Player[closestHZoneData.playerColor]
+end
+
 function OU.RotateByAngle(objOrTransform, angleDelta)
 	local objTransform = OU.foldTransform(objOrTransform)
 	if objTransform == nil then return end
