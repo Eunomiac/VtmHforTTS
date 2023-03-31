@@ -9,8 +9,13 @@ local L = require("kingsdilemma.core.lighting")
 local DIR = {}
 
 function DIR.StartSession()
-	-- This assumes all players are seated at table, and is first function called when a "night" of gaming starts
+-- Update game mode and phase in State as you progress
 
+-- This assumes all players are seated at table, and is first function called when a "night" of gaming starts
+-- IF this is a session in progress:
+	-- jumps to that phase, does necessary gameState upkeep/validations
+
+-- IF this is actually the start of a game:
 	-- Unassign any houses currently present around the table
 	-- Clear unused hand zones (if fewer than 5) and rearrange player start positions via rotateToPlayer()
 	-- Get ID of each player, store it as playerData.
@@ -22,6 +27,17 @@ function DIR.StartSession()
 			-- If YES:
 				-- Assign that player's house to them
 				-- Move that house's sheet from storage to screen
+
+
+
+	-- HOUSE SCREEN ASSIGNMENT
+	-- If players with unassigned houses (i.e. new players) are present:
+		-- Show house selection screen
+		-- When all unassigned players have selected different, valid houses... show confirm dialogue
+		-- On Confirm:
+			-- assign house
+			-- move house card from storage to screen
+			-- clear/reset house card just in case
 
 	-- If this is the very first game of a campaign:
 		-- Move "Harad" Chronicle Card to somewhere prominent
@@ -35,15 +51,6 @@ function DIR.StartSession()
 			-- Shuffle deck
 			-- Drop Cover Card on top
 			-- Move top Story Card to middle of the "Chronicle Stickers" zone for whoever to pick up and deal with it
-
-	-- HOUSE SCREEN ASSIGNMENT
-	-- If players with unassigned houses (i.e. new players) are present:
-		-- Show house selection screen
-		-- When all unassigned players have selected different, valid houses... show confirm dialogue
-		-- On Confirm:
-			-- assign house
-			-- move house card from storage to screen
-			-- clear/reset house card just in case
 
 	-- MAIN BOARD SETUP
 		-- Randomly shuffle sides of Resource Tokens

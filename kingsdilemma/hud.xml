@@ -4,6 +4,7 @@
 					"#FFFFFF|White|#C8C8C8|rgba(0.78,0.78,0.78,0.5)" -->
 
 <Include src="kingsdilemma/kdxml/defaults.xml" />
+<Include src="kingsdilemma/kdxml/houseSelection.xml" />
+
 <Include src="kingsdilemma/kdxml/debug.xml" />
 <Include src="kingsdilemma/kdxml/admin.xml" />
-<Include src="kingsdilemma/kdxml/houseSelection.xml" />

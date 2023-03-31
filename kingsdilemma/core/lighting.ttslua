@@ -54,17 +54,18 @@ local LIGHTMODES = {
 
 local function getComp(light) return light.getChildren()[1].getChildren()[2].getComponents()[2] end
 
-local function getLight(lightName, playerNum)
+local function getLight(lightName, playerRef)
+	local player = S.getPlayer(playerRef)
 	local tags = {lightName}
-	if playerNum ~= nil then
-		table.insert(tags, "Player" .. playerNum)
+	if player ~= nil then
+		table.insert(tags, player.color)
 	end
 	local lights = getObjectsWithAllTags(tags)
 	if #lights > 1 then
 		return U.alertGM("[Error: getLight()] Multiple '" .. "'s found!")
 	end
 	if #lights == 0 then
-		return U.alertGM("[Error: getLight()] No '" .. "' light found" .. (playerNum == nil and "!" or (" for Player " .. playerNum)))
+		return U.alertGM("[Error: getLight()] No '" .. "' light found" .. (player == nil and "!" or (" for " .. player.color .. " Player.")))
 	end
 	return lights[1]
 end

@@ -1,6 +1,5 @@
 -- local U = require("utilities")
--- local C = require("constants")
-
+local U = require("lib.utilities")
 local OU = {}
 
 function OU.foldTransform(objOrTransform)
@@ -80,45 +79,43 @@ function OU.unfoldTransform(objOrTransform)
 	end
 end
 
+function OU.getAngleOf(objOrTransform, isExcludingZero)
+	local posData = OU.foldTransform(objOrTransform).position
+	local zeroPos = Vector(0, 0, C.TableRadius)
+	local angle = posData:angle(zeroPos)
+	if posData.x < 0 then
+		angle = 360 - angle
+	end
+	return angle
+end
+
+function OU.GetNearestPlayerAngle(objOrTransform, isExcludingZero)
+	local objAngle = OU.getAngleOf(objOrTransform)
+	local playerAngles = C.GetPlayerAngles()
+	if not isExcludingZero then
+		table.insert(playerAngles, 1, 0)
+	end
+	local nearestAngle = 1000
+	U.forEach(playerAngles, function(pAngle)
+		if math.abs(pAngle - objAngle) < math.abs(nearestAngle - objAngle) then
+			nearestAngle = pAngle
+		end
+	end)
+	return nearestAngle
+end
+
 function OU.GetHandZones()
 	return U.filter(getObjects(), function(obj) return obj.type == "Hand" end)
 end
 
 function OU.GetPlayerHandZone(player)
-	return U.find(OU.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. S.getPlayerNum(player) end)
+	return U.find(OU.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. player.color end)
 end
 
-function OU.GetPlayerFromAngle(objOrTransform)
-	local handZoneData = U.concat(
-		{{
-			playerColor = nil,
-			playerNum = 0,
-			handPos = Vector(0, 3, 52.7)
-		}},
-		U.map(OU.GetHandZones(), function(hZone)
-			local pColor = hZone.getData().FogColor
-			return {
-				playerColor = pColor,
-				playerNum = S.getPlayerNum(Player[pColor]),
-				handPos = hZone.getPosition()
-			}
-		end)
-	)
-	-- log({handZoneData = handZoneData})
-
-	local objTransform = OU.foldTransform(objOrTransform)
-	-- log({objTransform = objTransform})
-
-	local sortedMinAngles = table.sort(handZoneData, function(a, b)
-		return objTransform.position:angle(a.handPos) < objTransform.position:angle(b.handPos)
-	end)
-	-- log({sortedMinAngles = sortedMinAngles})
-	if sortedMinAngles == nil then return end
-	local closestHZoneData = sortedMinAngles[1]
-	if closestHZoneData.playerNum == 0 then
-		return 0
-	end
-	return Player[closestHZoneData.playerColor]
+function OU.GetPlayerNumFromAngle(objOrTransform)
+	local playerAngle = OU.GetNearestPlayerAngle(objOrTransform)
+	if playerAngle == 0 then return 0 end
+	return U.findIndex(C.GetPlayerAngles(), function(angle) return playerAngle == angle end)
 end
 
 function OU.RotateByAngle(objOrTransform, angleDelta)

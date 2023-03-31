@@ -1,27 +1,23 @@
 local U = require("lib.utilities")
 local C = {}
 
-C.PlayerColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
-C.PlayerAngles = {
-	Red = 60,
-	Purple = 120,
-	Green = 180,
-	Yellow = 240,
-	Blue = 300
-}
 C.GetPlayerAngles = function()
-	local colors = Player.getAvailableColors()
-	local angleData = {}
 	return ({
 		{}, {}, {
-			90, 180, 270
+			60, 180, 300
 		}, {
 			60, 140, 220, 300
 		}, {
 			60, 120, 180, 240, 300
 		}
-	})[#colors]
+	})[#Player.getAvailableColors()]
 end
+
+C.TableRadius = 52.7
+
+C.SeatColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
+
+C.Houses = {"Allwed", "Blodyn", "Coden", "Crann", "Dualak", "Gamam", "Natar", "Olwyn", "Solad", "Tiryll", "Tork", "Wylio"}
 
 C.Modes = {
 	NONE = "NONE",

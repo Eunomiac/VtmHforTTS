@@ -24,21 +24,9 @@ O.UninteractableObjs = {
 	Table = generateGetterFunction("6a3d16")
 }
 
+O.MainStorage = generateGetterFunction("390beb")
+
 O.SpawnSources = {
-	HouseCards = {
-		Blodyn = generateGetterFunction("d65448"),
-		Coden = generateGetterFunction("7161d6"),
-		Gamam = generateGetterFunction("74e2ff"),
-		Natar = generateGetterFunction("21a2b7"),
-		Olwyn = generateGetterFunction("c20573"),
-		Solad = generateGetterFunction("32bf80"),
-		Allwed = generateGetterFunction("427c3a"),
-		Crann = generateGetterFunction("103b98"),
-		Dualak = generateGetterFunction("274a43"),
-		Tiryll = generateGetterFunction("e4df0d"),
-		Tork = generateGetterFunction("198170"),
-		Wylio = generateGetterFunction("5604a4")
-	},
 	chronicleCard = generateGetterFunction("10939d"),
 	screenFlapLeft = generateGetterFunction("d5842d"),
 	screenCenter = generateGetterFunction("1b818a"),

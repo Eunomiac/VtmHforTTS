@@ -279,12 +279,17 @@ function U.split(inputstr, sep)
     return t
 end
 
-function U.forEach(tbl, func, delayStep)
+function U.forEach(tbl, func)
 	for key, val in pairs(tbl) do
 		func(val, key)
 	end
 end
 
+function U.iForEach(tbl, func)
+	for key, val in ipairs(tbl) do
+		func(val, key)
+	end
+end
 
 -- function U.forEach(tbl, func, delayStep)
 -- 	if delayStep == nil then delayStep = 0 end
@@ -293,24 +298,6 @@ end
 
 -- 	U.sequence(funcs, delayStep, false)
 -- end
-
-function U.forEachThen(tb, func, thenFunc, delayStep)
-	if delayStep == nil then delayStep = 0 end
-	U.sequence({
-		U.forEach(tb, func, delayStep),
-		thenFunc
-	}, delayStep, false)
-end
-
-function U.waitTillRestingThen(obj, func)
-	Wait.time(function()
-		Wait.condition(function()
-			func(obj)
-		end, function()
-			return obj.resting
-		end)
-	end, 0.5)
-end
 
 function U.waitRestingSequence(funcs, maxTime, isLoose)
 	-- funcs is a table of functions, each of which returns an object or a table of objects
@@ -362,6 +349,14 @@ end
 function U.map(tb, func)
   local new_table = {}
   for k,v in pairs(tb) do
+    new_table[k] = func(v,k)
+  end
+  return new_table
+end
+
+function U.iMap(tb, func)
+  local new_table = {}
+  for k,v in ipairs(tb) do
     new_table[k] = func(v,k)
   end
   return new_table
@@ -420,6 +415,29 @@ function U.concat(...)
 	return tb
 end
 
+function U.merge(...)
+	local args = {...}
+	local newTable = U.clone(U.shift(args))
+	if type(newTable) ~= "table" or type(args[1]) ~= "table" then
+		return U.alertGM("Attempt to merge non-table values.")
+	end
+	U.iForEach(args, function(nextTable)
+		nextTable = U.clone(nextTable)
+		U.forEach(nextTable, function(val, key)
+			if type(val) == "table" then
+				if type(newTable[key]) == "table" then
+					newTable[key] = U.merge(newTable[key], val)
+				else
+					newTable[key] = U.clone(val)
+				end
+			else
+				newTable[key] = val
+			end
+		end)
+	end)
+	return newTable
+end
+
 function U.join(tb, delim)
 	if delim == nil then delim = "|" end
 	local returnString = ""
@@ -429,9 +447,15 @@ function U.join(tb, delim)
 	return string.gsub(returnString, "^|", "")
 end
 
-function U.pop(arr) return table.remove(arr) end
+function U.pop(arr)
+	if type(arr) ~= "table" or #arr == 0 then return nil end
+	return table.remove(arr)
+end
 function U.push(elem, arr) table.insert(arr, elem) end
-function U.shift(arr) return table.remove(arr, 1) end
+function U.shift(arr)
+	if type(arr) ~= "table" or #arr == 0 then return nil end
+	return table.remove(arr, 1)
+end
 function U.unshift(elem, arr) table.insert(arr, 1, elem) end
 
 function U.flatten(tb)
@@ -573,10 +597,7 @@ function U.findClanTag(obj)
 end
 
 function U.findColorTag(obj)
-    if (obj.hasTag("Red")) then return "Red" end
-    if (obj.hasTag("Yellow")) then return "Yellow" end
-    if (obj.hasTag("Blue")) then return "Blue" end
-    return nil
+	return U.find(Player.getAvailableColors, function(color) return obj.hasTag(color) end)
 end
 
 function U.getHost()
@@ -717,6 +738,7 @@ function U.randBetween(min, max, isInt)
 end
 
 function U.clone(t, isDeepCloning)
+	if type(t) ~= "table" then return t end
   local t2 = {}
   for k,v in pairs(t) do
     t2[k] = v

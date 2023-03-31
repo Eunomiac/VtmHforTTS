@@ -6,39 +6,38 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
+function P.UpdateSeatedPlayers()
+
+end
+
+function P.getRotatedPlayerTransform(objOrTransform, player)
+	local fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
+	local toAngle = S.getPlayerAngle(player)
+	return OU.RotateByAngle(objOrTransform, toAngle - fromAngle)
+end
+
 function P.RotateToPlayer(objs, player)
 	if type(objs) ~= "table" then objs = {objs} end
-	local closestPlayer = OU.GetPlayerFromAngle(objs[1])
-	local fromPosition, toPosition
-	if closestPlayer == 0 then
-		fromPosition = Vector(0, 3, 52.7)
-	else
-		fromPosition = OU.GetPlayerHandZone(closestPlayer).getPosition()
-	end
-
-	if player == nil or player == 0 then
-		toPosition = Vector(0, 3, 52.7)
-	else
-		toPosition = OU.GetPlayerHandZone(player).getPosition()
-	end
-
-	local angleDelta = U.round(fromPosition:angle(toPosition)/30, 0) * 30
-	if angleDelta < 10 then return end
-	if fromPosition:rotateOver("y", 0.5):angle(toPosition) > angleDelta then angleDelta = -1 * angleDelta end
 
 	U.forEach(objs, function(obj)
-		local toData = OU.RotateByAngle(obj, angleDelta)
-		local finalPos = Vector(toData.position)
-		toData.position = toData.position:add(Vector(0, 2, 0))
+		local startPos = obj.getPosition()
+		local toData = P.getRotatedPlayerTransform(obj, player)
+		local endPos, endRot = toData.position, toData.rotation
+
 		U.waitRestingSequence({
-			function() obj.setPositionSmooth(obj.getPosition():add(Vector(0, 2, 0))); return obj end,
 			function()
-				local toData = OU.RotateByAngle(obj, angleDelta)
-				obj.setPositionSmooth(toData.position, false, false)
-				obj.setRotationSmooth(toData.rotation, false, false)
+				obj.setPositionSmooth(startPos:add(Vector(0, 2, 0)))
 				return obj
 			end,
-			function() obj.setPositionSmooth(finalPos) end
+			function()
+				obj.setPositionSmooth(Vector(endPos):add(Vector(0, 2, 0)), false, false)
+				obj.setRotationSmooth(endRot, false, false)
+				return obj
+			end,
+			function()
+				obj.setPositionSmooth(endPos)
+				return obj
+			end
 		})
 	end)
 end
@@ -55,8 +54,7 @@ end
 
 function P.setPlayerHouseName(player, title)
 	S.setPlayerVal(title, player, "houseName")
-	local playerNum = S.getPlayerNum(player)
-	local houseScreen = getObjectsWithAllTags({"screenCenter", "Player" .. playerNum})[1]
+	local houseScreen = getObjectsWithAllTags({"screenCenter", player.color})[1]
 	houseScreen.reload()
 end
 

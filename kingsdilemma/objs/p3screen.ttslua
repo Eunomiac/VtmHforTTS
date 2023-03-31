@@ -4,6 +4,7 @@ local U = require("lib.utilities")
 local OU = require("kingsdilemma.objects.objUtilities")
 local O = require("kingsdilemma.lib.objects")
 local S = require("kingsdilemma.core.state")
+local P = require("kingsdilemma.core.players")
 
 local HouseScreen = {}
 
@@ -160,6 +161,7 @@ local ObjectData = {
 		},
 		houseCard = { -- This is at Player 0 position: Others should be moved to Player 0 position, too
 			source = O.SpawnSources.HouseCards,
+			isSpawning = false,
 			position = {0.00, 7.52, 40.95},
 			rotation = {83.90, 0.00, 0.00},
 			scale = {3.75, 1.00, 3.75},
@@ -296,36 +298,37 @@ local ObjectData = {
 		}
 	}
 
-local function assignHouseCard(playerNum, houseName)
+local function assignHouseCard(playerRef, houseName)
+	local player = S.getPlayer(playerRef)
+	if player == nil then return end
 
 	local function rebaseCard(houseCard)
-		local playerAngle = C.GetPlayerAngles()[playerNum]
-		local fromTransform = ObjectData.houseCard
-		local toTransform = OU.RotateByAngle(fromTransform, playerAngle)
+		houseCard.setLock(true)
+		local toTransform = P.getRotatedPlayerTransform(ObjectData.houseCard, player)
 		houseCard.setPosition(toTransform.position)
 		houseCard.setRotation(toTransform.rotation)
 		houseCard.setScale(toTransform.scale)
-		houseCard.setTags({"Player" .. playerNum})
+		houseCard.setTags({"HouseCard", player.color})
+		houseCard.reload()
 	end
 
 	-- First check if it's in play, perhaps at another seat
 	local houseCard = U.find(getObjects(), function(obj) return string.match(obj.getName(), "^.* of " .. houseName) end)
 	if houseCard == nil then
 	-- If not, it better be in main storage
-		local cardIndex = U.findIndex(O.MainStorage(), function(objData)
+		local cardData = U.find(O.MainStorage().getObjects(), function(objData)
 			return string.match(objData.name, "^.* of " .. houseName)
 		end)
-		if cardIndex == nil then
+		if cardData == nil then
 			return U.alertGM("Error finding card given name = '" .. houseName .. "'")
 		end
+
 		O.MainStorage().takeObject({
 			position = O.MainStorage().getPosition():add(Vector(0, 5, 0)),
 			smooth = false,
-			index = 1,
+			guid = cardData.guid,
 			callback_function = function(hCard)
-				Wait.frame(function()
 					rebaseCard(hCard)
-				end)
 			end
 		})
 	else
@@ -333,126 +336,89 @@ local function assignHouseCard(playerNum, houseName)
 	end
 end
 
-local function getPlayerObjData(playerNum, houseName)
-	local hData = HouseData[houseName]
 
-	local function getPartData(partName)
-		local oParams = ObjectData[partName]
-		if oParams == nil then return end
-		if oParams.source == nil then return end
+local function applyObjData(partName, playerRef, houseName)
+	local oParams = ObjectData[partName]
+	if oParams == nil then return end
+	if oParams.source == nil then return end
+	if oParams.isSpawning == false then return end
 
-		-- Get object spawn data, from source object
-		local sourceObj, spawnData
+	local player = S.getPlayer(playerRef)
 
-		if partName == "zoneHand" then
-			sourceObj = U.find(getObjects(), function(obj) return obj.type == "Hand" and obj.getGMNotes() == "ZonePlayer" .. playerNum end)
-			if sourceObj == nil then return U.alertGM("No hand zone found.") end
-			spawnData = sourceObj.getData()
-			sourceObj.destruct()
-		else
-			if partName == "houseCard" then
-				assignHouseCard(playerNum, houseName)
-			else
-				sourceObj = oParams.source()
-			end
-			if sourceObj == nil then return end
-			spawnData = sourceObj.getData()
-		end
+	local sourceObj = oParams.source()
 
-		-- Overwrite spawnData with ObjectData.data entries
-		for key, val in pairs(oParams.data or {}) do
-			if key == "Tags" then
-				if val == false then
-					val = {}
-				elseif type(val) == "table" then
-				  val = U.concat(val, {partName})
-					if playerNum ~= nil then
-						val = U.concat(val, {"Player" .. playerNum})
-					end
+	-- Get object spawn data, from source object
+	if sourceObj == nil then return end
+	local spawnData = sourceObj.getData()
+
+	-- Overwrite spawnData with ObjectData.data entries
+	for key, val in pairs(oParams.data or {}) do
+		if key == "Tags" then
+			if val == false then
+				val = {}
+			elseif type(val) == "table" then
+				val = U.concat(val, {partName})
+				if player ~= nil then
+					val = U.concat(val, {player.color})
 				end
 			end
-			spawnData[key] = val
 		end
-
-		-- Perform special operations depending on object type
-		-- ... Set Image URLs
-		if partName == "screenCenter" then
-			spawnData.CustomImage.ImageURL = hData.HouseScreen.top
-			spawnData.CustomImage.ImageSecondaryURL = hData.HouseScreen.bottom
-		elseif partName == "screenFlapLeft" then
-			spawnData.CustomImage.ImageURL = hData.HouseScreen.leftTop
-			spawnData.CustomImage.ImageSecondaryURL = hData.HouseScreen.leftBottom
-		elseif partName == "screenFlapRight" then
-			spawnData.CustomImage.ImageURL = hData.HouseScreen.rightTop
-			spawnData.CustomImage.ImageSecondaryURL = hData.HouseScreen.rightBottom
-		end
-
-		-- ... Assign Hand and Hidden Zones to player, dim color intensity, set GM Notes so they can be found later
-		if U.isIn(partName, {"zoneHand", "zoneHiderHouseCard", "zoneHiderGeneral"}) then
-			local playerColor = S.getPlayers()[playerNum].color
-			spawnData.FogColor = playerColor
-			local diffuseColor = Color[playerColor]
-			diffuseColor.a = 0.15
-			spawnData.ColorDiffuse = Color(diffuseColor)
-			spawnData.GMNotes = "ZonePlayer" .. playerNum
-		end
-
-		-- ... Apply proper Transform
-		local transformData = {
-			position = Vector(ObjectData[partName].position),
-			rotation = Vector(ObjectData[partName].rotation)
-		}
-
-		if playerNum ~= nil then
-			-- If playerNum given, rotate from Player 3 spot to given playerNum
-			local fromAngle = C.PlayerAngles[C.PlayerColors[3]]
-			local toAngle = C.PlayerAngles[C.PlayerColors[playerNum]]
-			local angleDelta = toAngle - fromAngle
-			transformData = OU.RotateByAngle(transformData, angleDelta)
-		end
-
-		spawnData.Transform = {
-			posX = transformData.position.x,
-			posY = transformData.position.y,
-			posZ = transformData.position.z,
-			rotX = transformData.rotation.x,
-			rotY = transformData.rotation.y,
-			rotZ = transformData.rotation.z,
-			scaleX = ObjectData[partName].scale[1],
-			scaleY = ObjectData[partName].scale[2],
-			scaleZ = ObjectData[partName].scale[3]
-		}
-
-		return spawnData
+		spawnData[key] = val
 	end
 
-	return {
-		screenFlapLeft = getPartData("screenFlapLeft"),
-		screenCenter = getPartData("screenCenter"),
-		screenFlapRight = getPartData("screenFlapRight"),
-		houseCard = getPartData("houseCard"),
-		zonePrivateAye = getPartData("zonePrivateAye"),
-		zonePrivateNay = getPartData("zonePrivateNay"),
-		zonePublic = getPartData("zonePublic"),
-		ayeCard = getPartData("ayeCard"),
-		passCard = getPartData("passCard"),
-		nayCard = getPartData("nayCard"),
-		zoneHiderHouseCard = getPartData("zoneHiderHouseCard"),
-		zoneHiderGeneral = getPartData("zoneHiderGeneral"),
-		zoneHand = getPartData("zoneHand"),
-		lightBehind = getPartData("lightBehind"),
-		lightFront = getPartData("lightFront"),
-		lightVote = getPartData("lightVote"),
-		plinthBase = getPartData("plinthBase"),
-		plinthRiser = getPartData("plinthRiser")
+	-- Perform special operations depending on object type
+	-- ... Set Image URLs
+	if partName == "screenCenter" then
+		spawnData.CustomImage.ImageURL = HouseData[houseName].HouseScreen.top
+		spawnData.CustomImage.ImageSecondaryURL = HouseData[houseName].HouseScreen.bottom
+	elseif partName == "screenFlapLeft" then
+		spawnData.CustomImage.ImageURL = HouseData[houseName].HouseScreen.leftTop
+		spawnData.CustomImage.ImageSecondaryURL = HouseData[houseName].HouseScreen.leftBottom
+	elseif partName == "screenFlapRight" then
+		spawnData.CustomImage.ImageURL = HouseData[houseName].HouseScreen.rightTop
+		spawnData.CustomImage.ImageSecondaryURL = HouseData[houseName].HouseScreen.rightBottom
+	end
+
+	-- ... Assign Hand and Hidden Zones to player, dim color intensity, set GM Notes so they can be found later
+	if player and U.isIn(partName, {"zoneHand", "zoneHiderHouseCard", "zoneHiderGeneral"}) then
+		spawnData.FogColor = player.color
+		local diffuseColor = Color[player.color]
+		diffuseColor.a = 0.15
+		spawnData.ColorDiffuse = Color(diffuseColor)
+		spawnData.GMNotes = "ZonePlayer" .. player.color
+	end
+
+	-- ... Apply proper Transform
+	local transformData = {
+		position = Vector(ObjectData[partName].position),
+		rotation = Vector(ObjectData[partName].rotation)
 	}
+
+	if player ~= nil then
+		transformData = P.getRotatedPlayerTransform(transformData, player)
+	end
+
+	spawnData.Transform = {
+		posX = transformData.position.x,
+		posY = transformData.position.y,
+		posZ = transformData.position.z,
+		rotX = transformData.rotation.x,
+		rotY = transformData.rotation.y,
+		rotZ = transformData.rotation.z,
+		scaleX = ObjectData[partName].scale[1],
+		scaleY = ObjectData[partName].scale[2],
+		scaleZ = ObjectData[partName].scale[3]
+	}
+
+	return spawnData
 end
 
-function HouseScreen.Spawn(playerNum, houseName, curHouse)
+function HouseScreen.Spawn(playerRef, houseName, curHouse)
+	local player = S.getPlayer(playerRef)
 	-- log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
 	if houseName == nil or curHouse ~= nil then
-		local playerObjects = getObjectsWithTag("Player" .. playerNum)
-		local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. playerNum end)
+		local playerObjects = getObjectsWithTag(player.color)
+		local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. player.color end)
 		U.forEach(U.concat(playerObjects, playerZones), function(obj)
 			if obj.hasTag("HouseCard") then
 				obj.setTags({"HouseCard"})
@@ -463,9 +429,24 @@ function HouseScreen.Spawn(playerNum, houseName, curHouse)
 		end)
 	end
 	if houseName == nil then return end
-	local objData = getPlayerObjData(playerNum, houseName)
-	U.forEach(objData, function(oData)
-		spawnObjectData({data = oData}) end)
+	U.forEach(ObjectData, function(objData, objName)
+		local sourceObj, spawnData
+		if objName == "zoneHand" then
+			sourceObj = U.find(getObjects(), function(obj) return obj.type == "Hand" and obj.getGMNotes() == "ZonePlayer" .. player.color end)
+			if sourceObj == nil then return U.alertGM("No hand zone found.") end
+			spawnData = sourceObj.getData()
+			sourceObj.destruct()
+		elseif objName == "houseCard" then
+			assignHouseCard(playerRef, houseName)
+			return
+		else
+			spawnData = applyObjData(objName, playerRef, houseName) -- objData.source().getData()
+		end
+
+		if spawnData == nil then return end
+
+		spawnObjectData({data = spawnData})
+	end)
 end
 
 return HouseScreen
