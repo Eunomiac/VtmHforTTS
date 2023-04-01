@@ -303,12 +303,12 @@ local function assignHouseCard(playerRef, houseName)
 	if player == nil then return end
 
 	local function rebaseCard(houseCard)
-		houseCard.setLock(true)
 		local toTransform = P.getRotatedPlayerTransform(ObjectData.houseCard, player)
 		houseCard.setPosition(toTransform.position)
 		houseCard.setRotation(toTransform.rotation)
 		houseCard.setScale(toTransform.scale)
 		houseCard.setTags({"HouseCard", player.color})
+		-- houseCard.call("onLoad")
 		houseCard.reload()
 	end
 
@@ -413,21 +413,10 @@ local function applyObjData(partName, playerRef, houseName)
 	return spawnData
 end
 
-function HouseScreen.Spawn(playerRef, houseName, curHouse)
+function HouseScreen.Spawn(playerRef, houseName)
 	local player = S.getPlayer(playerRef)
 	-- log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
-	if houseName == nil or curHouse ~= nil then
-		local playerObjects = getObjectsWithTag(player.color)
-		local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. player.color end)
-		U.forEach(U.concat(playerObjects, playerZones), function(obj)
-			if obj.hasTag("HouseCard") then
-				obj.setTags({"HouseCard"})
-				obj.putObject(O.MainStorage())
-			else
-				obj.destruct()
-			end
-		end)
-	end
+	P.ClearPlayerColor(player.color)
 	if houseName == nil then return end
 	U.forEach(ObjectData, function(objData, objName)
 		local sourceObj, spawnData

@@ -21,19 +21,18 @@ C.Houses = {"Allwed", "Blodyn", "Coden", "Crann", "Dualak", "Gamam", "Natar", "O
 
 C.Modes = {
 	NONE = "NONE",
+	SESSIONINIT = "SESSIONINIT",
 	CAMPAIGNSETUP = "CAMPAIGNSETUP",
-	SETUP = "GAMESETUP",
+	GAMESETUP = "GAMESETUP",
 	PLAY = "PLAY",
 	END = "END"
 }
 
 C.Phases = {
 	NONE = "NONE",
-	CAMPAIGNSETUP = {
-		DilemmaDeck = "DilemmaDeck",
-		HouseSelection = "HouseSelection"
-	},
-	SETUP = {
+	SESSIONINIT = "SESSIONINIT",
+	CAMPAIGNSETUP = "CAMPAIGNSETUP",
+	GAMESETUP = {
 		MainBoard = "MainBoard",
 		Houses = "Houses",
 		SecretAgendas = "SecretAgendas",
@@ -53,6 +52,16 @@ C.Phases = {
 		Achievements = "Achievements",
 		Alignments = "Alignments",
 		Cleanup = "Cleanup"
+	}
+}
+
+C.Spots = {
+	Storage = {
+		HouseCard = {
+			position = Vector({104.00, 29.25, -2.25}),
+			rotation = Vector({71.10, 180.00, 180.00}),
+			scale = Vector({0.30, 1.00, 0.30})
+		}
 	}
 }
 

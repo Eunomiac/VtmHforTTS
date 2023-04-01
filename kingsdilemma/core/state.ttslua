@@ -13,8 +13,7 @@ local INITGAMESTATE = {
 	curModerator = nil
 }
 
-function S.UpdateSeatedPlayers(stateData)
-	if stateData == nil then stateData = Global.getTable("gameState") end
+function S.UpdateSeatedPlayers()
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
 		playerData[player.color] = {
@@ -24,7 +23,7 @@ function S.UpdateSeatedPlayers(stateData)
 			angle = C.GetPlayerAngles()[i]
 		}
 	end)
-	stateData.playerData = playerData
+	S.setStateVal(playerData, "playerData")
 end
 
 function S.InitializeGameState(save_data)
@@ -33,7 +32,6 @@ function S.InitializeGameState(save_data)
 	end
 	if save_data then
 		save_data = U.merge(INITGAMESTATE, save_data)
-		S.UpdateSeatedPlayers(save_data)
 		S.setGameState(save_data)
 	else
 		S.resetGameState()
@@ -145,6 +143,7 @@ end
 function S.setPlayerVal(value, playerRef, key, subKey)
 	local player = S.getPlayer(playerRef)
 	if player == nil then return end
+	log({storageID = S.getStorageID(player)})
 	local pState = S.getStateVal("playerStorage", S.getStorageID(player))
 	if (subKey) then
 		if (pState[key] == nil) then pState[key] = {} end
@@ -156,32 +155,13 @@ function S.setPlayerVal(value, playerRef, key, subKey)
 end
 -- #endregion
 -- #region Player Instance Getters
-
--- 'playerRef': can retrieve a player depending on what is given in playerRef
-	-- number
-		-- if number > 1000, assume it's a steam_id and tostring it
-		-- otherwise, num should be between 1 and the number of seated players, starting with lowest-angled player and continuing clockwise
-			-- playerNum and playerColor should map easily after initialization figures out who's playing and what their colors are
-		-- string
-		-- "NEXT", "CURRENT", "LAST" --> If turns are enabled for current phase, returns indicated player
-		-- name/nickName/getName(), steam_id, steam_name
-		-- Color
-	-- userdata
-		-- if userdata IS a player, simply return it
-		-- otherwise, check for COLOR tag, return player of that color
-		-- if no color tag, check which hand zone angle is closest to
-
-
-
-
-
 function S.getPlayer(playerRef)
 	if playerRef == nil then return end
 	if type(playerRef) == "userdata" then
-		if playerRef.steam_id ~= nil then return playerRef end
-		return S.getPlayerOf(playerRef)
+		if U.isPlayer(playerRef) then return playerRef end
+		if U.isGameObject(playerRef) then return S.getPlayerOf(playerRef) end
 	elseif type(playerRef) == "string" then
-		if Player[playerRef] ~= nil then return Player[playerRef] end
+		if U.isPlayer(Player[playerRef]) then return Player[playerRef] end
 		return U.find(S.getPlayers(), function(player) return
 			player.getName() == playerRef
 			or tostring(player.steam_id) == playerRef
@@ -189,15 +169,12 @@ function S.getPlayer(playerRef)
 		end)
 	elseif type(playerRef) == "number" then
 		return S.getPlayers()[playerRef]
-		end
+	end
 end
 
 function S.getPlayers()
 	local seatColors = U.filter(C.SeatColors, function(col) return U.isIn(col, Player.getAvailableColors()) end)
-	return U.filter(
-		U.iMap(seatColors, function(color) return Player[color] end),
-		function(player) return player.steam_name ~= nil end
-	)
+	return U.filter(U.iMap(seatColors, function(color) return Player[color] end), U.isPlayer)
 end
 
 function S.getPlayerColor(playerRef) return S.getPlayer(playerRef).color end
@@ -227,6 +204,7 @@ function S.getPlayerOf(obj)
 end
 -- #endregion
 
+-- #region Game Phase Tracking
 function S.isInMode(modes)
 	if type(modes) == "string" then modes = {modes} end
 	return U.isIn(S.getStateVal("gameMode"), modes)
@@ -236,6 +214,56 @@ function S.isInPhase(phases)
 	if type(phases) == "string" then phases = {phases} end
 	return U.isIn(S.getStateVal("gamePhase"), phases)
 end
+
+local function getNextMode(curMode)
+	local modes = U.getValues(C.Modes)
+	local index = U.findIndex(modes, function(mode) return mode == curMode end)
+	if index == #modes then
+		return modes[1]
+	else
+		return modes[index + 1]
+	end
+end
+
+local function getNextPhase(curMode, curPhase)
+	local modePhases = C.Phases[curMode]
+	if type(modePhases) == "table" then
+		local phases = U.getValues(modePhases)
+		local index = U.findIndex(phases, function(phase) return phase == curPhase end)
+		if index == nil then
+			return phases[1]
+		end
+		if index < #phases then
+			return phases[index + 1]
+		end
+	end
+	return false
+end
+
+local function getFirstPhaseOfMode(mode)
+	local modePhases = C.Phases[mode]
+	if type(modePhases) == "string" then return modePhases end
+	return U.getValues(modePhases)[1]
+end
+
+function S.getNextPhase()
+	local curMode, curPhase = S.getStateVal("gameMode"), S.getStateVal("gamePhase")
+	local modePhases = C.Phases[curMode]
+	local nextMode, nextPhase
+	if type(modePhases) == "string" then
+		nextMode = getNextMode(curMode)
+		nextPhase = getFirstPhaseOfMode(nextMode)
+	else
+		nextMode = curMode
+		nextPhase = getNextPhase(curMode, curPhase)
+		if nextPhase == false then
+			nextMode = getNextMode(curMode)
+			nextPhase = getFirstPhaseOfMode(nextMode)
+		end
+	end
+	return nextMode, nextPhase
+end
+-- #endregion
 
 function S.isDebugging()
 	return UI.getAttribute("debugStatePanel", "active") == "True"

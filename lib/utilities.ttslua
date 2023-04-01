@@ -279,13 +279,63 @@ function U.split(inputstr, sep)
     return t
 end
 
+function U.error(source, message, val)
+	local errString = "[" .. source .. "] " .. message
+	local valString
+
+	if val ~= "NOVAL" then
+		valString = nil
+	elseif type(val) == "userdata" then
+		if val.getName then
+			valString = "<" .. val.getName() .. ">"
+		else
+			valString = "<" .. val.guid or "unknown" .. ">"
+		end
+	elseif type(val) == "table" then
+		valString = JSON.encode_pretty(val)
+	else
+		valString = tostring(val)
+	end
+
+	error(errString .. (valString and (": " .. valString) or ""), 2)
+end
+
+function U.Assert(source, val, typeOrTest)
+	local errorMessage
+	if type(typeOrTest) == "function" then
+		local result = typeOrTest(val)
+		if result ~= true then
+			if result == false or result == nil then
+				errorMessage = "Test Failed"
+			else
+				errorMessage = "Test Failed - '" .. tostring(result) .. "'"
+			end
+		end
+	elseif type(typeOrTest) == "string" then
+		-- if not U.isIn(typeOrTest, {"nil", "number", "string", "boolean", "table", "function", "thread", "userdata"}) then
+		-- 	U.error("U.Assert", "Invalid type", typeOrTest)
+		-- end
+		if type(val) ~= typeOrTest then
+			errorMessage = "Not a " .. typeOrTest .. " (" .. type(val) .. ")"
+		end
+	end
+
+	if errorMessage ~= nil then
+		U.error(source, errorMessage, val)
+	end
+end
+
 function U.forEach(tbl, func)
+	U.Assert("U.forEach", tbl, "table")
+	U.Assert("U.forEach", func, "function")
 	for key, val in pairs(tbl) do
 		func(val, key)
 	end
 end
 
 function U.iForEach(tbl, func)
+	U.Assert("U.iForEach", tbl, "table")
+	U.Assert("U.iForEach", func, "function")
 	for key, val in ipairs(tbl) do
 		func(val, key)
 	end
@@ -347,6 +397,8 @@ function U.waitRestingSequence(funcs, maxTime, isLoose)
 end
 
 function U.map(tb, func)
+	U.Assert("U.map", tb, "table")
+	U.Assert("U.map", func, "function")
   local new_table = {}
   for k,v in pairs(tb) do
     new_table[k] = func(v,k)
@@ -355,6 +407,8 @@ function U.map(tb, func)
 end
 
 function U.iMap(tb, func)
+	U.Assert("U.iMap", tb, "table")
+	U.Assert("U.iMap", func, "function")
   local new_table = {}
   for k,v in ipairs(tb) do
     new_table[k] = func(v,k)
@@ -363,6 +417,8 @@ function U.iMap(tb, func)
 end
 
 function U.filter(tb, func)
+	U.Assert("U.filter", tb, "table")
+	U.Assert("U.filter", func, "function")
   local new_table = {}
   local index = 0
   for k,v in pairs(tb) do
@@ -417,11 +473,10 @@ end
 
 function U.merge(...)
 	local args = {...}
+	U.Assert("U.merge", args[1], "table")
 	local newTable = U.clone(U.shift(args))
-	if type(newTable) ~= "table" or type(args[1]) ~= "table" then
-		return U.alertGM("Attempt to merge non-table values.")
-	end
 	U.iForEach(args, function(nextTable)
+		U.Assert("U.merge", nextTable, "table")
 		nextTable = U.clone(nextTable)
 		U.forEach(nextTable, function(val, key)
 			if type(val) == "table" then
@@ -441,10 +496,10 @@ end
 function U.join(tb, delim)
 	if delim == nil then delim = "|" end
 	local returnString = ""
-	for _, val in pairs(tb) do
+	for _, val in ipairs(tb) do
 		returnString = returnString .. delim .. val
 	end
-	return string.gsub(returnString, "^|", "")
+	return string.gsub(returnString, "^%s*" .. delim, "")
 end
 
 function U.pop(arr)
@@ -471,6 +526,8 @@ function U.flatten(tb)
 end
 
 function U.find(tb, func)
+	U.Assert("U.find", tb, "table")
+	U.Assert("U.find", func, "function")
   for k,v in pairs(tb) do
     if (func(v,k)) then return v end
   end
@@ -478,6 +535,8 @@ function U.find(tb, func)
 end
 
 function U.findIndex(tb, func)
+	U.Assert("U.findIndex", tb, "table")
+	U.Assert("U.findIndex", func, "function")
   for k,v in pairs(tb) do
     if (func(v,k)) then return k end
   end
@@ -498,12 +557,36 @@ function U.reverse(tb)
 end
 
 function U.isIn(elem, tb)
-  for _, value in pairs(tb) do
-    if value == elem then
-      return true
-    end
-  end
-  return false
+	U.Assert("U.isIn", tb, function(val) return type(val) == "table" or type(val) == "userdata" end)
+
+	if type(tb) == "table" then
+		-- check values first, before checking keys
+		for _, value in pairs(tb) do
+			if value == elem then
+				return true
+			end
+		end
+	end
+
+	-- check key
+	local function hasProperty(object, prop)
+			local t = object[prop]
+			if t == nil then error() end
+	end
+	if pcall(function() hasProperty(tb, elem) end) then
+		return true
+	end
+
+	return false
+end
+
+function U.isGameObject(val)
+	if type(val) ~= "userdata" then return false end
+	return U.isIn("guid", val)
+end
+
+function U.isPlayer(val)
+	return U.isGameObject(val) and U.isIn("steam_id", val)
 end
 
 function U.isFlipped(obj)
@@ -597,7 +680,9 @@ function U.findClanTag(obj)
 end
 
 function U.findColorTag(obj)
-	return U.find(Player.getAvailableColors, function(color) return obj.hasTag(color) end)
+	U.Assert("U.findColorTag", obj, "userdata")
+	U.Assert("U.findColorTag", obj.hasTag, "function")
+	return U.find(Player.getAvailableColors(), function(color) return obj.hasTag(color) end)
 end
 
 function U.getHost()

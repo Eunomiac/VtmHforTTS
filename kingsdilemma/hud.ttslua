@@ -1,3 +1,4 @@
+local DIR = require("kingsdilemma.core.director")
 local P = require("kingsdilemma.core.players")
 local O = require("kingsdilemma.lib.objects")
 local C = require("kingsdilemma.lib.constants")
@@ -80,23 +81,17 @@ local function isHouseAvailable(houseName)
 	end)
 end
 
-function InitHouseSelection()
+function InitHouseSelectionHUD()
 	U.forEach(S.getPlayers(), function(player)
 		if not S.getPlayerVal(player, "house") then
 			table.insert(UnselectedPlayers, player)
 		end
 	end)
-	RefreshHouseSelectionHUD()
-end
-
-function ConfirmHouseSelection()
-	U.forEach(HouseSelectionState, function(color, houseName)
-		if not color or not houseName then return end
-		UI.hide("houseSelection_" .. color)
-		HouseScreen.Spawn(Player[color], houseName)
-		S.setPlayerVal(houseName, Player[color], "house")
-		S.setPlayerVal(nil, Player[color], "houseName")
-	end)
+	if #UnselectedPlayers == 0 then
+		DIR.AssignSelectedHouses()
+	else
+		RefreshHouseSelectionHUD()
+	end
 end
 
 local function updateHouseHUD(houseName, player)
@@ -161,7 +156,6 @@ function RefreshHouseSelectionHUD(player)
 	if player == nil then return U.forEach(UnselectedPlayers, RefreshHouseSelectionHUD) end
 	U.forEach(C.Houses, function(houseName) updateHouseHUD(houseName, player) end)
 end
-
 
 local function promptAssignHouse(player)
 	local players = S.getPlayers()
@@ -228,9 +222,11 @@ local function promptSimClick(player)
 end
 
 function HUD_Click(player, button, id)
-	log({player = player, button = button, id = id})
+	-- log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
+	elseif id == "advanceGamePhase" then
+		DIR.AdvanceGamePhase()
 	elseif id == "prompt_assignHouse" then
 		promptAssignHouse(player)
 	elseif id == "prompt_simClick" then
@@ -239,7 +235,11 @@ function HUD_Click(player, button, id)
 		id = string.gsub(id, "^debug_testFunc", "") * 1
 		TESTFUNCS[id](button, player)
 	elseif id == "debug_resetState" then
+		S.resetGameState()
+		Global.call("UpdatePhaseDisplay")
+	elseif id == "debug_resetPlayers" then
 		S.resetGameState(true)
+		Global.call("UpdatePhaseDisplay")
 	elseif id == "debug_setArrows" then
 		if button == "-1" then L.ShowArrows()
 		else L.HideArrows() end
@@ -254,9 +254,9 @@ function HUD_Click(player, button, id)
 		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
 		HouseSelectionState[houseName] = houseColor
 		updateHouseHUD(houseName)
-		log({houseSelectionState = JSON.encode_pretty(HouseSelectionState), unselectedPlayers = UnselectedPlayers})
+		-- log({houseSelectionState = JSON.encode_pretty(HouseSelectionState), unselectedPlayers = UnselectedPlayers})
 		if areAllHousesSelected() then
-			ConfirmHouseSelection()
+			DIR.AssignSelectedHouses(HouseSelectionState)
 		end
 	end
 end
@@ -280,5 +280,22 @@ function HUD_HoverOff(_, _, id)
 			UI.setAttribute(id, "color", "rgba(0, 0, 0, 0)")
 		end
 		UI.hide("houseInfo_" .. houseName .. "_" .. houseColor)
+	end
+end
+
+function UpdatePhaseDisplay()
+	local mode, phase = S.getStateVal("gameMode"), S.getStateVal("gamePhase")
+	UI.setValue("currentGameModeDisplay", mode)
+	if mode ~= phase then
+		UI.setValue("currentGamePhaseDisplay", phase)
+		UI.show("gamePhaseDisplay")
+	else
+		UI.hide("gamePhaseDisplay")
+	end
+	local nextMode, nextPhase = S.getNextPhase()
+	if nextMode ~= nextPhase then
+		UI.setValue("nextGameModeDisplay", nextPhase)
+	else
+		UI.setValue("nextGameModeDisplay", nextMode)
 	end
 end

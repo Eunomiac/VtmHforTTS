@@ -36,5 +36,12 @@ V = require("kingsdilemma.core.voting")
 gameState = {}
 
 -- COMPONENTS
+require("kingsdilemma.debug")
 require("kingsdilemma.hud")
 require("kingsdilemma.listeners")
+
+function onExternalCommand(input)
+
+
+
+end

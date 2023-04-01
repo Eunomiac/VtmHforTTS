@@ -1,16 +1,6 @@
 local C = require("kingsdilemma.lib.constants")
-local P = require("kingsdilemma.core.players")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
-
-local gameState = {
-	houseTitle = nil,
-	houseName = nil,
-	houseNum = nil,
-	playerID = nil,
-	prestige = 0,
-	crave = 0
-}
 
 local hideButtonBack = true
 
@@ -18,51 +8,7 @@ local thick = 0.12
 local gx, gy -- Global Offsets for calibrating against scan error
 
 local scanData, buttons, inputs
-local houseTitle, houseName, houseNum, player
-
-local function buildNameInput(name)
-	return {
-			tag = "InputField",
-			value = name,
-			attributes = {
-				visibility = player.color,
-				onEndEdit = "editTextField",
-				color = "Clear",
-				placeholder = " ",
-				textColor = "#000000",
-				font = "Fonts/Script2",
-				fontSize = "100",
-				width = "500",
-				height = "200",
-				rectAlignment = "MiddleCenter",
-				alignment = "MiddleLeft",
-				position = "13 -79 -15",
-				rotation = "0 0 180",
-				scale = "0.15 0.15 0.15"
-			}
-		}
-end
-
-local function buildVPBox(type, num)
-	return {
-		tag = "ToggleButton",
-		value = "",
-		attributes = {
-			onValueChanged = "UpdateVP",
-			colors = "rgba(0.8,0.8,0.8,0.5)|rgba(0.8,0.8,0.8,0.7)|#FFFFFF|rgba(0.78,0.78,0.78,0.5)",
-			height = "20",
-			width = "20"
-		}
-	}
-end
-
-local function buildVPRow(type, startNum)
-
-end
-
-function UpdateVP()
-
-end
+local houseTitle, houseName, houseNum, player, color
 
 function GetPrestige()
 	if houseNum == nil then return nil end
@@ -82,14 +28,15 @@ end
 
 
 local function createTextField(name)
-	local player = S.getPlayerOf(self)
+	-- local player = S.getPlayer(U.findColorTag(self))
+	-- log({colorTag = U.findColorTag(self), player = player})
 	if player == nil then return end
 	self.UI.setXmlTable({
 		{
 			tag = "InputField",
 			value = name,
 			attributes = {
-				visibility = player.color,
+				visibility = color,
 				onEndEdit = "editTextField",
 				color = "Clear",
 				placeholder = " ",
@@ -152,8 +99,8 @@ local function forceSave()
 	-- for _, v in pairs(inputs) do
 	-- 	data_to_save.inputs[v.label] = v.value
 	-- end
-	S.setPlayerVal(GetPrestige(), S.getPlayerOf(self), "prestige")
-	S.setPlayerVal(GetCrave(), S.getPlayerOf(self), "crave")
+	S.setPlayerVal(GetPrestige(), U.findColorTag(self), "prestige")
+	S.setPlayerVal(GetCrave(), U.findColorTag(self), "crave")
 	local saved_data = JSON.encode_pretty(data_to_save)
 	self.script_state = saved_data
 	return saved_data
@@ -248,7 +195,8 @@ local function setupButton(name, type, x, z)
 end
 
 local function initCustomButtons()
-	local player = S.getPlayerOf(self)
+	-- local player = S.getPlayer(U.findColorTag(self))
+	-- log({player = player, colorTag = U.findColorTag(self)})
 	local houseName = S.getPlayerVal(player, "houseName") or ""
 	createTextField(houseName)
 
@@ -306,10 +254,13 @@ local function initCustomButtons()
 end
 
 function onLoad(saved_data)
+	-- log("LOADING HOUSE CARD")
 	-- Wait.time(function()
 		houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
 		houseName = string.gsub(self.getName(), "^.*of ", "")
 		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
+		color = U.findColorTag(self)
+		player = S.getPlayer(color)
 		scanData = C.scanData[houseName]
 
 		-- log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
@@ -323,13 +274,15 @@ function onLoad(saved_data)
 
 		initButtonsTable()
 
-		local loaded_data = JSON.decode(saved_data)
-		if loaded_data ~= nil then
-			for i, v in pairs(loaded_data.buttons) do
-				buttons[i] = { label = v }
-			end
-			for i, v in pairs(loaded_data.inputs) do
-				inputs[i] = v
+		if saved_data ~= nil then
+			local loaded_data = JSON.decode(saved_data)
+			if loaded_data ~= nil then
+				for i, v in pairs(loaded_data.buttons) do
+					buttons[i] = { label = v }
+				end
+				for i, v in pairs(loaded_data.inputs) do
+					inputs[i] = v
+				end
 			end
 		end
 		initCustomButtons()
@@ -345,4 +298,8 @@ end
 
 function Dud() return end
 
-editTextField = P.setPlayerHouseName
+function editTextField(_, houseName)
+	S.setPlayerVal(houseName, player, "houseName")
+	local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
+	houseScreen.reload()
+end

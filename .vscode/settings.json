@@ -36,7 +36,8 @@
 		"onPlayerConnect",
 		"spawnObjectData",
 		"editTextField",
-		"onPlayerChangeColor"
+		"onPlayerChangeColor",
+		"onExternalCommand"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

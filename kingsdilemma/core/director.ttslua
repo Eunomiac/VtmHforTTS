@@ -1,19 +1,101 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local C = require("kingsdilemma.lib.constants")
+local P = require("kingsdilemma.core.players")
 local O = require("kingsdilemma.lib.objects")
 local OU = require("kingsdilemma.objects.objUtilities")
 local V = require("kingsdilemma.core.voting")
 local L = require("kingsdilemma.core.lighting")
+local HouseScreen = require("kingsdilemma.objs.p3screen")
 
 local DIR = {}
 
-function DIR.StartSession()
+function DIR.AdvanceGamePhase()
+	local mode, phase = S.getNextPhase()
+	S.setStateVal(mode, "gameMode")
+	S.setStateVal(phase, "gamePhase")
+	Global.call("UpdatePhaseDisplay")
+	DIR.InitializePhase()
+end
+
+function DIR.SetupPlayerSpaces()
+	local seqFuncs = {}
+	U.forEach(S.getPlayers(), function(player)
+		local house = S.getPlayerVal(player, "house")
+		if house then
+			table.insert(seqFuncs, function() HouseScreen.Spawn(player, house) end)
+			table.insert(seqFuncs, 5)
+		end
+	end)
+	U.sequence(seqFuncs)
+end
+
+INITFUNCS = {
+	NONE = function() return {} end,
+	SESSIONINIT = function()
+		return {
+			P.ClearPlayerColor,
+			S.UpdateSeatedPlayers,
+			function() Global.call("InitHouseSelectionHUD") end
+		}
+	end,
+	CAMPAIGNSETUP = function() return {} end,
+	GAMESETUP = {
+		MainBoard = function() return {} end,
+		Houses = function() return {} end,
+		SecretAgendas = function() return {} end,
+		LeaderModerator = function() return {} end,
+		LegacySetup = function() return {} end
+	},
+	PLAY = {
+		Draw = function() return {} end,
+		Balance = function() return {} end,
+		Vote = function() return {} end,
+		Result = function() return {} end,
+		Resolution = function() return {} end
+	},
+	END = {
+		Score = function() return {} end,
+		Realm = function() return {} end,
+		Achievements = function() return {} end,
+		Alignments = function() return {} end,
+		Cleanup = function() return {} end
+	}
+}
+
+function DIR.InitializePhase()
+	local mode = S.getStateVal("gameMode")
+	local phase = S.getStateVal("gamePhase")
+	local seqFuncs = INITFUNCS[mode]
+	if type(seqFuncs) == "table" then
+		seqFuncs = seqFuncs[phase]
+	end
+	if type(seqFuncs) == "function" then
+		seqFuncs = seqFuncs()
+	end
+	U.sequence(seqFuncs)
+end
+
+function DIR.JumpToStatePhase()
+	local mode = S.getStateVal("gameMode")
+	local phase = S.getStateVal("gamePhase")
+
+	-- ... further logic to resync game environment to whatever point in the game we're at.
+end
+
+function DIR.InitSession()
+	S.UpdateSeatedPlayers()
+	Global.call("UpdatePhaseDisplay")
+	if not S.isInMode(C.Modes.NONE) then
+		-- We're in the middle of a running game: jump to that phase.
+		return DIR.JumpToStatePhase()
+	end
+end
+
+
+
 -- Update game mode and phase in State as you progress
 
--- This assumes all players are seated at table, and is first function called when a "night" of gaming starts
--- IF this is a session in progress:
-	-- jumps to that phase, does necessary gameState upkeep/validations
 
 -- IF this is actually the start of a game:
 	-- Unassign any houses currently present around the table
@@ -38,6 +120,34 @@ function DIR.StartSession()
 			-- assign house
 			-- move house card from storage to screen
 			-- clear/reset house card just in case
+
+	function DIR.AssignSelectedHouses(selectionData)
+		-- log("ASSIGNING HOUSES")
+		-- log(selectionData)
+		U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
+
+		if selectionData ~= nil then
+			U.forEach(selectionData, function(color, houseName)
+				if not color or not houseName then return end
+				local player = S.getPlayer(color)
+				S.setPlayerVal(houseName, player, "house")
+				S.setPlayerVal(nil, player, "houseName")
+			end)
+		end
+		-- local seqFuncs = {}
+		U.forEach(S.getPlayers(), function(player)
+			local house = S.getPlayerVal(player, "house")
+			HouseScreen.Spawn(player, house)
+		end)
+		-- 	local house = S.getPlayerVal(player, "house")
+		-- 	log("Spawning '" .. (house or "N/A") .. "' for " .. (player.color or "NIL"))
+		-- 	if house then
+		-- 		table.insert(seqFuncs, function() HouseScreen.Spawn(player, house) end)
+		-- 		-- table.insert(seqFuncs, 3)
+		-- 	end
+		-- end)
+		-- U.sequence(seqFuncs)
+	end
 
 	-- If this is the very first game of a campaign:
 		-- Move "Harad" Chronicle Card to somewhere prominent
@@ -76,11 +186,5 @@ function DIR.StartSession()
 				-- onObjectDrop() listener for CurrentPlayer dropping SecretAgenda
 				-- loop back, dealing all cards to next player
 				-- when all players have a SecretAgenda, END START SESSION!
-
-end
-
-
-
-
 
 return DIR

@@ -6,9 +6,22 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
-function P.UpdateSeatedPlayers()
-
+function P.ClearPlayerColor(color)
+	if color == nil then return U.forEach(C.SeatColors, P.ClearPlayerColor) end
+	local playerObjects = getObjectsWithTag(color)
+	local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. color end)
+	U.forEach(U.concat(playerObjects, playerZones), function(obj)
+		if obj.hasTag("HouseCard") then
+			obj.setTags({"HouseCard"})
+			obj.setPosition(C.Spots.Storage.HouseCard.position)
+			obj.setRotation(C.Spots.Storage.HouseCard.rotation)
+		else
+			obj.destruct()
+		end
+	end)
 end
+
+
 
 function P.getRotatedPlayerTransform(objOrTransform, player)
 	local fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
@@ -52,10 +65,6 @@ function P.AssignTitle(playerNum, title)
 	end
 end
 
-function P.setPlayerHouseName(player, title)
-	S.setPlayerVal(title, player, "houseName")
-	local houseScreen = getObjectsWithAllTags({"screenCenter", player.color})[1]
-	houseScreen.reload()
-end
+
 
 return P
