@@ -21,19 +21,18 @@ C.Houses = {"Allwed", "Blodyn", "Coden", "Crann", "Dualak", "Gamam", "Natar", "O
 
 C.Modes = {
 	NONE = "NONE",
+	SESSIONINIT = "SESSIONINIT",
 	CAMPAIGNSETUP = "CAMPAIGNSETUP",
-	SETUP = "GAMESETUP",
+	GAMESETUP = "GAMESETUP",
 	PLAY = "PLAY",
 	END = "END"
 }
 
 C.Phases = {
 	NONE = "NONE",
-	CAMPAIGNSETUP = {
-		DilemmaDeck = "DilemmaDeck",
-		HouseSelection = "HouseSelection"
-	},
-	SETUP = {
+	SESSIONINIT = "SESSIONINIT",
+	CAMPAIGNSETUP = "CAMPAIGNSETUP",
+	GAMESETUP = {
 		MainBoard = "MainBoard",
 		Houses = "Houses",
 		SecretAgendas = "SecretAgendas",

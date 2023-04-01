@@ -22,7 +22,14 @@ local NOTES = [[
 
 -- DEVELOPMENT
 require("vscode/console")
-ISDEBUGGING = false
+ISDEBUGGING = true
+
+-- function onExternalCommand(input)
+-- 	print("VSCode: " .. input)
+
+
+-- end
+
 
 -- MODULES
 U = require("lib.utilities")

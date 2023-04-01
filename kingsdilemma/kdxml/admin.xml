@@ -1,10 +1,43 @@
-<HorizontalLayout id="adminControls" class="buttonPanel" offsetXY = "40 0">
-	<Button id="toggleElem_phaseControls" class="buttonPanelToggle">▼</Button>
-	<VerticalLayout id="phaseControls" class="buttonBar">
-		<Button id="setMode_NONE">NONE</Button>
-		<Button id="setMode_CAMPAIGN">CAMPAIGN</Button>
-		<Button id="setMode_SETUP">SETUP</Button>
-		<Button id="setMode_PLAY">PLAY</Button>
-		<Button id="setMode_END">END</Button>
-	</VerticalLayout>
-</HorizontalLayout>
+<Defaults>
+	<VerticalLayout class="adminContainer"
+		width = "600"
+		spacing = "0"
+		padding = "10 10 5 10"
+		rectAlignment = "UpperCenter"
+		offsetXY = "0 -40" />
+	<HorizontalLayout class="gameStatusDisplay"
+		spacing = "10"
+		padding = "0 0 0 0" />
+	<Text class="gameStatusDisplay"
+		color = "Yellow"
+		fontSize = "18"
+		outline = "Black"
+		preferredHeight = "30"
+		font = "Fonts/FrizB" />
+</Defaults>
+
+<VerticalLayout class="adminContainer">
+	<HorizontalLayout class="gameStatusDisplay">
+		<Text class="gameStatusDisplay" color="White">Current:</Text>
+		<Text id="currentGameModeDisplay" class="gameStatusDisplay">NONE</Text>
+		<HorizontalLayout id="gamePhaseDisplay" class="gameStatusDisplay">
+			<Text class="gameStatusDisplay" color="White"> ♦ </Text>
+			<Text id="currentGamePhaseDisplay" class="gameStatusDisplay">NONE</Text>
+		</HorizontalLayout>
+	</HorizontalLayout>
+	<HorizontalLayout class="gameStatusDisplay">
+		<Button id="advanceGamePhase">Advance To ►</Button>
+		<Text id="nextGameModeDisplay" class="gameStatusDisplay">SESSIONINIT</Text>
+	</HorizontalLayout>
+
+	<!-- <HorizontalLayout id="adminControls" class="buttonPanel">
+		<Button id="toggleElem_phaseControls" class="buttonPanelToggle">▼</Button>
+		<VerticalLayout id="phaseControls" class="buttonBar">
+			<Button id="setMode_NONE">NONE</Button>
+			<Button id="setMode_CAMPAIGN">CAMPAIGN</Button>
+			<Button id="setMode_SETUP">SETUP</Button>
+			<Button id="setMode_PLAY">PLAY</Button>
+			<Button id="setMode_END">END</Button>
+		</VerticalLayout>
+	</HorizontalLayout> -->
+</VerticalLayout>

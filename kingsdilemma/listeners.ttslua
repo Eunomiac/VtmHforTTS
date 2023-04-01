@@ -1,14 +1,17 @@
 local O = require("kingsdilemma.lib.objects")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
+local DIR = require("kingsdilemma.core.director")
 
 function onLoad(save_data)
 
-	S.InitializeGameState(save_data)
-
+	-- S.InitializeGameState(save_data)
+	S.resetGameState(true)
 	U.forEach(O.UninteractableObjs, function(oFunc)
 		oFunc().interactable = false
 	end)
+
+	-- DIR.InitSession()
 
 end
 

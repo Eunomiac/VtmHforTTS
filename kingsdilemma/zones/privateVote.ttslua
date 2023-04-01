@@ -11,14 +11,14 @@ end
 function onObjectEnterZone(zone, token)
 	if zone.guid ~= self.guid then return end
 	if token ~= nil and token.hasTag("PowerToken") then
-		V.updatePrivateCount(S.getPlayerOf(zone))
+		V.updatePrivateCount(S.getPlayer(zone))
 	end
 end
 
 function onObjectLeaveZone(zone, token)
 	if zone.guid ~= self.guid then return end
 	if token ~= nil and token.hasTag("PowerToken") then
-		V.updatePrivateCount(S.getPlayerOf(zone))
+		V.updatePrivateCount(S.getPlayer(zone))
 	end
 end
 

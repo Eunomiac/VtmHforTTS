@@ -82,14 +82,15 @@ end
 
 
 local function createTextField(name)
-	local player = S.getPlayerOf(self)
+	local player = S.getPlayer(U.findColorTag(self))
+	log({colorTag = U.findColorTag(self), player = player})
 	if player == nil then return end
 	self.UI.setXmlTable({
 		{
 			tag = "InputField",
 			value = name,
 			attributes = {
-				visibility = player.color,
+				-- visibility = player.color,
 				onEndEdit = "editTextField",
 				color = "Clear",
 				placeholder = " ",
@@ -152,8 +153,8 @@ local function forceSave()
 	-- for _, v in pairs(inputs) do
 	-- 	data_to_save.inputs[v.label] = v.value
 	-- end
-	S.setPlayerVal(GetPrestige(), S.getPlayerOf(self), "prestige")
-	S.setPlayerVal(GetCrave(), S.getPlayerOf(self), "crave")
+	S.setPlayerVal(GetPrestige(), U.findColorTag(self), "prestige")
+	S.setPlayerVal(GetCrave(), U.findColorTag(self), "crave")
 	local saved_data = JSON.encode_pretty(data_to_save)
 	self.script_state = saved_data
 	return saved_data
@@ -248,7 +249,8 @@ local function setupButton(name, type, x, z)
 end
 
 local function initCustomButtons()
-	local player = S.getPlayerOf(self)
+	local player = S.getPlayer(U.findColorTag(self))
+	log({player = player, colorTag = U.findColorTag(self)})
 	local houseName = S.getPlayerVal(player, "houseName") or ""
 	createTextField(houseName)
 
@@ -306,13 +308,14 @@ local function initCustomButtons()
 end
 
 function onLoad(saved_data)
-	-- Wait.time(function()
+	log("LOADING HOUSE CARD")
+	Wait.time(function()
 		houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
 		houseName = string.gsub(self.getName(), "^.*of ", "")
 		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
 		scanData = C.scanData[houseName]
 
-		-- log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
+		log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
 
 		if scanData == nil then
 			return error("[House Card] Error: '" .. houseName .. "' is not a recognized House.")
@@ -340,7 +343,7 @@ function onLoad(saved_data)
 		end, 2)
 
 
-	-- end, 1)
+	end, 1)
 end
 
 function Dud() return end

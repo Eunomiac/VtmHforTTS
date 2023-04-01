@@ -83,7 +83,7 @@ end
 local function showArrow(light)
 	if light == nil then return U.forEach(getAllLights(), showArrow) end
 	light.AssetBundle.playLoopingEffect(0)
-	local player = S.getPlayerOf(light)
+	local player = S.getPlayer(light)
 	if player == nil then return light.highlightOn(Color.White) end
 	light.highlightOn(Color[player.color])
 end
