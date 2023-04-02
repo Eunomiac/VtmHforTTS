@@ -37,7 +37,9 @@
 		"spawnObjectData",
 		"editTextField",
 		"onPlayerChangeColor",
-		"onExternalCommand"
+		"onExternalCommand",
+		"Hands",
+		"spawnObject"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

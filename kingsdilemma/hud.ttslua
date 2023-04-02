@@ -1,3 +1,4 @@
+-- #region IMPORTS ~
 local DIR = require("kingsdilemma.core.director")
 local P = require("kingsdilemma.core.players")
 local O = require("kingsdilemma.lib.objects")
@@ -6,6 +7,7 @@ local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
+-- #endregion
 
 local TESTFUNCS = {
 	function(button)
@@ -42,7 +44,6 @@ local TESTFUNCS = {
 			}, players[2])
 		end
 		-- log({rotatingTo = player})
-
 	end,
 	function(_, player)
 		local otherColors = U.map(U.filter(S.getPlayers(), function(pl)
@@ -57,37 +58,36 @@ local TESTFUNCS = {
 		end
 	end,
 	function(button)
-		local modes = {"ambient", "aye", "nay"}
-		local index = U.randBetween(1, 3, true)
-		local mode = modes[index]
-		local playerNum = U.randBetween(1, #S.getPlayers(), true)
-
-		broadcastToAll("Setting Player " .. playerNum .. "'s Vote Light to '" .. string.upper(mode) .. "'")
-
-		L.SetLightMode("lightVote", mode, playerNum)
+		U.forEach(getObjectsWithTag("HouseCard"), function(obj)
+			obj.setTags({"HouseCard"})
+			obj.setPosition(C.Spots.Storage.HouseCard.position)
+			obj.setRotation(C.Spots.Storage.HouseCard.rotation)
+			obj.setScale(C.Spots.Storage.HouseCard.scale)
+		end)
 	end,
-	function(button) end,
-	function(button) end,
-	function(button) end,
-	function(button) end
+	function(button)
+	end,
+	function(button)
+	end,
+	function(button)
+	end,
+	function(button)
+	end
 }
 
-local HouseSelectionState = {}
-local UnselectedPlayers = {}
-
-local function isHouseAvailable(houseName)
-	return not U.find(U.getValues(S.getPlayerData()), function(pData)
-		return pData.house == houseName
-	end)
-end
+-- #region House Selection ~
+local HOUSE_SELECTION = {
+	Current = {},
+	UnselectedPlayers = {}
+}
 
 function InitHouseSelectionHUD()
 	U.forEach(S.getPlayers(), function(player)
 		if not S.getPlayerVal(player, "house") then
-			table.insert(UnselectedPlayers, player)
+			table.insert(HOUSE_SELECTION.UnselectedPlayers, player)
 		end
 	end)
-	if #UnselectedPlayers == 0 then
+	if #HOUSE_SELECTION.UnselectedPlayers == 0 then
 		DIR.AssignSelectedHouses()
 	else
 		RefreshHouseSelectionHUD()
@@ -95,54 +95,63 @@ function InitHouseSelectionHUD()
 end
 
 local function updateHouseHUD(houseName, player)
-	if player == nil then return U.forEach(UnselectedPlayers, function(pl) updateHouseHUD(houseName, pl) end) end
-	local color = player.color
-	if not U.isIn(player.color, U.map(UnselectedPlayers, function(pl) return pl.color end)) then
-		UI.hide("houseSelection_" .. color)
-		return
+	if player == nil then
+		return U.forEach(HOUSE_SELECTION.UnselectedPlayers,
+			function(pl) updateHouseHUD(houseName, pl) end)
 	end
-	UI.show("houseSelection_" .. color)
+	if not U.isIn(player.color, U.map(HOUSE_SELECTION.UnselectedPlayers, function(pl) return pl.color end)) then
+		return UI.hide("houseSelection_" .. player.color)
+	end
+
+	local function isHouseAvailable(houseName)
+		return not U.find(U.getValues(S.getPlayerData()), function(pData)
+			return pData.house == houseName
+		end)
+	end
+
+	UI.show("houseSelection_" .. player.color)
+
 	if not isHouseAvailable(houseName) then
-		HouseSelectionState[houseName] = false
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. color, {
+		HOUSE_SELECTION.Current[houseName] = false
+		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
 			color = "rgba(0.3, 0.3, 0.3, 0.5)",
 			outline = "Clear"
 		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. color, {
+		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
 			color = "rgba(0, 0, 0, 0)",
 			raycastTarget = "False",
 			onMouseDown = "",
 			onMouseEnter = "",
 			onMouseExit = "HUD_HoverOff"
 		})
-	elseif type(HouseSelectionState[houseName]) == "string" then
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. color, {
+	elseif type(HOUSE_SELECTION.Current[houseName]) == "string" then
+		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
 			color = "rgba(0.5, 0.5, 0.5, 1)",
-			outline = HouseSelectionState[houseName]
+			outline = HOUSE_SELECTION.Current[houseName]
 		})
-		if HouseSelectionState[houseName] ~= color then
-			UI.setAttributes("houseHover_" .. houseName .. "_" .. color, {
-				color = HouseSelectionState[houseName],
+		if HOUSE_SELECTION.Current[houseName] ~= player.color then
+			UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
+				color = HOUSE_SELECTION.Current[houseName],
 				raycastTarget = "False",
 				onMouseDown = "",
-				onMouseEnter = "",
+				onMouseEnter = "HUD_HoverOn",
 				onMouseExit = "HUD_HoverOff"
 			})
 		else
-			UI.setAttributes("houseHover_" .. houseName .. "_" .. color, {
-				color = HouseSelectionState[houseName],
+			UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
+				color = HOUSE_SELECTION.Current[houseName],
 				raycastTarget = "True",
 				onMouseDown = "HUD_Click",
-				onMouseEnter = "",
+				onMouseEnter = "HUD_HoverOn",
 				onMouseExit = "HUD_HoverOff"
 			})
 		end
 	else
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. color, {
+		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
 			color = "rgba(0.5, 0.5, 0.5, 1)",
 			outline = "Clear"
 		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. color, {
+		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
 			color = "rgba(0, 0, 0, 0)",
 			raycastTarget = "True",
 			onMouseDown = "HUD_Click",
@@ -153,37 +162,12 @@ local function updateHouseHUD(houseName, player)
 end
 
 function RefreshHouseSelectionHUD(player)
-	if player == nil then return U.forEach(UnselectedPlayers, RefreshHouseSelectionHUD) end
+	if player == nil then return U.forEach(HOUSE_SELECTION.UnselectedPlayers, RefreshHouseSelectionHUD) end
 	U.forEach(C.Houses, function(houseName) updateHouseHUD(houseName, player) end)
 end
+-- #endregion
 
-local function promptAssignHouse(player)
-	local players = S.getPlayers()
-	local playerOptions = U.map(players, function(pl, i)
-		return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
-	end)
-
-	player.showOptionsDialog("Assign to which player?", playerOptions, 1, function(_, i)
-		local targetPlayer = players[i]
-		local curHouse = S.getStateVal("playerData", targetPlayer.color).house
-		local houseOptions = U.concat({"None"}, U.filter(U.getKeys(C.scanData), function(hName)
-			if hName == curHouse then return true end
-			local playerData = U.getValues(S.getStateVal("playerData"))
-			return not U.isIn(hName, U.map(playerData, function (pData) return pData.house end))
-		end))
-		player.showOptionsDialog("Which territory?", houseOptions, 1, function(houseName)
-			if houseName == "None" then houseName = nil end
-			HouseScreen.Spawn(i, houseName, curHouse)
-			local playerData = S.getStateVal("playerData", targetPlayer.color)
-			if curHouse ~= houseName then
-				playerData.houseName = nil
-			end
-			playerData.house = houseName
-			S.setPlayerData(targetPlayer, playerData)
-		end)
-	end)
-end
-
+-- #region Primary UI Event Functions
 local function toggleXmlElement(elemID)
 	log("Toggling " .. elemID)
 	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
@@ -194,16 +178,6 @@ local function toggleXmlElement(elemID)
 		UI.setValue("toggleElem_" .. elemID, "►")
 	end
 end
-
-local function areAllHousesSelected()
-	for _, player in pairs(UnselectedPlayers) do
-		if not U.find(HouseSelectionState, function(pColor) return pColor == player.color end) then
-			return false
-		end
-	end
-	return true
-end
-
 local function promptSimClick(player)
 	local players = S.getPlayers()
 	local playerOptions = U.map(players, function(pl, i)
@@ -221,16 +195,19 @@ local function promptSimClick(player)
 	end)
 end
 
+
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
 	elseif id == "advanceGamePhase" then
-		DIR.AdvanceGamePhase()
-	elseif id == "prompt_assignHouse" then
-		promptAssignHouse(player)
+		DIR.ADVANCE()
 	elseif id == "prompt_simClick" then
 		promptSimClick(player)
+	elseif id == "clearPlayers" then
+		P.ClearSeats()
+	elseif id == "resetTable" then
+		DIR.RESET()
 	elseif string.match(id, "^debug_testFunc") then
 		id = string.gsub(id, "^debug_testFunc", "") * 1
 		TESTFUNCS[id](button, player)
@@ -241,26 +218,35 @@ function HUD_Click(player, button, id)
 		S.resetGameState(true)
 		Global.call("UpdatePhaseDisplay")
 	elseif id == "debug_setArrows" then
-		if button == "-1" then L.ShowArrows()
-		else L.HideArrows() end
-	elseif string.match(id, "^houseHover_") then
-		local curHouse = U.findIndex(HouseSelectionState, function(col, houseName)
-			return col == player.color
-		end)
-		if curHouse ~= nil then
-			HouseSelectionState[curHouse] = nil
-			updateHouseHUD(curHouse)
+		if button == "-1" then
+			L.ShowArrows()
+		else
+			L.HideArrows()
 		end
+	elseif string.match(id, "^houseHover_") then
 		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
-		HouseSelectionState[houseName] = houseColor
+		local curHouse = U.findIndex(HOUSE_SELECTION.Current, function(col) return col == player.color end)
+
+		if curHouse then HOUSE_SELECTION.Current[curHouse] = nil end
+		if houseName ~= curHouse then HOUSE_SELECTION.Current[houseName] = houseColor end
+
+		if curHouse then updateHouseHUD(curHouse) end
 		updateHouseHUD(houseName)
-		-- log({houseSelectionState = JSON.encode_pretty(HouseSelectionState), unselectedPlayers = UnselectedPlayers})
+
+		local function areAllHousesSelected()
+			for _, player in pairs(HOUSE_SELECTION.UnselectedPlayers) do
+				if not U.find(HOUSE_SELECTION.Current, function(pColor) return pColor == player.color end) then
+					return false
+				end
+			end
+			return true
+		end
+
 		if areAllHousesSelected() then
-			DIR.AssignSelectedHouses(HouseSelectionState)
+			DIR.AssignSelectedHouses(HOUSE_SELECTION.Current)
 		end
 	end
 end
-
 
 function HUD_HoverOn(_, _, id)
 	-- log({HoverID = id, player = player, button = button})
@@ -275,7 +261,7 @@ end
 function HUD_HoverOff(_, _, id)
 	if string.match(id, "^houseHover_") then
 		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
-		if HouseSelectionState[houseName] ~= houseColor then
+		if HOUSE_SELECTION.Current[houseName] == nil then
 			UI.setAttribute("houseFlag_" .. houseName .. "_" .. houseColor, "color", "rgba(0.5, 0.5, 0.5, 1)")
 			UI.setAttribute(id, "color", "rgba(0, 0, 0, 0)")
 		end
@@ -288,14 +274,17 @@ function UpdatePhaseDisplay()
 	UI.setValue("currentGameModeDisplay", mode)
 	if mode ~= phase then
 		UI.setValue("currentGamePhaseDisplay", phase)
-		UI.show("gamePhaseDisplay")
+		UI.show("currentGamePhaseContainer")
 	else
-		UI.hide("gamePhaseDisplay")
+		UI.hide("currentGamePhaseContainer")
 	end
 	local nextMode, nextPhase = S.getNextPhase()
+	UI.setValue("nextGameModeDisplay", nextMode)
 	if nextMode ~= nextPhase then
-		UI.setValue("nextGameModeDisplay", nextPhase)
+		UI.setValue("nextGamePhaseDisplay", nextPhase)
+		UI.show("nextGamePhaseContainer")
 	else
-		UI.setValue("nextGameModeDisplay", nextMode)
+		UI.hide("nextGamePhaseContainer")
 	end
 end
+-- #endregion

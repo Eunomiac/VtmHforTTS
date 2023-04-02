@@ -7,7 +7,12 @@
 		offsetXY="0 50"
 		spacing = "20 20"
 		cellSize = "300 180"
+		childForceExpandWidth = "False"
+		childForceExpandHeight = "False"
 		constraintCount = "4" />
+
+	<Text class="houseSelectionHeader"
+		offsetXY = "0 -100" />
 
 	<Image class="houseFlag"
 		color="rgba(0.5, 0.5, 0.5, 1)"
@@ -27,27 +32,31 @@
 		width="750" />
 
 	<Image class="houseInfo" active = "False" />
-	<Image class="houseFlag" preferredHeight = "170" preferredWidth = "290" flexibleHeight="0" flexibleWidth="0" />
+	<Panel class="houseFlagContainer"
+		preferredHeight="160" preferredWidth = "290" flexibleHeight = "0" flexibleWidth = "0"
+		outline = "Red"
+		outlineSize = "20" />
+	<Image class="houseFlag" height="170" width = "280" ignoreLayout="true" rectAlignment="MiddleCenter" />
 
 </Defaults>
 
 
 <Panel id="houseSelection_Red" class="houseSelectionContainer" visibility="Red" active="False">
-	<Text class="header">Select Your Territory</Text>
+	<Text class="header houseSelectionHeader" visibility="Red">Where Does Your House Rule?</Text>
 
 	<GridLayout id="houseSelection_Grid_Red" class="houseSelectionGrid" visibility="Red">
-		<Image id="houseFlag_Allwed_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" />
-		<Image id="houseFlag_Blodyn_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253245/C9DBFEEB59A7B71D0A27FF280334271818FB26A0/" />
-		<Image id="houseFlag_Coden_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253338/EA28A27B464F7693CC133B4E2FE6015B8C5CF0E3/" />
-		<Image id="houseFlag_Crann_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253435/EE7BDEC5F7E46AC930644FC7533079F6879F5433/" />
-		<Image id="houseFlag_Dualak_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253510/A16DF1A670D95E1C866F918ACE227092DBE9352B/" />
-		<Image id="houseFlag_Gamam_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253616/87E88E5AC38BDC76F98654E1C280AA0A6E510C4E/" />
-		<Image id="houseFlag_Natar_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253752/97822A3B8F0A01116CE2B721BB52E25A4317C218/" />
-		<Image id="houseFlag_Olwyn_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253853/BB38AE3D3F420C0FD61BF814FD7775D462016AC8/" />
-		<Image id="houseFlag_Solad_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253975/092946C413889BB5FC5E0D3F65C4C5EE136396BE/" />
-		<Image id="houseFlag_Tiryll_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254148/DAC3E6F35DA73048387F0A2DEA8432C802AF83E3/" />
-		<Image id="houseFlag_Tork_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254244/C64C331492D2A1AE626A63DEDEEA15CA99F5AF7A/" />
-		<Image id="houseFlag_Wylio_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254331/8FD06EFCCF997781E5823A58C8DC3C3776866DD5/" />
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Allwed_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Blodyn_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253245/C9DBFEEB59A7B71D0A27FF280334271818FB26A0/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Coden_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253338/EA28A27B464F7693CC133B4E2FE6015B8C5CF0E3/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Crann_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253435/EE7BDEC5F7E46AC930644FC7533079F6879F5433/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Dualak_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253510/A16DF1A670D95E1C866F918ACE227092DBE9352B/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Gamam_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253616/87E88E5AC38BDC76F98654E1C280AA0A6E510C4E/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Natar_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253752/97822A3B8F0A01116CE2B721BB52E25A4317C218/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Olwyn_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253853/BB38AE3D3F420C0FD61BF814FD7775D462016AC8/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Solad_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739253975/092946C413889BB5FC5E0D3F65C4C5EE136396BE/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Tiryll_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254148/DAC3E6F35DA73048387F0A2DEA8432C802AF83E3/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Tork_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254244/C64C331492D2A1AE626A63DEDEEA15CA99F5AF7A/" /></Panel>
+		<Panel class="houseFlagContainer"><Image id="houseFlag_Wylio_Red" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254331/8FD06EFCCF997781E5823A58C8DC3C3776866DD5/" /></Panel>
 	</GridLayout>
 
 	<GridLayout id="houseSelection_Hover_Red" class="houseSelectionGrid" visibility="Red">
@@ -82,7 +91,7 @@
 </Panel>
 
 <Panel id="houseSelection_Purple" class="houseSelectionContainer" visibility="Purple" active="False">
-	<Text class="header">Select Your Territory</Text>
+	<Text class="header houseSelectionHeader" visibility="Purple">Where Does Your House Rule?</Text>
 
 	<GridLayout id="houseSelection_Grid_Purple" class="houseSelectionGrid" visibility="Purple">
 		<Image id="houseFlag_Allwed_Purple" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" />
@@ -131,7 +140,7 @@
 </Panel>
 
 <Panel id="houseSelection_Green" class="houseSelectionContainer" visibility="Green" active="False">
-	<Text class="header">Select Your Territory</Text>
+	<Text class="header houseSelectionHeader" visibility="Green">Where Does Your House Rule?</Text>
 
 	<GridLayout id="houseSelection_Grid_Green" class="houseSelectionGrid" visibility="Green">
 		<Image id="houseFlag_Allwed_Green" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" />
@@ -180,7 +189,7 @@
 </Panel>
 
 <Panel id="houseSelection_Yellow" class="houseSelectionContainer" visibility="Yellow" active="False">
-	<Text class="header">Select Your Territory</Text>
+	<Text class="header houseSelectionHeader" visibility="Yellow">Where Does Your House Rule?</Text>
 
 	<GridLayout id="houseSelection_Grid_Yellow" class="houseSelectionGrid" visibility="Yellow">
 		<Image id="houseFlag_Allwed_Yellow" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" />
@@ -229,7 +238,7 @@
 </Panel>
 
 <Panel id="houseSelection_Blue" class="houseSelectionContainer" visibility="Blue" active="False">
-	<Text class="header">Select Your Territory</Text>
+	<Text class="header houseSelectionHeader" visibility="Blue">Where Does Your House Rule?</Text>
 
 	<GridLayout id="houseSelection_Grid_Blue" class="houseSelectionGrid" visibility="Blue">
 		<Image id="houseFlag_Allwed_Blue" class="houseFlag" image="http://cloud-3.steamusercontent.com/ugc/2064377962739194792/C9B66702A87E6D1FDB5384B4F51A5D77D2634917/" />

@@ -286,7 +286,7 @@ function U.error(source, message, val)
 	if val ~= "NOVAL" then
 		valString = nil
 	elseif type(val) == "userdata" then
-		if val.getName then
+		if U.isIn("getName", val) then
 			valString = "<" .. val.getName() .. ">"
 		else
 			valString = "<" .. val.guid or "unknown" .. ">"
@@ -306,7 +306,7 @@ function U.Assert(source, val, typeOrTest)
 		local result = typeOrTest(val)
 		if result ~= true then
 			if result == false or result == nil then
-				errorMessage = "Test Failed"
+				errorMessage = "Test Failed for param '" .. tostring(val) .. "'"
 			else
 				errorMessage = "Test Failed - '" .. tostring(result) .. "'"
 			end
@@ -582,7 +582,7 @@ end
 
 function U.isGameObject(val)
 	if type(val) ~= "userdata" then return false end
-	return U.isIn("guid", val)
+	return U.isIn("guid", val) or U.isIn("steam_id", val)
 end
 
 function U.isPlayer(val)

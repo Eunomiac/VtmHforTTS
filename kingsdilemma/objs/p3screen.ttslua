@@ -134,8 +134,8 @@ local HouseData = {
 local ObjectData = {
 		screenFlapLeft = {
 			source = O.SpawnSources.screenFlapLeft,
-			position = {-9.12, 6.43, -41.11},
-			rotation = {87.76, 0.00, 45.00},
+			position = {9.10, 6.47, 41.09},
+			rotation = {87.76, 180.00, 45.00},
 			scale = {5, 1, 5},
 			data = {
 				Tags = {"HouseScreen"}
@@ -143,8 +143,8 @@ local ObjectData = {
 		},
 		screenCenter = {
 			source = O.SpawnSources.screenCenter,
-			position = {0.00, 6.51, -40.00},
-			rotation = {87.76, 0.00, 0.00},
+			position = {0.00, 6.51, 40.00},
+			rotation = {87.76, 180.00, 0.00},
 			scale = {5, 1, 5},
 			data = {
 				Tags = {"HouseScreen"}
@@ -152,8 +152,8 @@ local ObjectData = {
 		},
 		screenFlapRight = {
 			source = O.SpawnSources.screenFlapRight,
-			position = {9.25, 6.44, -40.97},
-			rotation = {87.76, 0.00, 135.00},
+			position = {-9.26, 6.47, 40.97},
+			rotation = {87.76, 180.00, 135.00},
 			scale = {5, 1, 5},
 			data = {
 				Tags = {"HouseScreen"}
@@ -171,8 +171,8 @@ local ObjectData = {
 		},
 		zonePrivateAye = {
 			source = O.SpawnSources.zonePrivateAye,
-			position = {-4.00, 1.46, -42.35},
-			rotation = {0.00, 0.00, 0.00},
+			position = {4.00, 1.46, 42.35},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {3.36, 1.00, 4.94},
 			data = {
 				Tags = {"Zone_Counter", "Zone_PrivateUI", "PowerToken", "Zone_VoteAye"}
@@ -180,8 +180,8 @@ local ObjectData = {
 		},
 		zonePrivateNay = {
 			source = O.SpawnSources.zonePrivateNay,
-			position = {4.00, 1.46, -42.35},
-			rotation = {0.00, 0.00, 0.00},
+			position = {-4.00, 1.46, 42.35},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {3.36, 1.00, 4.94},
 			data = {
 				Tags = {"Zone_Counter", "Zone_PrivateUI", "PowerToken", "Zone_VoteNay"}
@@ -189,8 +189,8 @@ local ObjectData = {
 		},
 		zonePublic = {
 			source = O.SpawnSources.zonePublic,
-			position = {0.00, 3.5, -32.42},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 3.5, 32.42},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {5, 1.00, 5},
 			data = {
 				Tags = {"Zone_Counter", "Zone_PublicUI", "PowerToken"}
@@ -198,8 +198,8 @@ local ObjectData = {
 		},
 		zoneHiderHouseCard = {
 			source = O.SpawnSources.zoneHiderHouseCard,
-			position = {-7.34, 10.32, -40.54},
-			rotation = {88.00, 0.00, 0.00},
+			position = {7.34, 10.32, 40.54},
+			rotation = {88.00, 180.00, 0.00},
 			scale = {0.09, 0.37, 0.20},
 			data = {
 				Tags = false
@@ -207,8 +207,8 @@ local ObjectData = {
 		},
 		zoneHiderGeneral = {
 			source = O.SpawnSources.zoneHiderGeneral,
-			position = {0.00, 0.44, -48.00},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 0.44, 48.00},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {20.00, 2.27, 5.00},
 			data = {
 				Tags = false
@@ -216,8 +216,8 @@ local ObjectData = {
 		},
 		zoneHand = {
 			source = "HandTrigger",
-			position = {0.00, 3, -52.70},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 3, 52.70},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {12.00, 5, 4.00},
 			data = {
 				Name = "HandTrigger",
@@ -226,8 +226,8 @@ local ObjectData = {
 		},
 		ayeCard = {
 			source = O.SpawnSources.ayeCard,
-			position = {-4.00, 1.46, -42.50},
-			rotation = {0.00, 180.00, 0.00},
+			position = {4.00, 1.46, 42.50},
+			rotation = {0.00, 0.00, 0.00},
 			scale = {1.59, 1.00, 1.59},
 			data = {
 				Tags = {}
@@ -235,8 +235,8 @@ local ObjectData = {
 		},
 		passCard = {
 			source = O.SpawnSources.passCard,
-			position = {0.00, 1.46, -42.50},
-			rotation = {0.00, 180.00, 0.00},
+			position = {0.00, 1.46, 42.50},
+			rotation = {0.00, 0.00, 0.00},
 			scale = {1.59, 1.00, 1.59},
 			data = {
 				Tags = {}
@@ -244,8 +244,8 @@ local ObjectData = {
 		},
 		nayCard = {
 			source = O.SpawnSources.nayCard,
-			position = {4.00, 1.46, -42.50},
-			rotation = {0.00, 180.00, 0.00},
+			position = {-4.00, 1.46, 42.50},
+			rotation = {0.00, 0.00, 0.00},
 			scale = {1.59, 1.00, 1.59},
 			data = {
 				Tags = {}
@@ -253,8 +253,8 @@ local ObjectData = {
 		},
 		lightBehind = {
 			source = O.SpawnSources.lightBehind,
-			position = {0.00, 20.81, -83.86},
-			rotation = {281.79, 0.00, 0.00},
+			position = {0.00, 20.81, 83.86},
+			rotation = {281.79, 180.00, 0.00},
 			scale = {1.00, 1.00, 1.00},
 			data = {
 				Tags = {}
@@ -262,8 +262,8 @@ local ObjectData = {
 		},
 		lightFront = {
 			source = O.SpawnSources.lightFront,
-			position = {0.00, 2.30, -27.37},
-			rotation = {110, 0.00, 0.00},
+			position = {0.00, 2.30, 27.37},
+			rotation = {110, 180.00, 0.00},
 			scale = {1.00, 1.00, 1.00},
 			data = {
 				Tags = {}
@@ -271,8 +271,8 @@ local ObjectData = {
 		},
 		lightVote = {
 			source = O.SpawnSources.lightVote,
-			position = {0.00, 9.60, -32.42},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 9.60, 32.42},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {1.00, 1.00, 1.00},
 			data = {
 				Tags = {}
@@ -280,8 +280,8 @@ local ObjectData = {
 		},
 		plinthBase = {
 			source = O.SpawnSources.plinthBase,
-			position = {0.00, 1.58, -32.42},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 1.58, 32.42},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {0.8, 0.5, 0.8},
 			data = {
 				Tags = {}
@@ -289,8 +289,8 @@ local ObjectData = {
 		},
 		plinthRiser = {
 			source = O.SpawnSources.plinthRiser,
-			position = {0.00, 1.5, -32.42},
-			rotation = {0.00, 0.00, 0.00},
+			position = {0.00, 1.5, 32.42},
+			rotation = {0.00, 180.00, 0.00},
 			scale = {0.5, 0.5, 0.5},
 			data = {
 				Tags = {}
@@ -395,7 +395,7 @@ local function applyObjData(partName, playerRef, houseName)
 	}
 
 	if player ~= nil then
-		transformData = P.getRotatedPlayerTransform(transformData, player)
+		transformData = P.getRotatedPlayerTransform(transformData, player, 0)
 	end
 
 	spawnData.Transform = {
@@ -416,7 +416,7 @@ end
 function HouseScreen.Spawn(playerRef, houseName)
 	local player = S.getPlayer(playerRef)
 	-- log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
-	P.ClearPlayerColor(player.color)
+	P.ClearSeat(player.color)
 	if houseName == nil then return end
 	U.forEach(ObjectData, function(objData, objName)
 		local sourceObj, spawnData
@@ -437,5 +437,6 @@ function HouseScreen.Spawn(playerRef, houseName)
 		spawnObjectData({data = spawnData})
 	end)
 end
+
 
 return HouseScreen

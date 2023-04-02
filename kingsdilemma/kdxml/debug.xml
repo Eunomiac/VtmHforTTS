@@ -1,20 +1,23 @@
 <Defaults> <!-- Debug Control Defaults -->
 	<HorizontalLayout class = "debugDisplayPanel"
+	  rectAlignment = "UpperRight"
 		height = "1500"
-		width = "300" />
+		width = "250" />
+	<HorizontalLayout class="debugButtonPanel"
+		offsetXY = "0 -350" />
 
 	<Panel class = "codeDisplayPanel"
 		color = "rgba(0, 0, 0, 0.5)"
 		padding = "5 5 5 5"
 		height = "1500"
-		width = "300" />
+		width = "250" />
 
 	<Text class = "codeDisplay"
 		fontSize = "8"
 		alignment = "UpperLeft" />
 </Defaults>
 
-<HorizontalLayout class="buttonPanel" offsetXY = "40 -200">
+<HorizontalLayout class="buttonPanel debugButtonPanel">
 	<Button id="toggleElem_debugControls" class="buttonPanelToggle">►</Button>
 	<VerticalLayout id="debugControls" class="buttonBar" active="False">
 		<Button id="debug_resetState">Reset State</Button>
@@ -24,7 +27,7 @@
 		<Text class="spacer_10"></Text>
 		<Button id="debug_testFunc1">Test Func 1</Button>
 		<Button id="debug_testFunc2">Test Func 2</Button>
-		<!-- <Button id="debug_testFunc3">Test Func 3</Button> -->
+		<Button id="debug_testFunc3">Test Func 3</Button>
 		<!-- <Button id="debug_testFunc4">Test Func 4</Button> -->
 		<!-- <Button id="debug_testFunc5">Test Func 5</Button> -->
 		<Text class="spacer_10"></Text>
@@ -34,8 +37,7 @@
 	</VerticalLayout>
 </HorizontalLayout>
 
-<HorizontalLayout class="debugDisplayPanel"
-		offsetXY = "175 0">
+<HorizontalLayout class="debugDisplayPanel">
 	<Button id="toggleElem_stateDisplayPanel" class="buttonPanelToggle">►</Button>
 	<Panel id="stateDisplayPanel" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay" class="codeDisplay"></Text>

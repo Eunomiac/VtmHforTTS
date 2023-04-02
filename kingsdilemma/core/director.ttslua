@@ -10,60 +10,161 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 
 local DIR = {}
 
-function DIR.AdvanceGamePhase()
+function DIR.ADVANCE()
 	local mode, phase = S.getNextPhase()
 	S.setStateVal(mode, "gameMode")
 	S.setStateVal(phase, "gamePhase")
-	Global.call("UpdatePhaseDisplay")
 	DIR.InitializePhase()
 end
 
-function DIR.SetupPlayerSpaces()
-	local seqFuncs = {}
-	U.forEach(S.getPlayers(), function(player)
-		local house = S.getPlayerVal(player, "house")
-		if house then
-			table.insert(seqFuncs, function() HouseScreen.Spawn(player, house) end)
-			table.insert(seqFuncs, 5)
-		end
-	end)
-	U.sequence(seqFuncs)
+function DIR.RESET()
+	S.setStateVal("NONE", "gameMode")
+	S.setStateVal("NONE", "gamePhase")
+	DIR.InitializePhase()
 end
 
+-- function DIR.SetupPlayerSpaces()
+-- 	local seqFuncs = {}
+-- 	U.forEach(S.getPlayers(), function(player)
+-- 		local house = S.getPlayerVal(player, "house")
+-- 		if house then
+-- 			table.insert(seqFuncs, function() HouseScreen.Spawn(player, house) end)
+-- 			table.insert(seqFuncs, 5)
+-- 		end
+-- 	end)
+-- 	U.sequence(seqFuncs)
+-- end
+
 INITFUNCS = {
-	NONE = function() return {} end,
-	SESSIONINIT = function()
-		return {
-			P.ClearPlayerColor,
-			S.UpdateSeatedPlayers,
+	NONE = function() return {
+		function()
+			S.setStateVal(false, "isMidGame")
+			S.setStateVal({}, "playerData")
+			P.ClearSeats()
+		end
+	} end,
+	SESSIONINIT = {
+		SeatCount = function() return {
+			function()
+				S.setStateVal(true, "isMidGame")
+				local curCount = S.GetSeatCount()
+				local host = S.getPlayer("Admin")
+				host.showInputDialog("How many players?", tostring(curCount), function(count)
+					count = tonumber(count)
+					U.Assert("promptSeatCount", count, function(c) return c >= 3 and c <= 5 end)
+					S.setStateVal(count, "seatCount")
+					DIR.ADVANCE()
+				end)
+			end
+		} end,
+		SeatPlayers = function() return {
+			P.InitializeSeats
+		} end,
+		HouseSelection = function() return {
 			function() Global.call("InitHouseSelectionHUD") end
-		}
+		} end
+	},
+	CAMPAIGNSETUP = function()
+		if S.getStateVal("gameCount") == 1 then return {
+			-- If this is the very first game of a campaign:
+				-- Move "Harad" Chronicle Card to somewhere prominent
+				-- Prompt for Prologue or Normal Game, fetch appropriate envelope
+				-- Extract from container to directly above it
+				-- SmoothMove it past its destination so it can rebound back
+				-- SmoothMove it to hover over Cover Card
+				-- Extract First Card, have it hover over in front/above envelope
+				-- Elevate Cover Card an inch or so
+				-- Extract & Move other cards directly into new deck formed beneath Cover Card
+				-- Shuffle deck
+				-- Drop Cover Card on top
+				-- Move top Story Card to middle of the "Chronicle Stickers" zone for whoever to pick up and deal with it
+			}
+		else return {
+			function()
+				S.setStateVal(S.getStateVal("gameCount") + 1, "gameCount")
+				DIR.ADVANCE()
+			end
+		} end
 	end,
-	CAMPAIGNSETUP = function() return {} end,
 	GAMESETUP = {
-		MainBoard = function() return {} end,
-		Houses = function() return {} end,
-		SecretAgendas = function() return {} end,
-		LeaderModerator = function() return {} end,
-		LegacySetup = function() return {} end
+		MainBoard = function() return {
+			-- MAIN BOARD SETUP
+				-- Randomly shuffle sides of Resource Tokens
+				-- Stability token spawned at center
+				-- 3x Power to middle of balance
+				-- 8x Power and 10x Coins to each player
+		} end,
+		LeaderModerator = function() return {
+			-- LEADER & MODERATOR
+				-- Assign Leader token to player with HIGHEST prestige
+				-- Assign Moderator token to player with LOWEST prestige
+		} end,
+		LegacySetup = function() return {
+			-- LEGACY EFFECTS
+				-- Apply 'em
+				-- Open Agendas too!
+		} end,
+		SecretAgendas = function() return {
+			-- SECRET AGENDAS
+				-- Shuffle Secret Agendas, Randomly Remove One
+				-- sort a table of playerData by prestige, with lowest first
+					-- FOR EACH:
+					-- get CurrentPlayer = prestigeTable.shift()
+					-- "Deal" all SecretAgenda cards in DECKS or in HAND ZONES (but NOT in PLAY) to CurrentPlayer
+					-- They choose by dropping from hand onto mat
+						-- onObjectDrop() listener for CurrentPlayer dropping SecretAgenda
+						-- loop back, dealing all cards to next player
+						-- when all players have a SecretAgenda, END START SESSION!
+		} end
 	},
 	PLAY = {
-		Draw = function() return {} end,
-		Balance = function() return {} end,
-		Vote = function() return {} end,
-		Result = function() return {} end,
-		Resolution = function() return {} end
+		Draw = function() return {
+
+
+		} end,
+		Balance = function() return {
+
+
+		} end,
+		Vote = function() return {
+
+
+		} end,
+		Result = function() return {
+
+
+		} end,
+		Resolution = function() return {
+
+
+		} end
 	},
 	END = {
-		Score = function() return {} end,
-		Realm = function() return {} end,
-		Achievements = function() return {} end,
-		Alignments = function() return {} end,
-		Cleanup = function() return {} end
+		Score = function() return {
+
+
+		} end,
+		Realm = function() return {
+
+
+		} end,
+		Achievements = function() return {
+
+
+		} end,
+		Alignments = function() return {
+
+
+		} end,
+		Cleanup = function() return {
+
+
+		} end
 	}
 }
 
 function DIR.InitializePhase()
+	Global.call("UpdatePhaseDisplay")
 	local mode = S.getStateVal("gameMode")
 	local phase = S.getStateVal("gamePhase")
 	local seqFuncs = INITFUNCS[mode]
@@ -92,99 +193,25 @@ function DIR.InitSession()
 	end
 end
 
+function DIR.AssignSelectedHouses(selectionData)
+	U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
 
-
--- Update game mode and phase in State as you progress
-
-
--- IF this is actually the start of a game:
-	-- Unassign any houses currently present around the table
-	-- Clear unused hand zones (if fewer than 5) and rearrange player start positions via rotateToPlayer()
-	-- Get ID of each player, store it as playerData.
-		-- FOR EACH:
-		-- Check playerStorage for entry for that player
-			-- If NO: Create a new one
-				-- { house = nil, houseName = nil, id = <id>, ... }
-				-- (will be prompted later)
-			-- If YES:
-				-- Assign that player's house to them
-				-- Move that house's sheet from storage to screen
-
-
-
-	-- HOUSE SCREEN ASSIGNMENT
-	-- If players with unassigned houses (i.e. new players) are present:
-		-- Show house selection screen
-		-- When all unassigned players have selected different, valid houses... show confirm dialogue
-		-- On Confirm:
-			-- assign house
-			-- move house card from storage to screen
-			-- clear/reset house card just in case
-
-	function DIR.AssignSelectedHouses(selectionData)
-		-- log("ASSIGNING HOUSES")
-		-- log(selectionData)
-		U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
-
-		if selectionData ~= nil then
-			U.forEach(selectionData, function(color, houseName)
-				if not color or not houseName then return end
-				local player = S.getPlayer(color)
-				S.setPlayerVal(houseName, player, "house")
-				S.setPlayerVal(nil, player, "houseName")
-			end)
-		end
-		-- local seqFuncs = {}
-		U.forEach(S.getPlayers(), function(player)
-			local house = S.getPlayerVal(player, "house")
-			HouseScreen.Spawn(player, house)
+	if selectionData ~= nil then
+		U.forEach(selectionData, function(color, houseName)
+			if not color or not houseName then return end
+			local player = S.getPlayer(color)
+			S.setPlayerVal(houseName, player, "house")
+			S.setPlayerVal(nil, player, "houseName")
 		end)
-		-- 	local house = S.getPlayerVal(player, "house")
-		-- 	log("Spawning '" .. (house or "N/A") .. "' for " .. (player.color or "NIL"))
-		-- 	if house then
-		-- 		table.insert(seqFuncs, function() HouseScreen.Spawn(player, house) end)
-		-- 		-- table.insert(seqFuncs, 3)
-		-- 	end
-		-- end)
-		-- U.sequence(seqFuncs)
 	end
+	U.forEach(S.getPlayers(), function(player)
+		local house = S.getPlayerVal(player, "house")
+		HouseScreen.Spawn(player, house)
+	end)
+end
 
-	-- If this is the very first game of a campaign:
-		-- Move "Harad" Chronicle Card to somewhere prominent
-		-- Prompt for Prologue or Normal Game, fetch appropriate envelope
-			-- Extract from container to directly above it
-			-- SmoothMove it past its destination so it can rebound back
-			-- SmoothMove it to hover over Cover Card
-			-- Extract First Card, have it hover over in front/above envelope
-			-- Elevate Cover Card an inch or so
-			-- Extract & Move other cards directly into new deck formed beneath Cover Card
-			-- Shuffle deck
-			-- Drop Cover Card on top
-			-- Move top Story Card to middle of the "Chronicle Stickers" zone for whoever to pick up and deal with it
 
-	-- MAIN BOARD SETUP
-		-- Randomly shuffle sides of Resource Tokens
-		-- Stability token spawned at center
-		-- 3x Power to middle of balance
-		-- 8x Power and 10x Coins to each player
 
-	-- LEADER & MODERATOR
-		-- Assign Leader token to player with HIGHEST prestige
-		-- Assign Moderator token to player with LOWEST prestige
 
-	-- LEGACY EFFECTS
-		-- Apply 'em
-		-- Open Agendas too!
-
-	-- SECRET AGENDAS
-		-- Shuffle Secret Agendas, Randomly Remove One
-		-- sort a table of playerData by prestige, with lowest first
-			-- FOR EACH:
-			-- get CurrentPlayer = prestigeTable.shift()
-			-- "Deal" all SecretAgenda cards in DECKS or in HAND ZONES (but NOT in PLAY) to CurrentPlayer
-			-- They choose by dropping from hand onto mat
-				-- onObjectDrop() listener for CurrentPlayer dropping SecretAgenda
-				-- loop back, dealing all cards to next player
-				-- when all players have a SecretAgenda, END START SESSION!
 
 return DIR

@@ -6,8 +6,36 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
-function P.ClearPlayerColor(color)
-	if color == nil then return U.forEach(C.SeatColors, P.ClearPlayerColor) end
+function P.InitializeSeats()
+	local numPlayers = S.getStateVal("seatCount")
+	U.forEach(Hands.getHands(), function(handZone) handZone.destruct() end)
+	P.ClearSeats()
+	local baseTransform = {
+		position = Vector(0, 3, C.TableRadius),
+		rotation = Vector(0, 180, 0),
+		scale = Vector(12, 5, 4)
+	}
+	local angles = C.SeatAngles[numPlayers]
+	for i = 1, numPlayers, 1 do
+		local transformData = OU.RotateByAngle(U.clone(baseTransform), angles[i])
+		spawnObjectData({
+			data = {
+				Name = "HandTrigger",
+				FogColor = C.SeatColors[i],
+				GMNotes = "ZonePlayer" .. C.SeatColors[i],
+				Transform = OU.unfoldTransform(transformData)
+			},
+			callback_function = function()
+				Wait.time(function()
+					Player[C.SeatColors[i]].setHandTransform(transformData)
+				end, 5)
+			end
+		})
+	end
+end
+
+function P.ClearSeat(color)
+	if color == nil then return U.forEach(C.SeatColors, P.ClearSeat) end
 	local playerObjects = getObjectsWithTag(color)
 	local playerZones = U.filter(getObjects(), function(obj) return obj.type ~= "Hand" and obj.getGMNotes() == "ZonePlayer" .. color end)
 	U.forEach(U.concat(playerObjects, playerZones), function(obj)
@@ -15,16 +43,20 @@ function P.ClearPlayerColor(color)
 			obj.setTags({"HouseCard"})
 			obj.setPosition(C.Spots.Storage.HouseCard.position)
 			obj.setRotation(C.Spots.Storage.HouseCard.rotation)
+			obj.setScale(C.Spots.Storage.HouseCard.scale)
 		else
 			obj.destruct()
 		end
 	end)
 end
+function P.ClearSeats() return U.forEach(C.SeatColors, P.ClearSeat) end
 
 
-
-function P.getRotatedPlayerTransform(objOrTransform, player)
-	local fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
+function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
+	objOrTransform = OU.foldTransform(objOrTransform)
+	if fromAngle == nil then
+		fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
+	end
 	local toAngle = S.getPlayerAngle(player)
 	return OU.RotateByAngle(objOrTransform, toAngle - fromAngle)
 end

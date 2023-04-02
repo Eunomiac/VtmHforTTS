@@ -1,5 +1,5 @@
--- local U = require("utilities")
 local U = require("lib.utilities")
+local C = require("kingsdilemma.lib.constants")
 local OU = {}
 
 function OU.foldTransform(objOrTransform)
@@ -8,8 +8,9 @@ function OU.foldTransform(objOrTransform)
 	end
 	if type(objOrTransform) ~= "table" then return end
 	if type(objOrTransform.Transform) == "table" then
-		objOrTransform = objOrTransform.Transform
+		objOrTransform = objOrTransform
 	end
+	objOrTransform = U.clone(objOrTransform)
 
 	if objOrTransform.posX ~= nil then
 		if objOrTransform.rotX == nil then
@@ -44,7 +45,7 @@ function OU.unfoldTransform(objOrTransform)
 	end
 	if type(objOrTransform) ~= "table" then return end
 	if type(objOrTransform.Transform) == "table" then
-		return objOrTransform.Transform
+		return U.clone(objOrTransform.Transform)
 	end
 
 	if objOrTransform.position ~= nil then
@@ -52,7 +53,7 @@ function OU.unfoldTransform(objOrTransform)
 		local rotation = Vector(objOrTransform.rotation or {0, 0, 0})
 		local scale = Vector(objOrTransform.scale or {1, 1, 1})
 		return {
-			posX = objOrTransform.posX,
+			posX = position.x,
 			posY = position.y,
 			posZ = position.z,
 			rotX = rotation.x,
@@ -91,7 +92,7 @@ end
 
 function OU.GetNearestPlayerAngle(objOrTransform, isExcludingZero)
 	local objAngle = OU.getAngleOf(objOrTransform)
-	local playerAngles = C.GetPlayerAngles()
+	local playerAngles = C.SeatAngles[S.GetSeatCount()]
 	if not isExcludingZero then
 		table.insert(playerAngles, 1, 0)
 	end
@@ -104,26 +105,12 @@ function OU.GetNearestPlayerAngle(objOrTransform, isExcludingZero)
 	return nearestAngle
 end
 
-function OU.GetHandZones()
-	return U.filter(getObjects(), function(obj) return obj.type == "Hand" end)
-end
-
-function OU.GetPlayerHandZone(player)
-	return U.find(OU.GetHandZones(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. player.color end)
-end
-
-function OU.GetPlayerNumFromAngle(objOrTransform)
-	local playerAngle = OU.GetNearestPlayerAngle(objOrTransform)
-	if playerAngle == 0 then return 0 end
-	return U.findIndex(C.GetPlayerAngles(), function(angle) return playerAngle == angle end)
-end
-
 function OU.RotateByAngle(objOrTransform, angleDelta)
 	local objTransform = OU.foldTransform(objOrTransform)
 	if objTransform == nil then return end
 	return {
-		position = objTransform.position:rotateOver("y", angleDelta),
-		rotation = objTransform.rotation:add(Vector(0, angleDelta, 0)),
+		position = Vector(objTransform.position):rotateOver("y", angleDelta),
+		rotation = Vector(objTransform.rotation):add(Vector(0, angleDelta, 0)),
 		scale = objTransform.scale
 	}
 end

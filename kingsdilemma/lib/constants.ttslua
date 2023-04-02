@@ -1,19 +1,19 @@
 local U = require("lib.utilities")
 local C = {}
 
-C.GetPlayerAngles = function()
-	return ({
-		{}, {}, {
-			60, 180, 300
-		}, {
-			60, 140, 220, 300
-		}, {
-			60, 120, 180, 240, 300
-		}
-	})[#Player.getAvailableColors()]
-end
+C.SeatAngles = {
+	{}, {}, {
+		60, 180, 300
+	}, {
+		60, 140, 220, 300
+	}, {
+		60, 120, 180, 240, 300
+	}
+}
 
 C.TableRadius = 52.7
+
+C.AdminID = "76561198002132577"
 
 C.SeatColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
 
@@ -30,14 +30,17 @@ C.Modes = {
 
 C.Phases = {
 	NONE = "NONE",
-	SESSIONINIT = "SESSIONINIT",
+	SESSIONINIT = {
+		SeatCount = "SeatCount",
+		SeatPlayers = "SeatPlayers",
+		HouseSelection = "HouseSelection"
+	},
 	CAMPAIGNSETUP = "CAMPAIGNSETUP",
 	GAMESETUP = {
 		MainBoard = "MainBoard",
-		Houses = "Houses",
-		SecretAgendas = "SecretAgendas",
 		LeaderModerator = "LeaderModerator",
-		LegacySetup = "LegacySetup"
+		LegacySetup = "LegacySetup",
+		SecretAgendas = "SecretAgendas"
 	},
 	PLAY = {
 		Draw = "Draw",
