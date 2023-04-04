@@ -16,12 +16,13 @@ local function generateGetterFunction(guid)
 end
 
 O.SecretContainers = {
-	Envelopes = generateGetterFunction(""),
-	Stickers = generateGetterFunction("")
+	Envelopes = generateGetterFunction("e8b898"),
+	Stickers = generateGetterFunction("531d8d"),
+	MysteryStickers = generateGetterFunction("9c9b72")
 }
 
 O.UninteractableObjs = {
-	Table = generateGetterFunction("6a3d16")
+	Table = generateGetterFunction("9909b3")
 }
 
 O.MainStorage = generateGetterFunction("390beb")
@@ -52,7 +53,7 @@ O.Leader = {
 }
 
 O.Moderator = {
-	Figure = generateGetterFunction("c9e65c"),
+	Figure = generateGetterFunction("078ee2"),
 	Light = generateGetterFunction("6a99d8")
 }
 
@@ -60,6 +61,10 @@ O.Lights = {
 	MainBoardTop = generateGetterFunction("79ba9e"),
 	MainBoardBottom = generateGetterFunction("746f68"),
 	Debug = generateGetterFunction("a4527e")
+}
+
+O.Pieces = {
+	CoverCard = generateGetterFunction("533718")
 }
 
 O.Get = memoGetFromGUID

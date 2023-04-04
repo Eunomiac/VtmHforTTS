@@ -1,7 +1,5 @@
 local U = {}
 
-local ISDEBUGGING = false
-
 function U.pFloat(num)
     if (num) then
         return math.ceil(num * 100) / 100
@@ -71,42 +69,8 @@ function U.findAboveObject(obj, testFunc, params)
 	)
 end
 
-function U.findBelowObject(obj, testFunc, params)
-	if params == nil then params = {} end
-	params.invert = params.invert ~= true
-	return U.findAboveObject(obj, testFunc, params)
-end
-
 function U.isObjectAbove(obj, testObj, params)
 	return #U.findAboveObject(obj, testObj, params) > 0
-end
-
-function U.isObjectBelow(obj, testObj, params)
-	return #U.findBelowObject(obj, testObj, params) > 0
-end
-
-function U.transferContents(fromObj, toObj)
-    for _, containedObject in ipairs(fromObj.getObjects()) do
-        toObj.putObject(fromObj.takeObject({smooth = false}))
-    end
-end
-
-function U.mutateObjects(containerObj, mutateFunc)
-  local stagingPos = {
-    x = containerObj.getPosition().x,
-    y = containerObj.getPosition().y + 5,
-    z = containerObj.getPosition().z
-  }
-  for _, objRef in ipairs(containerObj.getObjects()) do
-    containerObj.takeObject({
-      position = stagingPos,
-      top = false,
-      smooth = false,
-      callback_function = function(obj)
-        mutateFunc(obj)
-        containerObj.putObject(obj)
-      end})
-  end
 end
 
 function U.getScatterPosition(boundsOrObj, yShift, padPercent)
@@ -150,9 +114,6 @@ function U.getScatterPosition(boundsOrObj, yShift, padPercent)
 	return scatterVector
 end
 
-function U.findOnObject(baseObj, type, cast)
-end
-
 local function checkSnapPoint(snapPoint, axis, coordsFilter)
     if (snapPoint and snapPoint.position) then
         if (axis and coordsFilter[axis]) then
@@ -184,10 +145,6 @@ function U.getSnapPoints(board, coordsFilter, sortAxis)
     end
 
     return snapPoints
-end
-
-function U.getSnapPointPositions(board, coordsFilter, sortAxis)
-    return U.map(U.getSnapPoints(board, coordsFilter, sortAxis), function(snap) return snap.position end)
 end
 
 function U.findSnapPoint(snapPoints, pos, fuzziness)
@@ -230,31 +187,7 @@ function U.findSnapPoint(snapPoints, pos, fuzziness)
     end
 end
 
-function U.makeRing(objs, centerPos, radius, params)
-    local angleStep = 360 / U.count(objs)
-    local angleTable = {}
-    local nameTable = {}
-    for _, obj in pairs(objs) do table.insert(nameTable, obj.getName()) end
-    table.sort(nameTable)
-    for i, objName in ipairs(nameTable) do
-        angleTable[objName] = angleStep * (i - 1)
-    end
 
-    local objPositions = {}
-
-    for i, obj in pairs(objs) do
-        if (params and params.scale) then
-            obj.setScale(params.scale)
-        end
-        local thisAngle = angleTable[obj.getName()]
-        obj.setPosition({
-            x = centerPos.x + (radius * math.sin(math.rad(thisAngle))),
-            y = centerPos.y + 1,
-            z = centerPos.z + (radius * math.cos(math.rad(thisAngle)))
-        })
-        obj.setRotation({x = 0, y = 180, z = 0})
-    end
-end
 
 function U.count(T)
   local count = 0
@@ -300,7 +233,7 @@ function U.error(source, message, val)
 	error(errString .. (valString and (": " .. valString) or ""), 2)
 end
 
-function U.Assert(source, val, typeOrTest)
+function U.Assert(source, val, typeOrTest, tableType, isSilent)
 	local errorMessage
 	if type(typeOrTest) == "function" then
 		local result = typeOrTest(val)
@@ -312,17 +245,34 @@ function U.Assert(source, val, typeOrTest)
 			end
 		end
 	elseif type(typeOrTest) == "string" then
-		-- if not U.isIn(typeOrTest, {"nil", "number", "string", "boolean", "table", "function", "thread", "userdata"}) then
-		-- 	U.error("U.Assert", "Invalid type", typeOrTest)
-		-- end
-		if type(val) ~= typeOrTest then
+		if type(val) == "table" and tableType ~= nil then
+			U.forEach(val, function(v)
+				if not U.Assert(source, v, tableType, nil, true) then
+					errorMessage = "Table elements must all be type '" .. tableType .. "' -- Check log for table output"
+				end
+			end)
+			if errorMessage ~= nil then
+				logStyle("assert", {0.8, 0.8, 0}, "\n\n{", "}")
+				log(JSON.encode_pretty(val), nil, "assert")
+			end
+		elseif type(val) == typeOrTest then return true
+		elseif typeOrTest == "Player" and not U.isPlayer(val) then
+			errorMessage = "Not a Valid Player: '" .. tostring(val) .. "'"
+		elseif typeOrTest == "Object" and not U.isGameObject(val) then
+			errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "'"
+		else
 			errorMessage = "Not a " .. typeOrTest .. " (" .. type(val) .. ")"
 		end
 	end
 
 	if errorMessage ~= nil then
-		U.error(source, errorMessage, val)
+		if not isSilent then
+			U.error(source, errorMessage, val)
+		end
+		return false
 	end
+
+	return true
 end
 
 function U.forEach(tbl, func)
@@ -376,9 +326,8 @@ function U.waitRestingSequence(funcs, maxTime, isLoose)
 							objTargets = {objTargets}
 						end
 						for _, objTarget in pairs(objTargets) do
-							if objTarget.resting ~= true then
-								return false
-							end
+							if objTarget.loading_custom == true then return false end
+							if objTarget.resting ~= true then return false end
 						end
 						return true
 					end, maxTime)
@@ -581,12 +530,15 @@ function U.isIn(elem, tb)
 end
 
 function U.isGameObject(val)
-	if type(val) ~= "userdata" then return false end
-	return U.isIn("guid", val) or U.isIn("steam_id", val)
+	return type(val) == "userdata"
+		and tostring(val) ~= "LuaPlayer"
+		and val.guid ~= nil
 end
 
 function U.isPlayer(val)
-	return U.isGameObject(val) and U.isIn("steam_id", val)
+	return type(val) == "userdata"
+		and tostring(val) == "LuaPlayer"
+		and val.steam_id ~= nil
 end
 
 function U.isFlipped(obj)
@@ -594,58 +546,6 @@ function U.isFlipped(obj)
   return zRot == 180
 end
 
-local isSplashActive = false
-local function SplashMessageTo(visibilityTargets, messageData, delay)
-    if (not delay) then
-        delay = 5
-    end
-    -- log("Splashing '" .. messageData.title .. "' '" .. messageData.subTitle .. "' - isSplashActive = " .. tostring(isSplashActive))
-    if (isSplashActive) then
-        Wait.time(
-        function()
-            SplashMessageTo(visibilityTargets, messageData)
-        end,
-        4)
-    else
-        isSplashActive = true
-        UI.setAttribute("splashMessage", "visibility", visibilityTargets)
-        Wait.time(
-            function()
-                UI.hide("splashMessage")
-                isSplashActive = false
-            end,
-            delay
-        )
-    end
-end
-function U.splashMessage(title, subtitle, body)
-    if (isSplashActive) then
-        Wait.time(
-            function()
-                U.splashMessage(title, subtitle, body)
-            end,
-        1.5)
-    else
-        UI.hide("splashMessage")
-        isSplashActive = true
-        UI.setValue("splashMessageTitle", title or "")
-        UI.setValue("splashMessageSubtitle", subtitle or "")
-        UI.setValue("splashMessageBody", body or "")
-        UI.show("splashMessage")
-        Wait.time(
-            function()
-                isSplashActive = false
-            end,
-        1)
-        Wait.time(
-            function()
-                if (not isSplashActive) then
-                    UI.hide("splashMessage")
-                end
-            end,
-        5)
-    end
-end
 function U.splashUIElement(elemID, duration, delay)
   if (duration == nil) then duration = 5 end
   if (delay == nil or delay == 0) then
@@ -655,28 +555,14 @@ function U.splashUIElement(elemID, duration, delay)
     Wait.time(function() U.splashUIElement(elemID, duration, 0) end, delay)
   end
 end
-function U.alertGM(message)
-  broadcastToColor(message, "Red")
-end
+
+function U.alertGM(message) broadcastToColor(message, "Red") end
 
 function U.hasAnyTag(obj, tags)
 	for _, tag in pairs(tags) do
 		if obj.hasTag(tag) then return true end
 	end
 	return false
-end
-
-function U.findClanTag(obj)
-    if (obj.hasTag("Brujah")) then return "Brujah" end
-    if (obj.hasTag("Gangrel")) then return "Gangrel" end
-    if (obj.hasTag("Lasombra")) then return "Lasombra" end
-    if (obj.hasTag("Malkavian")) then return "Malkavian" end
-    if (obj.hasTag("Nosferatu")) then return "Nosferatu" end
-    if (obj.hasTag("Toreador")) then return "Toreador" end
-    if (obj.hasTag("Tremere")) then return "Tremere" end
-    if (obj.hasTag("Tzimisce")) then return "Tzimisce" end
-    if (obj.hasTag("Ventrue")) then return "Ventrue" end
-    return nil
 end
 
 function U.findColorTag(obj)
@@ -686,12 +572,10 @@ function U.findColorTag(obj)
 end
 
 function U.getHost()
-  return Player.Red
-  -- for _, player in ipairs(Player.getPlayers()) do
-  --   if (player.host) then
-  --     return player
-  --   end
-  -- end
+	local hosts = U.filter(Player.getPlayers(), function(player) return player.host end)
+	if #hosts == 1 then return hosts[1] end
+	-- If there are multiple hosts, this is a hotseat game being debugged: Player.Red is the assumed host.
+	return Player.Red
 end
 
 function U.getZoneBounds(zone)
@@ -791,6 +675,155 @@ function U.changeLighting(params)
 		Lighting.apply
 	}, 0.5)
 end
+
+function U.setRotationSlow(obj, rotation)
+	return obj.setRotationSmooth(rotation)
+end
+
+function U.setPositionSlow(obj, position)
+	return obj.setPositionSmooth(position)
+end
+
+-- WaitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
+	-- Delays execution of a function until a provided test function returns true.
+	-- @param afterFunc - {function} the function that will be called when the test returns true
+	-- @param testRef - {varies} a value that determines what the test function will be:
+			-- {function}: can define a test function directly, which must return true when some condition is met
+			-- {number}: executes the function when this many seconds have elapsed (can be 0 to run instantly)
+			-- {GameObject}: executes the function when the object has finished spawning *and* is at rest
+			-- {nil}: executes the function after a default delay of 0.5 s
+			-- {table}: a table containing any combination of the above will execute the function when ALL tests are passed
+					-- e.g. passing {gameObject, number, testFunc} will execute the function when
+					-- 			... <gameObject> has spawned and is at rest
+					--      ... at least <number> seconds have elapsed
+					--      ... AND <testFunc> returns 'true'
+  -- @param isForcing - {boolean} determines whether <afterFunc> will be called if WaitUntil times out before
+		                  -- the test function returns true (default = false)
+	-- @param maxWait - {number} the maximum number of frames to wait before timing out (default = 1000)
+	-- @param testFrequency - {number} how many frames to wait between each check of the test function (default = 15)
+function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
+	if afterFunc == nil then return end
+	if isForcing == nil then isForcing = false end
+	if maxWait == nil then maxWait = 1000 end
+	if testFrequency == nil then testFrequency = 15 end
+
+	local frameCount = 0
+
+	-- parseCheckFunc(testRef): Converts testRef into a test function (recursively, if testRef is a table)
+	local function parseCheckFunc(tRef)
+		if tRef == nil then tRef = 0.5 end
+		if type(tRef) == "function" then return tRef
+		elseif type(tRef) == "number" then
+			return function() return frameCount >= (tRef * 30) end
+		elseif U.isGameObject(tRef) then
+			return function() return tRef and tRef.resting and not tRef.loading_custom end
+		elseif type(tRef) == "table" then
+			local checkFuncs = U.map(tRef, function(tr) return parseCheckFunc(tr) end)
+			return function()
+				checkFuncs = U.filter(checkFuncs, function(cf) return cf() == false end)
+				return #checkFuncs == 0
+			end
+		end
+	end
+
+	local pCheckFunc = parseCheckFunc(testRef)
+
+	function CheckCoroutine()
+		if pCheckFunc ~= nil then
+			while frameCount < maxWait and not pCheckFunc() do
+				local waitFrames = testFrequency
+				frameCount = frameCount + waitFrames
+				while waitFrames > 0 do
+					coroutine.yield(0)
+					waitFrames = waitFrames - 1
+				end
+			end
+
+			if maxWait <= 0 then
+				if isForcing then
+					U.alertGM("Coroutine Timeout: Forcing resultFunc")
+				else
+					U.alertGM("Coroutine Timeout! Abandoning resultFunc")
+					return 1
+				end
+			end
+		end
+
+		if afterFunc ~= nil then
+			afterFunc()
+		end
+
+		return 1
+	end
+
+	startLuaCoroutine(self, "CheckCoroutine")
+end
+
+-- RunSequence({...functions}, maxWait, frequency)
+	-- Runs a series of functions sequentially via WaitUntil.
+	-- The return value of each function becomes the testRef that will determine when the next function in line is executed
+
+function U.RunSequence(funcs, maxWait, frequency)
+	U.Assert("U.RunSequence", funcs, "table", "function")
+	if #funcs == 0 then return end
+
+	local function runNextFunc(lastFuncReturnTest)
+		local thisFunc = U.shift(funcs)
+		if thisFunc == nil then return end
+		U.waitUntil(function()
+			runNextFunc(thisFunc())
+		end, lastFuncReturnTest, true, maxWait, frequency)
+	end
+
+	local func = U.shift(funcs)
+	if func == nil then return end
+	runNextFunc(func())
+end
+
+-- local container = Containers.GetMainStorage()
+-- local fetchedObj, playerReply
+
+
+-- U.RunSequence({
+-- 	function() -- Take an object out of a container, clear its name, then delay the next function until
+-- 						 -- the retrieved object has finished spawning, has stopped moving, AND at least five
+-- 					   -- seconds have elapsed
+-- 		fetchedObj = container.takeObject({
+-- 			position = container.getPosition:add(Vector(0,3,0)),
+-- 			callback_function = function(obj) obj.setName("") end
+-- 		})
+-- 		return {fetchedObj, 5} -- <- the <testRef> that will determine execution of function #2: in this case,
+-- 													 --    a table containing the fetched object and the minimum delay in seconds.
+-- 	end,
+-- 	function() -- Prompt the Red player to name the object, and execute the third function
+-- 		         -- after the player has responded.
+-- 		Player.Red.showInputDialog(
+-- 			"What shall we name it?",
+-- 			"Fetched Object",
+-- 			function (fetchedObjName) fetchedObj.setName(fetchedObjName) end
+-- 		)
+-- 		return function() -- <- this <testRef> defines the test function directly, periodically checking
+-- 											--    the name and returning true when it has changed.
+-- 			return fetchedObj.getName() ~= ""
+-- 		end
+-- 	end,
+-- 	function() fetchedObj.highlightOn(Color.fromString("Red")) end, -- <- No <testRef> returned = default delay of 0.5s
+-- 	Lights.RaiseLighting, 			-- <- If no parameters and no <testRef> needed, can just list functions: they'll
+-- 	Containers.StowMainStorage  --    execute every 0.5s
+-- })
+
+-- - U.WaitSequence
+--   - accepts table of functions to run in sequence
+--   - runs function, storing return value to variable
+--     - each function's return value controls how the next function is run
+--       - if return type is ...
+--         - a game object: wait until object is finished spawning and is at rest
+--         - a number: wait that many seconds (return '0' to run next function instantly)
+--         - nil: wait the default delay of 0.5 seconds
+--         - a function: waits until the function returns 'true'
+--         - a table of the above: waits until ALL are passed (so a number would represent minimum amount of time to wait)
+
+
 
 function U.sequence(funcs, timeDelay)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided

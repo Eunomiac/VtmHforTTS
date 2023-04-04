@@ -58,12 +58,23 @@ local TESTFUNCS = {
 		end
 	end,
 	function(button)
-		U.forEach(getObjectsWithTag("HouseCard"), function(obj)
-			obj.setTags({"HouseCard"})
-			obj.setPosition(C.Spots.Storage.HouseCard.position)
-			obj.setRotation(C.Spots.Storage.HouseCard.rotation)
-			obj.setScale(C.Spots.Storage.HouseCard.scale)
-		end)
+		local testObj = getObjectFromGUID("533718")
+		U.RunSequence({
+			function()
+				testObj.setName("")
+				testObj.setLock(false)
+				return {testObj, 5}
+			end,
+			function()
+				Player.Red.showInputDialog(
+					"What shall we name it?",
+					"Fetched Object",
+					function (fetchedObjName) testObj.setName(fetchedObjName) end
+				)
+				return function() return testObj.getName() ~= "" end
+			end,
+			function() testObj.highlightOn(Color.fromString("Red")) end
+		})
 	end,
 	function(button)
 	end,

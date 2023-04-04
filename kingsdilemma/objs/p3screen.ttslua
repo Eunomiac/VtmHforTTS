@@ -337,6 +337,7 @@ local function assignHouseCard(playerRef, houseName)
 end
 
 
+
 local function applyObjData(partName, playerRef, houseName)
 	local oParams = ObjectData[partName]
 	if oParams == nil then return end

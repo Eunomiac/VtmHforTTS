@@ -39,7 +39,9 @@
 		"onPlayerChangeColor",
 		"onExternalCommand",
 		"Hands",
-		"spawnObject"
+		"spawnObject",
+		"startLuaCoroutine",
+		"logStyle"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

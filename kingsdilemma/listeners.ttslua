@@ -3,6 +3,7 @@ local O = require("kingsdilemma.lib.objects")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local C = require("kingsdilemma.lib.constants")
+local L = require("kingsdilemma.core.lighting")
 local DIR = require("kingsdilemma.core.director")
 
 
@@ -50,7 +51,7 @@ function onLoad(save_data)
 		oFunc().interactable = false
 	end)
 
-	DIR.InitSession()
+	L.LoadLights()
 
 	-- DEBUG: Auto-assign "Player X"'s to colors
 	local seats = U.clone(C.SeatColors)
@@ -63,6 +64,7 @@ function onLoad(save_data)
 		end
 	end)
 
+	DIR.InitSession()
 end
 
 function onSave() return JSON.encode(S.getGameState()) end

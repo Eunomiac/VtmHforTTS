@@ -52,7 +52,7 @@ function GetFirstPlayer()
 		function(token)
 			return {
 				obj = token,
-				clan = U.findClanTag(token),
+				clan = M.findClanTag(token),
 				spot = math.ceil(U.findSnapPoint(self, token) / 3)
 			}
 		end

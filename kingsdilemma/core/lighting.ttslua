@@ -1,9 +1,69 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
+local C = require("kingsdilemma.lib.constants")
 
 local L = {}
 
 local LIGHTMODES = {
+	lightLectern = {
+		default = "ambient",
+		ambient = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 80,
+			angle = 70,
+			intensity = 2.5,
+			rotation = Vector(300,0,0)
+		},
+		spotlightEnvelope = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 30,
+			intensity = 2,
+			rotation = Vector(290,0,8)
+		},
+		spotlightStickers = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 30,
+			intensity = 2,
+			rotation = Vector(290,0,352)
+		},
+		spotlightMystery = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 33,
+			intensity = 2,
+			rotation = Vector(275,0,0)
+		},
+		spotlightPlinth = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 30,
+			intensity = 2,
+			rotation = Vector(290,0,0)
+		},
+		spotlightTransit = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 50,
+			intensity = 1,
+			rotation = Vector(304,0,0)
+		},
+		firstStoryCard = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 25,
+			intensity = 1.5,
+			rotation = Vector({11.21, 0.00, 0.00})
+		}
+	},
 	lightMainTop = {},
 	lightMainBottom = {},
 	lightLeader = {
@@ -14,7 +74,7 @@ local LIGHTMODES = {
 			enabled = true,
 			color = Color(1, 1, 1),
 			range = 66,
-			spotAngle = 30,
+			angle = 30,
 			intensity = 10
 		}
 	},
@@ -26,7 +86,7 @@ local LIGHTMODES = {
 			enabled = true,
 			color = Color(1, 1, 1),
 			range = 66,
-			spotAngle = 30,
+			angle = 30,
 			intensity = 10
 		}
 	},
@@ -34,30 +94,33 @@ local LIGHTMODES = {
 		ambient = {
 			color = Color(0.5, 0.5, 0.5),
 			range = 55,
-			spotAngle = 57,
+			angle = 57,
 			intensity = 4
 		},
 		aye = {
 			color = Color(0, 1, 1),
 			range = 55,
-			spotAngle = 63,
+			angle = 63,
 			intensity = 4
 		},
 		nay = {
 			color = Color(1, 0, 0),
 			range = 55,
-			spotAngle = 63,
+			angle = 63,
 			intensity = 4
 		}
 	}
 }
 
+
+
 local function getComp(light) return light.getChildren()[1].getChildren()[2].getComponents()[2] end
 
 local function getLight(lightName, playerRef)
-	local player = S.getPlayer(playerRef)
+	local player
 	local tags = {lightName}
-	if player ~= nil then
+	if playerRef ~= nil then
+		player = S.getPlayer(playerRef)
 		table.insert(tags, player.color)
 	end
 	local lights = getObjectsWithAllTags(tags)
@@ -65,9 +128,26 @@ local function getLight(lightName, playerRef)
 		return U.alertGM("[Error: getLight()] Multiple '" .. "'s found!")
 	end
 	if #lights == 0 then
+---@diagnostic disable-next-line: need-check-nil
 		return U.alertGM("[Error: getLight()] No '" .. "' light found" .. (player == nil and "!" or (" for " .. player.color .. " Player.")))
 	end
 	return lights[1]
+end
+
+local function loadLights()
+	U.forEach(LIGHTMODES, function(modes, name)
+		if modes.default ~= nil then
+			L.SetLightMode(name, modes.default)
+			local lComp = getComp(getLight(name))
+			log({
+				enabled = lComp.get("enabled"),
+				range = lComp.get("range"),
+				intensity = lComp.get("intensity"),
+				color = lComp.get("color"),
+				angle = lComp.get("spotAngle")
+			})
+		end
+	end)
 end
 
 local function getAllLights()
@@ -120,47 +200,15 @@ local function setLightMode(lightName, mode, playerNum)
 	if lData.intensity ~= nil then setIntensity(light, lData.intensity) end
 	if lData.color ~= nil then setColor(light, lData.color) end
 	if lData.angle ~= nil then setAngle(light, lData.angle) end
+	if lData.rotation ~= nil then U.setRotationSlow(light, lData.rotation) end
+	if lData.position ~= nil then U.setPositionSlow(light, lData.position) end
 
+	return light
 end
 
+L.LoadLights = loadLights
 L.ShowArrows = showArrow
 L.HideArrows = hideArrow
 L.SetLightMode = setLightMode
 
 return L
-
-
-
-
--- light.setPositionSmooth(light.getPosition():rotateOver("y", 120), false, false)
--- light.setRotationSmooth(light.getRotation():add(Vector(0, 120, 0), false, false)
-
-
--- local light, hTarget, hVecs
--- hTarget = (hTarget == 5 and 1 or (hTarget + 1)); hTarget = hTarget == 5 and 1 or (hTarget + 1); light.setPositionSmooth(light.getPosition():rotateTowards(hVecs[hTarget]), false, false); light.setRotationSmooth(light.getRotation():add(Vector(0, 120, 0), false, false))
-
--- lua hVecs = {getObjectFromGUID("1ad79f").getPosition(), getObjectFromGUID("1b34af").getPosition(), getObjectFromGUID("b483e8").getPosition(), getObjectFromGUID("17082e").getPosition(), getObjectFromGUID("6d8aff").getPosition()}
-
--- Can also check which player the light is pointing at by seeking the minimum of 'light.getPosition():angle(hVecs[1-5])'
-
-
--- local handZones = get all hand zones
--- local sortedMins = table.sort(handZones, function(a, b) return self.getPosition():angle(a.getPosition()) < self.getPosition():angle(b.getPosition()) end)
--- local fromPosition = sortedMins[1].getPosition()
--- local targetHandZone = get hand zone of targeted player
--- local toPosition = targetHandZone.getPosition()
--- local angleDelta = fromPosition:angle(toPosition)
--- if fromPosition:rotateOver("y", 5):angle(toPosition) < angleDelta then angleDelta = -1 * angleDelta end
--- local toData = OU.RotateByAngle(self, angleDelta)
--- self.setPositionSmooth(toData.position, false, false)
--- self.setRotationSmooth(toData.rotation, false, false)
-
-	-- then get position of hand zone you want to move towards, and calculate angleDelta =
-		-- but need easy way to determine counterclockwise or clockwise by ONLY referring to the hand zone vectors -- cross product & left-hand rule?
-		-- or, could do fromPosition:rotateOver("y", 5):angle(toPosition) > angleDelta --> Means angleDelta is in proper direction, so positive sign; else negative sign
-	-- now, with angle delta, can use standard OU.RotateByAngle(objOrTransform, angleDelta)
-
-
-
-	-- Minimum: given table of hand zones (this is likely the best way to get "direction" of player)
-	-- local sortedMins =

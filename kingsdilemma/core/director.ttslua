@@ -10,11 +10,19 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 
 local DIR = {}
 
-function DIR.ADVANCE()
+function DIR.ADVANCE(waitFunc)
 	local mode, phase = S.getNextPhase()
-	S.setStateVal(mode, "gameMode")
-	S.setStateVal(phase, "gamePhase")
-	DIR.InitializePhase()
+	local function startPhase()
+		S.setStateVal(mode, "gameMode")
+		S.setStateVal(phase, "gamePhase")
+		DIR.InitializePhase()
+	end
+
+	if waitFunc then
+		U.waitUntil(startPhase, waitFunc, true)
+	else
+		startPhase()
+	end
 end
 
 function DIR.RESET()
@@ -48,7 +56,7 @@ INITFUNCS = {
 			function()
 				S.setStateVal(true, "isMidGame")
 				local curCount = S.GetSeatCount()
-				local host = S.getPlayer("Admin")
+				local host = S.getPlayer("Host")
 				host.showInputDialog("How many players?", tostring(curCount), function(count)
 					count = tonumber(count)
 					U.Assert("promptSeatCount", count, function(c) return c >= 3 and c <= 5 end)
@@ -58,7 +66,19 @@ INITFUNCS = {
 			end
 		} end,
 		SeatPlayers = function() return {
-			P.InitializeSeats
+			function()
+				P.InitializeSeats()
+				local seatCount = S.GetSeatCount()
+				DIR.ADVANCE(function()
+					for i = 1, seatCount do
+						if Player[C.SeatColors[i]].getHandCount() == 0 then
+							return false
+						end
+					end
+					S.UpdateSeatedPlayers()
+					return true
+				end)
+			end
 		} end,
 		HouseSelection = function() return {
 			function() Global.call("InitHouseSelectionHUD") end
@@ -67,18 +87,19 @@ INITFUNCS = {
 	CAMPAIGNSETUP = function()
 		if S.getStateVal("gameCount") == 1 then return {
 			-- If this is the very first game of a campaign:
+			function()
 				-- Move "Harad" Chronicle Card to somewhere prominent
-				-- Prompt for Prologue or Normal Game, fetch appropriate envelope
-				-- Extract from container to directly above it
-				-- SmoothMove it past its destination so it can rebound back
-				-- SmoothMove it to hover over Cover Card
-				-- Extract First Card, have it hover over in front/above envelope
-				-- Elevate Cover Card an inch or so
-				-- Extract & Move other cards directly into new deck formed beneath Cover Card
-				-- Shuffle deck
-				-- Drop Cover Card on top
-				-- Move top Story Card to middle of the "Chronicle Stickers" zone for whoever to pick up and deal with it
-			}
+				DIR.PlaceChronicleCard("Harald V")
+				-- Prompt for Prologue or Normal Game, then start the appropriate campaign
+				local host = S.getPlayer("Host")
+				host.showOptionsDialog(
+					"How do you want to start your Chronicle of A King's Dilemma?",
+					{"Prologue", "Main"},
+					"Prologue",
+					DIR.StartChronicle
+				)
+			end
+		}
 		else return {
 			function()
 				S.setStateVal(S.getStateVal("gameCount") + 1, "gameCount")
@@ -131,6 +152,9 @@ INITFUNCS = {
 
 		} end,
 		Result = function() return {
+			-- set alt_view_angle to ...
+				-- AYE vote = Vector(0,0,0)
+				-- NAY vote = Vector(0,180,180)
 
 
 		} end,
@@ -210,7 +234,183 @@ function DIR.AssignSelectedHouses(selectionData)
 	end)
 end
 
+local function getContainedGUID(container, targetName)
+	local targetObjData = U.find(container.getObjects(), function(objData)
+		return string.lower(objData.name) == string.lower(targetName)
+	end)
+	if targetObjData == nil then
+		broadcastToAll("Target '" .. tostring(targetName) .. "' not found. Check letters and cases.", {1,0,0})
+		return nil
+	end
+	return targetObjData.guid
+end
 
+local function getUpdatedChronicleCardState(cScriptState)
+	local scriptState = JSON.decode(cScriptState)
+	local playerKeys = {"1", "8", "15", "22", "29"}
+	U.forEach(S.getPlayers(), function(player, i)
+		local houseName = S.getPlayerVal(player, "houseName") or ""
+		scriptState[playerKeys[i]] = houseName
+	end)
+	return JSON.encode(scriptState)
+end
+
+function DIR.PlaceChronicleCard(kingName)
+	local sourceObj = O.SpawnSources.chronicleCard()
+	local spawnData = sourceObj.getData()
+	spawnData.Nickname = kingName
+	spawnData.Description = os.date("%b ") .. os.date("*t").day .. " '" .. os.date("*t").year - 2000
+	spawnData.Transform = OU.unfoldTransform(C.Spots.Main.ChronicleCard)
+	spawnData.Tags = {"ChronicleCard", "ChronicleCardActive"}
+	spawnData.LuaScriptState = getUpdatedChronicleCardState(spawnData.LuaScriptState)
+	spawnObjectData({data = spawnData})
+end
+
+function DIR.UpdateChronicleCardNames()
+	local cCard = getObjectsWithTag("ChronicleCardActive")[1]
+	local cData = cCard.getData()
+	cCard.setCustomObject({LuaScriptState = getUpdatedChronicleCardState(cData.LuaScriptState)})
+	cCard.reload()
+end
+
+function DIR.StartChronicle(startType)
+	local startingEnvelope
+	if startType == "Prologue" then
+		startingEnvelope = "D1"
+	else
+		startingEnvelope = "0"
+	end
+	local envContainer = O.SecretContainers.Envelopes()
+	local coverCard = O.Pieces.CoverCard()
+	coverCard.setLock(true)
+	local coverCardRaisedPos = coverCard.getPosition():add(Vector(0, 1, 0))
+	local newCardDestPos = coverCard.getPosition():add(Vector(0, 0.5, 0))
+	local envGUID = getContainedGUID(envContainer, startingEnvelope)
+	if envGUID == nil then return end
+
+	local envContents, storyCard, dilemmaDeck, remainder
+
+	local function grabNextCard()
+		newCardDestPos = newCardDestPos:add(Vector(0, -0.1, 0))
+		if remainder ~= nil then
+			remainder.setTags({"Dilemma"})
+			remainder.setLock(false)
+			remainder.setPositionSmooth(newCardDestPos)
+			remainder.setRotationSmooth(coverCard.getRotation())
+		else
+			envContents.takeObject({
+				position = newCardDestPos,
+				rotation = coverCard.getRotation(),
+				callback_function = function(obj)
+					obj.setTags({"Dilemma"})
+					obj.setLock(false)
+				end
+			})
+			if envContents.remainder ~= nil then
+				remainder = envContents.remainder
+				return 1
+			end
+		end
+		return 0.3
+	end
+
+	U.RunSequence({
+		function() return {L.SetLightMode("lightLectern", "spotlightEnvelope"), 1} end,
+		function()
+			U.setPositionSlow(envContainer, C.Spots.Staging.Lectern.Envelopes.position)
+			U.setRotationSlow(envContainer, C.Spots.Staging.Lectern.Envelopes.rotation)
+			return {envContainer, L.SetLightMode("lightLectern", "spotlightPlinth"), 1}
+		end,
+		function()
+			envContainer.takeObject({
+				position = C.Spots.Staging.Lectern.Display.position,
+				rotation = C.Spots.Staging.Lectern.Display.rotation,
+				guid = envGUID,
+				callback_function = function(obj)
+					envContents = obj
+					envContents.setLock(true)
+				end
+				})
+			return function() return envContents ~= nil end
+		end,
+		function()
+			U.setPositionSlow(coverCard, coverCardRaisedPos)
+			U.setPositionSlow(envContainer, C.Spots.Storage.Envelopes.position)
+			U.setRotationSlow(envContainer, C.Spots.Storage.Envelopes.rotation)
+			return {coverCard, envContainer, L.SetLightMode("lightLectern", "spotlightTransit")}
+		end,
+		function()
+			envContents.takeObject({
+				position = C.Spots.Staging.Lectern.TopCard.position,
+				rotation = C.Spots.Staging.Lectern.TopCard.rotation,
+				callback_function = function(obj)
+					storyCard = obj
+					storyCard.setTags({"StoryCard"})
+					storyCard.setLock(true)
+				end
+			})
+			return function() return storyCard ~= nil end
+		end,
+		grabNextCard,
+		grabNextCard,
+		grabNextCard,
+		function()
+			return
+				function()
+					local dilemmaObjs = getObjectsWithTag("Dilemma")
+					if #dilemmaObjs ~= 1 then return false end
+					if dilemmaObjs[1].type ~= "Deck" then return false end
+					dilemmaDeck = dilemmaObjs[1]
+					return dilemmaDeck
+				end
+		end,
+		function()
+			dilemmaDeck.shuffle()
+			return 1
+		end,
+		function()
+			coverCard.setLock(false)
+			-- storyCard.setLock(false)
+			storyCard.setPositionSmooth(Vector({0.00, 7, 16.52}))
+			storyCard.setRotationSmooth(Vector({0.00, 180.00, 0.00}))
+			return {
+				coverCard,
+				storyCard,
+				L.SetLightMode("lightLectern", "firstStoryCard")
+			}
+		end,
+		function()
+			storyCard.setLock(false)
+			return {
+				storyCard,
+				3.5
+			}
+		end,
+		function()
+			return function() return not Vector.equals(storyCard.getPosition(), Vector({0.00, 1.94, 16.52}), 1) end
+		end,
+		function()
+			return L.SetLightMode("lightLectern", "ambient")
+		end
+	})
+end
+
+function DIR.OpenEnvelope(eRef)
+-- 	local envContainer = O.SecretContainers.Envelopes()
+-- 	local envData = U.find(envContainer.getObjects(), function(eData)
+-- 		return string.lower(eData.name) == string.lower(eRef)
+-- 	end)
+-- 	if envData == nil then
+-- 		U.alertGM("No such envelope '" .. string.lower(eRef) .. "'")
+-- 		return
+-- 	end
+
+-- 	envContainer
+
+
+-- O.Envelopes().takeObject()
+
+end
 
 
 

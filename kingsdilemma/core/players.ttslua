@@ -25,13 +25,16 @@ function P.InitializeSeats()
 				GMNotes = "ZonePlayer" .. C.SeatColors[i],
 				Transform = OU.unfoldTransform(transformData)
 			},
-			callback_function = function()
-				Wait.time(function()
-					Player[C.SeatColors[i]].setHandTransform(transformData)
-				end, 5)
-			end
+			-- callback_function = function()
+			-- 	U.waitUntil(function()
+			-- 		return Player[C.SeatColors[i]].getHandCount() > 0
+			-- 	end, function()
+			-- 		Player[C.SeatColors[i]].setHandTransform(transformData)
+			-- 	end)
+			-- end
 		})
 	end
+
 end
 
 function P.ClearSeat(color)
@@ -69,7 +72,7 @@ function P.RotateToPlayer(objs, player)
 		local toData = P.getRotatedPlayerTransform(obj, player)
 		local endPos, endRot = toData.position, toData.rotation
 
-		U.waitRestingSequence({
+		U.RunSequence({
 			function()
 				obj.setPositionSmooth(startPos:add(Vector(0, 2, 0)))
 				return obj

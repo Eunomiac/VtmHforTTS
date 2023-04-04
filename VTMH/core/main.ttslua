@@ -63,6 +63,19 @@ function M.hideLightArrows()
 	end)
 end
 
+function M.findClanTag(obj)
+	if (obj.hasTag("Brujah")) then return "Brujah" end
+	if (obj.hasTag("Gangrel")) then return "Gangrel" end
+	if (obj.hasTag("Lasombra")) then return "Lasombra" end
+	if (obj.hasTag("Malkavian")) then return "Malkavian" end
+	if (obj.hasTag("Nosferatu")) then return "Nosferatu" end
+	if (obj.hasTag("Toreador")) then return "Toreador" end
+	if (obj.hasTag("Tremere")) then return "Tremere" end
+	if (obj.hasTag("Tzimisce")) then return "Tzimisce" end
+	if (obj.hasTag("Ventrue")) then return "Ventrue" end
+	return nil
+end
+
 local function lockObjects(objGUIDs)
 	for _, guid in pairs(objGUIDs) do
 		local obj = getObjectFromGUID(guid)
@@ -406,7 +419,7 @@ function M.onPlayerAction(player, action, targets)
 					target.setPositionSmooth(getObjectFromGUID(G.globalSpots.charDiscard).getPosition():add(Vector(0, 2, 0)))
 					-- return false
 				elseif target.hasTag("ClanScheme") then
-					local clan = U.findClanTag(target)
+					local clan = M.findClanTag(target)
 					if clan == nil then return false end
 					local clanColor = M.getColorOfClan(clan)
 					if clanColor == "" then return false end
@@ -1214,14 +1227,31 @@ function M.extractClanTokens()
 end
 
 function M.makeClanSelectionRing()
-	U.makeRing(
-		getObjectsWithTag("ClanToken"),
-		G.tableSpots.highlighters.clanSelection.active,
-		3,
-		{
-			scale = { x = 0.5, y = 1, z = 0.5 }
-		}
-	)
+	local objs = getObjectsWithTag("ClanToken")
+	local centerPos = G.tableSpots.highlighters.clanSelection.active
+	local radius = 3
+	local scale = Vector(0.5, 1, 0.5)
+
+	local angleStep = 360 / U.count(objs)
+	local angleTable = {}
+	local nameTable = {}
+	for _, obj in pairs(objs) do table.insert(nameTable, obj.getName()) end
+	table.sort(nameTable)
+	for i, objName in ipairs(nameTable) do
+			angleTable[objName] = angleStep * (i - 1)
+	end
+
+	for _, obj in pairs(objs) do
+			obj.setScale(scale)
+			local thisAngle = angleTable[obj.getName()]
+			obj.setPosition({
+					x = centerPos.x + (radius * math.sin(math.rad(thisAngle))),
+					y = centerPos.y + 1,
+					z = centerPos.z + (radius * math.cos(math.rad(thisAngle)))
+			})
+			obj.setRotation({x = 0, y = 180, z = 0})
+	end
+
 	M.setHighlighter("ClanSelection", "active")
 end
 
@@ -1462,7 +1492,7 @@ function M.clearUnusedClanLeaders()
 		elseif obj.hasTag("Blue") then
 			targetContainer = getObjectFromGUID(G.playerObjs.Blue.haven)
 		else
-			local clan = U.findClanTag(obj)
+			local clan = M.findClanTag(obj)
 			if (clan) then
 				targetContainer = getObjectFromGUID(G.storage.clan[clan])
 			end
@@ -1622,9 +1652,7 @@ end
 
 --#region *** PHASE: SCORING ***
 local function getSortedVictoryBoardSnapPoints(victoryBoard)
-	local snapPointPositions = U.map(U.getSnapPointPositions(victoryBoard),
-		function(posData) return U.roundTableVals(posData) end)
-	snapPointPositions = U.getSnapPointPositions(victoryBoard)
+	local snapPointPositions = U.map(U.getSnapPoints(victoryBoard), function(snap) return snap.position end)
 	table.sort(snapPointPositions, function(a, b)
 		if (math.abs(a.z - b.z) <= 0.2) then
 			return a.x > b.x
@@ -1783,7 +1811,7 @@ function M.recallSchemesToDiscard()
 
 	local function moveSchemeToDiscard(card)
 		if card == nil or not card.hasTag("ClanScheme") or card.hasTag("LockedScheme") then return end
-		local schemeClan = U.findClanTag(card)
+		local schemeClan = M.findClanTag(card)
 		if schemeClan == nil then return end
 		card.setLock(false)
 		card.use_hands = false
@@ -1797,7 +1825,7 @@ function M.recallSchemesToDiscard()
 
 	U.sequence(U.map(schemeCards, function(card)
 		return function()
-			-- log({schemeClan = U.findClanTag(card)})
+			-- log({schemeClan = M.findClanTag(card)})
 			moveSchemeToDiscard(card)
 		end
 	end), 0.1, false)
@@ -2619,7 +2647,7 @@ function M.processObj(obj, objCat, isForcing)
 		obj.setTags({ "Mission" })
 		obj.tooltip = false
 	elseif objCat == "unlockedScheme" then
-		local clan = U.findClanTag(obj)
+		local clan = M.findClanTag(obj)
 		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2635,7 +2663,7 @@ function M.processObj(obj, objCat, isForcing)
 			obj.setTags({ "Card", "ClanScheme", clan })
 		end
 	elseif objCat == "lockedScheme" then
-		local clan = U.findClanTag(obj)
+		local clan = M.findClanTag(obj)
 		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
@@ -2679,7 +2707,7 @@ function M.processObj(obj, objCat, isForcing)
 		obj.hide_when_face_down = true
 		obj.setTags({ "Card", "Character" })
 	elseif objCat == "clanLeader" then
-		local clan = U.findClanTag(obj)
+		local clan = M.findClanTag(obj)
 		if clan == nil and not isForcing then return false end
 		obj.auto_raise = true
 		obj.drag_selectable = false
