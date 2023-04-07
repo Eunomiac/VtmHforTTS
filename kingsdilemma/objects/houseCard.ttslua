@@ -1,13 +1,14 @@
 local C = require("kingsdilemma.lib.constants")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
+local DIR = require("kingsdilemma.core.director")
 
 local hideButtonBack = true
 
 local thick = 0.12
 local gx, gy -- Global Offsets for calibrating against scan error
 
-local scanData, buttons, inputs
+local scanData, buttons
 local houseTitle, houseName, houseNum, player, color
 
 function GetPrestige()
@@ -25,7 +26,6 @@ function GetCrave()
 	end)
 	return craveCount
 end
-
 
 local function createTextField(name)
 	-- local player = S.getPlayer(U.findColorTag(self))
@@ -58,7 +58,6 @@ end
 
 local function initButtonsTable()
 	buttons = {}
-	inputs = {}
 	buttons.count = 0
 
 	buttons.counter = {
@@ -84,23 +83,26 @@ local function initButtonsTable()
 	}
 end
 
-local function forceSave()
-	local data_to_save = { buttons = {}, inputs = {} }
+local function forceSave(isResetting)
+	local data_to_save = { buttons = {} }
 	for i, v in pairs(buttons) do
 		if i ~= "count" then
-			if v.label == "\u{2717}" then
+			if isResetting == true then
+				data_to_save.buttons[i] = ""
+			elseif v.label == "\u{2717}" then
 				data_to_save.buttons[i] = "u{2717}"
 			else
 				data_to_save.buttons[i] = v.label
 			end
 		end
 	end
-	-- local inputs = self.getInputs()
-	-- for _, v in pairs(inputs) do
-	-- 	data_to_save.inputs[v.label] = v.value
-	-- end
-	S.setPlayerVal(GetPrestige(), U.findColorTag(self), "prestige")
-	S.setPlayerVal(GetCrave(), U.findColorTag(self), "crave")
+	if isResetting == true then
+		S.setPlayerVal(0, U.findColorTag(self), "prestige")
+		S.setPlayerVal(0, U.findColorTag(self), "crave")
+	else
+		S.setPlayerVal(GetPrestige(), U.findColorTag(self), "prestige")
+		S.setPlayerVal(GetCrave(), U.findColorTag(self), "crave")
+	end
 	local saved_data = JSON.encode_pretty(data_to_save)
 	self.script_state = saved_data
 	return saved_data
@@ -280,9 +282,6 @@ function onLoad(saved_data)
 				for i, v in pairs(loaded_data.buttons) do
 					buttons[i] = { label = v }
 				end
-				for i, v in pairs(loaded_data.inputs) do
-					inputs[i] = v
-				end
 			end
 		end
 		initCustomButtons()
@@ -299,7 +298,17 @@ end
 function Dud() return end
 
 function editTextField(_, houseName)
-	S.setPlayerVal(houseName, player, "houseName")
-	local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
-	houseScreen.reload()
+	U.sequence({
+		function()
+			S.setPlayerVal(houseName, player, "houseName")
+			local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
+			houseScreen.reload()
+		end,
+		3,
+		function()
+			DIR.UpdateChronicleCardNames()
+		end
+	})
 end
+
+function ResetCard() forceSave(true) end

@@ -115,5 +115,127 @@ function OU.RotateByAngle(objOrTransform, angleDelta)
 	}
 end
 
+function OU.SetGlobalSnapPoints()
+	Global.setSnapPoints({
+		{
+			position = Vector({9.15, 1.46, 19.00}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 12.81}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 6.61}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 0.41}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, -5.78}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, -11.98}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, -18.17}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"EventCard", "TriggerCard"}
+		},
+		{
+			position = Vector({-7.75, 1.46, 8.05}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, 3.63}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -0.80}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -5.23}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -9.65}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -14.08}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -14.08}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -18.50}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -18.74}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -18.99}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -19.23}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.75, 1.46, -19.47}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		}
+	})
+
+
+
+end
+
 
 return OU

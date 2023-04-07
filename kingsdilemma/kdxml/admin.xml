@@ -43,15 +43,4 @@
 			<Button id="resetTable">Reset Table</Button>
 		</VerticalLayout>
 	</HorizontalLayout>
-
-	<!-- <HorizontalLayout id="adminControls" class="buttonPanel">
-		<Button id="toggleElem_phaseControls" class="buttonPanelToggle">▼</Button>
-		<VerticalLayout id="phaseControls" class="buttonBar">
-			<Button id="setMode_NONE">NONE</Button>
-			<Button id="setMode_CAMPAIGN">CAMPAIGN</Button>
-			<Button id="setMode_SETUP">SETUP</Button>
-			<Button id="setMode_PLAY">PLAY</Button>
-			<Button id="setMode_END">END</Button>
-		</VerticalLayout>
-	</HorizontalLayout> -->
 </VerticalLayout>

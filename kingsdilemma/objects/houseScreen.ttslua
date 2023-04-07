@@ -6,9 +6,12 @@ local player, color
 
 function onLoad()
 	if self.hasTag("SourceObj") then return end
-	Wait.time(function()
+	-- Wait.time(function()
 		color = U.findColorTag(self)
 		player = S.getPlayer(color)
+		local houseName = S.getPlayerVal(player, "houseName") or ""
+		local housePrefix = ""
+		if houseName ~= "" then housePrefix = "house" end
 
 		-- log(U.join(U.filter(C.SeatColors, function(col) return col ~= color end)))
 		self.UI.setXmlTable({
@@ -26,7 +29,22 @@ function onLoad()
 				children = {
 					{
 						tag = "Text",
-						value = S.getPlayerVal(player, "houseName") or "",
+						value = housePrefix,
+						attributes = {
+							ignoreLayout = "True",
+							rectAlignment = "UpperCenter",
+							height = "300",
+							offsetXY = "0 50",
+							color = color,
+							outline = "Black",
+							outlineSize = "3",
+							font = "Fonts/CinzelBB",
+							fontSize = "40"
+						}
+					},
+					{
+						tag = "Text",
+						value = houseName,
 						attributes = {
 							ignoreLayout = "True",
 							rectAlignment = "UpperCenter",
@@ -41,7 +59,7 @@ function onLoad()
 				}
 			}
 		})
-	end, 3)
+	-- end, 3)
 
 
 end

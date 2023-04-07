@@ -13,9 +13,15 @@ C.SeatAngles = {
 
 C.TableRadius = 52.7
 
+C.BaseHandTransform = {
+	position = Vector(0, 3, C.TableRadius),
+	rotation = Vector(0, 180, 0),
+	scale = Vector(12, 5, 4)
+}
+
 C.AdminID = "76561198002132577"
 
-C.SeatColors = {"Red", "Purple", "Green", "Yellow", "Blue"}
+C.SeatColors = {"Brown", "Red", "Orange", "Yellow", "Green"}
 
 C.Houses = {"Allwed", "Blodyn", "Coden", "Crann", "Dualak", "Gamam", "Natar", "Olwyn", "Solad", "Tiryll", "Tork", "Wylio"}
 
@@ -31,7 +37,6 @@ C.Modes = {
 C.Phases = {
 	NONE = "NONE",
 	SESSIONINIT = {
-		SeatCount = "SeatCount",
 		SeatPlayers = "SeatPlayers",
 		HouseSelection = "HouseSelection"
 	},
@@ -122,9 +127,9 @@ C.Spots = {
 			scale = Vector({2.55, 1.00, 2.57})
 		},
 		ChronicleCard = {
-			position = Vector({0.00, 1.92, 8.00}),
-			rotation = Vector({0.00, 180.00, 0.00}),
-			scale = Vector({2.00, 1.00, 2.00})
+			position = Vector({0.00, 3.93, 37.12}),
+			rotation = Vector({78.09, 180.00, 0.00}),
+			scale = Vector({2.60, 1.00, 2.60})
 		}
 	}
 }

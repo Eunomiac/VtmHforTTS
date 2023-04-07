@@ -1,0 +1,82 @@
+<Defaults>
+	<Panel class="splash"
+		height = "340"
+		width = "1000"
+		active = "False"
+		offsetXY = "0 75"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+	<Panel class="splash-text"
+		height = "60"
+		width = "1000"
+		active = "True"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		showAnimationDelay = "0.35"
+		animationDuration = "0.4" />
+	<Image class="splash-top"
+		height = "133"
+		width = "1000"
+		rectAlignment = "UpperCenter"
+		image = "splash-top" />
+	<Image class="splash-bottom"
+		height = "133"
+		width = "1000"
+		rectAlignment = "LowerCenter"
+		image = "splash-bottom" />
+<Text class="splash"
+		alignment = "MiddleCenter"
+		font = "Fonts/FrizB"
+		rectAlignment = "MiddleCenter"
+		resizeTextForBestFit = "False"
+		fontSize = "60"
+		color = "White"
+		shadow = "Black"
+		active = "True"
+		shadowDistance = "2 -2"
+		verticalOverflow = "Overflow"
+		showAnimation = "SlideIn_Bottom"
+		hideAnimation = "SlideOut_Top"
+		animationDuration = "0.75" />
+</Defaults>
+
+<Panel id="splashPanel_Brown" class="splash" visibility="Brown" active="false">
+	<Image class="splash-top" />
+	<Panel id="splashTextContainer_Brown" class="splash-text">
+		<Text id="splashText_Brown" class="splash"></Text>
+	</Panel>
+	<Image class="splash-bottom" />
+</Panel>
+
+<Panel id="splashPanel_Red" class="splash" visibility="Red" active="false">
+	<Image class="splash-top" />
+	<Panel id="splashTextContainer_Red" class="splash-text">
+		<Text id="splashText_Red" class="splash"></Text>
+	</Panel>
+	<Image class="splash-bottom" />
+</Panel>
+
+<Panel id="splashPanel_Orange" class="splash" visibility="Orange" active="false">
+	<Image class="splash-top" />
+	<Panel id="splashTextContainer_Orange" class="splash-text">
+		<Text id="splashText_Orange" class="splash"></Text>
+	</Panel>
+	<Image class="splash-bottom" />
+</Panel>
+
+<Panel id="splashPanel_Yellow" class="splash" visibility="Yellow" active="false">
+	<Image class="splash-top" />
+	<Panel id="splashTextContainer_Yellow" class="splash-text">
+		<Text id="splashText_Yellow" class="splash"></Text>
+	</Panel>
+	<Image class="splash-bottom" />
+</Panel>
+
+<Panel id="splashPanel_Green" class="splash" visibility="Green" active="false">
+	<Image class="splash-top" />
+	<Panel id="splashTextContainer_Green" class="splash-text">
+		<Text id="splashText_Green" class="splash"></Text>
+	</Panel>
+	<Image class="splash-bottom" />
+</Panel>

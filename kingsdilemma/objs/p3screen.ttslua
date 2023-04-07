@@ -214,16 +214,6 @@ local ObjectData = {
 				Tags = false
 			}
 		},
-		zoneHand = {
-			source = "HandTrigger",
-			position = {0.00, 3, 52.70},
-			rotation = {0.00, 180.00, 0.00},
-			scale = {12.00, 5, 4.00},
-			data = {
-				Name = "HandTrigger",
-				Tags = false
-			}
-		},
 		ayeCard = {
 			source = O.SpawnSources.ayeCard,
 			position = {4.00, 1.46, 42.50},
@@ -298,45 +288,30 @@ local ObjectData = {
 		}
 	}
 
-local function assignHouseCard(playerRef, houseName)
+local function assignHouseCard(playerRef, houseName, isResettingHouseCard)
 	local player = S.getPlayer(playerRef)
 	if player == nil then return end
 
-	local function rebaseCard(houseCard)
-		local toTransform = P.getRotatedPlayerTransform(ObjectData.houseCard, player)
-		houseCard.setPosition(toTransform.position)
-		houseCard.setRotation(toTransform.rotation)
-		houseCard.setScale(toTransform.scale)
-		houseCard.setTags({"HouseCard", player.color})
-		-- houseCard.call("onLoad")
-		houseCard.reload()
-	end
-
-	-- First check if it's in play, perhaps at another seat
 	local houseCard = U.find(getObjects(), function(obj) return string.match(obj.getName(), "^.* of " .. houseName) end)
-	if houseCard == nil then
-	-- If not, it better be in main storage
-		local cardData = U.find(O.MainStorage().getObjects(), function(objData)
-			return string.match(objData.name, "^.* of " .. houseName)
-		end)
-		if cardData == nil then
-			return U.alertGM("Error finding card given name = '" .. houseName .. "'")
-		end
+	U.Assert("assignHouseCard", houseCard, "userdata")
 
-		O.MainStorage().takeObject({
-			position = O.MainStorage().getPosition():add(Vector(0, 5, 0)),
-			smooth = false,
-			guid = cardData.guid,
-			callback_function = function(hCard)
-					rebaseCard(hCard)
+	local toTransform = P.getRotatedPlayerTransform(ObjectData.houseCard, player)
+
+	U.sequence({
+		function()
+			houseCard.setPosition(toTransform.position)
+			houseCard.setRotation(toTransform.rotation)
+			houseCard.setScale(toTransform.scale)
+			houseCard.setTags({"HouseCard", player.color})
+			log({isResettingHouseCard = isResettingHouseCard})
+			if isResettingHouseCard then
+				houseCard.call("ResetCard")
 			end
-		})
-	else
-		rebaseCard(houseCard)
-	end
+		end,
+		3,
+		function() houseCard.reload() end
+	})
 end
-
-
 
 local function applyObjData(partName, playerRef, houseName)
 	local oParams = ObjectData[partName]
@@ -380,8 +355,8 @@ local function applyObjData(partName, playerRef, houseName)
 		spawnData.CustomImage.ImageSecondaryURL = HouseData[houseName].HouseScreen.rightBottom
 	end
 
-	-- ... Assign Hand and Hidden Zones to player, dim color intensity, set GM Notes so they can be found later
-	if player and U.isIn(partName, {"zoneHand", "zoneHiderHouseCard", "zoneHiderGeneral"}) then
+	-- ... Assign Hidden Zones to players, dim color intensity, set GM Notes so they can be found later
+	if player and U.isIn(partName, {"zoneHiderHouseCard", "zoneHiderGeneral"}) then
 		spawnData.FogColor = player.color
 		local diffuseColor = Color[player.color]
 		diffuseColor.a = 0.15
@@ -414,20 +389,15 @@ local function applyObjData(partName, playerRef, houseName)
 	return spawnData
 end
 
-function HouseScreen.Spawn(playerRef, houseName)
+function HouseScreen.Spawn(playerRef, houseName, isResettingHouseCard)
 	local player = S.getPlayer(playerRef)
 	-- log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
 	P.ClearSeat(player.color)
 	if houseName == nil then return end
 	U.forEach(ObjectData, function(objData, objName)
-		local sourceObj, spawnData
-		if objName == "zoneHand" then
-			sourceObj = U.find(getObjects(), function(obj) return obj.type == "Hand" and obj.getGMNotes() == "ZonePlayer" .. player.color end)
-			if sourceObj == nil then return U.alertGM("No hand zone found.") end
-			spawnData = sourceObj.getData()
-			sourceObj.destruct()
-		elseif objName == "houseCard" then
-			assignHouseCard(playerRef, houseName)
+		local spawnData
+		if objName == "houseCard" then
+			assignHouseCard(playerRef, houseName, isResettingHouseCard)
 			return
 		else
 			spawnData = applyObjData(objName, playerRef, houseName) -- objData.source().getData()

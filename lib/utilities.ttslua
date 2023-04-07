@@ -235,7 +235,12 @@ end
 
 function U.Assert(source, val, typeOrTest, tableType, isSilent)
 	local errorMessage
-	if type(typeOrTest) == "function" then
+	if typeOrTest == nil then typeOrTest = "check" end
+	if typeOrTest == "check" then
+		if val ~= true then
+			errorMessage = "Failed boolean check"
+		end
+	elseif type(typeOrTest) == "function" then
 		local result = typeOrTest(val)
 		if result ~= true then
 			if result == false or result == nil then
@@ -253,15 +258,23 @@ function U.Assert(source, val, typeOrTest, tableType, isSilent)
 			end)
 			if errorMessage ~= nil then
 				logStyle("assert", {0.8, 0.8, 0}, "\n\n{", "}")
-				log(JSON.encode_pretty(val), nil, "assert")
+				log(val, nil, "assert")
 			end
 		elseif type(val) == typeOrTest then return true
 		elseif typeOrTest == "Player" and not U.isPlayer(val) then
-			errorMessage = "Not a Valid Player: '" .. tostring(val) .. "'"
+			errorMessage = "Not a Valid Player: '" .. tostring(val) .. "' (" .. type(val) .. ")"
+		elseif typeOrTest == "PlayerColor" and not U.isIn(val, Player.getAvailableColors()) then
+			errorMessage = "Not a Valid Player Color: '" .. tostring(val) .. "' (" .. type(val) .. ")"
 		elseif typeOrTest == "Object" and not U.isGameObject(val) then
-			errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "'"
+			errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "' (" .. type(val) .. ")"
+		elseif string.match(typeOrTest, "^%u") then
+			if not U.isGameObject(val) then
+				errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "' (" .. type(val) .. ")"
+			elseif typeOrTest ~= val.type then
+				errorMessage = "Not a Valid " .. typeOrTest .. ": '" .. tostring(val) .. "' (" .. type(val) .. ")"
+			end
 		else
-			errorMessage = "Not a " .. typeOrTest .. " (" .. type(val) .. ")"
+			errorMessage = "Not a Valid " .. typeOrTest .. ": '" .. tostring(val) .."' (" .. type(val) .. ")"
 		end
 	end
 
@@ -420,6 +433,18 @@ function U.concat(...)
 	return tb
 end
 
+function U.slice(arr, iStart, iEnd)
+	U.Assert("U.Slice", arr, "table")
+	if iStart == nil then iStart = 1 end
+	if iEnd == nil then iEnd = #arr end
+	U.Assert("U.Slice - Array start must be lower than end", iStart <= iEnd)
+	local newArr = {}
+	for i = iStart, iEnd do
+		table.insert(newArr, arr[i])
+	end
+	return newArr
+end
+
 function U.merge(...)
 	local args = {...}
 	U.Assert("U.merge", args[1], "table")
@@ -461,6 +486,7 @@ function U.shift(arr)
 	return table.remove(arr, 1)
 end
 function U.unshift(elem, arr) table.insert(arr, 1, elem) end
+
 
 function U.flatten(tb)
 	local newTable = {}
@@ -506,7 +532,7 @@ function U.reverse(tb)
 end
 
 function U.isIn(elem, tb)
-	U.Assert("U.isIn", tb, function(val) return type(val) == "table" or type(val) == "userdata" end)
+	U.Assert("U.isIn", type(tb) == "table" or type(tb) == "userdata")
 
 	if type(tb) == "table" then
 		-- check values first, before checking keys
@@ -541,6 +567,16 @@ function U.isPlayer(val)
 		and val.steam_id ~= nil
 end
 
+function U.isInstance(val, super)
+	super = tostring(super)
+	local mt = getmetatable(val)
+	while true do
+		if mt == nil then return false end
+		if tostring(mt) == super then return true end
+		mt = getmetatable(mt)
+	end
+end
+
 function U.isFlipped(obj)
   local zRot = U.pAngle(obj.getRotation().z, 90)
   return zRot == 180
@@ -556,7 +592,7 @@ function U.splashUIElement(elemID, duration, delay)
   end
 end
 
-function U.alertGM(message) broadcastToColor(message, "Red") end
+function U.alertGM(message) broadcastToColor(message, U.getHost().color) end
 
 function U.hasAnyTag(obj, tags)
 	for _, tag in pairs(tags) do
@@ -571,11 +607,28 @@ function U.findColorTag(obj)
 	return U.find(Player.getAvailableColors(), function(color) return obj.hasTag(color) end)
 end
 
+local UIDS = {}
+function U.getUID(length)
+	if length == nil then length = 10 end
+  local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  local uid = ""
+	while string.len(uid) < length do
+		local randomNumber = math.random(1, #chars)
+    uid = uid .. string.sub(chars, randomNumber, randomNumber)
+  end
+	if U.isIn(uid, UIDS) then
+		return U.getUID()
+	else
+		table.insert(UIDS, uid)
+		return uid
+	end
+end
+
 function U.getHost()
 	local hosts = U.filter(Player.getPlayers(), function(player) return player.host end)
 	if #hosts == 1 then return hosts[1] end
-	-- If there are multiple hosts, this is a hotseat game being debugged: Player.Red is the assumed host.
-	return Player.Red
+	-- If there are multiple hosts, this is a hotseat game being debugged: Player.Brown is the assumed host.
+	return Player.Brown
 end
 
 function U.getZoneBounds(zone)
@@ -615,6 +668,10 @@ function U.parsePosition(obj)
 		end
 	end
 	return posVals, rotVals
+end
+
+function U.getHandZone(color)
+	return U.find(Hands.getHands(), function(hZone) return hZone.getData().FogColor == color end)
 end
 
 -- function U.try(fn, ...)
@@ -765,20 +822,30 @@ end
 
 function U.RunSequence(funcs, maxWait, frequency)
 	U.Assert("U.RunSequence", funcs, "table", "function")
-	if #funcs == 0 then return end
+
+	local isDone = false
 
 	local function runNextFunc(lastFuncReturnTest)
 		local thisFunc = U.shift(funcs)
-		if thisFunc == nil then return end
+		if thisFunc == nil then
+			isDone = true
+			return
+		end
 		U.waitUntil(function()
 			runNextFunc(thisFunc())
 		end, lastFuncReturnTest, true, maxWait, frequency)
 	end
 
 	local func = U.shift(funcs)
-	if func == nil then return end
-	runNextFunc(func())
+	if func == nil then
+		isDone = true
+	else
+		runNextFunc(func())
+	end
+	return function() return isDone == true end
 end
+
+
 
 -- local container = Containers.GetMainStorage()
 -- local fetchedObj, playerReply
@@ -844,6 +911,52 @@ function U.sequence(funcs, timeDelay)
 				error("Invalid element in funcs table")
 			end
 	end
+end
+
+function U.Lerp(setFunc, paramStart, paramEnd, duration)
+	if duration == nil then duration = 0.5 end
+	if U.isInstance(paramStart, Vector) or U.isInstance(paramStart, Color) then
+		if paramStart:equals(paramEnd) then return 0 end
+	elseif type(paramStart) == "number" then
+		if paramStart == paramEnd then return 0 end
+	end
+
+	local function getParam(t)
+		if t == 1 then return paramEnd end
+		if U.isInstance(paramStart, Vector) or U.isInstance(paramStart, Color) then
+			return paramStart:lerp(paramEnd, t)
+		elseif type(paramStart) == "number" then
+			local deltaVal = paramEnd - paramStart
+			return paramStart + (deltaVal * t)
+		end
+	end
+
+	local startTime = os.time()
+
+	function LerpCoroutine()
+		local timeFrac = (os.time() - startTime)/duration
+		while timeFrac < 1 do
+			setFunc(getParam(timeFrac))
+			coroutine.yield(0)
+			timeFrac = (os.time() - startTime) / duration
+		end
+		setFunc(getParam(1))
+		return 1
+	end
+
+	-- local function waiter()
+	-- 	if LerpCoroutine() ~= 1 then
+	-- 		Wait.frames(waiter)
+	-- 	else
+	-- 		log("All Done!")
+	-- 	end
+	-- end
+
+	-- waiter()
+
+	startLuaCoroutine(self, "LerpCoroutine")
+
+	return duration
 end
 
 function U.randBetween(min, max, isInt)

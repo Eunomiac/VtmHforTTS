@@ -10,6 +10,7 @@ local INITGAMESTATE = {
 	isMidGame = false,
 	gameCount = 1,
 	seatCount = 5,
+	seatCountOverride = false,
 	gameMode = C.Modes.NONE,
 	gamePhase = C.Phases.NONE,
 	playerData = {},
@@ -19,19 +20,12 @@ local INITGAMESTATE = {
 }
 
 -- #region Initializing, Refreshing, Resetting Game State ~
-function S.GetSeatCount()
-	local seatedPlayers = S.getPlayers()
-	U.Assert("S.GetSeatCount", seatedPlayers, "table")
-	U.Assert("S.GetSeatCount", #seatedPlayers, function(v) return type(v) == "number" and v <= 5 end)
-	local seatCount = S.getStateVal("seatCount")
-	if #seatedPlayers > seatCount then
-		S.setStateVal(#seatedPlayers, "seatCount")
-		seatCount = #seatedPlayers
-	end
-	return seatCount
-end
+function S.GetSeatCount() return #Player.getAvailableColors() end
+
+
 
 function S.UpdateSeatedPlayers()
+
 	local angles = C.SeatAngles[S.GetSeatCount()]
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
@@ -209,8 +203,7 @@ function S.getPlayer(playerRef)
 end
 
 function S.getPlayers()
-	local seatColors = U.filter(C.SeatColors, function(col) return U.isIn(col, Player.getAvailableColors()) end)
-	return U.filter(U.iMap(seatColors, function(color) return Player[color] end), U.isPlayer)
+	return U.filter(U.iMap(Player.getAvailableColors(), function(color) return Player[color] end), U.isPlayer)
 end
 
 function S.getPlayerColor(playerRef) return S.getPlayer(playerRef).color end
@@ -253,8 +246,10 @@ function S.isInPhase(phases)
 	return U.isIn(S.getStateVal("gamePhase"), phases)
 end
 
-function S.getNextPhase() --+
-	local curMode, curPhase = S.getStateVal("gameMode"), S.getStateVal("gamePhase")
+function S.getNextPhase(curMode, curPhase) --+
+	if curMode == nil then curMode = S.getStateVal("gameMode") end
+	if curPhase == nil then curPhase = S.getStateVal("gamePhase") end
+
 	local modePhases = C.Phases[curMode]
 	local nextMode, nextPhase
 
@@ -298,6 +293,11 @@ function S.getNextPhase() --+
 			nextPhase = getFirstPhaseOfMode(nextMode)
 		end
 	end
+
+	if nextMode == "CAMPAIGNSETUP" and S.getStateVal("gameCount") > 1 then
+		return S.getNextPhase("CAMPAIGNSETUP", "CAMPAIGNSETUP")
+	end
+
 	return nextMode, nextPhase
 end
 -- #endregion

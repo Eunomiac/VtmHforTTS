@@ -7,10 +7,13 @@ local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
+local MSG = require("kingsdilemma.core.messaging")
 -- #endregion
 
+MessageQueue, QueueStatus = {}, {}
+
 local TESTFUNCS = {
-	function(button)
+	Titles = function(button)
 		if button == "-2" then
 			L.SetLightMode("lightLeader", "off")
 			L.SetLightMode("lightModerator", "off")
@@ -45,137 +48,51 @@ local TESTFUNCS = {
 		end
 		-- log({rotatingTo = player})
 	end,
-	function(_, player)
-		local otherColors = U.map(U.filter(S.getPlayers(), function(pl)
-			return pl.color ~= player.color
-		end), function(pl) return pl.color end)
-		log("Simulating clicks on " .. U.join(otherColors, ", "))
-		local houses = U.shuffle(U.clone(C.Houses))
-		for _, col in pairs(otherColors) do
-			local clickElemID = "houseHover_" .. U.shift(houses) .. "_" .. col
-			log("Simulating " .. col .. " Player clicking '" .. clickElemID .. "'")
-			HUD_Click(Player[col], "-1", clickElemID)
+	Seats = function(button)
+		if button == "-2" then
+			P.InitializeSeats(true, true)
+		else
+			P.InitializeSeats()
 		end
 	end,
-	function(button)
-		local testObj = getObjectFromGUID("533718")
+	Messaging = function(button)
 		U.RunSequence({
 			function()
-				testObj.setName("")
-				testObj.setLock(false)
-				return {testObj, 5}
+				MSG.Enqueue("The quick brown fox", "ALL")
+				MSG.Enqueue("jumps over the", "ALL")
+				MSG.Enqueue("lazy dog", "ALL")
+				return MSG.RunQueue("ALL")
 			end,
 			function()
-				Player.Red.showInputDialog(
-					"What shall we name it?",
-					"Fetched Object",
-					function (fetchedObjName) testObj.setName(fetchedObjName) end
-				)
-				return function() return testObj.getName() ~= "" end
-			end,
-			function() testObj.highlightOn(Color.fromString("Red")) end
+				U.alertGM("All Done!")
+			end
 		})
 	end,
-	function(button)
-	end,
-	function(button)
-	end,
-	function(button)
-	end,
-	function(button)
-	end
-}
-
--- #region House Selection ~
-local HOUSE_SELECTION = {
-	Current = {},
-	UnselectedPlayers = {}
-}
-
-function InitHouseSelectionHUD()
-	U.forEach(S.getPlayers(), function(player)
-		if not S.getPlayerVal(player, "house") then
-			table.insert(HOUSE_SELECTION.UnselectedPlayers, player)
-		end
-	end)
-	if #HOUSE_SELECTION.UnselectedPlayers == 0 then
-		DIR.AssignSelectedHouses()
-	else
-		RefreshHouseSelectionHUD()
-	end
-end
-
-local function updateHouseHUD(houseName, player)
-	if player == nil then
-		return U.forEach(HOUSE_SELECTION.UnselectedPlayers,
-			function(pl) updateHouseHUD(houseName, pl) end)
-	end
-	if not U.isIn(player.color, U.map(HOUSE_SELECTION.UnselectedPlayers, function(pl) return pl.color end)) then
-		return UI.hide("houseSelection_" .. player.color)
-	end
-
-	local function isHouseAvailable(houseName)
-		return not U.find(U.getValues(S.getPlayerData()), function(pData)
-			return pData.house == houseName
-		end)
-	end
-
-	UI.show("houseSelection_" .. player.color)
-
-	if not isHouseAvailable(houseName) then
-		HOUSE_SELECTION.Current[houseName] = false
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = "rgba(0.3, 0.3, 0.3, 0.5)",
-			outline = "Clear"
-		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = "rgba(0, 0, 0, 0)",
-			raycastTarget = "False",
-			onMouseDown = "",
-			onMouseEnter = "",
-			onMouseExit = "HUD_HoverOff"
-		})
-	elseif type(HOUSE_SELECTION.Current[houseName]) == "string" then
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = "rgba(0.5, 0.5, 0.5, 1)",
-			outline = HOUSE_SELECTION.Current[houseName]
-		})
-		if HOUSE_SELECTION.Current[houseName] ~= player.color then
-			UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-				color = HOUSE_SELECTION.Current[houseName],
-				raycastTarget = "False",
-				onMouseDown = "",
-				onMouseEnter = "HUD_HoverOn",
-				onMouseExit = "HUD_HoverOff"
-			})
+	Lerp = function(button)
+		local testLight = getObjectFromGUID("6f9e66")
+		if button == "-2" then
+			L.LerpEnable(testLight, false)
 		else
-			UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-				color = HOUSE_SELECTION.Current[houseName],
-				raycastTarget = "True",
-				onMouseDown = "HUD_Click",
-				onMouseEnter = "HUD_HoverOn",
-				onMouseExit = "HUD_HoverOff"
-			})
+			L.LerpEnable(testLight, true)
 		end
-	else
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = "rgba(0.5, 0.5, 0.5, 1)",
-			outline = "Clear"
-		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = "rgba(0, 0, 0, 0)",
-			raycastTarget = "True",
-			onMouseDown = "HUD_Click",
-			onMouseEnter = "HUD_HoverOn",
-			onMouseExit = "HUD_HoverOff"
+	end
+}
+
+function InitTestFuncButtons()
+	local count = 0
+	for i, name in ipairs(U.getKeys(TESTFUNCS)) do
+		count = count + 1
+		UI.setAttributes("debug_testFunc" .. count, {
+			text = "T: " .. name,
+			colors = "#666666|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)",
+			textAlignment = "MiddleLeft"
 		})
 	end
+	TESTFUNCS = U.getValues(TESTFUNCS)
 end
 
-function RefreshHouseSelectionHUD(player)
-	if player == nil then return U.forEach(HOUSE_SELECTION.UnselectedPlayers, RefreshHouseSelectionHUD) end
-	U.forEach(C.Houses, function(houseName) updateHouseHUD(houseName, player) end)
-end
+
+
 -- #endregion
 
 -- #region Primary UI Event Functions
@@ -189,32 +106,73 @@ local function toggleXmlElement(elemID)
 		UI.setValue("toggleElem_" .. elemID, "►")
 	end
 end
-local function promptSimClick(player)
+local function promptSimClick(player, button)
+	local players = S.getPlayers()
+	if button == "-2" then
+		local otherColors = U.map(U.filter(players, function(pl)
+			return pl.color ~= player.color
+		end), function(pl) return pl.color end)
+		log("Simulating clicks on " .. U.join(otherColors, ", "))
+		local houses = U.shuffle(U.clone(C.Houses))
+		for _, col in pairs(otherColors) do
+			local clickElemID = "houseHover_" .. U.shift(houses) .. "_" .. col
+			log("Simulating " .. col .. " Player clicking '" .. clickElemID .. "'")
+			HUD_Click(Player[col], "-1", clickElemID)
+		end
+	else
+		local playerOptions = U.map(players, function(pl, i)
+			return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
+		end)
+		player.showOptionsDialog("Which player is clicking?", playerOptions, 1, function(_, i)
+			local targetPlayer = players[i]
+			player.showOptionsDialog("Which territory?", C.Houses, 1, function(houseName)
+				if houseName == nil then return end
+				local clickElemID = "houseHover_" .. houseName .. "_" .. targetPlayer.color
+				log("Simulating " .. targetPlayer.color .. " Player clicking '" .. clickElemID .. "'")
+				HUD_Click(targetPlayer, "-1", clickElemID)
+			end)
+		end)
+	end
+end
+local function promptAssignHouseName(player)
 	local players = S.getPlayers()
 	local playerOptions = U.map(players, function(pl, i)
 		return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
 	end)
-
-	player.showOptionsDialog("Which player is clicking?", playerOptions, 1, function(_, i)
+	player.showOptionsDialog("Name which player's house?", playerOptions, 1, function(_, i)
 		local targetPlayer = players[i]
-		player.showOptionsDialog("Which territory?", C.Houses, 1, function(houseName)
-			if houseName == nil then return end
-			local clickElemID = "houseHover_" .. houseName .. "_" .. targetPlayer.color
-			log("Simulating " .. targetPlayer.color .. " Player clicking '" .. clickElemID .. "'")
-			HUD_Click(targetPlayer, "-1", clickElemID)
-		end)
+		player.showInputDialog(
+			"What is their House Name?",
+			S.getPlayerVal(targetPlayer, "house"),
+			function (houseName)
+				U.sequence({
+					function()
+						S.setPlayerVal(houseName, targetPlayer, "houseName")
+						local houseScreen = getObjectsWithAllTags({"screenCenter", targetPlayer.color})[1]
+						houseScreen.reload()
+					end,
+					3,
+					function()
+						DIR.UpdateChronicleCardNames()
+					end
+				})
+			end)
 	end)
 end
 
 
+
+
 function HUD_Click(player, button, id)
-	-- log({player = player, button = button, id = id})
+	log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
 	elseif id == "advanceGamePhase" then
 		DIR.ADVANCE()
 	elseif id == "prompt_simClick" then
-		promptSimClick(player)
+		promptSimClick(player, button)
+	elseif id == "prompt_assignHouseName" then
+		promptAssignHouseName(player)
 	elseif id == "clearPlayers" then
 		P.ClearSeats()
 	elseif id == "resetTable" then
@@ -235,48 +193,22 @@ function HUD_Click(player, button, id)
 			L.HideArrows()
 		end
 	elseif string.match(id, "^houseHover_") then
-		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
-		local curHouse = U.findIndex(HOUSE_SELECTION.Current, function(col) return col == player.color end)
-
-		if curHouse then HOUSE_SELECTION.Current[curHouse] = nil end
-		if houseName ~= curHouse then HOUSE_SELECTION.Current[houseName] = houseColor end
-
-		if curHouse then updateHouseHUD(curHouse) end
-		updateHouseHUD(houseName)
-
-		local function areAllHousesSelected()
-			for _, player in pairs(HOUSE_SELECTION.UnselectedPlayers) do
-				if not U.find(HOUSE_SELECTION.Current, function(pColor) return pColor == player.color end) then
-					return false
-				end
-			end
-			return true
-		end
-
-		if areAllHousesSelected() then
-			DIR.AssignSelectedHouses(HOUSE_SELECTION.Current)
-		end
+		local houseName = string.match(id, "^houseHover_(.-)_.-$")
+		DIR.HouseHUDClick(player, houseName)
 	end
 end
 
-function HUD_HoverOn(_, _, id)
-	-- log({HoverID = id, player = player, button = button})
+function HUD_HoverOn(player, returnString, id)
 	if string.match(id, "^houseHover_") then
-		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
-		UI.setAttribute("houseFlag_" .. houseName .. "_" .. houseColor, "color", "White")
-		UI.setAttribute(id, "color", "White")
-		UI.show("houseInfo_" .. houseName .. "_" .. houseColor)
+		local houseName = string.match(id, "^houseHover_(.-)_.-$")
+		DIR.HouseHUDHoverOn(player, houseName)
 	end
 end
 
-function HUD_HoverOff(_, _, id)
+function HUD_HoverOff(player, returnString, id)
 	if string.match(id, "^houseHover_") then
-		local houseName, houseColor = string.match(id, "^houseHover_(.-)_(.-)$")
-		if HOUSE_SELECTION.Current[houseName] == nil then
-			UI.setAttribute("houseFlag_" .. houseName .. "_" .. houseColor, "color", "rgba(0.5, 0.5, 0.5, 1)")
-			UI.setAttribute(id, "color", "rgba(0, 0, 0, 0)")
-		end
-		UI.hide("houseInfo_" .. houseName .. "_" .. houseColor)
+		local houseName = string.match(id, "^houseHover_(.-)_.-$")
+		DIR.HouseHUDHoverOff(player, houseName)
 	end
 end
 

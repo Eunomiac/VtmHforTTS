@@ -50,8 +50,7 @@ function onLoad(save_data)
 	U.forEach(O.UninteractableObjs, function(oFunc)
 		oFunc().interactable = false
 	end)
-
-	L.LoadLights()
+	Global.call("InitTestFuncButtons")
 
 	-- DEBUG: Auto-assign "Player X"'s to colors
 	local seats = U.clone(C.SeatColors)
