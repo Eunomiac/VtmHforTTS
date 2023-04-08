@@ -167,6 +167,8 @@ function HUD_Click(player, button, id)
 	log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
+	elseif id == "initSession" then
+		DIR.InitSession()
 	elseif id == "advanceGamePhase" then
 		DIR.ADVANCE()
 	elseif id == "prompt_simClick" then
@@ -183,6 +185,10 @@ function HUD_Click(player, button, id)
 	elseif id == "debug_resetState" then
 		S.resetGameState()
 		Global.call("UpdatePhaseDisplay")
+	elseif id == "debug_clearSplash" then
+		UI.hide("splashScreen")
+	elseif id == "debug_primeLights" then
+		L.ResetLights()
 	elseif id == "debug_resetPlayers" then
 		S.resetGameState(true)
 		Global.call("UpdatePhaseDisplay")

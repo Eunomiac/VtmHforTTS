@@ -1,5 +1,10 @@
 <Defaults>
 
+	<Panel class="houseSelectionContainer"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "1" />
+
 
 	<GridLayout class="houseSelectionGrid"
 		width = "1260"
@@ -31,7 +36,10 @@
 		height="250"
 		width="750" />
 
-	<Image class="houseInfo" active = "False" />
+	<Image class="houseInfo" active = "False"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
 
 
 </Defaults>
@@ -56,18 +64,18 @@
 	</GridLayout>
 
 	<GridLayout id="houseSelection_Hover_Brown" class="houseSelectionGrid" visibility="Brown">
-		<Image id="houseHover_Allwed_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254406/9003D12A2F60763746F70FD85B030CB56926FA3E/" />
-		<Image id="houseHover_Blodyn_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254471/6AE191A3885504DDCD870F5C7468649C44CA96A1/" />
-		<Image id="houseHover_Coden_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254535/09B0A8D11B1AA84576627FB9BB4663E3D0C2C313/" />
-		<Image id="houseHover_Crann_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254636/5A255B7F1A880072A759FD565084B6ABFDB7432A/" />
-		<Image id="houseHover_Dualak_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254731/39B09C3173BD729B98D0EAFF571FAAEF780D4C96/" />
-		<Image id="houseHover_Gamam_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254820/69650201B8D22E1DA43BD7A09AA56832C1EA3474/" />
-		<Image id="houseHover_Natar_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739254903/5AC6BFDDAA21F465CAB49A5DCD2D872F28820AB2/" />
-		<Image id="houseHover_Olwyn_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739255012/F88D0A873C75A76D6146FFFF562727DA74C26ED7/" />
-		<Image id="houseHover_Solad_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739255078/CC8293A11AA2ED6E94B47E8F256F65585CC38542/" />
-		<Image id="houseHover_Tiryll_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739255138/93DB22680A4FE3D5FB849D7D3C5EAF5DA010748F/" />
-		<Image id="houseHover_Tork_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739255202/BB341225C631E5CFEB280744941AC0EA4CAA321A/" />
-		<Image id="houseHover_Wylio_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064377962739255282/02152CB3502A02EEE60567CC01C6996416BBA4C7/" />
+		<Image id="houseHover_Allwed_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394002/629DFA1FF20E8312FD53C6B40F7C01D5381F645B/" />
+		<Image id="houseHover_Blodyn_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394105/50FCBE0642AA980ED388EEE3358505895907B535/" />
+		<Image id="houseHover_Coden_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394193/F9DAB3F9A3B249C7F5A0FB576FB1901E52020074/" />
+		<Image id="houseHover_Crann_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394270/7F967CE9A8DF946C5775216D420077BD388A3E48/" />
+		<Image id="houseHover_Dualak_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394354/A52102D206BC80A94A55A563ADDE4C4BE818A695/" />
+		<Image id="houseHover_Gamam_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394494/5AD3A41E15315326EA44F010D0E7C40FFDB0CC13/" />
+		<Image id="houseHover_Natar_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394650/256F84C6DEA770EBC2D7F96DB9B115A768C591B4/" />
+		<Image id="houseHover_Olwyn_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394763/79E3F5FE17D66CAB4A8D0996A6EA3A4D1A1A0BE8/" />
+		<Image id="houseHover_Solad_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394875/75674E72774048257EABD571E6513A8490AE8D49/" />
+		<Image id="houseHover_Tiryll_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884394987/0884A6441E767199C11A9755D4363CB04D053D68/" />
+		<Image id="houseHover_Tork_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884395067/8F70328EC617451173D614DCB51EC183E18241CD/" />
+		<Image id="houseHover_Wylio_Brown" class="houseHover" image="http://cloud-3.steamusercontent.com/ugc/2064378834884395165/B6683C4F9331084ECC935BE68801B78F391EB91C/" />
 	</GridLayout>
 
 	<Panel id="houseSelection_Info_Brown" class="houseInfo" visibility="Brown">

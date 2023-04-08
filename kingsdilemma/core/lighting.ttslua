@@ -1,14 +1,23 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local C = require("kingsdilemma.lib.constants")
+local O = require("kingsdilemma.lib.objects")
 
 local L = {}
 
 local DefaultTransitionTime = 0.5
 
-local LIGHTMODES = {
+L.LIGHTMODES = {
 	lightLectern = {
 		default = "ambient",
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 70,
+			intensity = 2,
+			rotation = Vector(300, 0, 0)
+		},
 		ambient = {
 			enabled = true,
 			color = C.LightColors.Ambient,
@@ -76,6 +85,13 @@ local LIGHTMODES = {
 	},
 	lightMainTop = {
 		default = "ambient",
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 83,
+			angle = 60,
+			intensity = 1.5
+		},
 		ambient = {
 			enabled = true,
 			color = C.LightColors.Ambient,
@@ -86,6 +102,13 @@ local LIGHTMODES = {
 	},
 	lightMainBottom = {
 		default = "ambient",
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 83,
+			angle = 60,
+			intensity = 1.5
+		},
 		ambient = {
 			enabled = true,
 			color = C.LightColors.Ambient,
@@ -95,8 +118,13 @@ local LIGHTMODES = {
 		}
 	},
 	lightLeader = {
+		default = "off",
 		off = {
-			enabled = false
+			enabled = false,
+			color = Color(1, 1, 1),
+			range = 66,
+			angle = 30,
+			intensity = 10
 		},
 		on = {
 			enabled = true,
@@ -107,8 +135,13 @@ local LIGHTMODES = {
 		}
 	},
 	lightModerator = {
+		default = "off",
 		off = {
-			enabled = false
+			enabled = false,
+			color = Color(1, 1, 1),
+			range = 66,
+			angle = 30,
+			intensity = 10
 		},
 		on = {
 			enabled = true,
@@ -118,26 +151,84 @@ local LIGHTMODES = {
 			intensity = 10
 		}
 	},
-	lightVote = {
-		ambient = {
-			color = Color(0.5, 0.5, 0.5),
-			range = 55,
-			angle = 57,
-			intensity = 4
+	lightStability = {
+		loadRotation = Vector(0, 0, 0),
+		default = function()
+			if S.isInMode({"NONE", "SETSSIONINIT", "CAMPAIGNSETUP"}) then
+				return "off"
+			else
+				return "on"
+			end
+		end,
+		off = {
+			enabled = false,
+			color = Color(1, 1, 1),
+			range = 12,
+			angle = 20,
+			intensity = 1
 		},
-		aye = {
-			color = Color(0, 1, 1),
-			range = 55,
-			angle = 63,
-			intensity = 4
-		},
-		nay = {
-			color = Color(1, 0, 0),
-			range = 55,
-			angle = 63,
-			intensity = 4
-		}
+		on = function()
+			local stabilityToken = O.Pieces.StabilityToken()
+			local stabilityPos = stabilityToken.getPosition()
+			local distRatio = C.Spots.Board.stabilityToken.center.position:distance(stabilityPos) / C.Spots.Board.stabilityToken.center.position:distance(C.Spots.Board.stabilityToken.abdicate.position)
+			local lerpAngle = Vector(20,0,0):lerp(Vector(28,0,0), distRatio).x
+			local lerpIntensity = Vector(1,0,0):lerp(Vector(2,0,0), distRatio).x
+			local lerpRange = Vector(12,0,0):lerp(Vector(18,0,0), distRatio).x
+			local lerpColor
+			if distRatio <= 0.5 then
+				lerpColor = C.LightColors.StabilityToken.center:lerp(C.LightColors.StabilityToken.half, 2 * distRatio)
+			else
+				lerpColor = C.LightColors.StabilityToken.half:lerp(C.LightColors.StabilityToken.ends, 2 * (distRatio - 0.5))
+			end
+
+			stabilityPos.x = C.Spots.Board.stabilityToken.center.position.x
+			stabilityPos.z = math.min(
+				math.max(
+					stabilityPos.z,
+					C.Spots.Board.stabilityToken.death.position.z
+				),
+				C.Spots.Board.stabilityToken.abdicate.position.z
+			)
+			-- log({distRatio = distRatio})
+			local lData = {
+				enabled = true,
+				color = lerpColor,
+				range = lerpRange,
+				angle = lerpAngle,
+				intensity = lerpIntensity,
+				position = stabilityPos:add(Vector(0, 4, 0))
+			}
+			-- log(lData)
+			return lData
+		end
 	}
+	-- lightVote = {
+	-- 	off = {
+	-- 		enabled = false,
+	-- 		color = Color(0.5, 0.5, 0.5),
+	-- 		range = 55,
+	-- 		angle = 57,
+	-- 		intensity = 4
+	-- 	},
+	-- 	ambient = {
+	-- 		color = Color(0.5, 0.5, 0.5),
+	-- 		range = 55,
+	-- 		angle = 57,
+	-- 		intensity = 4
+	-- 	},
+	-- 	aye = {
+	-- 		color = Color(0, 1, 1),
+	-- 		range = 55,
+	-- 		angle = 63,
+	-- 		intensity = 4
+	-- 	},
+	-- 	nay = {
+	-- 		color = Color(1, 0, 0),
+	-- 		range = 55,
+	-- 		angle = 63,
+	-- 		intensity = 4
+	-- 	}
+	-- }
 }
 
 
@@ -163,13 +254,7 @@ local function getLight(lightName, playerRef)
 	return lights[1]
 end
 
-local function loadLights()
-	U.forEach(LIGHTMODES, function(modes, name)
-		if modes.default ~= nil then
-			L.SetLightMode(name, modes.default, nil, 3)
-		end
-	end)
-end
+
 
 local function getAllLights()
 	return U.filter(getObjects(), function(obj)
@@ -231,7 +316,6 @@ local function setEnabled(light, enabled, transitionTime)
 				end,
 				function()
 					lComp.set("intensity", startingIntensity)
-					return 0
 				end
 			})
 		end
@@ -249,18 +333,30 @@ local function getColor(light) return getComp(light).get("color") end
 local function getAngle(light) return getComp(light).get("spotAngle") end
 
 local function setLightMode(lightName, mode, playerNum, transitionTime)
-	if transitionTime == nil then transitionTime = 2 end
+	if mode == nil then return end
+	if transitionTime == nil then transitionTime = DefaultTransitionTime end
 	if playerNum == "ALL" then return U.forEach(S.getPlayers(), function(_, pNum) setLightMode(lightName, mode, pNum) end) end
 	local light = getLight(lightName, playerNum)
 
-	if LIGHTMODES[lightName] == nil then
+	if type(mode) == "function" then mode = mode() end
+
+
+	if L.LIGHTMODES[lightName] == nil then
 		return U.alertGM("[Error: setLightMode] No modes configured for light '" .. lightName .. "'")
 	end
-	local lData = U.clone(LIGHTMODES[lightName][mode])
-	if lData == nil then
+
+	local lData = L.LIGHTMODES[lightName][mode]
+	if type(lData) == "function" then
+		lData = lData()
+	elseif type(lData) == "table" then
+		lData = U.clone(lData)
+	end
+
+	if not lData then
 		return U.alertGM("[Error: setLightMode] No such light mode '" .. mode .. "' for light '" .. lightName .. "'")
 	end
 
+	-- log({light = light, lightName = lightName, mode = mode, lData = lData})
 	local afterVals = {}
 
 	if lData.enabled ~= nil then
@@ -308,12 +404,47 @@ local function setLightMode(lightName, mode, playerNum, transitionTime)
 				setIntensity(light, afterVals.intensity)
 				setAngle(light, afterVals.angle)
 			end
-			return 0
 		end
 	})
 end
 
-L.LoadLights = loadLights
+function L.ResetLights()
+	U.forEach(L.LIGHTMODES, function(modes, name)
+		if modes.loadRotation then
+			local light = getLight(name)
+			setEnabled(light, false)
+			light.setRotation(Vector(180, 0, 0))
+		end
+	end)
+end
+
+function L.PrimeLights()
+	U.forEach(L.LIGHTMODES, function(modes, name)
+		if modes.loadRotation then
+			local light = getLight(name)
+			setEnabled(light, false)
+			light.setRotationSmooth(modes.loadRotation)
+		end
+	end)
+end
+
+function L.LoadLights(lightMode, transitionTime)
+	if lightMode == nil then lightMode = "default" end
+	if transitionTime == nil then transitionTime = 3 end
+	-- setLightMode("lightLectern", "ambient", nil, 3)
+	-- setLightMode("lightMainTop", "ambient", nil, 3)
+	-- setLightMode("lightMainBottom", "ambient", nil, 3)
+	-- setLightMode("lightModerator", "off", nil, 3)
+	-- setLightMode("lightLeader", "off", nil, 3)
+	-- setLightMode("lightStability", "on", nil, 3)
+	U.forEach(L.LIGHTMODES, function(modes, name)
+		if lightMode == "default" then
+			setLightMode(name, modes[lightMode], nil, transitionTime)
+		else
+			setLightMode(name, lightMode, nil, transitionTime)
+		end
+	end)
+end
 L.ShowArrows = showArrow
 L.HideArrows = hideArrow
 L.SetLightMode = setLightMode

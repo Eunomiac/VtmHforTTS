@@ -10,6 +10,7 @@ local MSG = require("kingsdilemma.core.messaging")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
 
 local DIR = {}
+local HOUSE_SELECTION = {}
 
 function DIR.ADVANCE(waitFunc)
 	local mode, phase = S.getNextPhase()
@@ -29,6 +30,8 @@ end
 function DIR.RESET()
 	S.setStateVal("NONE", "gameMode")
 	S.setStateVal("NONE", "gamePhase")
+	HOUSE_SELECTION = {}
+	S.UpdateSeatedPlayers()
 	DIR.InitializePhase()
 end
 
@@ -40,6 +43,8 @@ INITFUNCS = {
 			S.setStateVal(false, "isMidGame")
 			S.setStateVal({}, "playerData")
 			P.ClearSeats()
+
+			S.UpdateSeatedPlayers()
 			MSG.Enqueue("Resetting Table", "ALL")
 			return MSG.RunQueue("ALL")
 		end
@@ -49,28 +54,23 @@ INITFUNCS = {
 			function()
 				P.InitializeSeats()
 				local players = S.getPlayers()
-				MSG.Enqueue("Initializing Player Seats", "ALL")
+				MSG.Enqueue("Seating Players", "ALL")
 				return {
 					MSG.RunQueue("ALL", true),
 					function() return #U.filter(players, function(pl) return pl.getHandCount() == 0 end) == 0 end
 				}
 			end,
-			function()
-				S.UpdateSeatedPlayers()
-				DIR.ADVANCE()
-			end
+			function() DIR.ADVANCE() end
 		} end,
 		HouseSelection = function() return {
 			function()
-				MSG.Enqueue("Assigning Houses", "ALL")
-				return MSG.RunQueue("ALL")
-			end,
-			DIR.InitHouseSelection
+				DIR.InitHouseSelection()
+			end
 		} end
 	},
 	CAMPAIGNSETUP = function() return {
 		function()
-			MSG.Enqueue("Beginning Chronicle Setup", "ALL")
+			MSG.Enqueue("Chronicle Setup", "ALL")
 			return MSG.RunQueue("ALL")
 		end,
 		function()
@@ -82,20 +82,26 @@ INITFUNCS = {
 				"Prologue",
 				function(response) startType = response end
 			)
-			return function()
-				if startType ~= nil then
-					log("StartType NOT NIL: CONTINUING! -- '" .. tostring(startType) .. "'")
-					return true
-				end
-				log("StartType = NIL, waiting ...")
-				return false
-			end
+			return function() return startType ~= nil end
 		end,
 		DIR.StartChronicle
 	}
 	end,
 	GAMESETUP = {
 		MainBoard = function() return {
+			function()
+				local rTokens = getObjectsWithTag("ResourceMarker")
+				table.sort(rTokens, function(a, b) return a.getPosition().x < b.getPosition().x end)
+				return U.RunSequence(U.iMap(rTokens, function(tk)
+					return function()
+						tk.setRotation(Vector(0, 180, U.randBetween(0,1,true) * 180))
+						tk.addForce(Vector(0,40,0),3)
+						tk.addTorque(Vector(0,0,2),3)
+						return tk
+					end
+				end))
+			end,
+			function() U.alertGM("All done!") end
 			-- MAIN BOARD SETUP
 				-- Randomly shuffle sides of Resource Tokens
 				-- Stability token spawned at center
@@ -196,20 +202,43 @@ function DIR.JumpToStatePhase()
 end
 
 function DIR.InitSession()
-	S.UpdateSeatedPlayers()
-	Global.call("UpdatePhaseDisplay")
-	Wait.time(function() L.LoadLights() end, 3)
+	UI.hide("sessionInitDisplay")
+	UI.show("gameStatusDisplay")
 	if not S.isInMode(C.Modes.NONE) then
+		UI.hide("splashScreen")
+		L.LoadLights()
 		-- We're in the middle of a running game: jump to that phase.
 		return DIR.JumpToStatePhase()
+	else
+		-- UI.hide("splashScreen")
+		-- L.LoadLights()
+		-- Wait.time(function() DIR.ADVANCE() end, 2)
+		U.RunSequence({
+			function()
+				UI.hide("splashScreen")
+				return 0.5
+			end,
+			function()
+				L.LoadLights()
+				return 1
+			end,
+			function()
+				DIR.ADVANCE()
+				return 1
+			end
+		})
 	end
 end
 
 -- #region House Selection ~
-local HOUSE_SELECTION = {
-	Current = {},
-	UnselectedPlayers = {}
-}
+
+local function getUnselectedPlayers()
+	return U.filter(S.getPlayers(), function(player)
+		if S.getPlayerVal(player, "house") ~= nil then return false end
+		if U.isIn(player.color, U.getValues(HOUSE_SELECTION)) then return false end
+		return true
+	end)
+end
 
 local function getHouseStatus(houseName, player)
 	local playerOfHouseData = U.find(S.getStateVal("playerStorage"), function(pData) return pData.house == houseName end)
@@ -236,149 +265,141 @@ local function getHouseStatus(houseName, player)
 end
 
 function DIR.InitHouseSelection()
-	U.forEach(S.getPlayers(), function(player)
-		if not S.getPlayerVal(player, "house") then
-			table.insert(HOUSE_SELECTION.UnselectedPlayers, player)
-		end
-	end)
-	if #HOUSE_SELECTION.UnselectedPlayers == 0 then
+	HOUSE_SELECTION = {}
+	if #getUnselectedPlayers() == 0 then
 		DIR.AssignSelectedHouses()
 	else
+		U.forEach(S.getPlayers(), function(player)
+			UI.show("houseSelection_" .. player.color)
+		end)
 		DIR.RefreshHouseHUD()
 	end
 end
 
 local function getPlayerSelectedHouse(player)
-	return U.find(HOUSE_SELECTION.Current, function(color) return color == player.color end)
+	return U.findIndex(HOUSE_SELECTION, function(color) return color == player.color end)
 end
+
+local flagColors = {
+	Available = function() return Color.Grey end,
+	Hovered = function() return Color.White end,
+	ClaimedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5):setAt("a", 0.1) end,
+	ClaimedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5):setAt("a", 0.25) end,
+	ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.25) end,
+	SelectedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5) end,
+	SelectedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5) end,
+	SelectedByOtherHover = function(playerColor) return playerColor end,
+	SelectedBySelfHover = function() return Color.White end,
+	Invisible = function() return Color.Black:setAt("a", 0) end
+}
 local function getHex(color) return "#" .. color:toHex(true) end
+
 function DIR.RefreshHouseHUD(houseName, player)
 	if houseName == nil then return U.forEach(C.Houses, function(house) DIR.RefreshHouseHUD(house, player) end) end
 	if player == nil then return U.forEach(S.getPlayers(), function(pl) DIR.RefreshHouseHUD(houseName, pl) end) end
 
-	UI.show("houseSelection_" .. player.color)
-
-	local flagColors = {
-		Available = function() return Color.Grey end,
-		ClaimedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5):setAt("a", 0.1) end,
-		ClaimedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5):setAt("a", 0.25) end,
-		ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.25) end,
-		SelectedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5) end,
-		SelectedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5) end,
-		Invisible = function() return Color.Black:setAt("a", 0) end
-	}
-
 	local houseStatus, statusDetail, statusColor = getHouseStatus(houseName, player)
-	log({houseName = houseName, player = player.color, houseStatus = houseStatus, statusDetail = statusDetail, statusColor = statusColor})
+	-- log({houseName = houseName, player = player.color, houseStatus = houseStatus, statusDetail = statusDetail, statusColor = statusColor})
 
 	local flagID = "houseFlag_" .. houseName .. "_" .. player.color
 	local hoverID = "houseHover_" .. houseName .. "_" .. player.color
 
-	UI.setAttributes(hoverID, {
+	local flagAttrs = {
+		color = getHex(flagColors.Available()),
+		image = C.Images.Flags.Base[houseName]
+	}
+	local hoverAttrs = {
+		color = getHex(flagColors.Invisible()),
 		raycastTarget = "true",
 		onMouseDown = "HUD_Click",
 		onMouseEnter = "HUD_HoverOn",
-		onMouseExit = "HUD_HoverOff",
-		scale = "1 1 1"
-	})
+		onMouseExit = "HUD_HoverOff"
+	}
 
 	if houseStatus == "Claimed" then
+		log({Claimed = houseName, statusDetail = statusDetail, statusColor = statusColor})
+		flagAttrs.image = C.Images.Flags.Claimed[houseName]
+		hoverAttrs.onMouseDown = ""
+		hoverAttrs.color = getHex(flagColors.Invisible())
 		if statusDetail == "ByOther" then
-			UI.setAttributes(flagID, {
-				color = getHex(flagColors.ClaimedByOther(statusColor))
-			})
-			UI.setAttributes(hoverID, {
-				color = getHex(flagColors.ClaimedByOther(statusColor):setAt("a", 1):lerp(Color.Black, 0.5)),
-				scale = "0.5 0.5 0.5"
-			})
+			flagAttrs.color = getHex(flagColors.ClaimedByOther(statusColor))
 		elseif statusDetail == "BySelf" then
-			UI.setAttributes(flagID, {
-				color = getHex(flagColors.ClaimedBySelf(statusColor))
-			})
-			UI.setAttributes(hoverID, {
-				color = getHex(Color(player.color):lerp(Color.White, 0.5))
-			})
+			flagAttrs.color = getHex(flagColors.ClaimedBySelf(statusColor))
+			hoverAttrs.color = getHex(Color.White)
 		elseif statusDetail == "ByAbsent" then
-			UI.setAttributes(flagID, {
-				color = getHex(flagColors.ClaimedByAbsent())
-			})
-			UI.setAttributes(hoverID, {
-				color = getHex(flagColors.ClaimedByAbsent():setAt("a", 1):lerp(Color.Black, 0.5)),
-				scale = "0.5 0.5 0.5"
-			})
+			flagAttrs.color = getHex(flagColors.ClaimedByAbsent())
 		end
 	elseif houseStatus == "Selected" then
+		flagAttrs.image = C.Images.Flags.Claimed[houseName]
 		if statusDetail == "ByOther" then
-			UI.setAttributes(flagID, {
-				color = getHex(flagColors.SelectedByOther(statusColor))
-			})
-			UI.setAttributes(hoverID, {
-				color = getHex(flagColors.SelectedByOther(statusColor):setAt("a", 1))
-			})
+			flagAttrs.color = getHex(flagColors.SelectedByOther(statusColor))
+			hoverAttrs.color = getHex(flagColors.SelectedByOtherHover(statusColor))
+			hoverAttrs.onMouseDown = ""
 		elseif statusDetail == "BySelf" then
-			UI.setAttributes(flagID, {
-				color = getHex(flagColors.SelectedBySelf(statusColor))
-			})
-			UI.setAttributes(hoverID, {
-				color = getHex(flagColors.SelectedBySelf(statusColor):setAt("a", 1))
-			})
+			flagAttrs.color = getHex(flagColors.SelectedBySelf(statusColor))
+			hoverAttrs.color = getHex(flagColors.SelectedBySelfHover(statusColor))
 		end
-	elseif houseStatus == "Available" then
-		UI.setAttributes(flagID, {
-			color = getHex(flagColors.Available())
-		})
-		UI.setAttributes(hoverID, {
-			color = getHex(flagColors.Invisible())
-		})
 	end
+
+	UI.setAttributes(flagID, flagAttrs)
+	UI.setAttributes(hoverID, hoverAttrs)
 end
 
-local function getUnselectedPlayers()
-	return U.filter(S.getPlayers(), function(player)
-		if S.getPlayerVal(player, "house") ~= nil then return false end
-		if U.isIn(player.color, U.getValues(HOUSE_SELECTION.Current)) then return false end
-		return true
-	end)
-end
+
 
 function DIR.HouseHUDClick(player, houseName)
 	local houseStatus = getHouseStatus(houseName, player)
-	local curHouse = getPlayerSelectedHouse(player)
-	if curHouse == houseName then
-		HOUSE_SELECTION.Current[houseName] = false
+	log({HOUSES_START = HOUSE_SELECTION, houseStatus = houseStatus, numUnselected = #getUnselectedPlayers()})
+	if houseStatus == "Selected" then
+		HOUSE_SELECTION[houseName] = false
 	elseif houseStatus == "Available" then
-		if curHouse ~= nil then
-			HOUSE_SELECTION.Current[curHouse] = false
+		local curHouse = getPlayerSelectedHouse(player)
+		if curHouse then
+			HOUSE_SELECTION[curHouse] = false
+			DIR.RefreshHouseHUD(curHouse)
 		end
-		HOUSE_SELECTION.Current[houseName] = player.color
+		HOUSE_SELECTION[houseName] = player.color
 	end
-	if curHouse ~= nil then
-		DIR.RefreshHouseHUD(curHouse)
+	log({HOUSES_END = HOUSE_SELECTION, numUnselected = #getUnselectedPlayers()})
+	if #getUnselectedPlayers() == 0 then
+		U.RunSequence({
+			function()
+				DIR.RefreshHouseHUD(houseName)
+				return 2
+			end,
+			function()
+				U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
+				return 2
+			end,
+			function()
+				MSG.Splash("Assigning Houses", "ALL", 5)
+				return 1
+			end,
+			function()
+				return DIR.AssignSelectedHouses()
+			end
+		})
+	else
+		DIR.RefreshHouseHUD(houseName)
 	end
-	DIR.RefreshHouseHUD()
-	Wait.time(function()
-		if #getUnselectedPlayers() == 0 then
-			DIR.AssignSelectedHouses()
-		end
-	end, 3)
 end
 
 function DIR.HouseHUDHoverOn(player, houseName)
 	local houseStatus = getHouseStatus(houseName, player)
 	local curHouse = getPlayerSelectedHouse(player)
-	if curHouse == houseName then return end
 	if curHouse ~= nil then
-		UI.hide("houseInfo_" .. curHouse .. "_" .. player.color)
-	end
-	if houseStatus == "Available" then
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = getHex(Color.White)
-		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = getHex(Color.White)
-		})
+		UI.setAttribute("houseInfo_" .. curHouse .. "_" .. player.color, "active", "false")
 	end
 	UI.show("houseInfo_" .. houseName .. "_" .. player.color)
+
+	if houseStatus == "Available" then
+		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
+			color = getHex(flagColors.Hovered())
+		})
+		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
+			color = getHex(flagColors.Hovered())
+		})
+	end
 end
 
 function DIR.HouseHUDHoverOff(player, houseName)
@@ -386,25 +407,24 @@ function DIR.HouseHUDHoverOff(player, houseName)
 	local curHouse = getPlayerSelectedHouse(player)
 	if curHouse == houseName then return end
 	if curHouse ~= nil then
-		UI.show("houseInfo_" .. curHouse .. "_" .. player.color)
-	end
-	if houseStatus == "Available" then
-		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = getHex(Color.Grey)
-		})
-		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = getHex(Color.Black:setAt("a", 0))
-		})
+		UI.setAttribute("houseInfo_" .. curHouse .. "_" .. player.color, "active", "true")
 	end
 	UI.hide("houseInfo_" .. houseName .. "_" .. player.color)
+
+	if houseStatus == "Available" then
+		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
+			color = getHex(flagColors.Available())
+		})
+		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
+			color = getHex(flagColors.Invisible())
+		})
+	end
 end
 
 function DIR.AssignSelectedHouses()
-	U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
-
 	local newPlayerColors = {}
-	if HOUSE_SELECTION.Current ~= nil then
-		U.forEach(HOUSE_SELECTION.Current, function(color, houseName)
+	if HOUSE_SELECTION ~= nil then
+		U.forEach(HOUSE_SELECTION, function(color, houseName)
 			if not color or not houseName then return end
 			local player = S.getPlayer(color)
 			table.insert(newPlayerColors, color)
@@ -412,9 +432,9 @@ function DIR.AssignSelectedHouses()
 			S.setPlayerVal(nil, player, "houseName")
 		end)
 	end
-	U.forEach(S.getPlayers(), function(player)
+	return U.map(S.getPlayers(), function(player)
 		local house = S.getPlayerVal(player, "house")
-		HouseScreen.Spawn(player, house, U.isIn(player.color, newPlayerColors))
+		return HouseScreen.Spawn(player, house, U.isIn(player.color, newPlayerColors))
 	end)
 end
 -- #endregion

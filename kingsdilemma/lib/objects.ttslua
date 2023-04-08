@@ -64,7 +64,13 @@ O.Lights = {
 }
 
 O.Pieces = {
-	CoverCard = generateGetterFunction("533718")
+	CoverCard = generateGetterFunction("533718"),
+	StabilityToken = generateGetterFunction("e19593"),
+	InfluenceToken = generateGetterFunction("29b725"),
+	WealthToken = generateGetterFunction("c717a0"),
+	MoraleToken = generateGetterFunction("0f25a8"),
+	WelfareToken = generateGetterFunction("1ce1ca"),
+	KnowledgeToken = generateGetterFunction("2071f2"),
 }
 
 O.Get = memoGetFromGUID

@@ -8,15 +8,41 @@ local hideButtonBack = true
 local thick = 0.12
 local gx, gy -- Global Offsets for calibrating against scan error
 
-local scanData, buttons
+local scanData
 local houseTitle, houseName, houseNum, player, color
+
+local buttons = {
+	count = 0,
+	counter = {
+		width = 0,
+		height = 0,
+		font = 800,
+		ox = 0.08,
+		oz = -0.08,
+		ow = 300,
+		oh = 300
+	},
+	toggleA = {
+		width = 300, height = 300, font = 400
+	},
+	toggleB = {
+		width = 300, height = 300, font = 400
+	},
+	txt = {
+		height = 500, font = 350, alignment = 3
+	},
+	editBox = {
+		width = 3800, height = 3600, font = 250, alignment = 2
+	}
+}
 
 function GetPrestige()
 	if houseNum == nil then return nil end
 	local prestigeCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_prestige")
-	end)
-	return prestigeCount + houseNum / 100
+	end) + houseNum / 100
+	S.setPlayerVal(prestigeCount, player, "prestige")
+	return prestigeCount
 end
 
 function GetCrave()
@@ -24,6 +50,7 @@ function GetCrave()
 	local craveCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_crave")
 	end)
+	S.setPlayerVal(craveCount, player, "crave")
 	return craveCount
 end
 
@@ -57,30 +84,8 @@ local function createTextField(name)
 end
 
 local function initButtonsTable()
-	buttons = {}
+	buttons.txt.width = scanData.textWidth
 	buttons.count = 0
-
-	buttons.counter = {
-		width = 0,
-		height = 0,
-		font = 800,
-		ox = 0.08,
-		oz = -0.08,
-		ow = 300,
-		oh = 300
-	}
-	buttons.toggleA = {
-		width = 300, height = 300, font = 400
-	}
-	buttons.toggleB = {
-		width = 300, height = 300, font = 400
-	}
-	buttons.txt = {
-		width = scanData.textWidth, height = 500, font = 350, alignment = 3
-	}
-	buttons.editBox = {
-		width = 3800, height = 3600, font = 250, alignment = 2
-	}
 end
 
 local function forceSave(isResetting)
@@ -191,6 +196,14 @@ local function setupButton(name, type, x, z)
 		end
 	end
 
+	if not button_parameters.width then
+		button_parameters.height = 300
+		button_parameters.width = 300
+	end
+
+	if name == "crave39" and button_parameters.width == 0 or not button_parameters.width then
+		log("Width of Zero for Type '" .. type .. "' = " .. tostring(button_parameters.width))
+	end
 	self.createButton(button_parameters)
 	buttons[name] = button_parameters
 	buttons.count = buttons.count + 1

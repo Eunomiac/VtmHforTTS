@@ -22,11 +22,10 @@ local INITGAMESTATE = {
 -- #region Initializing, Refreshing, Resetting Game State ~
 function S.GetSeatCount() return #Player.getAvailableColors() end
 
-
-
 function S.UpdateSeatedPlayers()
-
-	local angles = C.SeatAngles[S.GetSeatCount()]
+	-- log({UpdatingPlayersAngles = C.SeatAngles, seatCount = S.GetSeatCount()})
+	local angles = U.clone(C.SeatAngles[S.GetSeatCount()])
+	-- log({RetrievedAngles = angles})
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
 		playerData[player.color] = {
@@ -61,6 +60,7 @@ function S.resetGameState(isWipingPlayerData)
 	end
 
 	Global.setTable("gameState", newState)
+	S.UpdateSeatedPlayers()
 	S.refreshStateDebug()
 end
 

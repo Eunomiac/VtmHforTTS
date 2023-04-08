@@ -47,12 +47,15 @@ function onLoad(save_data)
 	console.load()
 
 	S.InitializeGameState(save_data)
-	U.forEach(O.UninteractableObjs, function(oFunc)
-		oFunc().interactable = false
-	end)
-	Global.call("InitTestFuncButtons")
+	Global.call("UpdatePhaseDisplay")
+	UI.show("sessionInitDisplay")
+	L.PrimeLights()
+	U.forEach(O.UninteractableObjs, function(oFunc) oFunc().interactable = false end)
 
-	-- DEBUG: Auto-assign "Player X"'s to colors
+	-- #region DEBUG
+	-- Assign names to test function buttons
+	Global.call("InitTestFuncButtons")
+	-- Auto-assign "Player X"'s to colors
 	local seats = U.clone(C.SeatColors)
 	U.forEach(Player.getSpectators(), function(player)
 		if string.match(player.steam_name, "^Player %d$") then
@@ -62,8 +65,9 @@ function onLoad(save_data)
 			if #seats then player.changeColor(U.shift(seats)) end
 		end
 	end)
+	-- #endregion
 
-	DIR.InitSession()
+	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameCount"))
 end
 
 function onSave() return JSON.encode(S.getGameState()) end
@@ -75,4 +79,25 @@ function onPlayerChangeColor(color)
 	local player = Player[color]
 
 	-- print(color)
+end
+
+function onObjectDrop(playerColor, obj)
+	if obj.hasTag("StabilityMarker") then
+		local pos = obj.getPosition()
+		pos.x = C.Spots.Board.stabilityToken.center.position.x
+		pos.z = math.min(
+			math.max(
+				pos.z,
+				C.Spots.Board.stabilityToken.death.position.z
+			),
+			C.Spots.Board.stabilityToken.abdicate.position.z
+		)
+		U.RunSequence({
+			function()
+				obj.setPositionSmooth(pos)
+				return obj
+			end,
+			L.SetLightMode("lightStability", "on")
+		})
+	end
 end

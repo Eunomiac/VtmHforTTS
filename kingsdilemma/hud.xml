@@ -6,7 +6,7 @@
 <Include src="kingsdilemma/kdxml/defaults.xml" />
 <Include src="kingsdilemma/kdxml/houseSelection.xml" />
 
+<Include src="kingsdilemma/kdxml/splash.xml" />
+
 <Include src="kingsdilemma/kdxml/debug.xml" />
 <Include src="kingsdilemma/kdxml/admin.xml" />
-
-<Include src="kingsdilemma/kdxml/splash.xml" />

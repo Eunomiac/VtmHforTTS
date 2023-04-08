@@ -21,7 +21,11 @@
 </Defaults>
 
 <VerticalLayout class="adminContainer">
-	<HorizontalLayout class="gameStatusDisplay">
+	<HorizontalLayout id="sessionInitDisplay" class="gameStatusDisplay" active="False">
+		<Text class="gameStatusDisplay" color="White">Start Session:</Text>
+		<Button id="initSession">Initialize</Button>
+	</HorizontalLayout>
+	<HorizontalLayout id="gameStatusDisplay" class="gameStatusDisplay" active="False">
 		<Text class="gameStatusDisplay" color="White">Current:</Text>
 		<Text id="currentGameModeDisplay" class="gameStatusDisplay"></Text>
 		<HorizontalLayout id="currentGamePhaseContainer" class="gameStatusDisplay" active="False">

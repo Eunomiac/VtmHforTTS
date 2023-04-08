@@ -24,6 +24,8 @@
 		<Button id="debug_resetPlayers">Reset Players</Button>
 		<Text class="spacer_10"></Text>
 		<Button id="debug_setArrows">Light Arrows</Button>
+		<Button id="debug_primeLights">Reset Lights</Button>
+		<Button id="debug_clearSplash">Clear Splash</Button>
 		<Text class="spacer_10"></Text>
 		<Button id="debug_testFunc1">Test Func 1</Button>
 		<Button id="debug_testFunc2">Test Func 2</Button>

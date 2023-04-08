@@ -394,7 +394,7 @@ function HouseScreen.Spawn(playerRef, houseName, isResettingHouseCard)
 	-- log("Spawning '" .. houseName .. "' for Player #" .. playerNum)
 	P.ClearSeat(player.color)
 	if houseName == nil then return end
-	U.forEach(ObjectData, function(objData, objName)
+	return U.map(ObjectData, function(objData, objName)
 		local spawnData
 		if objName == "houseCard" then
 			assignHouseCard(playerRef, houseName, isResettingHouseCard)
@@ -405,7 +405,7 @@ function HouseScreen.Spawn(playerRef, houseName, isResettingHouseCard)
 
 		if spawnData == nil then return end
 
-		spawnObjectData({data = spawnData})
+		return spawnObjectData({data = spawnData})
 	end)
 end
 

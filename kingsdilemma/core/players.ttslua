@@ -6,48 +6,35 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
-function P.InitializeSeats(isFullyRestoring, isFullyResetting)
+function P.InitializeSeats()
+	S.UpdateSeatedPlayers()
+
 	local seats = U.slice(Player.getColors(), 2, 6)
+	log({SeatColors = seats})
 	local players = S.getPlayers()
 
-	local function initSeat(color, countOverride)
-		local count = countOverride or #players
-		local playerNum = U.findIndex(Player.getColors(), function(col) return col == color end) - 1
-		local angle = C.SeatAngles[count][playerNum]
+	local function initSeat(color)
+		local angle = S.getPlayerAngle(color)
 		local handTransform = OU.RotateByAngle(U.clone(C.BaseHandTransform), angle)
 		local hZone = U.getHandZone(color)
 		if hZone == nil then
-			spawnObjectData({
-				data = {
-					Name = "HandTrigger",
-					FogColor = color,
-					-- GMNotes = "ZonePlayer" .. C.SeatColors[i],
-					Transform = OU.unfoldTransform(handTransform)
-				},
-				callback_function = function()
-					U.waitUntil(function()
-						Player[color].setHandTransform(handTransform)
-					end, {
-						function() return Player[color].getHandCount() > 0 end,
-						3
+			U.RunSequence({
+				function()
+					return spawnObjectData({
+						data = {
+							Name = "HandTrigger",
+							FogColor = color,
+							Transform = OU.unfoldTransform(handTransform)
+						}
 					})
+				end,
+				function()
+					Player[color].setHandTransform(handTransform)
 				end
 			})
 		else
 			Player[color].setHandTransform(handTransform)
 		end
-	end
-
-	if isFullyResetting then
-		return U.sequence({
-			function() U.forEach(Hands.getHands(), function(hZone) hZone.destruct() end) end,
-			function() P.InitializeSeats(isFullyRestoring, false) end
-		}, 1)
-	end
-
-	if isFullyRestoring then
-		U.iForEach(seats, function(seat) initSeat(seat, 5) end)
-		return
 	end
 
 	seats = Player.getAvailableColors()
@@ -56,7 +43,6 @@ function P.InitializeSeats(isFullyRestoring, isFullyResetting)
 
 	if #players < #seats then
 		local excessSeats = U.slice(seats, #players + 1, #seats)
-		seats = U.slice(seats, 1, #players)
 		U.forEach(excessSeats, function(sColor)
 			U.getHandZone(sColor).destruct()
 		end)
@@ -69,11 +55,6 @@ function P.ClearSeat(color)
 	if color == nil then return U.forEach(C.SeatColors, P.ClearSeat) end
 	local playerObjects = getObjectsWithTag(color)
 	local playerZones = U.filter(getObjects(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. color end)
-
-	log(JSON.encode_pretty(U.map(playerZones, function (pZone) return {
-		guid = pZone.getGUID(),
-		name = pZone.getName()
-	} end)))
 
 	U.forEach(U.concat(playerObjects, playerZones), function(obj)
 		if obj.hasTag("HouseCard") then
@@ -107,7 +88,7 @@ function P.RotateToPlayer(objs, player)
 
 		U.RunSequence({
 			function()
-				obj.setPositionSmooth(startPos:add(Vector(0, 2, 0)))
+				obj.setPositionSmooth(Vector(startPos):add(Vector(0, 2, 0)))
 				return obj
 			end,
 			function()

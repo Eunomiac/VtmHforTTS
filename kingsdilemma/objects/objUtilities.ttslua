@@ -92,7 +92,7 @@ end
 
 function OU.GetNearestPlayerAngle(objOrTransform, isExcludingZero)
 	local objAngle = OU.getAngleOf(objOrTransform)
-	local playerAngles = C.SeatAngles[S.GetSeatCount()]
+	local playerAngles = U.clone(C.SeatAngles[S.GetSeatCount()])
 	if not isExcludingZero then
 		table.insert(playerAngles, 1, 0)
 	end

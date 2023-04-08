@@ -75,4 +75,6 @@
 		rectAlignment="UpperCenter"
 		fontSize="60"
 		alignment="UpperCenter" />
+	<Text class="bold" fontStyle="Bold" />
+	<Text class="smallcaps" font="Fonts/FrizSC" />
 </Defaults>
