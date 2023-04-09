@@ -91,7 +91,7 @@ function U.getScatterPosition(boundsOrObj, yShift, padPercent)
 		center = Vector(boundsOrObj.center):add(Vector(0, yShift, 0))
 		size = boundsOrObj.size
 	else
-		U.alertGM("[U.scatterObjects] Error: Must provide an object or a table with 'center' and 'size'.")
+		U.AlertGM("[U.scatterObjects] Error: Must provide an object or a table with 'center' and 'size'.")
 		return
 	end
 	local spanX = size.x * (1 - padPercent)
@@ -261,12 +261,18 @@ function U.Assert(source, val, typeOrTest, tableType, isSilent)
 				log(val, nil, "assert")
 			end
 		elseif type(val) == typeOrTest then return true
-		elseif typeOrTest == "Player" and not U.isPlayer(val) then
-			errorMessage = "Not a Valid Player: '" .. tostring(val) .. "' (" .. type(val) .. ")"
-		elseif typeOrTest == "PlayerColor" and not U.isIn(val, Player.getAvailableColors()) then
-			errorMessage = "Not a Valid Player Color: '" .. tostring(val) .. "' (" .. type(val) .. ")"
-		elseif typeOrTest == "Object" and not U.isGameObject(val) then
-			errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "' (" .. type(val) .. ")"
+		elseif typeOrTest == "Player" then
+			if not U.isPlayer(val) then
+				errorMessage = "Not a Valid Player: TOSTRING = '" .. tostring(val) .. "' TYPE = (" .. type(val) .. "), STEAMID = '" .. tostring(val.steam_id) .. "'"
+			end
+		elseif typeOrTest == "PlayerColor" then
+			if not U.isIn(val, Player.getAvailableColors()) then
+				errorMessage = "Not a Valid Player Color: '" .. tostring(val) .. "' (" .. type(val) .. ")"
+			end
+		elseif typeOrTest == "Object" then
+			if not U.isGameObject(val) then
+				errorMessage = "Not a Valid Game Object: TOSTRING = '" .. tostring(val) .. "' TYPE = (" .. type(val) .. "), GUID = '" .. tostring(val.guid) .. "'"
+			end
 		elseif string.match(typeOrTest, "^%u") then
 			if not U.isGameObject(val) then
 				errorMessage = "Not a Valid Game Object: '" .. tostring(val) .. "' (" .. type(val) .. ")"
@@ -592,7 +598,14 @@ function U.splashUIElement(elemID, duration, delay)
   end
 end
 
-function U.alertGM(message) broadcastToColor(message, U.getHost().color) end
+function U.AlertGM(message, color)
+	if color == nil then color = Color(1, 1, 0) end
+	broadcastToColor(message, U.getHost().color, color)
+end
+function U.Alert(message, color)
+	if color == nil then color = Color(1, 1, 1) end
+	broadcastToAll(message, color)
+end
 
 function U.hasAnyTag(obj, tags)
 	for _, tag in pairs(tags) do
@@ -733,12 +746,14 @@ function U.changeLighting(params)
 	}, 0.5)
 end
 
-function U.setRotationSlow(obj, rotation)
-	return obj.setRotationSmooth(rotation)
+function U.setRotationSlow(obj, rotation, duration)
+	if duration == nil then duration = 0.5 end
+	return U.Lerp(function(rotation) obj.setRotationSmooth(rotation) end, obj.getRotation(), rotation, duration)
 end
 
-function U.setPositionSlow(obj, position)
-	return obj.setPositionSmooth(position)
+function U.setPositionSlow(obj, position, duration)
+	if duration == nil then duration = 0.5 end
+	return U.Lerp(function(position) obj.setPositionSmooth(position) end, obj.getPosition(), position, duration)
 end
 
 -- WaitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
@@ -798,9 +813,9 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 
 			if maxWait <= 0 then
 				if isForcing then
-					U.alertGM("Coroutine Timeout: Forcing resultFunc")
+					U.AlertGM("Coroutine Timeout: Forcing resultFunc")
 				else
-					U.alertGM("Coroutine Timeout! Abandoning resultFunc")
+					U.AlertGM("Coroutine Timeout! Abandoning resultFunc")
 					return 1
 				end
 			end
@@ -943,16 +958,6 @@ function U.Lerp(setFunc, paramStart, paramEnd, duration)
 		setFunc(getParam(1))
 		return 1
 	end
-
-	-- local function waiter()
-	-- 	if LerpCoroutine() ~= 1 then
-	-- 		Wait.frames(waiter)
-	-- 	else
-	-- 		log("All Done!")
-	-- 	end
-	-- end
-
-	-- waiter()
 
 	startLuaCoroutine(self, "LerpCoroutine")
 

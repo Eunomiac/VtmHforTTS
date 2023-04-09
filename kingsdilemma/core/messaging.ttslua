@@ -44,7 +44,7 @@ local function showPanel(queueRef)
 		UI.setAttribute("splashTextContainer_" .. queueRef, "active", "false")
 		UI.show("splashPanel_" .. queueRef)
 	end
-	return 0.5
+	return 0
 end
 
 local function hidePanel(queueRef)
@@ -56,7 +56,7 @@ local function hidePanel(queueRef)
 	return 0.5
 end
 
-local function showMessage(panelRef, mData)
+local function showMessage(panelRef, mData, isLastMessage)
 	local isMessageDone = false
 	local textContainer, textElem = "splashTextContainer_" .. panelRef, "splashText_" .. panelRef
 	U.RunSequence({
@@ -69,8 +69,12 @@ local function showMessage(panelRef, mData)
 			return mData.displayTime
 		end,
 		function()
-			UI.hide(textContainer)
-			return 0.75
+			if isLastMessage == true then
+				return hidePanel(panelRef)
+			else
+				UI.hide(textContainer)
+				return 0.75
+			end
 		end,
 		function() isMessageDone = true end
 	})
@@ -79,8 +83,10 @@ end
 
 local function showMessages(panelRef, messages)
 	local areMessagesDone = false
+	local lastMessage = U.pop(messages)
 	U.RunSequence(U.concat(
-		U.map(messages, function(mData) return function() return showMessage(panelRef, mData) end end),
+		U.iMap(messages, function(mData) return function() return showMessage(panelRef, mData) end end),
+		function() return showMessage(panelRef, lastMessage, true) end,
 		{function() areMessagesDone = true end}
 	))
 	return function() return areMessagesDone == true end

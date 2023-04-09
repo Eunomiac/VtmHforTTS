@@ -81,23 +81,51 @@ function onPlayerChangeColor(color)
 	-- print(color)
 end
 
+local function getBoundedPos(obj, xMin, xMax, zMin, zMax)
+	local pos = obj.getPosition()
+	if pos.x > xMax then pos.x = xMax end
+	if pos.x < xMin then pos.x = xMin end
+	if pos.z > zMax then pos.z = zMax end
+	if pos.z < zMin then pos.z = zMin end
+	return Vector(pos)
+end
+
+
+
 function onObjectDrop(playerColor, obj)
 	if obj.hasTag("StabilityMarker") then
-		local pos = obj.getPosition()
-		pos.x = C.Spots.Board.stabilityToken.center.position.x
-		pos.z = math.min(
-			math.max(
-				pos.z,
-				C.Spots.Board.stabilityToken.death.position.z
-			),
-			C.Spots.Board.stabilityToken.abdicate.position.z
-		)
 		U.RunSequence({
+			function() return {obj, 0.1} end,
 			function()
-				obj.setPositionSmooth(pos)
+				obj.setPosition(getBoundedPos(
+					obj,
+					C.Spots.Board.StabilityToken.center.position.x,
+					C.Spots.Board.StabilityToken.center.position.x,
+					C.Spots.Board.StabilityToken.bottom.position.z,
+					C.Spots.Board.StabilityToken.top.position.z
+				))
 				return obj
 			end,
-			L.SetLightMode("lightStability", "on")
+			function() L.SetLightMode("lightStability", "on") end
+		})
+	elseif obj.hasTag("ResourceMarker") then
+		local resource = U.find({"Influence", "Wealth", "Morale", "Welfare", "Knowledge"}, function(res) return obj.hasTag(res) end)
+		if resource == nil then return end
+		U.RunSequence({
+			function() return {obj, 0.1} end,
+			function()
+				obj.setPosition(getBoundedPos(
+					obj,
+					C.Spots.Board.ResourceTokens[resource].center.position.x,
+					C.Spots.Board.ResourceTokens[resource].center.position.x,
+					C.Spots.Board.ResourceTokens[resource].bottom.position.z,
+					C.Spots.Board.ResourceTokens[resource].top.position.z
+				))
+				return obj
+			end,
+			function()
+				return DIR.UpdateMomentum(resource)
+			end
 		})
 	end
 end

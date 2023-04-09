@@ -44,7 +44,13 @@ O.SpawnSources = {
 	zonePrivateNay = generateGetterFunction("aab38f"),
 	zonePublic = generateGetterFunction("9100f3"),
 	zoneHiderHouseCard = generateGetterFunction("12e119"),
-	zoneHiderGeneral = generateGetterFunction("0a34f7")
+	zoneHiderGeneral = generateGetterFunction("0a34f7"),
+	stabilityToken = generateGetterFunction("e19593"),
+	influenceToken = generateGetterFunction("29b725"),
+	wealthToken = generateGetterFunction("c717a0"),
+	moraleToken = generateGetterFunction("0f25a8"),
+	welfareToken = generateGetterFunction("1ce1ca"),
+	knowledgeToken = generateGetterFunction("2071f2")
 }
 
 O.Leader = {

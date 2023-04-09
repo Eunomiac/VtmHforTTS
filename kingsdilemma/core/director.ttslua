@@ -35,7 +35,6 @@ function DIR.RESET()
 	DIR.InitializePhase()
 end
 
-local startType
 INITFUNCS = {
 	NONE = function() return {
 		function()
@@ -75,21 +74,24 @@ INITFUNCS = {
 		end,
 		function()
 			U.Assert("DIR.ADVANCE", S.getStateVal("gameCount") == 1)
+			S.setStateVal(nil, "chronicleType")
 			local host = S.getPlayer("Host")
 			host.showOptionsDialog(
 				"How do you want to start your Chronicle of A King's Dilemma?",
 				{"Prologue", "Main"},
 				"Prologue",
-				function(response) startType = response end
+				function(response) S.setStateVal(response, "chronicleType") end
 			)
-			return function() return startType ~= nil end
+			return function() return S.getStateVal("chronicleType") ~= nil end
 		end,
 		DIR.StartChronicle
 	}
 	end,
 	GAMESETUP = {
 		MainBoard = function() return {
+			DIR.SpawnBoardTokens,
 			function()
+				L.SetLightMode("lightStability", "on")
 				local rTokens = getObjectsWithTag("ResourceMarker")
 				table.sort(rTokens, function(a, b) return a.getPosition().x < b.getPosition().x end)
 				return U.RunSequence(U.iMap(rTokens, function(tk)
@@ -101,7 +103,17 @@ INITFUNCS = {
 					end
 				end))
 			end,
-			function() U.alertGM("All done!") end
+			function() return 1 end,
+			function()
+				return {
+					DIR.UpdateMomentum("Influence"),
+					DIR.UpdateMomentum("Wealth"),
+					DIR.UpdateMomentum("Morale"),
+					DIR.UpdateMomentum("Welfare"),
+					DIR.UpdateMomentum("Knowledge")
+				}
+			end,
+			function() U.AlertGM("All done!") end
 			-- MAIN BOARD SETUP
 				-- Randomly shuffle sides of Resource Tokens
 				-- Stability token spawned at center
@@ -220,7 +232,7 @@ function DIR.InitSession()
 			end,
 			function()
 				L.LoadLights()
-				return 1
+				return 2
 			end,
 			function()
 				DIR.ADVANCE()
@@ -337,7 +349,7 @@ function DIR.RefreshHouseHUD(houseName, player)
 			hoverAttrs.onMouseDown = ""
 		elseif statusDetail == "BySelf" then
 			flagAttrs.color = getHex(flagColors.SelectedBySelf(statusColor))
-			hoverAttrs.color = getHex(flagColors.SelectedBySelfHover(statusColor))
+			hoverAttrs.color = getHex(flagColors.SelectedBySelfHover())
 		end
 	end
 
@@ -370,10 +382,6 @@ function DIR.HouseHUDClick(player, houseName)
 			function()
 				U.forEach(C.SeatColors, function(col) UI.hide("houseSelection_" .. col) end)
 				return 2
-			end,
-			function()
-				MSG.Splash("Assigning Houses", "ALL", 5)
-				return 1
 			end,
 			function()
 				return DIR.AssignSelectedHouses()
@@ -432,10 +440,18 @@ function DIR.AssignSelectedHouses()
 			S.setPlayerVal(nil, player, "houseName")
 		end)
 	end
-	return U.map(S.getPlayers(), function(player)
-		local house = S.getPlayerVal(player, "house")
-		return HouseScreen.Spawn(player, house, U.isIn(player.color, newPlayerColors))
-	end)
+	return U.RunSequence(U.concat({
+		function()
+			MSG.Splash("Setting Up Play Spaces", "ALL", 5)
+			return 1
+		end
+	},
+	U.map(S.getPlayers(), function(player)
+		return function()
+			local house = S.getPlayerVal(player, "house")
+			return HouseScreen.Spawn(player, house, U.isIn(player.color, newPlayerColors))
+		end
+	end)))
 end
 -- #endregion
 
@@ -464,12 +480,20 @@ end
 function DIR.PlaceChronicleCard(kingName)
 	local sourceObj = O.SpawnSources.chronicleCard()
 	local spawnData = sourceObj.getData()
+	local cCard
 	spawnData.Nickname = kingName
 	spawnData.Description = os.date("%b ") .. os.date("*t").day .. " '" .. os.date("*t").year - 2000
 	spawnData.Transform = OU.unfoldTransform(C.Spots.Main.ChronicleCard)
 	spawnData.Tags = {"ChronicleCard", "ChronicleCardActive"}
 	spawnData.LuaScriptState = getUpdatedChronicleCardState(spawnData.LuaScriptState)
-	return spawnObjectData({data = spawnData})
+	spawnObjectData({
+		data = spawnData,
+		callback_function = function(obj) cCard = obj end
+	})
+	return function()
+		log({cCard = cCard})
+		return cCard ~= nil
+	end
 end
 
 function DIR.UpdateChronicleCardNames()
@@ -480,45 +504,115 @@ function DIR.UpdateChronicleCardNames()
 	cCard.reload()
 end
 
-function DIR.StartChronicle()
-	local startingEnvelope = ({Prologue = "D1", Main = "0"})[startType]
-	local envContainer = O.SecretContainers.Envelopes()
+
+function DIR.PresentStoryCard(storyCard)
+	U.Assert("DIR.PresentStoryCard", storyCard, "Object")
+	return U.RunSequence({
+		function()
+			storyCard.setPositionSmooth(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0)))
+			storyCard.setRotationSmooth(Vector(C.Spots.Staging.StoryCard.Display.rotation))
+			return {
+				storyCard,
+				L.SetLightMode("lightLectern", "storyCard")
+			}
+		end,
+		function()
+			storyCard.setLock(false)
+			return {
+				storyCard,
+				1.5
+			}
+		end,
+		function()
+			return function() return not Vector.equals(storyCard.getPosition(), Vector(C.Spots.Staging.StoryCard.Display.position), 1) end
+		end,
+		function()
+			return L.SetLightMode("lightLectern", "ambient")
+		end
+	})
+end
+
+function DIR.AddToDilemmaDeck(dilemmas)
+	U.Assert("DIR.AddUnhandledCardsToDilemmaDeck: Object Test", dilemmas, "Object")
+	U.Assert("DIR.AddUnhandledCardsToDilemmaDeck: Deck or Card Test", U.isIn(dilemmas.type, {"Card", "Deck"}))
 	local coverCard = O.Pieces.CoverCard()
+	U.Assert("DIR.AddUnhandledCardsToDilemmaDeck", coverCard, "Object")
 	coverCard.setLock(true)
 	local coverCardRaisedPos = coverCard.getPosition():add(Vector(0, 5, 0))
-	local newCardDestPos = coverCard.getPosition():add(Vector(0, 0.2, 0))
-	local envGUID = getContainedGUID(envContainer, startingEnvelope)
-	if envGUID == nil then return end
+	local dilemmaDestPos = Vector(coverCardRaisedPos):add(Vector(0, -3, 0))
 
-	local envContents, storyCard, dilemmaDeck, remainder
-
-	local function grabNextCard()
-		newCardDestPos = newCardDestPos:add(Vector(0, 0.1, 0))
-		if remainder ~= nil then
-			remainder.setTags({"Dilemma"})
-			remainder.setLock(false)
-			remainder.setPositionSmooth(newCardDestPos)
-			remainder.setRotationSmooth(coverCard.getRotation())
-		else
-			envContents.takeObject({
-				position = newCardDestPos,
+	local function addNextDilemma()
+		dilemmaDestPos = dilemmaDestPos:add(Vector(0, 0.4, 0))
+		if dilemmas.type == "Deck" then
+			dilemmas.takeObject({
+				position = dilemmaDestPos,
 				rotation = coverCard.getRotation(),
 				callback_function = function(obj)
 					obj.setTags({"Dilemma"})
 					obj.setLock(false)
 				end
 			})
-			if envContents.remainder ~= nil then
-				remainder = envContents.remainder
-				return 1
+			if dilemmas.remainder ~= nil then
+				dilemmas = dilemmas.remainder
 			end
+		elseif dilemmas.type == "Card" then
+			dilemmas.setTags({"Dilemma"})
+			dilemmas.setLock(false)
+			dilemmas.setPositionSmooth(dilemmaDestPos)
+			dilemmas.setRotationSmooth(coverCard.getRotation())
 		end
 		return 0.3
 	end
 
-	U.RunSequence({
-		function() return {L.SetLightMode("lightLectern", "spotlightChronicleCard")} end,
-		function() return DIR.PlaceChronicleCard("Harald V") end,
+	local seqFuncs = {
+		function()
+			return U.setPositionSlow(coverCard, coverCardRaisedPos)
+		end,
+		addNextDilemma
+	}
+
+	if dilemmas.type == "Deck" then
+		for i = 2, #dilemmas.getObjects() do
+			table.insert(seqFuncs, addNextDilemma)
+		end
+	end
+
+	table.insert(seqFuncs, 	function()
+		return
+			function()
+				local dilemmaObjs = getObjectsWithTag("Dilemma")
+				if #dilemmaObjs ~= 1 then return false end
+				if dilemmaObjs[1].type ~= "Deck" then return false end
+				dilemmas = dilemmaObjs[1]
+				return true
+			end
+	end)
+	table.insert(seqFuncs, function()
+		dilemmas.shuffle()
+		return 1
+	end)
+	table.insert(seqFuncs, function()
+		coverCard.setLock(false)
+		return {coverCard, 0.1}
+	end)
+
+	return U.RunSequence(seqFuncs)
+end
+
+function DIR.OpenEnvelope(envKey, isStandard)
+	U.Assert("DIR.OpenEnvelope", envKey, "string")
+	local envContainer = O.SecretContainers.Envelopes()
+	U.Assert("DIR.OpenEnvelope", envContainer, "Object")
+
+	local envGUID = getContainedGUID(envContainer, envKey)
+	if envGUID == nil then
+		U.Alert("Envelope '" .. envKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0))
+		return
+	end
+
+	local envDeck, storyCard
+
+	local seqFuncs = {
 		function() return {L.SetLightMode("lightLectern", "spotlightEnvelope", nil, 0.25)} end,
 		function()
 			U.setPositionSlow(envContainer, C.Spots.Staging.Lectern.Envelopes.position)
@@ -531,20 +625,19 @@ function DIR.StartChronicle()
 				rotation = C.Spots.Staging.Lectern.Display.rotation,
 				guid = envGUID,
 				callback_function = function(obj)
-					envContents = obj
-					envContents.setLock(true)
+					envDeck = obj
+					envDeck.setLock(true)
 				end
 				})
-			return function() return envContents ~= nil end
+			return function() return envDeck ~= nil end
 		end,
 		function()
-			U.setPositionSlow(coverCard, coverCardRaisedPos)
 			U.setPositionSlow(envContainer, C.Spots.Storage.Envelopes.position)
 			U.setRotationSlow(envContainer, C.Spots.Storage.Envelopes.rotation)
-			return {coverCard, envContainer, L.SetLightMode("lightLectern", "spotlightTransit")}
+			return 0.3
 		end,
 		function()
-			envContents.takeObject({
+			envDeck.takeObject({
 				position = C.Spots.Staging.Lectern.TopCard.position,
 				rotation = C.Spots.Staging.Lectern.TopCard.rotation,
 				callback_function = function(obj)
@@ -555,51 +648,116 @@ function DIR.StartChronicle()
 			})
 			return function() return storyCard ~= nil end
 		end,
-		grabNextCard,
-		grabNextCard,
-		grabNextCard,
 		function()
-			return
-				function()
-					local dilemmaObjs = getObjectsWithTag("Dilemma")
-					if #dilemmaObjs ~= 1 then return false end
-					if dilemmaObjs[1].type ~= "Deck" then return false end
-					dilemmaDeck = dilemmaObjs[1]
-					return dilemmaDeck
-				end
-		end,
-		function()
-			dilemmaDeck.shuffle()
-			return 1
-		end,
-		function()
-			coverCard.setLock(false)
-			-- storyCard.setLock(false)
-			storyCard.setPositionSmooth(Vector({0.00, 7, 16.52}))
-			storyCard.setRotationSmooth(Vector({0.00, 180.00, 0.00}))
-			return {
-				coverCard,
-				storyCard,
-				L.SetLightMode("lightLectern", "firstStoryCard")
-			}
-		end,
-		function()
-			storyCard.setLock(false)
-			return {
-				storyCard,
-				3.5
-			}
-		end,
-		function()
-			return function() return not Vector.equals(storyCard.getPosition(), Vector({0.00, 1.94, 16.52}), 1) end
-		end,
-		function()
-			return L.SetLightMode("lightLectern", "ambient")
+			return L.SetLightMode("lightLectern", "spotlightTransit", nil, 0.3)
 		end
+	}
+
+	if isStandard == true then
+		table.insert(seqFuncs, function() return DIR.AddToDilemmaDeck(envDeck) end)
+	end
+
+	table.insert(seqFuncs, function() return DIR.PresentStoryCard(storyCard) end)
+
+	if isStandard ~= true then
+		local leaderInstructions
+		table.insert(seqFuncs, function()
+			DIR.PromptLeaderToHandleEnvelope(envDeck)
+			return function() return leaderInstructions ~= nil end
+		end)
+		table.insert(seqFuncs, function()
+			return DIR.HandleLeaderEnvelopeInstructions(leaderInstructions)
+		end)
+	end
+
+	return U.RunSequence(seqFuncs)
+end
+
+function DIR.StartChronicle()
+	U.Assert("DIR.StartChronicle", U.isIn(S.getStateVal("chronicleType"), {"Main", "Prologue"}))
+	local startingEnvelope = ({Prologue = "D1", Main = "0"})[S.getStateVal("chronicleType")]
+	local kingName = ({Prologue = "Harald IV", Main = "Harald V"})[S.getStateVal("chronicleType")]
+
+	return U.RunSequence({
+		function() return L.SetLightMode("lightLectern", "spotlightChronicleCard") end,
+		function() return DIR.PlaceChronicleCard(kingName) end,
+		function() log("Opening Envelope"); return DIR.OpenEnvelope(startingEnvelope, true) end
 	})
 end
 
+local function spawnToken(sourceObj, tags, transformData)
+	local spawnData = sourceObj.getData()
+	local token
+	spawnData.Transform = OU.unfoldTransform(transformData)
+	spawnData.Tags = tags
+	spawnObjectData({
+		data = spawnData,
+		callback_function = function(obj)
+			obj.setLock(false)
+			token = obj
+		end
+	})
+	return {1, function() return token ~= nil end}
+end
 
+function DIR.SpawnBoardTokens()
+	return {
+		spawnToken(O.SpawnSources.stabilityToken(), {"StabilityMarker"}, C.Spots.Board.StabilityToken.center),
+		spawnToken(O.SpawnSources.influenceToken(), {"ResourceMarker", "Influence"}, C.Spots.Board.ResourceTokens.Influence.center),
+		spawnToken(O.SpawnSources.wealthToken(), {"ResourceMarker", "Wealth"}, C.Spots.Board.ResourceTokens.Wealth.center),
+		spawnToken(O.SpawnSources.moraleToken(), {"ResourceMarker", "Morale"}, C.Spots.Board.ResourceTokens.Morale.center),
+		spawnToken(O.SpawnSources.welfareToken(), {"ResourceMarker", "Welfare"}, C.Spots.Board.ResourceTokens.Welfare.center),
+		spawnToken(O.SpawnSources.knowledgeToken(), {"ResourceMarker", "Knowledge"}, C.Spots.Board.ResourceTokens.Knowledge.center)
+	}
+end
 
+local function getTokenMomentum(token, resource)
+	local lastTurnPos = Vector(S.getStateVal("lastTurn", "tokenPos" .. resource))
+	local thisTurnPos = token.getPosition()
+	S.setStateVal(thisTurnPos, "lastTurn", "tokenPos" .. resource)
+	if U.isFlipped(token) then
+		if math.abs(tonumber(thisTurnPos.z) - tonumber(lastTurnPos.z)) < 1 then
+			return "Down", 1
+		elseif tonumber(thisTurnPos.z) > tonumber(lastTurnPos.z) then
+			return "Up", 1
+		else
+			return "Down", 2
+		end
+	else
+		if math.abs(tonumber(thisTurnPos.z) - tonumber(lastTurnPos.z)) < 1 then
+			return "Up", 1
+		elseif tonumber(thisTurnPos.z) < tonumber(lastTurnPos.z) then
+			return "Down", 1
+		else
+			return "Up", 2
+		end
+	end
+end
+
+function DIR.UpdateMomentum(resource)
+	local token = getObjectsWithAllTags({"ResourceMarker", resource})[1]
+	U.Assert("DIR.UpdateMomentum", token, "Object")
+	local momentumDir, momentumVal = getTokenMomentum(token, resource)
+	local seqFuncs = {}
+	if U.isFlipped(token) then
+		if momentumDir == "Up" then
+			table.insert(seqFuncs, function()
+				token.flip()
+				return token
+			end)
+		end
+	else
+		if momentumDir == "Down" then
+			table.insert(seqFuncs, function()
+				token.flip()
+				return token
+			end)
+		end
+	end
+	table.insert(seqFuncs, function()
+		L.SetLightMode("light" .. resource, "momentum" .. momentumDir .. momentumVal)
+	end)
+	return U.RunSequence(seqFuncs)
+end
 
 return DIR

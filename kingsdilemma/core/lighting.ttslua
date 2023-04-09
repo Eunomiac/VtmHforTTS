@@ -7,6 +7,91 @@ local L = {}
 
 local DefaultTransitionTime = 0.5
 
+local function generateLightModes(lightTag)
+	if U.isIn(lightTag, {"lightInfluence", "lightWealth", "lightMorale", "lightWelfare", "lightKnowledge"}) then
+		local resource = string.match(lightTag, "light(.*)")
+		local function getTokenPos()
+			local token = getObjectsWithTag(resource)[1]
+			if token == nil then
+				return Vector(C.Spots.Board.ResourceTokens[resource].center.position)
+			else
+				U.Assert("generateLightModes", token, "Object")
+				return token.getPosition()
+			end
+		end
+		return {
+			loadRotation = Vector(0, 0, 0),
+			default = "off",
+			off = function()
+				return {
+					enabled = false,
+					color = C.LightColors.Ambient,
+					range = 66,
+					angle = 20,
+					intensity = 0.75,
+					rotation = Vector({0, 0, 0}),
+					position = getTokenPos():add(Vector({0, 2.5, 0}))
+				}
+			end,
+			ambient = function()
+				return {
+					enabled = true,
+					color = C.LightColors.Ambient,
+					range = 66,
+					angle = 20,
+					intensity = 0.75,
+					rotation = Vector({0, 0, 0}),
+					position = getTokenPos():add(Vector({0, 2.5, 0}))
+				}
+			end,
+			momentumUp1 = function()
+				return {
+					enabled = true,
+					color = C.LightColors.Amber,
+					range = 66,
+					angle = 25,
+					intensity = 0.75,
+					rotation = Vector({-53.31, 0, 0}),
+					position = getTokenPos():add(Vector({0, 1.96, -2.38}))
+				}
+			end,
+			momentumUp2 = function()
+				return {
+					enabled = true,
+					color = C.LightColors.Yellow,
+					range = 66,
+					angle = 20,
+					intensity = 1.5,
+					rotation = Vector({-67.41, 0.00, 0.00}),
+					position = getTokenPos():add(Vector({0, 1.52, -3}))
+				}
+			end,
+			momentumDown1 = function()
+				return {
+					enabled = true,
+					color = C.LightColors.Amber,
+					range = 66,
+					angle = 25,
+					intensity = 0.75,
+					rotation = Vector({53.31, 0, 0}),
+					position = getTokenPos():add(Vector({0, 1.96, 2.38}))
+				}
+			end,
+			momentumDown2 = function()
+				return {
+					enabled = true,
+					color = C.LightColors.Yellow,
+					range = 66,
+					angle = 20,
+					intensity = 1.5,
+					rotation = Vector({67.41, 0.00, 0.00}),
+					position = getTokenPos():add(Vector({0, 1.52, 3}))
+				}
+			end
+		}
+	end
+end
+
 L.LIGHTMODES = {
 	lightLectern = {
 		default = "ambient",
@@ -31,7 +116,7 @@ L.LIGHTMODES = {
 			color = Color.Yellow:lerp(Color.Grey, 0.4),
 			range = 200,
 			angle = 35,
-			intensity = 2,
+			intensity = 1,
 			rotation = Vector(312, 0, 0)
 		},
 		spotlightEnvelope = {
@@ -74,7 +159,7 @@ L.LIGHTMODES = {
 			intensity = 1,
 			rotation = Vector(304, 0, 0)
 		},
-		firstStoryCard = {
+		storyCard = {
 			enabled = true,
 			color = C.LightColors.Ambient,
 			range = 200,
@@ -168,9 +253,9 @@ L.LIGHTMODES = {
 			intensity = 1
 		},
 		on = function()
-			local stabilityToken = O.Pieces.StabilityToken()
+			local stabilityToken = getObjectsWithTag("StabilityMarker")[1]
 			local stabilityPos = stabilityToken.getPosition()
-			local distRatio = C.Spots.Board.stabilityToken.center.position:distance(stabilityPos) / C.Spots.Board.stabilityToken.center.position:distance(C.Spots.Board.stabilityToken.abdicate.position)
+			local distRatio = C.Spots.Board.StabilityToken.center.position:distance(stabilityPos) / C.Spots.Board.StabilityToken.center.position:distance(C.Spots.Board.StabilityToken.top.position)
 			local lerpAngle = Vector(20,0,0):lerp(Vector(28,0,0), distRatio).x
 			local lerpIntensity = Vector(1,0,0):lerp(Vector(2,0,0), distRatio).x
 			local lerpRange = Vector(12,0,0):lerp(Vector(18,0,0), distRatio).x
@@ -181,13 +266,13 @@ L.LIGHTMODES = {
 				lerpColor = C.LightColors.StabilityToken.half:lerp(C.LightColors.StabilityToken.ends, 2 * (distRatio - 0.5))
 			end
 
-			stabilityPos.x = C.Spots.Board.stabilityToken.center.position.x
+			stabilityPos.x = C.Spots.Board.StabilityToken.center.position.x
 			stabilityPos.z = math.min(
 				math.max(
 					stabilityPos.z,
-					C.Spots.Board.stabilityToken.death.position.z
+					C.Spots.Board.StabilityToken.bottom.position.z
 				),
-				C.Spots.Board.stabilityToken.abdicate.position.z
+				C.Spots.Board.StabilityToken.top.position.z
 			)
 			-- log({distRatio = distRatio})
 			local lData = {
@@ -201,6 +286,37 @@ L.LIGHTMODES = {
 			-- log(lData)
 			return lData
 		end
+	},
+	lightInfluence = generateLightModes("lightInfluence"),
+	lightWealth = generateLightModes("lightWealth"),
+	lightMorale = generateLightModes("lightMorale"),
+	lightWelfare = generateLightModes("lightWelfare"),
+	lightKnowledge = generateLightModes("lightKnowledge"),
+	lightBalance = {
+		loadRotation = Vector({16.91, 0, 0}),
+		default = function()
+			if S.isInMode({"NONE", "SETSSIONINIT", "CAMPAIGNSETUP"}) then
+				return "off"
+			else
+				return "on"
+			end
+		end,
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 30,
+			angle = 30,
+			intensity = 0.8,
+			rotation = Vector({16.91, 0, 0})
+		},
+		on = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 30,
+			angle = 30,
+			intensity = 0.8,
+			rotation = Vector({16.91, 0, 0})
+		}
 	}
 	-- lightVote = {
 	-- 	off = {
@@ -244,11 +360,11 @@ local function getLight(lightName, playerRef)
 	end
 	local lights = getObjectsWithAllTags(tags)
 	if #lights > 1 then
-		return U.alertGM("[Error: getLight()] Multiple '" .. "'s found!")
+		return U.AlertGM("[Error: getLight()] Multiple '" .. "'s found!")
 	end
 	if #lights == 0 then
 		---@diagnostic disable-next-line: need-check-nil
-		return U.alertGM("[Error: getLight()] No '" ..
+		return U.AlertGM("[Error: getLight()] No '" ..
 		"' light found" .. (player == nil and "!" or (" for " .. player.color .. " Player.")))
 	end
 	return lights[1]
@@ -342,7 +458,7 @@ local function setLightMode(lightName, mode, playerNum, transitionTime)
 
 
 	if L.LIGHTMODES[lightName] == nil then
-		return U.alertGM("[Error: setLightMode] No modes configured for light '" .. lightName .. "'")
+		return U.AlertGM("[Error: setLightMode] No modes configured for light '" .. lightName .. "'")
 	end
 
 	local lData = L.LIGHTMODES[lightName][mode]
@@ -353,7 +469,7 @@ local function setLightMode(lightName, mode, playerNum, transitionTime)
 	end
 
 	if not lData then
-		return U.alertGM("[Error: setLightMode] No such light mode '" .. mode .. "' for light '" .. lightName .. "'")
+		return U.AlertGM("[Error: setLightMode] No such light mode '" .. mode .. "' for light '" .. lightName .. "'")
 	end
 
 	-- log({light = light, lightName = lightName, mode = mode, lData = lData})
@@ -390,10 +506,10 @@ local function setLightMode(lightName, mode, playerNum, transitionTime)
 				table.insert(lerpFuncs, U.Lerp(function(color) setColor(light, color) end, getColor(light), lData.color, transitionTime))
 			end
 			if lData.rotation ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(rotation) light.setRotationSmooth(rotation) end, light.getRotation(), lData.rotation, transitionTime))
+				table.insert(lerpFuncs, U.setRotationSlow(light, lData.rotation, transitionTime))
 			end
 			if lData.position ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(position) light.setPositionSmooth(position) end, light.getPosition(), lData.position, transitionTime))
+				table.insert(lerpFuncs, U.setPositionSlow(light, lData.position, transitionTime))
 			end
 
 			return lerpFuncs

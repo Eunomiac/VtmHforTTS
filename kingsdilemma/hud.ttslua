@@ -64,7 +64,7 @@ local TESTFUNCS = {
 				return MSG.RunQueue("ALL")
 			end,
 			function()
-				U.alertGM("All Done!")
+				U.AlertGM("All Done!")
 			end
 		})
 	end,

@@ -16,7 +16,15 @@ local INITGAMESTATE = {
 	playerData = {},
 	playerStorage = {},
 	curLeader = nil,
-	curModerator = nil
+	curModerator = nil,
+	lastTurn = {
+		tokenPosStability = C.Spots.Board.StabilityToken.center.position,
+		tokenPosInfluence = C.Spots.Board.ResourceTokens.Influence.center.position,
+		tokenPosWealth = C.Spots.Board.ResourceTokens.Wealth.center.position,
+		tokenPosMorale = C.Spots.Board.ResourceTokens.Morale.center.position,
+		tokenPosWelfare = C.Spots.Board.ResourceTokens.Welfare.center.position,
+		tokenPosKnowledge = C.Spots.Board.ResourceTokens.Knowledge.center.position
+	}
 }
 
 -- #region Initializing, Refreshing, Resetting Game State ~
@@ -105,6 +113,9 @@ end
 function S.setStateVal(value, key, subKey)
 	U.Assert("S.setStateVal", key, "string")
 	local state = Global.getTable("gameState")
+	if not U.isIn(key, U.getKeys(state)) then
+		U.AlertGM("WARNING: Setting Unregistered State Val: '" .. key .. "' = '" .. tostring(value) .. "'")
+	end
 	if (subKey) then
 		if (state[key] == nil) then state[key] = {} end
 		state[key][subKey] = value
@@ -229,7 +240,7 @@ function S.getPlayerOf(obj)
 		local playerAngle = OU.GetNearestPlayerAngle(obj)
 		if playerAngle == 0 then return 0 end
 		local playerData = U.find(S.getStateVal("playerData"), function(pData) return pData.angle == playerAngle end)
-		if playerData == nil then return U.alertGM("Error finding player of object '" .. tostring(obj) .. "'") end
+		if playerData == nil then return U.AlertGM("Error finding player of object '" .. tostring(obj) .. "'") end
 		return S.getPlayer(playerData.num)
 	end
 end
