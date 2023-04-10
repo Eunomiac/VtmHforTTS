@@ -1,5 +1,8 @@
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
+local O = require("kingsdilemma.lib.objects")
+local L = require("kingsdilemma.core.lighting")
+local OU = require("kingsdilemma.objects.objUtilities")
 
 
 
@@ -17,11 +20,76 @@ function V.updatePrivateCount(player)
 	end)
 	ayeZone.call("UpdateCount", ayePower)
 	nayZone.call("UpdateCount", nayPower)
-
-
 end
 
+function V.ElevateRiser(player)
+	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
+	local riserPos = riser.getPosition()
+	riserPos.y = 3
+	return U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3)
+end
 
+function V.LowerRiser(player)
+	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
+	local riserPos = riser.getPosition()
+	riserPos.y = 1.5
+	return U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3)
+end
 
+function V.ElevateBalance()
+	local plinth = O.Pieces.BalancePlinth()
+	local plinthPos = plinth.getPosition()
+	plinthPos.y = 3
+	return U.Lerp(function(pos) plinth.setPositionSmooth(pos) end, plinth.getPosition(), plinthPos, 1)
+end
+
+function V.LowerBalance()
+	local plinth = O.Pieces.BalancePlinth()
+	local plinthPos = plinth.getPosition()
+	plinthPos.y = 1.94
+	L.SetLightMode("lightBalance", "off", nil, 3)
+	return U.Lerp(function(pos) plinth.setPositionSmooth(pos) end, plinth.getPosition(), plinthPos, 1)
+end
+
+function V.SpawnBalanceTokens(numTokens)
+	local plinth = O.Pieces.BalancePlinth()
+	local seqFuncs = {}
+
+	local function spawnToken(tokenSize)
+		local sourceObj = O.SpawnSources["powerToken" .. tokenSize]()
+		local spawnData = sourceObj.getData()
+		spawnData.Value = tokenSize
+		spawnData.Transform = OU.unfoldTransform({
+			position = U.getScatterPosition(plinth, 3, 0.6),
+			rotation = Vector({
+				U.randBetween(-45, 45, true),
+				U.randBetween(-45, 45, true),
+				U.randBetween(-45, 45, true)
+			}),
+			scale = sourceObj.getScale()
+		})
+		spawnData.Tags = {"PowerToken", "Value" .. tokenSize}
+		spawnObjectData({
+			data = spawnData,
+			callback_function = function(obj) obj.setLock(false) end
+		})
+		return 0.1
+	end
+
+	while math.floor(numTokens / 10) > 0 do
+		numTokens = numTokens - 10
+		table.insert(seqFuncs, function() return spawnToken(10) end)
+	end
+	while math.floor(numTokens / 5) > 0 do
+		numTokens = numTokens - 5
+		table.insert(seqFuncs, function() return spawnToken(5) end)
+	end
+	while numTokens > 0 do
+		numTokens = numTokens - 1
+		table.insert(seqFuncs, function() return spawnToken(1) end)
+	end
+
+	return U.RunSequence(seqFuncs, nil, 1)
+end
 
 return V

@@ -11,7 +11,7 @@ local gx, gy -- Global Offsets for calibrating against scan error
 local scanData
 local houseTitle, houseName, houseNum, player, color
 
-local buttons = {
+local buttonsData = {
 	count = 0,
 	counter = {
 		width = 0,
@@ -35,6 +35,7 @@ local buttons = {
 		width = 3800, height = 3600, font = 250, alignment = 2
 	}
 }
+local buttons = U.clone(buttonsData, true)
 
 function GetPrestige()
 	if houseNum == nil then return nil end
@@ -84,8 +85,9 @@ local function createTextField(name)
 end
 
 local function initButtonsTable()
-	buttons.txt.width = scanData.textWidth
-	buttons.count = 0
+	buttonsData.txt.width = scanData.textWidth
+	buttonsData.count = 0
+	buttons = U.clone(buttonsData)
 end
 
 local function forceSave(isResetting)
@@ -123,9 +125,9 @@ end
 local function createpm(name, type, x, z)
 	local button_parameters = {}
 	button_parameters.index = buttons.count
-	button_parameters.height = buttons[type].oh
-	button_parameters.width = buttons[type].ow
-	button_parameters.font_size = buttons[type].font * 0.7
+	button_parameters.height = buttonsData[type].oh
+	button_parameters.width = buttonsData[type].ow
+	button_parameters.font_size = buttonsData[type].font * 0.7
 	self.setVar("add_" .. name, function(obj, color, alt_click) add(name, 1, alt_click) end)
 	button_parameters.click_function = "add_" .. name
 	button_parameters.label = "+"
@@ -135,7 +137,7 @@ local function createpm(name, type, x, z)
 		button_parameters.color = { 1, 1, 1, 0 }
 		button_parameters.font_color = { 0, 0, 0, 100 }
 	end
-	button_parameters.position = { x + buttons[type].ox, thick, z + buttons[type].oz }
+	button_parameters.position = { x + buttonsData[type].ox, thick, z + buttonsData[type].oz }
 	self.createButton(button_parameters)
 	buttons["p_" .. name] = button_parameters
 	buttons.count = buttons.count + 1
@@ -144,7 +146,7 @@ local function createpm(name, type, x, z)
 	self.setVar("sub_" .. name, function(obj, color, alt_click) add(name, -1, alt_click) end)
 	button_parameters.click_function = "sub_" .. name
 	button_parameters.label = "-"
-	button_parameters.position = { x - buttons[type].ox, thick, z + buttons[type].oz }
+	button_parameters.position = { x - buttonsData[type].ox, thick, z + buttonsData[type].oz }
 	self.createButton(button_parameters)
 	buttons["m_" .. name] = button_parameters
 	buttons.count = buttons.count + 1
@@ -163,9 +165,9 @@ end
 local function setupButton(name, type, x, z)
 	local button_parameters = {}
 	button_parameters.index = buttons.count
-	button_parameters.height = buttons[type].height
-	button_parameters.width = buttons[type].width
-	button_parameters.font_size = buttons[type].font
+	button_parameters.height = buttonsData[type].height
+	button_parameters.width = buttonsData[type].width
+	button_parameters.font_size = buttonsData[type].font
 	if type == "counter" then
 		button_parameters.click_function = "Dud"
 		button_parameters.label = "0"
@@ -196,13 +198,16 @@ local function setupButton(name, type, x, z)
 		end
 	end
 
+	-- if name == "crave39" and button_parameters.width == 0 or not button_parameters.width then
+	-- 	log("Width of Zero for Type '" .. type .. "' = " .. tostring(button_parameters.width))
+	-- 	log({buttons = U.clone(buttons, true), button_parameters == U.clone(button_parameters)})
+	-- end
+
 	if not button_parameters.width then
 		button_parameters.height = 300
 		button_parameters.width = 300
-	end
-
-	if name == "crave39" and button_parameters.width == 0 or not button_parameters.width then
-		log("Width of Zero for Type '" .. type .. "' = " .. tostring(button_parameters.width))
+		button_parameters.font_size = buttonsData[type].font
+		button_parameters.font_color = { 0, 0, 0, 100 }
 	end
 	self.createButton(button_parameters)
 	buttons[name] = button_parameters

@@ -209,7 +209,7 @@ local ObjectData = {
 			source = O.SpawnSources.zoneHiderGeneral,
 			position = {0.00, 0.44, 48.00},
 			rotation = {0.00, 180.00, 0.00},
-			scale = {20.00, 2.27, 5.00},
+			scale = {20.00, 10, 5.00},
 			data = {
 				Tags = false
 			}
@@ -281,9 +281,9 @@ local ObjectData = {
 			source = O.SpawnSources.plinthRiser,
 			position = {0.00, 1.5, 32.42},
 			rotation = {0.00, 180.00, 0.00},
-			scale = {0.5, 0.5, 0.5},
+			scale = {0.5, 1.12, 0.5},
 			data = {
-				Tags = {}
+				Tags = {"plinthRiser"}
 			}
 		}
 	}
@@ -297,20 +297,22 @@ local function assignHouseCard(playerRef, houseName, isResettingHouseCard)
 
 	local toTransform = P.getRotatedPlayerTransform(ObjectData.houseCard, player)
 
+	local isDone = false
 	U.sequence({
 		function()
 			houseCard.setPosition(toTransform.position)
 			houseCard.setRotation(toTransform.rotation)
 			houseCard.setScale(toTransform.scale)
 			houseCard.setTags({"HouseCard", player.color})
-			log({isResettingHouseCard = isResettingHouseCard})
+			-- log({isResettingHouseCard = isResettingHouseCard})
 			if isResettingHouseCard then
 				houseCard.call("ResetCard")
 			end
 		end,
-		3,
-		function() houseCard.reload() end
+		1,
+		function() houseCard.reload(); isDone = true end
 	})
+	return function() return isDone == true end
 end
 
 local function applyObjData(partName, playerRef, houseName)
@@ -397,15 +399,20 @@ function HouseScreen.Spawn(playerRef, houseName, isResettingHouseCard)
 	return U.map(ObjectData, function(objData, objName)
 		local spawnData
 		if objName == "houseCard" then
-			assignHouseCard(playerRef, houseName, isResettingHouseCard)
-			return
+			return assignHouseCard(playerRef, houseName, isResettingHouseCard)
 		else
 			spawnData = applyObjData(objName, playerRef, houseName) -- objData.source().getData()
 		end
 
 		if spawnData == nil then return end
 
-		return spawnObjectData({data = spawnData})
+		local isSpawned = false
+		spawnObjectData({
+			data = spawnData,
+			callback_function = function() isSpawned = true end
+		})
+
+		return function() return isSpawned == true end
 	end)
 end
 

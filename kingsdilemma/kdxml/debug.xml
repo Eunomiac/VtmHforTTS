@@ -25,7 +25,7 @@
 		<Text class="spacer_10"></Text>
 		<Button id="debug_setArrows">Light Arrows</Button>
 		<Button id="debug_primeLights">Reset Lights</Button>
-		<Button id="debug_clearSplash">Clear Splash</Button>
+		<Button id="debug_setLight">Set Light</Button>
 		<Text class="spacer_10"></Text>
 		<Button id="debug_testFunc1">Test Func 1</Button>
 		<Button id="debug_testFunc2">Test Func 2</Button>

@@ -4,6 +4,8 @@ local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local C = require("kingsdilemma.lib.constants")
 local L = require("kingsdilemma.core.lighting")
+local P = require("kingsdilemma.core.players")
+local MSG = require("kingsdilemma.core.messaging")
 local DIR = require("kingsdilemma.core.director")
 
 
@@ -50,7 +52,10 @@ function onLoad(save_data)
 	Global.call("UpdatePhaseDisplay")
 	UI.show("sessionInitDisplay")
 	L.PrimeLights()
-	U.forEach(O.UninteractableObjs, function(oFunc) oFunc().interactable = false end)
+	U.forEach(O.UninteractableObjs, function(oFunc)
+		oFunc().interactable = false
+		oFunc().gizmo_selectable = false
+	end)
 
 	-- #region DEBUG
 	-- Assign names to test function buttons
@@ -92,8 +97,34 @@ end
 
 
 
-function onObjectDrop(playerColor, obj)
-	if obj.hasTag("StabilityMarker") then
+function onObjectDrop(pColor, obj)
+	if S.isInPhase("SecretAgendas") and obj.hasTag("SecretAgenda") then
+		local player = S.getPlayer(pColor)
+		local nextPlayer = P.GetNextLeastPrestigious(pColor)
+		if not nextPlayer then
+			L.SetLightMode("lightFront", "ambient")
+			L.SetLightMode("lightPlayerSpotlight", "off")
+			DIR.EndSecretAgendas()
+		else
+			-- U.Alert("Dealing To " .. nextPlayer.color)
+			local pNum = S.getPlayerNum(nextPlayer)
+			L.SetLightMode("lightPlayerSpotlight", "player" .. pNum)
+			-- L.SetLightMode("lightFront", "dim")
+			U.sequence(U.concat(
+				U.map(player.getHandObjects(), function(obj)
+					return function()
+						if obj.hasTag("SecretAgenda") then
+							obj.deal(1, nextPlayer.color)
+						end
+					end
+				end),
+				{
+					function()
+						MSG.Splash("Choose and Place Behind Your Screen", nextPlayer.color)
+					end
+				}))
+		end
+	elseif obj.hasTag("StabilityMarker") then
 		U.RunSequence({
 			function() return {obj, 0.1} end,
 			function()

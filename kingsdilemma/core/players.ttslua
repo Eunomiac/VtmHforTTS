@@ -10,7 +10,7 @@ function P.InitializeSeats()
 	S.UpdateSeatedPlayers()
 
 	local seats = U.slice(Player.getColors(), 2, 6)
-	log({SeatColors = seats})
+	-- log({SeatColors = seats})
 	local players = S.getPlayers()
 
 	local function initSeat(color)
@@ -52,7 +52,7 @@ function P.InitializeSeats()
 end
 
 function P.ClearSeat(color)
-	if color == nil then return U.forEach(C.SeatColors, P.ClearSeat) end
+	if color == nil then return U.forEach(Player.getAvailableColors(), P.ClearSeat) end
 	local playerObjects = getObjectsWithTag(color)
 	local playerZones = U.filter(getObjects(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. color end)
 
@@ -67,9 +67,10 @@ function P.ClearSeat(color)
 		end
 	end)
 end
-function P.ClearSeats() return U.forEach(C.SeatColors, P.ClearSeat) end
+function P.ClearSeats() return U.forEach(Player.getAvailableColors(), P.ClearSeat) end
 
 function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
+	objOrTransform = U.clone(objOrTransform, true)
 	objOrTransform = OU.foldTransform(objOrTransform)
 	if fromAngle == nil then
 		fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
@@ -78,41 +79,164 @@ function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
 	return OU.RotateByAngle(objOrTransform, toAngle - fromAngle)
 end
 
-function P.RotateToPlayer(objs, player)
+function P.RotateToPlayer(objs, player, fromAngle, fromTransform)
 	if type(objs) ~= "table" then objs = {objs} end
 
-	U.forEach(objs, function(obj)
+	return U.map(objs, function(obj)
 		local startPos = obj.getPosition()
-		local toData = P.getRotatedPlayerTransform(obj, player)
+		local toData = P.getRotatedPlayerTransform(fromTransform or obj, player, fromAngle)
 		local endPos, endRot = toData.position, toData.rotation
 
-		U.RunSequence({
+		return U.RunSequence({
 			function()
-				obj.setPositionSmooth(Vector(startPos):add(Vector(0, 2, 0)))
-				return obj
+				return U.setPositionSlow(obj, Vector(startPos):add(Vector(0, 2, 0)), 0.5)
 			end,
 			function()
-				obj.setPositionSmooth(Vector(endPos):add(Vector(0, 2, 0)), false, false)
-				obj.setRotationSmooth(endRot, false, false)
-				return obj
+				return {
+					U.setPositionSlow(obj, Vector(endPos):add(Vector(0, 2, 0)), 1.5),
+					U.setRotationSlow(obj, endRot, 1.5)
+				}
 			end,
 			function()
-				obj.setPositionSmooth(endPos)
-				return obj
+				return U.setPositionSlow(obj, endPos, 0.5)
 			end
 		})
 	end)
 end
 
-function P.AssignTitle(playerNum, title)
-	if playerNum == nil or playerNum < 1 or playerNum > 5 then return end
-	if title == "Moderator" then
-
-
-	elseif title == "Leader" then
-
-	end
+function P.GetMostPrestigious()
+	local prestigeData = U.map(S.getPlayers(), function(player)
+		return {
+			player = player,
+			prestige = S.getPlayerVal(player, "prestige")
+		}
+	end)
+	table.sort(prestigeData, function(a, b) return a.prestige > b.prestige end)
+	return prestigeData[1].player
 end
+
+function P.GetLeastPrestigious()
+	local prestigeData = U.map(S.getPlayers(), function(player)
+		return {
+			player = player,
+			prestige = S.getPlayerVal(player, "prestige")
+		}
+	end)
+	table.sort(prestigeData, function(a, b) return a.prestige < b.prestige end)
+	return prestigeData[1].player
+end
+
+function P.GetNextLeastPrestigious(playerRef)
+	local refPlayer = S.getPlayer(playerRef)
+	local refPrestige = S.getPlayerVal(refPlayer, "prestige")
+	local lesserPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVal(player, "prestige") > refPrestige end)
+	if #lesserPlayers == 0 then return false end
+	local prestigeData = U.map(lesserPlayers, function(player)
+		return {
+			player = player,
+			prestige = S.getPlayerVal(player, "prestige")
+		}
+	end)
+	table.sort(prestigeData, function(a, b) return a.prestige < b.prestige end)
+	return prestigeData[1].player
+end
+
+function P.AssignLeader(playerRef)
+	local player = S.getPlayer(playerRef)
+	return {
+		P.RotateToPlayer(O.Leader.Figure(), player, 0, C.Spots.Storage.LeaderFigure),
+		P.RotateToPlayer(O.Leader.Light(), player, 0, C.Spots.Storage.LeaderLight)
+	}
+end
+
+function P.AssignModerator(playerRef)
+	local player = S.getPlayer(playerRef)
+	return {
+		P.RotateToPlayer(O.Moderator.Figure(), player, 0, C.Spots.Storage.ModeratorFigure),
+		P.RotateToPlayer(O.Moderator.Light(), player, 0, C.Spots.Storage.ModeratorLight)
+	}
+end
+
+function P.SpawnPower(playerRef, numPower)
+	local powerTransform = P.getRotatedPlayerTransform(C.Spots.Player.Power, S.getPlayer(playerRef), 0)
+	local seqFuncs = {}
+
+	local function spawnToken(tokenSize)
+		local sourceObj = O.SpawnSources["powerToken" .. tokenSize]()
+		local spawnData = sourceObj.getData()
+		spawnData.Value = tokenSize
+		spawnData.Transform = OU.unfoldTransform({
+			position = U.getScatterPosition({
+				center = powerTransform.position,
+				size = Vector(2, 2, 2)
+			}, 3, 0.5),
+			rotation = powerTransform.rotation,
+			scale = sourceObj.getScale()
+		})
+		spawnData.Tags = {"PowerToken", "Value" .. tokenSize}
+		spawnObjectData({
+			data = spawnData,
+			callback_function = function(obj) obj.setLock(false) end
+		})
+		return 0.1
+	end
+
+	while math.floor(numPower / 10) > 0 and numPower > 10 do
+		numPower = numPower - 10
+		table.insert(seqFuncs, function() return spawnToken(10) end)
+	end
+	while math.floor(numPower / 5) > 0 and numPower > 5 do
+		numPower = numPower - 5
+		table.insert(seqFuncs, function() return spawnToken(5) end)
+	end
+	while numPower > 0 do
+		numPower = numPower - 1
+		table.insert(seqFuncs, function() return spawnToken(1) end)
+	end
+
+	return U.RunSequence(seqFuncs, nil, 1)
+end
+
+function P.SpawnCoins(playerRef, numCoins)
+	local coinsTransform = P.getRotatedPlayerTransform(C.Spots.Player.Coin, S.getPlayer(playerRef), 0)
+
+	local seqFuncs = {}
+
+	local function spawnToken(tokenSize)
+		local sourceObj = O.SpawnSources["coinToken" .. tokenSize]()
+		local spawnData = sourceObj.getData()
+		spawnData.Value = tokenSize
+		spawnData.Transform = OU.unfoldTransform({
+			position = U.getScatterPosition({
+				center = coinsTransform.position,
+				size = Vector(2, 2, 2)
+			}, 3, 0.5),
+			rotation = coinsTransform.rotation,
+			scale = sourceObj.getScale()
+		})
+		spawnData.Tags = {"CoinToken", "Value" .. tokenSize}
+		spawnObjectData({
+			data = spawnData,
+			callback_function = function(obj) obj.setLock(false) end
+		})
+		return 0.1
+	end
+
+	while math.floor(numCoins / 5) > 0 and numCoins > 5 do
+		numCoins = numCoins - 5
+		table.insert(seqFuncs, function() return spawnToken(5) end)
+	end
+	while numCoins > 0 do
+		numCoins = numCoins - 1
+		table.insert(seqFuncs, function() return spawnToken(1) end)
+	end
+
+	return U.RunSequence(seqFuncs, nil, 1)
+end
+
+
+
+
 
 
 

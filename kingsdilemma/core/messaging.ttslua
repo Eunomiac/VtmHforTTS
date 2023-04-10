@@ -3,7 +3,7 @@ local S = require("kingsdilemma.core.state")
 
 local MSG = {}
 
-local DefaultDisplayTime = 3
+local DefaultDisplayTime = 1.5
 
 
 
@@ -132,6 +132,7 @@ function MSG.RunQueue(queueRef, isLeavingOpen)
 end
 
 function MSG.Splash(message, queueRef, displayTime, attributes)
+	if queueRef == nil then queueRef = "ALL" end
 	MSG.Enqueue(message, queueRef, displayTime, attributes)
 	return MSG.RunQueue(queueRef)
 end

@@ -8,6 +8,7 @@ local S = {}
 
 local INITGAMESTATE = {
 	isMidGame = false,
+	chronicleType = "",
 	gameCount = 1,
 	seatCount = 5,
 	seatCountOverride = false,
@@ -113,7 +114,7 @@ end
 function S.setStateVal(value, key, subKey)
 	U.Assert("S.setStateVal", key, "string")
 	local state = Global.getTable("gameState")
-	if not U.isIn(key, U.getKeys(state)) then
+	if not U.isIn(key, U.getKeys(INITGAMESTATE)) then
 		U.AlertGM("WARNING: Setting Unregistered State Val: '" .. key .. "' = '" .. tostring(value) .. "'")
 	end
 	if (subKey) then

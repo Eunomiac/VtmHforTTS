@@ -89,6 +89,19 @@ local function generateLightModes(lightTag)
 				}
 			end
 		}
+	elseif string.match(lightTag, "^player%d") then
+		local pIndex = string.match(lightTag, "%d") * 1
+		return function()
+			return {
+				enabled = true,
+				color = C.LightColors.Ambient,
+				range = 60,
+				angle = 40,
+				intensity = 10,
+				--position = Vector({0.00, 30.00, 0.00}),
+				rotation = Vector({300, S.getPlayerAngle(Player.getAvailableColors()[pIndex]), 0})
+			}
+		end
 	end
 end
 
@@ -96,12 +109,7 @@ L.LIGHTMODES = {
 	lightLectern = {
 		default = "ambient",
 		off = {
-			enabled = false,
-			color = C.LightColors.Ambient,
-			range = 200,
-			angle = 70,
-			intensity = 2,
-			rotation = Vector(300, 0, 0)
+			enabled = false
 		},
 		ambient = {
 			enabled = true,
@@ -113,10 +121,10 @@ L.LIGHTMODES = {
 		},
 		spotlightChronicleCard = {
 			enabled = true,
-			color = Color.Yellow:lerp(Color.Grey, 0.4),
+			color = C.LightColors.Ambient:lerp(Color.Yellow, 0.25),
 			range = 200,
 			angle = 35,
-			intensity = 1,
+			intensity = 2,
 			rotation = Vector(312, 0, 0)
 		},
 		spotlightEnvelope = {
@@ -159,6 +167,14 @@ L.LIGHTMODES = {
 			intensity = 1,
 			rotation = Vector(304, 0, 0)
 		},
+		spotlightDilemmaDeck = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 200,
+			angle = 25,
+			intensity = 1.5,
+			rotation = Vector({342, 0.00, 0.00 })
+		},
 		storyCard = {
 			enabled = true,
 			color = C.LightColors.Ambient,
@@ -168,14 +184,21 @@ L.LIGHTMODES = {
 			rotation = Vector({371.21, 0.00, 0.00 })
 		}
 	},
+	lightPlayerSpotlight = {
+		off = {
+			enabled = false,
+			rotation = Vector({0, 0, 0})
+		},
+		player1 = generateLightModes("player1"),
+		player2 = generateLightModes("player2"),
+		player3 = generateLightModes("player3"),
+		player4 = generateLightModes("player4"),
+		player5 = generateLightModes("player5")
+	},
 	lightMainTop = {
 		default = "ambient",
 		off = {
-			enabled = false,
-			color = C.LightColors.Ambient,
-			range = 83,
-			angle = 60,
-			intensity = 1.5
+			enabled = false
 		},
 		ambient = {
 			enabled = true,
@@ -188,11 +211,7 @@ L.LIGHTMODES = {
 	lightMainBottom = {
 		default = "ambient",
 		off = {
-			enabled = false,
-			color = C.LightColors.Ambient,
-			range = 83,
-			angle = 60,
-			intensity = 1.5
+			enabled = false
 		},
 		ambient = {
 			enabled = true,
@@ -205,11 +224,7 @@ L.LIGHTMODES = {
 	lightLeader = {
 		default = "off",
 		off = {
-			enabled = false,
-			color = Color(1, 1, 1),
-			range = 66,
-			angle = 30,
-			intensity = 10
+			enabled = false
 		},
 		on = {
 			enabled = true,
@@ -222,11 +237,7 @@ L.LIGHTMODES = {
 	lightModerator = {
 		default = "off",
 		off = {
-			enabled = false,
-			color = Color(1, 1, 1),
-			range = 66,
-			angle = 30,
-			intensity = 10
+			enabled = false
 		},
 		on = {
 			enabled = true,
@@ -238,13 +249,6 @@ L.LIGHTMODES = {
 	},
 	lightStability = {
 		loadRotation = Vector(0, 0, 0),
-		default = function()
-			if S.isInMode({"NONE", "SETSSIONINIT", "CAMPAIGNSETUP"}) then
-				return "off"
-			else
-				return "on"
-			end
-		end,
 		off = {
 			enabled = false,
 			color = Color(1, 1, 1),
@@ -295,63 +299,141 @@ L.LIGHTMODES = {
 	lightBalance = {
 		loadRotation = Vector({16.91, 0, 0}),
 		default = function()
-			if S.isInMode({"NONE", "SETSSIONINIT", "CAMPAIGNSETUP"}) then
+			if S.isInMode({"NONE", "SESSIONINIT", "CAMPAIGNSETUP"}) then
 				return "off"
 			else
 				return "on"
 			end
 		end,
 		off = {
-			enabled = false,
-			color = C.LightColors.Ambient,
-			range = 30,
-			angle = 30,
-			intensity = 0.8,
-			rotation = Vector({16.91, 0, 0})
+			enabled = false
 		},
 		on = {
 			enabled = true,
-			color = C.LightColors.Ambient,
+			color = C.LightColors.Amber,
 			range = 30,
 			angle = 30,
-			intensity = 0.8,
+			intensity = 2,
+			rotation = Vector({16.91, 0, 0})
+		},
+		bright = {
+			enabled = true,
+			color = C.LightColors.Yellow,
+			range = 40,
+			angle = 40,
+			intensity = 4,
 			rotation = Vector({16.91, 0, 0})
 		}
+	},
+	lightBehind = {
+		isPlayerLight = true,
+		isSpawned = true,
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 50,
+			angle = 60,
+			intensity = 6
+		},
+		ambient = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 50,
+			angle = 60,
+			intensity = 6
+		}
+	},
+	lightFront = {
+		isPlayerLight = true,
+		isSpawned = true,
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 25,
+			angle = 85,
+			intensity = 4
+		},
+		ambient = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 25,
+			angle = 85,
+			intensity = 4
+		},
+		dim = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 25,
+			angle = 85,
+			intensity = 2
+		},
+		aye = {
+			enabled = true,
+			color = C.LightColors.Blue,
+			range = 25,
+			angle = 85,
+			intensity = 1.5
+		},
+		nay = {
+			enabled = true,
+			color = C.LightColors.Red,
+			range = 25,
+			angle = 85,
+			intensity = 1.5
+		}
+	},
+	lightVote = {
+		isPlayerLight = true,
+		isSpawned = true,
+		off = {
+			enabled = false,
+			color = C.LightColors.Ambient,
+			range = 55,
+			angle = 57,
+			intensity = 1
+		},
+		ambient = {
+			color = C.LightColors.Ambient,
+			range = 55,
+			angle = 57,
+			intensity = 1
+		},
+		aye = {
+			color = C.LightColors.Blue,
+			range = 55,
+			angle = 50,
+			intensity = 1
+		},
+		nay = {
+			color = C.LightColors.Red,
+			range = 55,
+			angle = 50,
+			intensity = 1
+		}
 	}
-	-- lightVote = {
-	-- 	off = {
-	-- 		enabled = false,
-	-- 		color = Color(0.5, 0.5, 0.5),
-	-- 		range = 55,
-	-- 		angle = 57,
-	-- 		intensity = 4
-	-- 	},
-	-- 	ambient = {
-	-- 		color = Color(0.5, 0.5, 0.5),
-	-- 		range = 55,
-	-- 		angle = 57,
-	-- 		intensity = 4
-	-- 	},
-	-- 	aye = {
-	-- 		color = Color(0, 1, 1),
-	-- 		range = 55,
-	-- 		angle = 63,
-	-- 		intensity = 4
-	-- 	},
-	-- 	nay = {
-	-- 		color = Color(1, 0, 0),
-	-- 		range = 55,
-	-- 		angle = 63,
-	-- 		intensity = 4
-	-- 	}
-	-- }
 }
 
 
 
-local function getComp(light) return light.getChildren()[1].getChildren()[2].getComponents()[2] end
+local function getComp(light, isSilent)
+	local lComp
+	if pcall(function() lComp = light.getChildren()[1].getChildren()[2].getComponents()[2] end) then
+		return lComp
+	elseif isSilent then
+		return nil
+	end
+	U.Val("getComp", light, U.isGameObject(light), "Invalid Light Object")
+	local lComp = light.getChildren()
+	U.Val("getComp", {light = light, children = lComp}, #lComp > 0, "Light has no Children")
+	lComp = lComp[1].getChildren()
+	U.Val("getComp", {light = light, grandchildren = lComp}, #lComp > 1, "Light has too few Grandchildren")
+	lComp = lComp[2].getComponents()
+	U.Val("getComp", {light = light, components = lComp}, #lComp > 1, "Light has too few components")
+	U.Val("getComp", {light = light, comp = lComp[2]}, lComp[2].name == "Light", "Can't find 'Light' component")
+	return lComp[2]
+end
 
-local function getLight(lightName, playerRef)
+local function getLight(lightName, playerRef, isSilent)
 	local player
 	local tags = { lightName }
 	if playerRef ~= nil then
@@ -359,25 +441,19 @@ local function getLight(lightName, playerRef)
 		table.insert(tags, player.color)
 	end
 	local lights = getObjectsWithAllTags(tags)
-	if #lights > 1 then
-		return U.AlertGM("[Error: getLight()] Multiple '" .. "'s found!")
-	end
-	if #lights == 0 then
-		---@diagnostic disable-next-line: need-check-nil
-		return U.AlertGM("[Error: getLight()] No '" ..
-		"' light found" .. (player == nil and "!" or (" for " .. player.color .. " Player.")))
-	end
+
+	U.Val("getLight", {tags = tags, lights = lights}, #lights > 0, "No lights found", {isSilent = isSilent})
+	U.Val("getLight", {tags = tags, lights = lights}, #lights < 2, "Multiple lights found", {isSilent = false, isThrowing = isSilent ~= true})
+
 	return lights[1]
 end
-
-
 
 local function getAllLights()
 	return U.filter(getObjects(), function(obj)
 		return obj.getChildren ~= nil
 				and obj.getChildren()[1] ~= nil
 				and string.match(obj.getChildren()[1].name, "^spotlight")
-				and getComp(obj).name == "Light"
+				and getComp(obj, true).name == "Light"
 	end)
 end
 
@@ -448,87 +524,104 @@ local function getIntensity(light) return getComp(light).get("intensity") end
 local function getColor(light) return getComp(light).get("color") end
 local function getAngle(light) return getComp(light).get("spotAngle") end
 
-local function setLightMode(lightName, mode, playerNum, transitionTime)
-	if mode == nil then return end
+
+
+local function setLightMode(lightName, mode, player, transitionTime)
 	if transitionTime == nil then transitionTime = DefaultTransitionTime end
-	if playerNum == "ALL" then return U.forEach(S.getPlayers(), function(_, pNum) setLightMode(lightName, mode, pNum) end) end
-	local light = getLight(lightName, playerNum)
-
-	if type(mode) == "function" then mode = mode() end
-
-
-	if L.LIGHTMODES[lightName] == nil then
-		return U.AlertGM("[Error: setLightMode] No modes configured for light '" .. lightName .. "'")
+	if type(lightName) == "table" then
+		return U.map(lightName, function(lName) return setLightMode(lName, mode, player, transitionTime) end)
 	end
 
-	local lData = L.LIGHTMODES[lightName][mode]
-	if type(lData) == "function" then
-		lData = lData()
-	elseif type(lData) == "table" then
-		lData = U.clone(lData)
-	end
+	U.Val("setLightMode", lightName, type(lightName) == "string" and L.LIGHTMODES[lightName] ~= nil, "Mode Data Not Found")
+	local lData; lData = L.LIGHTMODES[lightName]
+	local isSpawned = lData.isSpawned
 
-	if not lData then
-		return U.AlertGM("[Error: setLightMode] No such light mode '" .. mode .. "' for light '" .. lightName .. "'")
-	end
-
-	-- log({light = light, lightName = lightName, mode = mode, lData = lData})
-	local afterVals = {}
-
-	if lData.enabled ~= nil then
-		if lData.enabled == getEnabled(light) then lData.enabled = nil
-		elseif lData.enabled == true then
-			setIntensity(light, 0)
-			setAngle(light, 0)
-			setEnabled(light, true)
-		else
-			afterVals.intensity = lData.intensity
-			afterVals.angle = lData.angle
-			lData.intensity = 0
-			lData.angle = 0
+	if lData.isPlayerLight then
+		if player == nil then
+			return U.map(S.getPlayers(), function(player) return setLightMode(lightName, mode, player, transitionTime) end)
 		end
+		player = S.getPlayer(player)
+		U.Val("setLightMode", {lightName, player}, U.isPlayer(player), "Invalid Player")
+	else
+		U.Val("setLightMode", {lightName, player}, player == nil, "Player submitted to non-player light", {isThrowing = false})
+		player = nil
 	end
 
-	return U.RunSequence({
-		function()
-			local lerpFuncs = {}
+	local light = getLight(lightName, player, true)
+	if light == nil and lData.isSpawned then return false end
+	U.Val("setLightMode", {lightName, player}, U.isGameObject(light), "No light found")
 
-			if lData.range ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(range) setRange(light, range) end, getRange(light), lData.range, transitionTime))
-			end
-			if lData.intensity ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(intensity) setIntensity(light, intensity) end, getIntensity(light), lData.intensity, transitionTime))
-			end
-			if lData.angle ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(angle) setAngle(light, angle) end, getAngle(light), lData.angle, transitionTime))
-			end
-			if lData.color ~= nil then
-				table.insert(lerpFuncs, U.Lerp(function(color) setColor(light, color) end, getColor(light), lData.color, transitionTime))
-			end
-			if lData.rotation ~= nil then
-				table.insert(lerpFuncs, U.setRotationSlow(light, lData.rotation, transitionTime))
-			end
-			if lData.position ~= nil then
-				table.insert(lerpFuncs, U.setPositionSlow(light, lData.position, transitionTime))
-			end
+	if type(mode) == "function" then mode = mode(player) end
+	U.Val("setLightMode", mode, type(mode) == "string" and lData[mode] ~= nil, "No such mode for '" .. lightName .. "'")
+	lData = lData[mode]
+	if type(lData) == "function" then lData = lData(player) end
+	if type(lData) == "table" then lData = U.clone(lData) end
 
-			return lerpFuncs
-		end,
-		function()
-			if lData.enabled == false then
-				setEnabled(light, false)
-				setIntensity(light, afterVals.intensity)
-				setAngle(light, afterVals.angle)
+	local function activateLight()
+		local afterVals = {}
+
+		if lData.enabled ~= nil then
+			if lData.enabled == getEnabled(light) then lData.enabled = nil
+			elseif lData.enabled == true then
+				setIntensity(light, 0)
+				setAngle(light, 0)
+				setEnabled(light, true)
+			else
+				afterVals.intensity = getIntensity(light)
+				afterVals.angle = getAngle(light)
+				lData.intensity = 0
+				lData.angle = 0
 			end
 		end
-	})
+
+		return U.RunSequence({
+			function()
+				local lerpFuncs = {}
+
+				if lData.range ~= nil then
+					table.insert(lerpFuncs, U.Lerp(function(range) setRange(light, range) end, getRange(light), lData.range, transitionTime))
+				end
+				if lData.intensity ~= nil then
+					table.insert(lerpFuncs, U.Lerp(function(intensity) setIntensity(light, intensity) end, getIntensity(light), lData.intensity, transitionTime))
+				end
+				if lData.angle ~= nil then
+					table.insert(lerpFuncs, U.Lerp(function(angle) setAngle(light, angle) end, getAngle(light), lData.angle, transitionTime))
+				end
+				if lData.color ~= nil then
+					table.insert(lerpFuncs, U.Lerp(function(color) setColor(light, color) end, getColor(light), lData.color, transitionTime))
+				end
+				if lData.rotation ~= nil then
+					table.insert(lerpFuncs, U.setRotationSlow(light, lData.rotation, transitionTime))
+				end
+				if lData.position ~= nil then
+					table.insert(lerpFuncs, U.setPositionSlow(light, lData.position, transitionTime))
+				end
+
+				return lerpFuncs
+			end,
+			function()
+				if lData.enabled == false then
+					setEnabled(light, false)
+					setIntensity(light, afterVals.intensity)
+					setAngle(light, afterVals.angle)
+				end
+			end
+		})
+	end
+
+	if isSpawned and not getComp(light, true) then
+		return U.waitUntil(activateLight, function() return not not getComp(light, true) end, false)
+	end
+
+	return activateLight()
 end
 
 function L.ResetLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
-			setEnabled(light, false)
+			local lComp = getComp(light)
+			lComp.set("enabled", false)
 			light.setRotation(Vector(180, 0, 0))
 		end
 	end)
@@ -538,33 +631,45 @@ function L.PrimeLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
-			setEnabled(light, false)
+			local lComp = getComp(light)
+			lComp.set("enabled", false)
 			light.setRotationSmooth(modes.loadRotation)
 		end
 	end)
 end
 
-function L.LoadLights(lightMode, transitionTime)
+function L.LoadLights(lightNames, lightMode, transitionTime, playerRef)
+	if type(lightNames) == "string" then lightNames = {lightNames} end
 	if lightMode == nil then lightMode = "default" end
 	if transitionTime == nil then transitionTime = 3 end
-	-- setLightMode("lightLectern", "ambient", nil, 3)
-	-- setLightMode("lightMainTop", "ambient", nil, 3)
-	-- setLightMode("lightMainBottom", "ambient", nil, 3)
-	-- setLightMode("lightModerator", "off", nil, 3)
-	-- setLightMode("lightLeader", "off", nil, 3)
-	-- setLightMode("lightStability", "on", nil, 3)
-	U.forEach(L.LIGHTMODES, function(modes, name)
+	local lightModes = U.clone(L.LIGHTMODES)
+	if type(lightNames) == "table" then
+		lightModes = U.filter(lightModes, function(_, name) return U.isIn(name, lightNames) end)
+	end
+	-- log({lightNames = lightNames, lightMode = lightMode, transitionTime = transitionTime, playerRef = playerRef})
+	U.forEach(lightModes, function(modes, name)
+		if modes[lightMode] == nil then
+			U.AlertGM("No Such Mode: " .. tostring(lightMode) .. " for light '" .. tostring(name) .. "'")
+			return end
 		if lightMode == "default" then
-			setLightMode(name, modes[lightMode], nil, transitionTime)
+			setLightMode(name, modes[lightMode], playerRef, transitionTime)
 		else
-			setLightMode(name, lightMode, nil, transitionTime)
+			setLightMode(name, lightMode, playerRef, transitionTime)
 		end
 	end)
+	return transitionTime
 end
 L.ShowArrows = showArrow
 L.HideArrows = hideArrow
 L.SetLightMode = setLightMode
 
 L.LerpEnable = setEnabled
+L.GetLight = getLight
+L.GetAllLights = getAllLights
+
+L.SetIntensity = setIntensity
+L.SetAngle = setAngle
+L.SetColor = setColor
+L.SetRange = setRange
 
 return L

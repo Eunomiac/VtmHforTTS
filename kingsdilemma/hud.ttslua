@@ -7,6 +7,7 @@ local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
+local V = require("kingsdilemma.core.voting")
 local MSG = require("kingsdilemma.core.messaging")
 -- #endregion
 
@@ -17,6 +18,10 @@ local TESTFUNCS = {
 		if button == "-2" then
 			L.SetLightMode("lightLeader", "off")
 			L.SetLightMode("lightModerator", "off")
+
+			U.forEach(S.getPlayers(), function(ply)
+				L.SetIntensity(L.GetLight("lightFront", ply.color), 4)
+			end)
 			P.RotateToPlayer({
 				O.Leader.Figure(),
 				O.Leader.Light()
@@ -37,22 +42,24 @@ local TESTFUNCS = {
 			L.SetLightMode("lightLeader", "on")
 			L.SetLightMode("lightModerator", "on")
 
-			P.RotateToPlayer({
-				O.Leader.Figure(),
-				O.Leader.Light()
-			}, players[1])
-			P.RotateToPlayer({
-				O.Moderator.Figure(),
-				O.Moderator.Light()
-			}, players[2])
+			U.forEach(S.getPlayers(), function(ply)
+				if ply.color == players[1].color or ply.color == players[2].color then
+					L.SetIntensity(L.GetLight("lightFront", ply.color), 7)
+				else
+					L.SetIntensity(L.GetLight("lightFront", ply.color), 2)
+				end
+			end)
+
+			P.AssignLeader(players[1])
+			P.AssignModerator(players[2])
 		end
 		-- log({rotatingTo = player})
 	end,
-	Seats = function(button)
+	Riser = function(button)
 		if button == "-2" then
-			P.InitializeSeats(true, true)
+			V.LowerRiser(U.getHost())
 		else
-			P.InitializeSeats()
+			V.ElevateRiser(U.getHost())
 		end
 	end,
 	Messaging = function(button)
@@ -69,11 +76,11 @@ local TESTFUNCS = {
 		})
 	end,
 	Lerp = function(button)
-		local testLight = getObjectFromGUID("6f9e66")
+		local testLight = getObjectFromGUID("bd6d92")
 		if button == "-2" then
-			L.LerpEnable(testLight, false)
+			L.SetLightMode("lightBalance", "on")
 		else
-			L.LerpEnable(testLight, true)
+			L.SetLightMode("lightBalance", "off")
 		end
 	end
 }
@@ -83,7 +90,7 @@ function InitTestFuncButtons()
 	for i, name in ipairs(U.getKeys(TESTFUNCS)) do
 		count = count + 1
 		UI.setAttributes("debug_testFunc" .. count, {
-			text = "T: " .. name,
+			text = "  T: " .. name,
 			colors = "#666666|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)",
 			textAlignment = "MiddleLeft"
 		})
@@ -97,13 +104,21 @@ end
 
 -- #region Primary UI Event Functions
 local function toggleXmlElement(elemID)
-	log("Toggling " .. elemID)
+	-- log("Toggling " .. elemID)
 	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
 		UI.setAttribute(elemID, "active", "true")
-		UI.setValue("toggleElem_" .. elemID, "▼")
+		if elemID == "debugControls" then
+			UI.hide("splashScreen")
+			Lighting.ambient_intensity = 0.65
+			Lighting.ambient_type = 1
+		end
+		UI.setAttribute("toggleElem_" .. elemID, "text", "▼")
 	else
 		UI.setAttribute(elemID, "active", "false")
-		UI.setValue("toggleElem_" .. elemID, "►")
+		if elemID == "debugControls" then
+			Lighting.ambient_intensity = 0
+		end
+		UI.setAttribute("toggleElem_" .. elemID, "text", "►")
 	end
 end
 local function promptSimClick(player, button)
@@ -160,11 +175,8 @@ local function promptAssignHouseName(player)
 	end)
 end
 
-
-
-
 function HUD_Click(player, button, id)
-	log({player = player, button = button, id = id})
+	-- log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
 	elseif id == "initSession" then
@@ -185,10 +197,16 @@ function HUD_Click(player, button, id)
 	elseif id == "debug_resetState" then
 		S.resetGameState()
 		Global.call("UpdatePhaseDisplay")
-	elseif id == "debug_clearSplash" then
-		UI.hide("splashScreen")
 	elseif id == "debug_primeLights" then
 		L.ResetLights()
+	elseif id == "debug_setLight" then
+		player.showInputDialog("Which light?",
+			"lightName, lightMode, playerColor",
+			function(response)
+				local rComps = U.split(response, ",")
+				local name, mode, pColor = rComps[1], rComps[2], rComps[3]
+				L.SetLightMode(name, mode, pColor)
+			end)
 	elseif id == "debug_resetPlayers" then
 		S.resetGameState(true)
 		Global.call("UpdatePhaseDisplay")

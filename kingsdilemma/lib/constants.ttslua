@@ -11,7 +11,7 @@ C.SeatAngles = {
 	}
 }
 
-C.TableRadius = 52.7
+C.TableRadius = 57
 
 C.BaseHandTransform = {
 	position = Vector(0, 3, C.TableRadius),
@@ -81,10 +81,34 @@ C.Spots = {
 			scale = Vector({0.19, 0.07, 0.10})
 		},
 		MysteryEnvelopes = {
-			position = Vector(),
-			rotation = Vector(),
-			scale = Vector()
+			position = Vector({0.00, 8.05, 50.27}),
+			rotation = Vector({0.00, 90.00, 320.42}),
+			scale = Vector({1.15, 0.23, 6.30})
 		},
+		LeaderLight = {
+			position = Vector({-7.78, 15.62, 35.10}),
+			rotation = Vector({0, 180, 0}),
+			scale = Vector({1, 1, 1})
+		},
+		LeaderFigure = {
+			position = Vector({-7.78, 5.51, 35.08}),
+			rotation = Vector({359.77, 359.86, 0.05}),
+			scale = Vector({1, 1, 1})
+		},
+		ModeratorLight = {
+			position = Vector({7.78, 15.68, 35.10}),
+			rotation = Vector({0, 180, 0}),
+			scale = Vector({1, 1, 1})
+		},
+		ModeratorFigure = {
+			position = Vector({7.78, 1.39, 35.10}),
+			rotation = Vector({0.00, 219.63, 0.00}),
+			scale = Vector({0.3, 0.3, 0.3})
+		},
+		SecretAgenda = {
+			position = Vector({0.00, 1.50, 33.79}),
+			rotation = Vector({0, 270, 180})
+		}
 	},
 	Staging = {
 		Lectern = {
@@ -124,6 +148,20 @@ C.Spots = {
 				position = Vector({0, 1.94, 16.52}),
 				rotation = Vector({0, 180, 0})
 			}
+		},
+		SecretAgenda = {
+			High = {
+				position = Vector({0.00, 15.00, 26.00}),
+				rotation = Vector({0.00, 0.00, 180.00})
+			},
+			Low = {
+				position = Vector({0.00, 5.37, 25.04}),
+				rotation = Vector({342, 0.00, 180.00})
+			},
+			Burnt = {
+				position = Vector({0, -7, 75}),
+				rotation = Vector(200, 350, 180)
+			}
 		}
 	},
 	Main = {
@@ -141,17 +179,17 @@ C.Spots = {
 	Board = {
 		StabilityToken = {
 			top = {
-				position = Vector({-4.79, 2.1, 9.43}),
+				position = Vector({-4.79, 2.5, 9.43}),
 				rotation = Vector({0, 180, 0}),
 				scale = Vector({0.6, 1, 0.6})
 			},
 			center = {
-				position = Vector({-4.82, 2.1, -3.35}),
+				position = Vector({-4.82, 2.5, -3.35}),
 				rotation = Vector({0, 180, 0}),
 				scale = Vector({0.6, 1, 0.6})
 			},
 			bottom = {
-				position = Vector({-4.74, 2.1, -15.91}),
+				position = Vector({-4.74, 2.5, -15.91}),
 				rotation = Vector({0, 180, 0}),
 				scale = Vector({0.6, 1, 0.6})
 			}
@@ -159,85 +197,85 @@ C.Spots = {
 		ResourceTokens = {
 			Influence = {
 				top = {
-					position = Vector({-2.71, 2.1, 8.04}),
+					position = Vector({-2.71, 2.5, 8.04}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				center = {
-					position = Vector({-2.71, 2.1, -3.18}),
+					position = Vector({-2.71, 2.5, -3.18}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				bottom = {
-					position = Vector({-2.71, 2.1, -14.42}),
+					position = Vector({-2.71, 2.5, -14.42}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				}
 			},
 			Wealth = {
 				top = {
-					position = Vector({-1.38, 2.1, 8.04}),
+					position = Vector({-1.38, 2.5, 8.04}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				center = {
-					position = Vector({-1.38, 2.1, -3.20}),
+					position = Vector({-1.38, 2.5, -3.20}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				bottom = {
-					position = Vector({-1.38, 2.1, -14.42}),
+					position = Vector({-1.38, 2.5, -14.42}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				}
 			},
 			Morale = {
 				top = {
-					position = Vector({-0.02, 2.1, 8.04}),
+					position = Vector({-0.02, 2.5, 8.04}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				center = {
-					position = Vector({-0.02, 2.1, -3.22}),
+					position = Vector({-0.02, 2.5, -3.22}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				bottom = {
-					position = Vector({-0.02, 2.1, -14.42}),
+					position = Vector({-0.02, 2.5, -14.42}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				}
 			},
 			Welfare = {
 				top = {
-					position = Vector({1.33, 2.1, 8.04}),
+					position = Vector({1.33, 2.5, 8.04}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				center = {
-					position = Vector({1.33, 2.1, -3.20}),
+					position = Vector({1.33, 2.5, -3.20}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				bottom = {
-					position = Vector({1.33, 2.1, -14.42}),
+					position = Vector({1.33, 2.5, -14.42}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				}
 			},
 			Knowledge = {
 				top = {
-					position = Vector({2.69, 2.1, 8.04}),
+					position = Vector({2.69, 2.5, 8.04}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				center = {
-					position = Vector({2.69, 2.1, -3.18}),
+					position = Vector({2.69, 2.5, -3.18}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				},
 				bottom = {
-					position = Vector({2.69, 2.1, -14.42}),
+					position = Vector({2.69, 2.5, -14.42}),
 					rotation = Vector({0, 180, 0}),
 					scale = Vector({0.6, 1, 0.6})
 				}
@@ -255,6 +293,16 @@ C.Spots = {
 			}
 		}
 
+	},
+	Player = {
+		Power = {
+			position = Vector({8, 2, 48}),
+			rotation = Vector({0, 0, 0})
+		},
+		Coin = {
+			position = Vector({-8, 2, 48}),
+			rotation = Vector({0, 250, 0})
+		}
 	}
 }
 
@@ -267,7 +315,9 @@ C.LightColors = {
 	},
 	Balance = Color(1, 0.9, 0.25),
 	Amber = Color(1, 0.67, 0),
-	Yellow = Color(1, 0.88, 0)
+	Yellow = Color(1, 0.88, 0),
+	Blue = Color(0, 1, 1),
+	Red = Color(1, 0, 0)
 }
 
 C.rotFaceDown = {0, 0, 0}

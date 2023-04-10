@@ -233,6 +233,48 @@ function U.error(source, message, val)
 	error(errString .. (valString and (": " .. valString) or ""), 2)
 end
 
+function U.Val(source, checkVal, testResult, errorMsg, params)
+	if testResult == true then return true end
+	if errorMsg == nil then errorMsg = "Validation Failed" end
+	if params == nil then params = {isSilent = false, isThrowing = true} end
+	if testResult ~= false then errorMsg = errorMsg .. " (Test Result = " .. tostring(testResult) .. ")" end
+
+	local errorMessage = "[" .. source .. "] " .. errorMsg
+	local valType; valType = type(checkVal)
+	local valString; valString = tostring(checkVal)
+
+	if valType == "userdata" then
+		if U.isGameObject(checkVal) then
+			valType = checkVal.type
+		elseif U.isPlayer(checkVal) then
+			if checkVal.steam_id then
+				valType = "Player"
+			else
+				valType = "INVALID Player"
+			end
+		end
+		valString = "'" .. valString .. "'"
+	elseif valType == "table" then
+		if U.isArray(checkVal) then
+			valType = "array"
+		end
+		logStyle("validate", {0.8, 0.8, 0}, "\n\n{", "}")
+		log(checkVal, nil, "validate")
+		valString = "'" .. valString .. "' (SEE LOG)"
+	end
+
+	errorMessage = errorMessage .. " [VAL = " .. valString .. "] (" .. valType .. ")"
+
+	if params.isSilent then return false end
+
+	if params.isThrowing then
+		error(errorMessage, 2)
+	end
+
+	U.AlertGM(errorMessage, Color(1,0,0))
+	return false
+end
+
 function U.Assert(source, val, typeOrTest, tableType, isSilent)
 	local errorMessage
 	if typeOrTest == nil then typeOrTest = "check" end
@@ -583,6 +625,12 @@ function U.isInstance(val, super)
 	end
 end
 
+function U.isArray(val)
+	if type(val) ~= "table" then return false end
+	if #val == 0 and #U.getKeys(val) > 0 then return false end
+	return true
+end
+
 function U.isFlipped(obj)
   local zRot = U.pAngle(obj.getRotation().z, 90)
   return zRot == 180
@@ -748,12 +796,12 @@ end
 
 function U.setRotationSlow(obj, rotation, duration)
 	if duration == nil then duration = 0.5 end
-	return U.Lerp(function(rotation) obj.setRotationSmooth(rotation) end, obj.getRotation(), rotation, duration)
+	return U.Lerp(function(rotation) obj.setRotationSmooth(rotation, false, false) end, obj.getRotation(), rotation, duration, true)
 end
 
-function U.setPositionSlow(obj, position, duration)
+function U.setPositionSlow(obj, position, duration, easing)
 	if duration == nil then duration = 0.5 end
-	return U.Lerp(function(position) obj.setPositionSmooth(position) end, obj.getPosition(), position, duration)
+	return U.Lerp(function(position) obj.setPositionSmooth(position, false, false) end, obj.getPosition(), position, duration, false, easing)
 end
 
 -- WaitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
@@ -786,6 +834,7 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 		if tRef == nil then tRef = 0.5 end
 		if type(tRef) == "function" then return tRef
 		elseif type(tRef) == "number" then
+			testFrequency = math.max(1, math.min(testFrequency, tRef * 10))
 			return function() return frameCount >= (tRef * 30) end
 		elseif U.isGameObject(tRef) then
 			return function() return tRef and tRef.resting and not tRef.loading_custom end
@@ -799,6 +848,8 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 	end
 
 	local pCheckFunc = parseCheckFunc(testRef)
+
+	local afterReturnVal
 
 	function CheckCoroutine()
 		if pCheckFunc ~= nil then
@@ -822,13 +873,15 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 		end
 
 		if afterFunc ~= nil then
-			afterFunc()
+			afterReturnVal = afterFunc()
 		end
 
 		return 1
 	end
 
 	startLuaCoroutine(self, "CheckCoroutine")
+
+	return function() return afterReturnVal ~= nil end
 end
 
 -- RunSequence({...functions}, maxWait, frequency)
@@ -926,9 +979,10 @@ function U.sequence(funcs, timeDelay)
 				error("Invalid element in funcs table")
 			end
 	end
+	return delay
 end
 
-function U.Lerp(setFunc, paramStart, paramEnd, duration)
+function U.Lerp(setFunc, paramStart, paramEnd, duration, isRotationLerp, easing)
 	if duration == nil then duration = 0.5 end
 	if U.isInstance(paramStart, Vector) or U.isInstance(paramStart, Color) then
 		if paramStart:equals(paramEnd) then return 0 end
@@ -936,8 +990,31 @@ function U.Lerp(setFunc, paramStart, paramEnd, duration)
 		if paramStart == paramEnd then return 0 end
 	end
 
+	if isRotationLerp then
+		local function parseAngleLerp(start, finish)
+			-- 350 -> 10,  -10 -> 350
+			if math.abs(finish - start) > math.abs(finish + 360 - start) then
+				finish = finish + 360
+			end
+			if math.abs(finish - start) > math.abs(finish - 360 - start) then
+				finish = finish - 360
+			end
+			return finish
+		end
+		paramEnd = Vector(
+			parseAngleLerp(paramStart.x, paramEnd.x),
+			parseAngleLerp(paramStart.y, paramEnd.y),
+			parseAngleLerp(paramStart.z, paramEnd.z)
+		)
+	end
+
 	local function getParam(t)
 		if t == 1 then return paramEnd end
+		if easing ~= nil then
+			if easing == "speedUp" then
+				t = t * t
+			end
+		end
 		if U.isInstance(paramStart, Vector) or U.isInstance(paramStart, Color) then
 			return paramStart:lerp(paramEnd, t)
 		elseif type(paramStart) == "number" then
