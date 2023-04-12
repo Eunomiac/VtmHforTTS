@@ -43,6 +43,8 @@ O.SpawnSources = {
 	zonePrivateAye = generateGetterFunction("065175"),
 	zonePrivateNay = generateGetterFunction("aab38f"),
 	zonePublic = generateGetterFunction("9100f3"),
+	zonePrivatePower = generateGetterFunction("5c34ee"),
+	zonePrivateCoin = generateGetterFunction("f02cb1"),
 	zoneHiderHouseCard = generateGetterFunction("12e119"),
 	zoneHiderGeneral = generateGetterFunction("0a34f7"),
 	stabilityToken = generateGetterFunction("e19593"),
@@ -57,6 +59,11 @@ O.SpawnSources = {
 	coinToken1 = generateGetterFunction("fcb33c"),
 	coinToken5 = generateGetterFunction("5253b1"),
 }
+
+-- lua getObjectFromGUID("05b53a").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
+-- lua getObjectFromGUID("9bfae4").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
+-- lua getObjectFromGUID("65fb31").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
+-- lua log(getObjectFromGUID("05b53a").getTags()); log(getObjectFromGUID("9bfae4").getTags()); log(getObjectFromGUID("65fb31").getTags())
 
 O.Leader = {
 	Figure = generateGetterFunction("215a29"),

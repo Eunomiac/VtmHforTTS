@@ -13,38 +13,10 @@ local DIR = {}
 local HOUSE_SELECTION = {}
 
 function DIR.EndSecretAgendas()
+	L.SetLightMode("lightLectern", "ambient")
+	L.SetLightMode("lightFront", "ambient")
+	L.SetLightMode("lightPlayerSpotlight", "off")
 	U.AlertGM("Secret Agendas Dealt!")
-end
-
-LISTENERS = {
-	SecretAgendas = function(pColor, obj)
-		if not obj.hasTag("SecretAgenda") then return end
-		local player = S.getPlayer(pColor)
-		local nextPlayer = P.GetNextLeastPrestigious(pColor)
-		if not nextPlayer then
-			DIR.EndSecretAgendas()
-		else
-			U.Alert("Dealing To " .. nextPlayer.color)
-			U.sequence(U.concat(
-				U.map(player.getHandObjects(), function(obj)
-					return function()
-						if obj.hasTag("SecretAgenda") then
-							obj.deal(1, nextPlayer.color)
-						end
-					end
-				end),
-				{
-					function()
-						MSG.Splash("Choose and Place Behind Your Screen", nextPlayer.color)
-					end
-				}))
-		end
-	end
-}
-function DIR.SetDropListener(name)
-	log({name = name, listener = LISTENERS[name]}, "SetDropListener")
-	U.Val("L.AddDropListener", name, type(name) == "string" and LISTENERS[name] ~= nil)
-	-- Global.setValue("onObjectDrop", LISTENERS[name])
 end
 
 function DIR.ADVANCE(waitFunc)
@@ -110,22 +82,11 @@ INITFUNCS = {
 	},
 	CAMPAIGNSETUP = function()
 		return {
+			DIR.SetChronicleType,
+			function() return P.SetCamera("ChronicleCard") end,
 			function()
-				U.Assert("DIR.ADVANCE", S.getStateVal("gameCount") == 1)
-				S.setStateVal(nil, "chronicleType")
-				local host = S.getPlayer("Host")
-				host.showOptionsDialog(
-					"How do you want to start your Chronicle of A King's Dilemma?",
-					{ "Prologue", "Main" },
-					"Prologue",
-					function(response) S.setStateVal(response, "chronicleType") end
-				)
-				return function() return S.getStateVal("chronicleType") ~= nil end
-			end,
-			function()
-				MSG.Enqueue("Chronicle Setup", "ALL")
 				L.LoadLights({"lightLectern"}, "default")
-				return MSG.RunQueue("ALL")
+				return MSG.Splash("Chronicle Setup")
 			end,
 			DIR.StartChronicle
 		}
@@ -134,9 +95,10 @@ INITFUNCS = {
 		MainBoard = function()
 			return {
 				function()
-					MSG.Splash("Board Setup")
-					return DIR.SpawnBoardTokens()
+					P.SetCamera("BehindScreen")
+					return MSG.Splash("Board Setup")
 				end,
+				DIR.SpawnBoardTokens,
 				function()
 					L.SetLightMode("lightStability", "on")
 					local rTokens = getObjectsWithTag("ResourceMarker")
@@ -166,7 +128,8 @@ INITFUNCS = {
 				end,
 				function()
 					V.SpawnBalanceTokens(3)
-					return L.SetLightMode("lightBalance", "on", nil, 3)
+					L.SetLightMode("lightBalance", "on", nil, 3)
+					return 1.5
 				end,
 				function()
 					MSG.Splash("Distributing Power & Coin")
@@ -175,7 +138,7 @@ INITFUNCS = {
 						DIR.SpawnStartingPlayerCoins()
 					}
 				end,
-				function() U.AlertGM("All done!") end
+				DIR.ADVANCE
 			}
 		end,
 		LeaderModerator = function()
@@ -189,11 +152,11 @@ INITFUNCS = {
 					else
 						leaderName = S.getPlayerVal(leader, "house")
 					end
-					MSG.Splash(leaderName .. " Is Most Prestigious", "ALL")
+					MSG.Splash(leaderName .. " Is Most Prestigious")
 					return L.SetLightMode("lightLeader", "on", nil, 1)
 				end,
 				function()
-					return {3, P.AssignLeader(leader)}
+					return {1, P.AssignLeader(leader)}
 				end,
 				function()
 					moderator = P.GetLeastPrestigious()
@@ -208,8 +171,9 @@ INITFUNCS = {
 					return L.SetLightMode("lightModerator", "on", nil, 1)
 				end,
 				function()
-					return {3, P.AssignModerator(moderator)}
-				end
+					return {1, P.AssignModerator(moderator)}
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		LegacySetup = function()
@@ -219,7 +183,8 @@ INITFUNCS = {
 				end,
 				function()
 					return MSG.Splash("Assigning Open Agendas")
-				end
+				end,
+				DIR.ADVANCE
 				-- LEGACY EFFECTS
 				-- Apply 'em
 				-- Open Agendas too!
@@ -231,7 +196,8 @@ INITFUNCS = {
 				function()
 					agendaDeck = getObjectsWithTag("SecretAgenda")[1]
 					U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
-					return MSG.Splash("Secret Agendas")
+					P.SetCamera("ChronicleCard")
+					return MSG.Splash("Assigning Secret Agendas")
 				end,
 				function()
 					agendaDeck.setLock(true)
@@ -273,31 +239,22 @@ INITFUNCS = {
 				end,
 				function()
 					local leastPrestigious = P.GetLeastPrestigious()
-					local pNum = S.getPlayerNum(leastPrestigious)
-					L.SetLightMode("lightPlayerSpotlight", "player" .. pNum)
-					L.SetLightMode("lightFront", "dim")
-					-- DIR.SetDropListener("SecretAgendas")
-					-- U.Alert("Dealing To " .. leastPrestigious.color)
-					agendaDeck.deal(5, leastPrestigious.color)
-					return function()
-						return agendaDeck == nil
-					end
+					return P.DealAll(agendaDeck, leastPrestigious)
 				end,
+				function() return P.SetCamera("BehindScreen") end,
 				function()
 					local leastPrestigious = P.GetLeastPrestigious()
-					MSG.Splash("Choose and Place Behind Your Screen", leastPrestigious.color)
+					local pNum = S.getPlayerNum(leastPrestigious)
+					return {
+						L.SetLightMode("lightLectern", "off"),
+						L.SetLightMode("lightPlayerSpotlight", "player" .. pNum),
+						L.SetLightMode("lightFront", "dim")
+					}
+				end,
+				function()
+					return MSG.Splash("Choose Your Secret Agenda", P.GetLeastPrestigious().color)
 				end
 			}
-				-- SECRET AGENDAS
-				-- Shuffle Secret Agendas, Randomly Remove One
-				-- sort a table of playerData by prestige, with lowest first
-				-- FOR EACH:
-				-- get CurrentPlayer = prestigeTable.shift()
-				-- "Deal" all SecretAgenda cards in DECKS or in HAND ZONES (but NOT in PLAY) to CurrentPlayer
-				-- They choose by dropping from hand onto mat
-				-- onObjectDrop() listener for CurrentPlayer dropping SecretAgenda
-				-- loop back, dealing all cards to next player
-				-- when all players have a SecretAgenda, END START SESSION!
 		end
 	},
 	PLAY = {
@@ -324,6 +281,7 @@ INITFUNCS = {
 				-- set alt_view_angle to ...
 				-- AYE vote = Vector(0,0,0)
 				-- NAY vote = Vector(0,180,180)
+				-- Automatically place Dilemma card in proper board snap point, checking for king death here
 
 
 			}
@@ -413,6 +371,20 @@ function DIR.InitSession()
 	})
 end
 
+function DIR.SetChronicleType(isForcing)
+	U.Assert("DIR.ADVANCE", S.getStateVal("gameCount") == 1)
+	if S.getStateVal("chronicleType") ~= "" and not isForcing then return 0.25 end
+	S.setStateVal(nil, "chronicleType")
+	local host = S.getPlayer("Host")
+	host.showOptionsDialog(
+		"How do you want to start your Chronicle of A King's Dilemma?",
+		{ "Prologue", "Main" },
+		"Prologue",
+		function(response) S.setStateVal(response, "chronicleType") end
+	)
+	return function() return S.getStateVal("chronicleType") ~= nil end
+end
+
 -- #region House Selection ~
 
 local function getUnselectedPlayers()
@@ -466,16 +438,15 @@ end
 local flagColors = {
 	Available = function() return Color.Grey end,
 	Hovered = function() return Color.White end,
-	ClaimedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5):setAt("a", 0.1) end,
-	ClaimedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5):setAt("a", 0.25) end,
-	ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.25) end,
+	ClaimedByOther = function(playerColor) return playerColor:setAt("a", 0.5) end,
+	ClaimedBySelf = function(playerColor) return playerColor end,
+	ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.1) end,
 	SelectedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5) end,
 	SelectedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5) end,
 	SelectedByOtherHover = function(playerColor) return playerColor end,
 	SelectedBySelfHover = function() return Color.White end,
 	Invisible = function() return Color.Black:setAt("a", 0) end
 }
-local function getHex(color) return "#" .. color:toHex(true) end
 
 function DIR.RefreshHouseHUD(houseName, player)
 	if houseName == nil then return U.forEach(C.Houses, function(house) DIR.RefreshHouseHUD(house, player) end) end
@@ -488,11 +459,11 @@ function DIR.RefreshHouseHUD(houseName, player)
 	local hoverID = "houseHover_" .. houseName .. "_" .. player.color
 
 	local flagAttrs = {
-		color = getHex(flagColors.Available()),
+		color = U.GetHex(flagColors.Available()),
 		image = C.Images.Flags.Base[houseName]
 	}
 	local hoverAttrs = {
-		color = getHex(flagColors.Invisible()),
+		color = U.GetHex(flagColors.Invisible()),
 		raycastTarget = "true",
 		onMouseDown = "HUD_Click",
 		onMouseEnter = "HUD_HoverOn",
@@ -503,24 +474,24 @@ function DIR.RefreshHouseHUD(houseName, player)
 		-- log({ Claimed = houseName, statusDetail = statusDetail, statusColor = statusColor })
 		flagAttrs.image = C.Images.Flags.Claimed[houseName]
 		hoverAttrs.onMouseDown = ""
-		hoverAttrs.color = getHex(flagColors.Invisible())
+		hoverAttrs.color = U.GetHex(flagColors.Invisible())
 		if statusDetail == "ByOther" then
-			flagAttrs.color = getHex(flagColors.ClaimedByOther(statusColor))
+			flagAttrs.color = U.GetHex(flagColors.ClaimedByOther(statusColor))
 		elseif statusDetail == "BySelf" then
-			flagAttrs.color = getHex(flagColors.ClaimedBySelf(statusColor))
-			hoverAttrs.color = getHex(Color.White)
+			flagAttrs.color = U.GetHex(flagColors.ClaimedBySelf(statusColor))
+			hoverAttrs.color = U.GetHex(Color.White)
 		elseif statusDetail == "ByAbsent" then
-			flagAttrs.color = getHex(flagColors.ClaimedByAbsent())
+			flagAttrs.color = U.GetHex(flagColors.ClaimedByAbsent())
 		end
 	elseif houseStatus == "Selected" then
 		flagAttrs.image = C.Images.Flags.Claimed[houseName]
 		if statusDetail == "ByOther" then
-			flagAttrs.color = getHex(flagColors.SelectedByOther(statusColor))
-			hoverAttrs.color = getHex(flagColors.SelectedByOtherHover(statusColor))
+			flagAttrs.color = U.GetHex(flagColors.SelectedByOther(statusColor))
+			hoverAttrs.color = U.GetHex(flagColors.SelectedByOtherHover(statusColor))
 			hoverAttrs.onMouseDown = ""
 		elseif statusDetail == "BySelf" then
-			flagAttrs.color = getHex(flagColors.SelectedBySelf(statusColor))
-			hoverAttrs.color = getHex(flagColors.SelectedBySelfHover())
+			flagAttrs.color = U.GetHex(flagColors.SelectedBySelf(statusColor))
+			hoverAttrs.color = U.GetHex(flagColors.SelectedBySelfHover())
 		end
 	end
 
@@ -571,10 +542,10 @@ function DIR.HouseHUDHoverOn(player, houseName)
 
 	if houseStatus == "Available" then
 		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = getHex(flagColors.Hovered())
+			color = U.GetHex(flagColors.Hovered())
 		})
 		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = getHex(flagColors.Hovered())
+			color = U.GetHex(flagColors.Hovered())
 		})
 	end
 end
@@ -590,10 +561,10 @@ function DIR.HouseHUDHoverOff(player, houseName)
 
 	if houseStatus == "Available" then
 		UI.setAttributes("houseFlag_" .. houseName .. "_" .. player.color, {
-			color = getHex(flagColors.Available())
+			color = U.GetHex(flagColors.Available())
 		})
 		UI.setAttributes("houseHover_" .. houseName .. "_" .. player.color, {
-			color = getHex(flagColors.Invisible())
+			color = U.GetHex(flagColors.Invisible())
 		})
 	end
 end
@@ -624,7 +595,6 @@ function DIR.AssignSelectedHouses()
 		{
 			function() return 2 end,
 			function()
-				U.AlertGM("Loading Lights!")
 				return L.LoadLights({"lightFront", "lightBehind", "lightVote"}, "ambient")
 			end,
 			function()
@@ -705,6 +675,7 @@ function DIR.PresentStoryCard(storyCard)
 			}
 		end,
 		function()
+			P.SetCamera("DilemmaPlinth")
 			return function() return not Vector.equals(storyCard.getPosition(),
 				Vector(C.Spots.Staging.StoryCard.Display.position), 1) end
 		end,
@@ -862,13 +833,11 @@ function DIR.StartChronicle()
 	local kingName = ({ Prologue = "Harald IV", Main = "Harald V" })[S.getStateVal("chronicleType")]
 
 	return U.RunSequence({
-		-- function()
-		-- 	return L.SetLightMode("lightLectern", "ambient", nil, 2)
-		-- end,
-		function() return L.SetLightMode("lightLectern", "spotlightChronicleCard") end,
-		function() return DIR.PlaceChronicleCard(kingName) end,
+		-- function() return L.SetLightMode("lightLectern", "spotlightChronicleCard") end,
+		-- function() return DIR.PlaceChronicleCard(kingName) end,
+		function() return P.SetCamera("ChronicleCard") end,
 		function()
-			-- log("Opening Envelope");
+			-- P.SetCamera("DilemmaPlinth")
 			return DIR.OpenEnvelope(startingEnvelope, true)
 		end
 	})
@@ -964,6 +933,94 @@ function DIR.SpawnStartingPlayerCoins()
 		local numCoins = 10 + (S.getPlayerVal(player, "startingCoinsBonus") or 0)
 		return function() return {1, P.SpawnCoins(player, numCoins)} end
 	end))
+end
+
+function DIR.DrawDilemmaCard()
+	local coverCard = O.Pieces.CoverCard()
+	local dilemmaSource = U.findBelowObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end)
+	U.Val("DIR.DrawDilemmaCard", dilemmaSource, #dilemmaSource == 1)
+	dilemmaSource = dilemmaSource[1]
+	local dilemmaCard
+	local seqFuncs = {}
+	table.insert(seqFuncs, function() return {
+		P.SetCamera("DilemmaPlinth"),
+		MSG.Splash("Drawing Dilemma Card")
+	} end)
+	if dilemmaSource.type == "Deck" then
+		table.insert(seqFuncs, function()
+			L.SetLightMode("lightLectern", "spotlightDilemmaDeck")
+			dilemmaSource.takeObject({
+				position = C.Spots.Staging.DilemmaDraw.position,
+				rotation = C.Spots.Staging.DilemmaDraw.rotation,
+				top = false,
+				callback_function = function(obj)
+					obj.setLock(true)
+					dilemmaCard = obj
+				end
+			})
+			return function() return dilemmaCard ~= nil end
+		end)
+	else
+		table.insert(seqFuncs, function()
+			L.SetLightMode("lightLectern", "spotlightDilemmaDeck")
+			dilemmaCard.setLock(true)
+			return {
+				U.setPositionSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.position),
+				U.setRotationSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.rotation)
+			}
+		end)
+	end
+	table.insert(seqFuncs, function()
+		L.SetLightMode("lightLectern", "off", nil, 0.5)
+		L.SetLightMode("lightDilemmaMain", "on", nil, 2)
+		dilemmaCard.addTag("OnDisplay")
+		return {
+			U.setPositionSlow(dilemmaCard, C.Spots.Main.DilemmaDisplay.faceDown.position, 2, "speedUp"),
+			U.setRotationSlow(dilemmaCard, C.Spots.Main.DilemmaDisplay.faceDown.rotation, 2, "speedUp"),
+			U.setScaleSlow(dilemmaCard, C.Spots.Main.DilemmaDisplay.faceDown.scale, 2, "speedUp")
+		}
+	end)
+	table.insert(seqFuncs, function()
+		return {
+			L.SetLightMode("lightDilemmaAye", "on", nil, 1),
+			L.SetLightMode("lightDilemmaNay", "on", nil, 1)
+		}
+	end)
+	return U.RunSequence(seqFuncs)
+end
+
+function DIR.ReleaseDilemmaCard(voteResult)
+	local dilemmaCard = getObjectsWithAllTags({"Dilemma", "OnDisplay"})[1]
+	if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
+	L.SetLightMode("lightDilemmaAye", "off", nil, 0.5)
+	L.SetLightMode("lightDilemmaNay", "off", nil, 0.5)
+	L.SetLightMode("lightDilemmaMain", "off", nil, 2)
+	L.SetLightMode("lightLectern", "storyCard")
+	if voteResult == "Nay" then
+		dilemmaCard.alt_view_angle = Vector(0, 180, 180)
+	else
+		dilemmaCard.alt_view_angle = Vector(0, 0, 0)
+	end
+	dilemmaCard.setLock(false)
+	dilemmaCard.removeTag("OnDisplay")
+	local dCardPos
+	return U.RunSequence({
+		function()
+			return {
+				U.setPositionSlow(dilemmaCard, C.Spots.Main.DilemmaDisplay.faceUp.position, 2),
+				U.setRotationSlow(dilemmaCard, C.Spots.Main.DilemmaDisplay.faceUp.rotation, 2),
+				U.setScaleSlow(dilemmaCard, C.Spots.Staging.StoryCard.Display.scale, 2),
+				dilemmaCard
+			}
+		end,
+		function()
+			dCardPos = dilemmaCard.getPosition()
+			return function() return not dilemmaCard.getPosition():equals(dCardPos, 1) end
+		end,
+		function()
+			return L.SetLightMode("lightLectern", "ambient")
+		end
+	})
 end
 
 return DIR

@@ -187,11 +187,29 @@ local ObjectData = {
 				Tags = {"Zone_Counter", "Zone_PrivateUI", "PowerToken", "Zone_VoteNay"}
 			}
 		},
+		zonePrivatePower = {
+			source = O.SpawnSources.zonePrivatePower,
+			position = {8, 2.33, 48},
+			rotation = {0.00, 180.00, 0.00},
+			scale = {4.94, 1.79, 4.94},
+			data = {
+				Tags = {"Zone_Counter", "Zone_PrivateUI", "PowerToken"}
+			}
+		},
+		zonePrivateCoin = {
+			source = O.SpawnSources.zonePrivateCoin,
+			position = {-8, 2.33, 48},
+			rotation = {0.00, 180.00, 0.00},
+			scale = {4.94, 1.79, 4.94},
+			data = {
+				Tags = {"Zone_Counter", "Zone_PrivateUI", "CoinToken"}
+			}
+		},
 		zonePublic = {
 			source = O.SpawnSources.zonePublic,
-			position = {0.00, 3.5, 32.42},
-			rotation = {0.00, 180.00, 0.00},
-			scale = {5, 1.00, 5},
+			position = {0.00, 3.14, 32.42},
+			rotation = {335, 0, 0.00},
+			scale = {5, 1.63, 5},
 			data = {
 				Tags = {"Zone_Counter", "Zone_PublicUI", "PowerToken"}
 			}
@@ -209,7 +227,7 @@ local ObjectData = {
 			source = O.SpawnSources.zoneHiderGeneral,
 			position = {0.00, 0.44, 48.00},
 			rotation = {0.00, 180.00, 0.00},
-			scale = {20.00, 10, 5.00},
+			scale = {21.5, 10, 5.00},
 			data = {
 				Tags = false
 			}

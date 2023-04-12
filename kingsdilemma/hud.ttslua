@@ -14,66 +14,38 @@ local MSG = require("kingsdilemma.core.messaging")
 MessageQueue, QueueStatus = {}, {}
 
 local TESTFUNCS = {
-	Titles = function(button)
+	Camera = function(button)
 		if button == "-2" then
-			L.SetLightMode("lightLeader", "off")
-			L.SetLightMode("lightModerator", "off")
-
-			U.forEach(S.getPlayers(), function(ply)
-				L.SetIntensity(L.GetLight("lightFront", ply.color), 4)
-			end)
-			P.RotateToPlayer({
-				O.Leader.Figure(),
-				O.Leader.Light()
-			}, 0)
-			P.RotateToPlayer({
-				O.Moderator.Figure(),
-				O.Moderator.Light()
-			}, 0)
+			P.SetCamera("BehindScreen", Turns.turn_color, "Brown")
 		else
-			local index = {
-				U.randBetween(1, #S.getPlayers(), true),
-				U.randBetween(1, #S.getPlayers(), true)
-			}
-			local players = {
-				S.getPlayers()[index[1]],
-				S.getPlayers()[index[2]]
-			}
-			L.SetLightMode("lightLeader", "on")
-			L.SetLightMode("lightModerator", "on")
-
-			U.forEach(S.getPlayers(), function(ply)
-				if ply.color == players[1].color or ply.color == players[2].color then
-					L.SetIntensity(L.GetLight("lightFront", ply.color), 7)
+			local player = U.getHost()
+			local playerOptions = U.getKeys(C.CameraAngles)
+			player.showOptionsDialog("Which Camera Mode?", playerOptions, 1, function(_, i)
+				local cameraAngle = playerOptions[i]
+				if C.CameraAngles[cameraAngle].isPlayerAngle then
+					player.showOptionsDialog("Of which player?", Player.getAvailableColors(), 1, function(_, i)
+						local camRef = Player.getAvailableColors()[i]
+						P.SetCamera(cameraAngle, camRef, player)
+					end)
 				else
-					L.SetIntensity(L.GetLight("lightFront", ply.color), 2)
+					P.SetCamera(cameraAngle, player)
 				end
 			end)
-
-			P.AssignLeader(players[1])
-			P.AssignModerator(players[2])
 		end
-		-- log({rotatingTo = player})
 	end,
 	Riser = function(button)
 		if button == "-2" then
-			V.LowerRiser(U.getHost())
+			V.LowerRiser(Player[Turns.turn_color])
 		else
-			V.ElevateRiser(U.getHost())
+			V.ElevateRiser(Player[Turns.turn_color])
 		end
 	end,
-	Messaging = function(button)
-		U.RunSequence({
-			function()
-				MSG.Enqueue("The quick brown fox", "ALL")
-				MSG.Enqueue("jumps over the", "ALL")
-				MSG.Enqueue("lazy dog", "ALL")
-				return MSG.RunQueue("ALL")
-			end,
-			function()
-				U.AlertGM("All Done!")
-			end
-		})
+	Dilemma = function(button)
+		if button == "-2" then
+			DIR.ReleaseDilemmaCard(({"Aye", "Nay"})[U.randBetween(1, 2, true)])
+		else
+			DIR.DrawDilemmaCard()
+		end
 	end,
 	Lerp = function(button)
 		local testLight = getObjectFromGUID("bd6d92")
@@ -103,14 +75,16 @@ end
 -- #endregion
 
 -- #region Primary UI Event Functions
-local function toggleXmlElement(elemID)
+local function toggleXmlElement(elemID, button)
 	-- log("Toggling " .. elemID)
 	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
 		UI.setAttribute(elemID, "active", "true")
 		if elemID == "debugControls" then
 			UI.hide("splashScreen")
-			Lighting.ambient_intensity = 0.65
-			Lighting.ambient_type = 1
+			if button ~= "-2" then
+				Lighting.ambient_intensity = 0.65
+				Lighting.ambient_type = 1
+			end
 		end
 		UI.setAttribute("toggleElem_" .. elemID, "text", "▼")
 	else
@@ -178,7 +152,7 @@ end
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^toggleElem_") then
-		toggleXmlElement(string.gsub(id, "^toggleElem_", ""))
+		toggleXmlElement(string.gsub(id, "^toggleElem_", ""), button)
 	elseif id == "initSession" then
 		DIR.InitSession()
 	elseif id == "advanceGamePhase" then
@@ -191,6 +165,8 @@ function HUD_Click(player, button, id)
 		P.ClearSeats()
 	elseif id == "resetTable" then
 		DIR.RESET()
+	elseif id == "setChronicleType" then
+		DIR.SetChronicleType(true)
 	elseif string.match(id, "^debug_testFunc") then
 		id = string.gsub(id, "^debug_testFunc", "") * 1
 		TESTFUNCS[id](button, player)
@@ -216,6 +192,10 @@ function HUD_Click(player, button, id)
 		else
 			L.HideArrows()
 		end
+	-- elseif string.match(id, "^extract_") then
+	-- 	local target = string.gsub(id, "^extract_", "")
+	-- 	U.AlertGM("Analyzing " .. target)
+	-- 	AE.Analyze(target)
 	elseif string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDClick(player, houseName)

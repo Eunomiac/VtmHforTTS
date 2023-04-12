@@ -100,10 +100,19 @@ end
 function onObjectDrop(pColor, obj)
 	if S.isInPhase("SecretAgendas") and obj.hasTag("SecretAgenda") then
 		local player = S.getPlayer(pColor)
+		local handObjs = player.getHandObjects()
+		if U.find(handObjs, function(o) return o.guid == obj.guid end) then
+			return
+		end
+
+		obj.setLock(true)
+		local agendaPos = P.getRotatedPlayerTransform(C.Spots.Player.SecretAgenda, player, 0)
+		obj.setInvisibleTo(S.getOtherColors(player))
+		obj.setTags({"SecretAgenda", player.color})
+		U.setPositionSlow(obj, agendaPos.position, 1)
+		U.setRotationSlow(obj, agendaPos.rotation, 1)
 		local nextPlayer = P.GetNextLeastPrestigious(pColor)
 		if not nextPlayer then
-			L.SetLightMode("lightFront", "ambient")
-			L.SetLightMode("lightPlayerSpotlight", "off")
 			DIR.EndSecretAgendas()
 		else
 			-- U.Alert("Dealing To " .. nextPlayer.color)
@@ -120,7 +129,7 @@ function onObjectDrop(pColor, obj)
 				end),
 				{
 					function()
-						MSG.Splash("Choose and Place Behind Your Screen", nextPlayer.color)
+						MSG.Splash("Choose Your Secret Agenda", nextPlayer.color)
 					end
 				}))
 		end

@@ -63,6 +63,28 @@ C.Phases = {
 	}
 }
 
+C.CameraAngles = {
+	BehindScreen = {
+		isPlayerAngle = true,
+		position = Vector({0,20,55}),
+		pitch = 32,
+		yaw = 180,
+		distance = 20
+	},
+	ChronicleCard = {
+		position = Vector({0,12,10}),
+		pitch = 10,
+		yaw = 0,
+		distance = 1
+	},
+	DilemmaPlinth = {
+		position = Vector({0,17,-17}),
+		pitch = 0,
+		yaw = 0,
+		distance = 15
+	}
+}
+
 C.Spots = {
 	Storage = {
 		HouseCard = {
@@ -146,22 +168,27 @@ C.Spots = {
 		StoryCard = {
 			Display = {
 				position = Vector({0, 1.94, 16.52}),
-				rotation = Vector({0, 180, 0})
+				rotation = Vector({0, 180, 0}),
+				scale = Vector({1.59, 1.00, 1.59})
 			}
 		},
 		SecretAgenda = {
 			High = {
 				position = Vector({0.00, 15.00, 26.00}),
-				rotation = Vector({0.00, 0.00, 180.00})
+				rotation = Vector({0.00, 180, 180.00})
 			},
 			Low = {
 				position = Vector({0.00, 5.37, 25.04}),
-				rotation = Vector({342, 0.00, 180.00})
+				rotation = Vector({18, 180, 180.00})
 			},
 			Burnt = {
-				position = Vector({0, -7, 75}),
-				rotation = Vector(200, 350, 180)
+				position = Vector({0.00, 2.27, 52.08}),
+				rotation = Vector(90, 500, 500)
 			}
+		},
+		DilemmaDraw = {
+			position = Vector({0.00, 7.05, 24.61}),
+			rotation = Vector({25.36, 180, 0})
 		}
 	},
 	Main = {
@@ -174,6 +201,18 @@ C.Spots = {
 			position = Vector({0.00, 3.93, 37.12}),
 			rotation = Vector({78.09, 180.00, 0.00}),
 			scale = Vector({2.60, 1.00, 2.60})
+		},
+		DilemmaDisplay = {
+			faceDown = {
+				position = Vector({0.00, 28.51, 43.94}),
+				rotation = Vector(90, 180, 0),
+				scale = Vector(10, 1, 10)
+			},
+			faceUp = {
+				position = Vector({0, 7, 16.52}),
+				rotation = Vector({0, 180, 180}),
+				scale = Vector({1.59, 1.00, 1.59})
+			}
 		}
 	},
 	Board = {
@@ -302,6 +341,10 @@ C.Spots = {
 		Coin = {
 			position = Vector({-8, 2, 48}),
 			rotation = Vector({0, 250, 0})
+		},
+		SecretAgenda = {
+			position = Vector({10.00, 7.00, 42.50}),
+			rotation = Vector({87.76, 0.00, 45.00})
 		}
 	}
 }

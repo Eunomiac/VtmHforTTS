@@ -35,6 +35,8 @@ function P.InitializeSeats()
 		else
 			Player[color].setHandTransform(handTransform)
 		end
+
+		P.SetCamera("BehindScreen", color)
 	end
 
 	seats = Player.getAvailableColors()
@@ -43,6 +45,7 @@ function P.InitializeSeats()
 
 	if #players < #seats then
 		local excessSeats = U.slice(seats, #players + 1, #seats)
+		seats = U.slice(seats, 1, #players)
 		U.forEach(excessSeats, function(sColor)
 			U.getHandZone(sColor).destruct()
 		end)
@@ -102,6 +105,65 @@ function P.RotateToPlayer(objs, player, fromAngle, fromTransform)
 			end
 		})
 	end)
+end
+
+function P.SetCamera(cameraMode, playerRef, playerCamRef)
+	if playerRef == nil then return U.map(S.getPlayers(), function(player) return P.SetCamera(cameraMode, player) end) end
+
+	local player = S.getPlayer(playerRef)
+	local playerCam = player
+	if playerCamRef then
+		playerCam = S.getPlayer(playerCamRef)
+	end
+	local cameraData = U.clone(C.CameraAngles[cameraMode])
+
+	if cameraData.isPlayerAngle then
+		cameraData.position = Vector(cameraData.position):rotateOver("y", S.getPlayerAngle(player))
+		cameraData.yaw = S.getPlayerAngle(player) + cameraData.yaw
+		cameraData.isPlayerAngle = nil
+	end
+
+	-- log(cameraData)
+	playerCam.lookAt(cameraData)
+	return 1
+end
+
+function P.DealAll(cards, playerRef)
+	local player = S.getPlayer(playerRef)
+	U.Val("P.DealAll", cards, type(cards) == "table" or (type(cards) == "userdata" and (cards.type == "Deck" or cards.type == "Card")))
+
+	local function dealNextCard()
+		if type(cards) == "table" then
+			if #cards > 0 then
+				U.shift(cards).deal(1, player.color)
+			end
+		elseif cards.type == "Deck" then
+			cards.deal(1, player.color)
+			if cards.remainder ~= nil then
+				cards = {cards.remainder}
+			end
+		end
+		return 0.25
+	end
+
+
+
+	local numCards
+	if type(cards) == "table" then numCards = #cards
+	elseif cards.type == "Deck" then numCards = #cards.getObjects()
+	else return error("P.DealAll: Must submit a deck, a card, or a table of cards.") end
+
+	log({cards, player.color, numCards})
+
+	local seqFuncs = {}
+
+	for i = 1, numCards do
+		table.insert(seqFuncs, dealNextCard)
+	end
+
+	U.RunSequence(seqFuncs)
+
+	return U.sequence(seqFuncs, 0.25)
 end
 
 function P.GetMostPrestigious()

@@ -8,20 +8,6 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local V = {}
 
-function V.updatePrivateCount(player)
-	local ayeZone = getObjectsWithAllTags({player.color, "zonePrivateAye"})[1]
-	local nayZone = getObjectsWithAllTags({player.color, "zonePrivateNay"})[1]
-	local ayePower, nayPower = 0, 0
-	U.forEach(ayeZone.getObjects(), function(token)
-		ayePower = ayePower + token.value
-	end)
-	U.forEach(nayZone.getObjects(), function(token)
-		nayPower = nayPower + token.value
-	end)
-	ayeZone.call("UpdateCount", ayePower)
-	nayZone.call("UpdateCount", nayPower)
-end
-
 function V.ElevateRiser(player)
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
 	local riserPos = riser.getPosition()

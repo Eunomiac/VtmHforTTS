@@ -1,23 +1,28 @@
 <Defaults>
 	<Panel class="splash-screen"
 		color = "rgba(0, 0, 0, 0.75)"
-		hideAnimation = "FadeOut"
-		scale = "1.5 1.5 1.5" />
-	<Panel class="splash"
-		height = "340"
-		width = "1000"
 		offsetXY = "0 75"
+		hideAnimation = "FadeOut"
+		scale = "1.25 1.25 1.25" />
+
+	<Panel class="splash"
+		height = "400"
+		width = "2000"
+		rectAlignment = "UpperCenter"
+		offsetXY = "0 0"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.5" />
 	<Panel class="intro-splash"
 		showAnimation = ""
-		hideAnimation = "" />
+		hideAnimation = ""
+		rectAlignment = "MiddleCenter"
+		offsetXY = "0 0" />
 
 
 	<Panel class="splash-text"
 		height = "60"
-		width = "1000"
+		width = "2000"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.5" />
@@ -28,29 +33,34 @@
 
 
 	<Image class="splash-top"
-		height = "133"
-		width = "1000"
+		height = "270"
+		width = "2000"
 		rectAlignment = "UpperCenter"
+		offsetXY = "0 20"
 		image = "splash-top" />
 	<Image class="splash-bottom"
-		height = "133"
-		width = "1000"
+		height = "270"
+		width = "2000"
 		rectAlignment = "LowerCenter"
+		offsetXY = "0 -30"
 		image = "splash-bottom" />
+	<Image class="intro-top" offsetXY="0 25" />
+	<Image class="intro-bottom" offsetXY="0 -35" />
 	<Text class="splash"
 		alignment = "MiddleCenter"
-		font = "Fonts/FrizB"
+		font = "Fonts/Friz"
 		rectAlignment = "MiddleCenter"
 		resizeTextForBestFit = "False"
 		fontSize = "60"
 		color = "White"
 		shadow = "Black"
 		active = "True"
-		shadowDistance = "2 -2"
+		shadowDistance = "1 -1"
 		verticalOverflow = "Overflow"
+		horizontalOverflow = "Overflow"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
-		animationDuration = "0.5" />
+		animationDuration = "0.25" />
 	<Text class="splash-intro"
 		font="Fonts/FrizSC"
 		fontStyle="Bold"
@@ -66,53 +76,53 @@
 
 <Panel id="splashScreen" class="splash-screen" active="true">
 	<Panel class="splash intro-splash">
-		<Image class="splash-top" />
+		<Image class="splash-top intro-top" />
+		<Image class="splash-bottom intro-bottom" />
 		<Panel class="splash-text splash-intro-text">
 			<Text class="splash splash-intro">The King's Dilemma</Text>
 			<Text id="gameNumText" class="splash subtitle"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 </Panel>
 
 <Panel id="splashHUD">
 	<Panel id="splashPanel_Brown" class="splash" visibility="Brown" active="false">
 		<Image class="splash-top" />
+		<Image class="splash-bottom" />
 		<Panel id="splashTextContainer_Brown" class="splash-text">
 			<Text id="splashText_Brown" class="splash"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 
 	<Panel id="splashPanel_Red" class="splash" visibility="Red" active="false">
 		<Image class="splash-top" />
+		<Image class="splash-bottom" />
 		<Panel id="splashTextContainer_Red" class="splash-text">
 			<Text id="splashText_Red" class="splash"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 
 	<Panel id="splashPanel_Orange" class="splash" visibility="Orange" active="false">
 		<Image class="splash-top" />
+		<Image class="splash-bottom" />
 		<Panel id="splashTextContainer_Orange" class="splash-text">
 			<Text id="splashText_Orange" class="splash"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 
 	<Panel id="splashPanel_Yellow" class="splash" visibility="Yellow" active="false">
 		<Image class="splash-top" />
+		<Image class="splash-bottom" />
 		<Panel id="splashTextContainer_Yellow" class="splash-text">
 			<Text id="splashText_Yellow" class="splash"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 
 	<Panel id="splashPanel_Green" class="splash" visibility="Green" active="false">
 		<Image class="splash-top" />
+		<Image class="splash-bottom" />
 		<Panel id="splashTextContainer_Green" class="splash-text">
 			<Text id="splashText_Green" class="splash"></Text>
 		</Panel>
-		<Image class="splash-bottom" />
 	</Panel>
 </Panel>

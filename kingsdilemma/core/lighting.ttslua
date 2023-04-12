@@ -89,6 +89,18 @@ local function generateLightModes(lightTag)
 				}
 			end
 		}
+	elseif lightTag == "lightPlayerSpotlight" then
+		return {
+			off = {
+				enabled = false,
+				rotation = Vector({0, 0, 0})
+			},
+			player1 = generateLightModes("player1"),
+			player2 = generateLightModes("player2"),
+			player3 = generateLightModes("player3"),
+			player4 = generateLightModes("player4"),
+			player5 = generateLightModes("player5")
+		}
 	elseif string.match(lightTag, "^player%d") then
 		local pIndex = string.match(lightTag, "%d") * 1
 		return function()
@@ -184,17 +196,7 @@ L.LIGHTMODES = {
 			rotation = Vector({371.21, 0.00, 0.00 })
 		}
 	},
-	lightPlayerSpotlight = {
-		off = {
-			enabled = false,
-			rotation = Vector({0, 0, 0})
-		},
-		player1 = generateLightModes("player1"),
-		player2 = generateLightModes("player2"),
-		player3 = generateLightModes("player3"),
-		player4 = generateLightModes("player4"),
-		player5 = generateLightModes("player5")
-	},
+	lightPlayerSpotlight = generateLightModes("lightPlayerSpotlight"),
 	lightMainTop = {
 		default = "ambient",
 		off = {
@@ -231,7 +233,7 @@ L.LIGHTMODES = {
 			color = Color(1, 1, 1),
 			range = 66,
 			angle = 30,
-			intensity = 10
+			intensity = 4
 		}
 	},
 	lightModerator = {
@@ -244,7 +246,7 @@ L.LIGHTMODES = {
 			color = Color(1, 1, 1),
 			range = 66,
 			angle = 30,
-			intensity = 10
+			intensity = 4
 		}
 	},
 	lightStability = {
@@ -329,18 +331,14 @@ L.LIGHTMODES = {
 		isPlayerLight = true,
 		isSpawned = true,
 		off = {
-			enabled = false,
-			color = C.LightColors.Ambient,
-			range = 50,
-			angle = 60,
-			intensity = 6
+			enabled = false
 		},
 		ambient = {
 			enabled = true,
 			color = C.LightColors.Ambient,
 			range = 50,
 			angle = 60,
-			intensity = 6
+			intensity = 4
 		}
 	},
 	lightFront = {
@@ -372,7 +370,7 @@ L.LIGHTMODES = {
 			color = C.LightColors.Blue,
 			range = 25,
 			angle = 85,
-			intensity = 1.5
+			intensity = 2.75
 		},
 		nay = {
 			enabled = true,
@@ -393,22 +391,73 @@ L.LIGHTMODES = {
 			intensity = 1
 		},
 		ambient = {
+			enabled = true,
 			color = C.LightColors.Ambient,
 			range = 55,
 			angle = 57,
 			intensity = 1
 		},
 		aye = {
+			enabled = true,
 			color = C.LightColors.Blue,
 			range = 55,
 			angle = 50,
 			intensity = 1
 		},
 		nay = {
+			enabled = true,
 			color = C.LightColors.Red,
 			range = 55,
 			angle = 50,
 			intensity = 1
+		}
+	},
+	lightDilemmaMain = {
+		loadRotation = Vector(180, 0, 0),
+		default = "off",
+		off = {
+			enabled = false,
+			rotation = Vector(180, 0, 0)
+		},
+		on = {
+			enabled = true,
+			color = C.LightColors.Ambient,
+			range = 60,
+			angle = 100,
+			intensity = 2,
+			rotation = Vector(270, 0, 0) -- position = {0.00, 32.49, 26.14}
+		}
+	},
+	lightDilemmaAye = {
+		loadRotation = Vector(10, 180, 180),
+		default = "off",
+		off = {
+			enabled = false,
+			rotation = Vector(10, 180, 180)
+		},
+		on = {
+			enabled = true,
+			color = C.LightColors.Blue,
+			range = 60,
+			angle = 40,
+			intensity = 2,
+			rotation = Vector(330, 180, 180) -- position = {9.32, 27.20, 39.96}
+		}
+	},
+	lightDilemmaNay = {
+		loadRotation = Vector(270, 0, 0),
+		default = "off",
+		off = {
+			enabled = false,
+			rotation = Vector(270, 0, 0)
+		},
+		on = {
+			enabled = true,
+			color = C.LightColors.Red,
+			range = 25,
+			angle = 20,
+			intensity = 2.5,
+			rotation = Vector({270.00, 73, 0.00}) -- position = {-18.52, 14.79, 38.96}
 		}
 	}
 }

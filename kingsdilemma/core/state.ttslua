@@ -33,7 +33,7 @@ function S.GetSeatCount() return #Player.getAvailableColors() end
 
 function S.UpdateSeatedPlayers()
 	-- log({UpdatingPlayersAngles = C.SeatAngles, seatCount = S.GetSeatCount()})
-	local angles = U.clone(C.SeatAngles[S.GetSeatCount()])
+	local angles = U.clone(C.SeatAngles[#S.getPlayers()])
 	-- log({RetrievedAngles = angles})
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
@@ -189,6 +189,11 @@ function S.setPlayerVal(value, playerRef, key, subKey)
 		pState[key] = value
 	end
 	S.setPlayerData(player, pState)
+end
+
+function S.getOtherColors(playerRef)
+	local player = S.getPlayer(playerRef)
+	return U.filter(Player.getAvailableColors(), function(color) return color ~= player.color end)
 end
 -- #endregion
 

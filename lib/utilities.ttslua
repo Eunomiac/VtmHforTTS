@@ -69,6 +69,12 @@ function U.findAboveObject(obj, testFunc, params)
 	)
 end
 
+function U.findBelowObject(obj, testFunc, params)
+	if params == nil then params = {} end
+	if params.invert == nil then params.invert = true end
+	return U.findAboveObject(obj, testFunc, params)
+end
+
 function U.isObjectAbove(obj, testObj, params)
 	return #U.findAboveObject(obj, testObj, params) > 0
 end
@@ -187,7 +193,7 @@ function U.findSnapPoint(snapPoints, pos, fuzziness)
     end
 end
 
-
+function U.GetHex(color) return "#" .. color:toHex(true) end
 
 function U.count(T)
   local count = 0
@@ -426,6 +432,17 @@ function U.iMap(tb, func)
   return new_table
 end
 
+function U.keyMap(tb, keyFunc, valFunc)
+	U.Assert("U.keyMap", tb, "table")
+	U.Assert("U.keyMap", keyFunc, "function")
+	U.Assert("U.keyMap", valFunc, "function")
+	local new_table = {}
+	for k,v in pairs(tb) do
+		new_table[keyFunc(k, v)] = valFunc(v,k)
+	end
+	return new_table
+end
+
 function U.filter(tb, func)
 	U.Assert("U.filter", tb, "table")
 	U.Assert("U.filter", func, "function")
@@ -594,7 +611,7 @@ function U.isIn(elem, tb)
 	-- check key
 	local function hasProperty(object, prop)
 			local t = object[prop]
-			if t == nil then error() end
+			if t == nil then error("Bad Property") end
 	end
 	if pcall(function() hasProperty(tb, elem) end) then
 		return true
@@ -794,14 +811,21 @@ function U.changeLighting(params)
 	}, 0.5)
 end
 
-function U.setRotationSlow(obj, rotation, duration)
+function U.setRotationSlow(obj, rotation, duration, easing, isColliding)
 	if duration == nil then duration = 0.5 end
-	return U.Lerp(function(rotation) obj.setRotationSmooth(rotation, false, false) end, obj.getRotation(), rotation, duration, true)
+	if isColliding == nil then isColliding = false end
+	return U.Lerp(function(rotation) obj.setRotationSmooth(rotation, isColliding, false) end, obj.getRotation(), rotation, duration, true, easing)
 end
 
-function U.setPositionSlow(obj, position, duration, easing)
+function U.setPositionSlow(obj, position, duration, easing, isColliding)
 	if duration == nil then duration = 0.5 end
-	return U.Lerp(function(position) obj.setPositionSmooth(position, false, false) end, obj.getPosition(), position, duration, false, easing)
+	if isColliding == nil then isColliding = false end
+	return U.Lerp(function(pos) obj.setPositionSmooth(pos, isColliding, false) end, obj.getPosition(), position, duration, false, easing)
+end
+
+function U.setScaleSlow(obj, scale, duration, easing)
+	if duration == nil then duration = 0.5 end
+	return U.Lerp(function(sc) obj.setScale(sc) end, obj.getScale(), scale, duration, false, easing)
 end
 
 -- WaitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
