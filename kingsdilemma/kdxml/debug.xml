@@ -20,6 +20,7 @@
 <HorizontalLayout class="buttonPanel debugButtonPanel">
 	<Button id="toggleElem_debugControls" class="buttonPanelToggle">►</Button>
 	<VerticalLayout id="debugControls" class="buttonBar" active="False">
+		<Button id="debug_logState">Log State</Button>
 		<Button id="debug_resetState">Reset State</Button>
 		<Button id="debug_resetPlayers">Reset Players</Button>
 		<Text class="spacer_10"></Text>

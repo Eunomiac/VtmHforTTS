@@ -41,7 +41,8 @@
 		"Hands",
 		"spawnObject",
 		"startLuaCoroutine",
-		"logStyle"
+		"logStyle",
+		"onPlayerTurnStart"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

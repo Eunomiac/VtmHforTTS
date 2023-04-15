@@ -2,11 +2,44 @@ local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
 local O = require("kingsdilemma.lib.objects")
 local L = require("kingsdilemma.core.lighting")
+local C = require("kingsdilemma.lib.constants")
 local OU = require("kingsdilemma.objects.objUtilities")
 
 
 
 local V = {}
+
+function V.InitCountZones(player)
+	local ayeZone = getObjectsWithAllTags({"zonePrivateAye", player.color})[1]
+	local nayZone = getObjectsWithAllTags({"zonePrivateNay", player.color})[1]
+	local publicZone = getObjectsWithAllTags({"zonePublic", player.color})[1]
+	if ayeZone then
+		ayeZone.call("SetCountTag", "PowerToken")
+		ayeZone.call("SetColor", C.LightColors.Blue)
+	end
+	if nayZone then
+		nayZone.call("SetCountTag", "PowerToken")
+		nayZone.call("SetColor", C.LightColors.Red)
+	end
+	if publicZone then
+		publicZone.call("SetCountTag", "PowerToken")
+		publicZone.call("SetColor", Color.Black)
+	end
+	if ayeZone and nayZone then
+		ayeZone.call("LinkToOpp", nayZone)
+		nayZone.call("LinkToOpp", ayeZone)
+	end
+	if ayeZone and publicZone then
+		ayeZone.call("LinkToPublic", publicZone)
+	end
+	if nayZone and publicZone then
+		nayZone.call("LinkToPublic", publicZone)
+	end
+
+	if ayeZone then ayeZone.call("Activate") end
+	if nayZone then nayZone.call("Activate") end
+	if publicZone then publicZone.call("Activate") end
+end
 
 function V.ElevateRiser(player)
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
@@ -57,7 +90,10 @@ function V.SpawnBalanceTokens(numTokens)
 		spawnData.Tags = {"PowerToken", "Value" .. tokenSize}
 		spawnObjectData({
 			data = spawnData,
-			callback_function = function(obj) obj.setLock(false) end
+			callback_function = function(obj)
+				obj.setLock(false)
+				Wait.frames(function() obj.addForce(Vector(0, -1, 0), 3) end)
+			end
 		})
 		return 0.1
 	end

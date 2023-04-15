@@ -4,7 +4,6 @@
 		offsetXY = "0 75"
 		hideAnimation = "FadeOut"
 		scale = "1.25 1.25 1.25" />
-
 	<Panel class="splash"
 		height = "400"
 		width = "2000"
@@ -13,32 +12,24 @@
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.5" />
-	<Panel class="intro-splash"
-		showAnimation = ""
-		hideAnimation = ""
-		rectAlignment = "MiddleCenter"
-		offsetXY = "0 0" />
-
-
+	<Panel class="intro-splash" showAnimation = "" hideAnimation = "" rectAlignment = "MiddleCenter" offsetXY = "0 0" />
 	<Panel class="splash-text"
 		height = "60"
 		width = "2000"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.5" />
-	<Panel class="splash-intro-text"
-		height = "100" />
-
-
-
+	<Panel class="splash-intro-text" height = "100" />
 
 	<Image class="splash-top"
+		ignoreLayout = "true"
 		height = "270"
 		width = "2000"
 		rectAlignment = "UpperCenter"
 		offsetXY = "0 20"
 		image = "splash-top" />
 	<Image class="splash-bottom"
+		ignoreLayout = "true"
 		height = "270"
 		width = "2000"
 		rectAlignment = "LowerCenter"
@@ -46,6 +37,9 @@
 		image = "splash-bottom" />
 	<Image class="intro-top" offsetXY="0 25" />
 	<Image class="intro-bottom" offsetXY="0 -35" />
+	<Image class="query-top" offsetXY="0 50" />
+	<Image class="query-bottom" offsetXY="0 -50" />
+
 	<Text class="splash"
 		alignment = "MiddleCenter"
 		font = "Fonts/Friz"
@@ -61,16 +55,58 @@
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.25" />
-	<Text class="splash-intro"
-		font="Fonts/FrizSC"
-		fontStyle="Bold"
-		alignment = "UpperCenter" />
+	<Text class="splash-intro" font="Fonts/FrizSC" fontStyle="Bold" alignment = "UpperCenter" />
+	<Text class="subtitle" alignment = "LowerCenter" rectAlignment = "LowerCenter" height = "30" fontSize = "30" />
+	<Text class="splash-query" fontSize = "40" />
 
-	<Text class="subtitle"
-		alignment = "LowerCenter"
-		rectAlignment = "LowerCenter"
-		height = "30"
-		fontSize = "30" />
+	<VerticalLayout class="splash-query"
+		height = "400"
+		width = "2000"
+		offsetXY = "0 0"
+		rectAlignment = "UpperCenter"
+		childAlignment = "MiddleCenter"
+		childForceExpandWidth = "true"
+		childForceExpandHeight = "false"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+	<HorizontalLayout class="splash-query"
+		preferredHeight = "60" flexibleHeight = "0"
+		padding = "10"
+		spacing = "20"
+		childAlignment = "UpperCenter"
+		childForceExpandWidth = "false"
+		childForceExpandHeight = "false" />
+	<Panel class="splash-query"
+		preferredHeight = "40" flexibleHeight = "0"
+		preferredWidth = "200" flexibleWidth = "0" />
+	<Image class="splash-query"
+		height = "40"
+		width = "200"
+		color = "#997700"
+		outline = "#FFDD00"
+		outlineSize = "2"
+		rectAlignment = "MiddleCenter"
+		image = "splash-query"
+		raycastTarget = "True"
+    onMouseDown="HUD_Click"
+    onMouseEnter="HUD_HoverOn"
+		onMouseExit="HUD_HoverOff" />
+	<Text class="splash-option"
+		alignment = "MiddleCenter"
+		font = "Fonts/CinzelBB"
+		fontSize = "25" />
+	<Text class="player-prompt"
+		rectAlignment = "UpperCenter"
+		ignoreLayout = "true"
+		font = "Fonts/CinzelBB"
+		alignment = "UpperLeft"
+		offsetXY = "400 -40"
+		fontSize = "70" />
+
+
+
+
 
 </Defaults>
 
@@ -125,4 +161,35 @@
 			<Text id="splashText_Green" class="splash"></Text>
 		</Panel>
 	</Panel>
+</Panel>
+
+<Panel id="splashQuery" active="false">
+	<VerticalLayout class="splash-query">
+		<Image class="splash-top query-top" />
+		<Image class="splash-bottom query-bottom" />
+		<Text id="splashQueryPlayerPrompt" class="splash player-prompt"></Text>
+		<Text id="splashQueryPrompt" class="splash splash-query"></Text>
+		<HorizontalLayout class="splash-query">
+			<Panel id="splashQueryContainer_Option1" class="splash-query" active="false">
+				<Image id="splashQuery_Option1" class="splash-query" image="1" />
+				<Text id="splashQueryText_Option1" class="splash-text splash-option"></Text>
+			</Panel>
+			<Panel id="splashQueryContainer_Option2" class="splash-query" active="false">
+				<Image id="splashQuery_Option2" class="splash-query" image="2" />
+				<Text id="splashQueryText_Option2" class="splash-text splash-option"></Text>
+			</Panel>
+			<Panel id="splashQueryContainer_Option3" class="splash-query" active="false">
+				<Image id="splashQuery_Option3" class="splash-query" image="3" />
+				<Text id="splashQueryText_Option3" class="splash-text splash-option"></Text>
+			</Panel>
+			<Panel id="splashQueryContainer_Option4" class="splash-query" active="false">
+				<Image id="splashQuery_Option4" class="splash-query" image="4" />
+				<Text id="splashQueryText_Option4" class="splash-text splash-option"></Text>
+			</Panel>
+			<Panel id="splashQueryContainer_Option5" class="splash-query" active="false">
+				<Image id="splashQuery_Option5" class="splash-query" image="5" />
+				<Text id="splashQueryText_Option5" class="splash-text splash-option"></Text>
+			</Panel>
+		</HorizontalLayout>
+	</VerticalLayout>
 </Panel>

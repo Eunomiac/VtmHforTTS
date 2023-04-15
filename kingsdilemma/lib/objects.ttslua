@@ -22,7 +22,13 @@ O.SecretContainers = {
 }
 
 O.UninteractableObjs = {
-	Table = generateGetterFunction("9909b3")
+	Table = generateGetterFunction("9909b3"),
+	Scales = generateGetterFunction("39b7dd"),
+	Lectern = generateGetterFunction("6cc1dc"),
+	Board = generateGetterFunction("ade6bc"),
+	DilemmaPlinth = generateGetterFunction("0e036e"),
+	StagingPlinth = generateGetterFunction("fed994"),
+	DebugTable = generateGetterFunction("f3538b")
 }
 
 O.MainStorage = generateGetterFunction("390beb")

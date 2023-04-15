@@ -236,7 +236,9 @@ function U.error(source, message, val)
 		valString = tostring(val)
 	end
 
-	error(errString .. (valString and (": " .. valString) or ""), 2)
+	log({ErrorTraceback = debug.traceback()})
+
+	error(errString .. (valString and (": " .. valString) or ""), 3)
 end
 
 function U.Val(source, checkVal, testResult, errorMsg, params)
@@ -298,7 +300,9 @@ function U.Assert(source, val, typeOrTest, tableType, isSilent)
 			end
 		end
 	elseif type(typeOrTest) == "string" then
-		if type(val) == "table" and tableType ~= nil then
+		if val == nil and typeOrTest ~= "nil" then
+			errorMessage = "Expected " .. typeOrTest .. ", got 'nil'"
+		elseif type(val) == "table" and tableType ~= nil then
 			U.forEach(val, function(v)
 				if not U.Assert(source, v, tableType, nil, true) then
 					errorMessage = "Table elements must all be type '" .. tableType .. "' -- Check log for table output"
@@ -852,6 +856,7 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 	if testFrequency == nil then testFrequency = 15 end
 
 	local frameCount = 0
+	local hasWaited = false
 
 	-- parseCheckFunc(testRef): Converts testRef into a test function (recursively, if testRef is a table)
 	local function parseCheckFunc(tRef)
@@ -877,21 +882,22 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 
 	function CheckCoroutine()
 		if pCheckFunc ~= nil then
-			while frameCount < maxWait and not pCheckFunc() do
+			while not pCheckFunc() do
 				local waitFrames = testFrequency
 				frameCount = frameCount + waitFrames
+				if frameCount > maxWait and not hasWaited then
+					log(debug.traceback())
+					hasWaited = true
+					if isForcing then
+						U.AlertGM("Coroutine Timeout: Forcing ResultFunc")
+						break
+					end
+					U.AlertGM("Coroutine Still Waiting! (See Log Traceback)")
+				end
+
 				while waitFrames > 0 do
 					coroutine.yield(0)
 					waitFrames = waitFrames - 1
-				end
-			end
-
-			if maxWait <= 0 then
-				if isForcing then
-					U.AlertGM("Coroutine Timeout: Forcing resultFunc")
-				else
-					U.AlertGM("Coroutine Timeout! Abandoning resultFunc")
-					return 1
 				end
 			end
 		end
@@ -925,7 +931,7 @@ function U.RunSequence(funcs, maxWait, frequency)
 		end
 		U.waitUntil(function()
 			runNextFunc(thisFunc())
-		end, lastFuncReturnTest, true, maxWait, frequency)
+		end, lastFuncReturnTest, false, maxWait, frequency)
 	end
 
 	local func = U.shift(funcs)
@@ -982,7 +988,16 @@ end
 --         - a function: waits until the function returns 'true'
 --         - a table of the above: waits until ALL are passed (so a number would represent minimum amount of time to wait)
 
-
+function U.cycle(val, min, max)
+	local cycleRange = max - min
+	while val > max do
+		val = val - cycleRange
+	end
+	while val < min do
+		val = val + cycleRange
+	end
+	return val
+end
 
 function U.sequence(funcs, timeDelay)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided
@@ -1004,6 +1019,15 @@ function U.sequence(funcs, timeDelay)
 			end
 	end
 	return delay
+end
+
+function U.roundVector(vec, sigDigits)
+	if sigDigits == nil then sigDigits = 2 end
+	return Vector(
+		U.round(vec[1], sigDigits),
+		U.round(vec[2], sigDigits),
+		U.round(vec[3], sigDigits)
+	)
 end
 
 function U.Lerp(setFunc, paramStart, paramEnd, duration, isRotationLerp, easing)

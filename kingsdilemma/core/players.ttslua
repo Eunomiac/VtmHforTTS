@@ -76,7 +76,7 @@ function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
 	objOrTransform = U.clone(objOrTransform, true)
 	objOrTransform = OU.foldTransform(objOrTransform)
 	if fromAngle == nil then
-		fromAngle = OU.GetNearestPlayerAngle(objOrTransform)
+		fromAngle = OU.GetNearestAngle(objOrTransform, S.getSeatAngles())
 	end
 	local toAngle = S.getPlayerAngle(player)
 	return OU.RotateByAngle(objOrTransform, toAngle - fromAngle)
@@ -205,6 +205,7 @@ end
 
 function P.AssignLeader(playerRef)
 	local player = S.getPlayer(playerRef)
+	S.setStateVal(player.color, "gameState", "leader")
 	return {
 		P.RotateToPlayer(O.Leader.Figure(), player, 0, C.Spots.Storage.LeaderFigure),
 		P.RotateToPlayer(O.Leader.Light(), player, 0, C.Spots.Storage.LeaderLight)
@@ -213,93 +214,134 @@ end
 
 function P.AssignModerator(playerRef)
 	local player = S.getPlayer(playerRef)
+	S.setStateVal(player.color, "gameState", "moderator")
 	return {
 		P.RotateToPlayer(O.Moderator.Figure(), player, 0, C.Spots.Storage.ModeratorFigure),
 		P.RotateToPlayer(O.Moderator.Light(), player, 0, C.Spots.Storage.ModeratorLight)
 	}
 end
 
-function P.SpawnPower(playerRef, numPower)
-	local powerTransform = P.getRotatedPlayerTransform(C.Spots.Player.Power, S.getPlayer(playerRef), 0)
-	local seqFuncs = {}
+function P.GetLeader() return S.getPlayer(S.getStateVal("gameState", "leader")) or P.GetMostPrestigious() end
+function P.GetModerator() return S.getPlayer(S.getStateVal("gameState", "moderator")) or P.GetLeastPrestigious() end
 
-	local function spawnToken(tokenSize)
-		local sourceObj = O.SpawnSources["powerToken" .. tokenSize]()
-		local spawnData = sourceObj.getData()
-		spawnData.Value = tokenSize
-		spawnData.Transform = OU.unfoldTransform({
-			position = U.getScatterPosition({
-				center = powerTransform.position,
-				size = Vector(2, 2, 2)
-			}, 3, 0.5),
-			rotation = powerTransform.rotation,
-			scale = sourceObj.getScale()
-		})
-		spawnData.Tags = {"PowerToken", "Value" .. tokenSize}
-		spawnObjectData({
-			data = spawnData,
-			callback_function = function(obj) obj.setLock(false) end
-		})
-		return 0.1
+function P.GetPlayerZone(playerRef, zoneRef)
+	local playerColor = S.getPlayer(playerRef).color
+	if zoneRef == "Aye" then
+		return getObjectsWithAllTags({playerColor, "Zone_VoteAye"})[1]
+	elseif zoneRef == "Nay" then
+		return getObjectsWithAllTags({playerColor, "Zone_VoteNay"})[1]
+	elseif zoneRef == "Pass" then
+		return getObjectsWithAllTags({playerColor, "Zone_VotePass"})[1]
+	elseif zoneRef == "Power" then
+		return getObjectsWithAllTags({playerColor, "zonePrivatePower"})[1]
+	elseif zoneRef == "Coin" then
+		return getObjectsWithAllTags({playerColor, "zonePrivateCoin"})[1]
+	elseif zoneRef == "Public" then
+		return getObjectsWithAllTags({playerColor, "Zone_PublicUI"})[1]
 	end
+end
+
+local function spawnToken(objOrBounds, tokenType, tokenValue, yShift)
+	if yShift == nil then yShift = 3 end
+	local sourceObj
+	if tokenType == "Power" then
+		sourceObj = O.SpawnSources["powerToken" .. tokenValue]()
+	elseif tokenType == "Coin" then
+		sourceObj = O.SpawnSources["coinToken" .. tokenValue]()
+	end
+	local spawnData = sourceObj.getData()
+	spawnData.Value = tokenValue
+	spawnData.Transform = OU.unfoldTransform({
+		position = U.getScatterPosition(objOrBounds, yShift, 0.3),
+		rotation = U.isGameObject(objOrBounds) and objOrBounds.getRotation() or Vector(0, 0, 0),
+		scale = sourceObj.getScale()
+	})
+	spawnData.Tags = {tokenType .. "Token", "Value" .. tokenValue}
+	spawnObjectData({
+		data = spawnData,
+		callback_function = function(obj)
+			obj.setLock(false)
+		end
+	})
+	return 0.1
+end
+
+local function splitToken(token)
+	local tokenPos = token.getPosition()
+	if tokenPos.y < C.TableHeight + 1 then
+		tokenPos:add(Vector(0, 3, 0))
+	end
+
+	if token.value == 10 then
+		for i = 1, 2 do
+			spawnToken({
+				center = tokenPos,
+				size = Vector(2, 0, 2)
+			}, "Power", 5)
+		end
+		token.destruct()
+	elseif token.value == 5 then
+		for i = 1, 5 do
+			spawnToken({
+				center = tokenPos,
+				size = Vector(2, 0, 2)
+			}, "Power", 1)
+		end
+		token.destruct()
+	end
+end
+
+function P.SpawnPower(playerRef, numPower)
+	local powerZone = P.GetPlayerZone(playerRef, "Power")
+	local seqFuncs = {}
 
 	while math.floor(numPower / 10) > 0 and numPower > 10 do
 		numPower = numPower - 10
-		table.insert(seqFuncs, function() return spawnToken(10) end)
+		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 10) end)
 	end
 	while math.floor(numPower / 5) > 0 and numPower > 5 do
 		numPower = numPower - 5
-		table.insert(seqFuncs, function() return spawnToken(5) end)
+		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 5) end)
 	end
 	while numPower > 0 do
 		numPower = numPower - 1
-		table.insert(seqFuncs, function() return spawnToken(1) end)
+		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 1) end)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)
 end
 
 function P.SpawnCoins(playerRef, numCoins)
-	local coinsTransform = P.getRotatedPlayerTransform(C.Spots.Player.Coin, S.getPlayer(playerRef), 0)
+	local coinZone = P.GetPlayerZone(playerRef, "Coin")
 
 	local seqFuncs = {}
 
-	local function spawnToken(tokenSize)
-		local sourceObj = O.SpawnSources["coinToken" .. tokenSize]()
-		local spawnData = sourceObj.getData()
-		spawnData.Value = tokenSize
-		spawnData.Transform = OU.unfoldTransform({
-			position = U.getScatterPosition({
-				center = coinsTransform.position,
-				size = Vector(2, 2, 2)
-			}, 3, 0.5),
-			rotation = coinsTransform.rotation,
-			scale = sourceObj.getScale()
-		})
-		spawnData.Tags = {"CoinToken", "Value" .. tokenSize}
-		spawnObjectData({
-			data = spawnData,
-			callback_function = function(obj) obj.setLock(false) end
-		})
-		return 0.1
-	end
-
 	while math.floor(numCoins / 5) > 0 and numCoins > 5 do
 		numCoins = numCoins - 5
-		table.insert(seqFuncs, function() return spawnToken(5) end)
+		table.insert(seqFuncs, 1, function() return spawnToken(coinZone, "Coin", 5) end)
 	end
 	while numCoins > 0 do
 		numCoins = numCoins - 1
-		table.insert(seqFuncs, function() return spawnToken(1) end)
+		table.insert(seqFuncs, 1, function() return spawnToken(coinZone, "Coin", 1) end)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)
 end
 
+function P.TransferPower(fromZone, toZone)
+	local powerTokens = U.filter(fromZone.getObjects(), function(obj) return obj.hasTag("PowerToken") end)
 
+	local function transferToken(token)
+		token.setPosition(token.getPosition():add(Vector(0, 1, 0)))
+		token.addForce(Vector(0, 50, 0), 3)
+		Wait.time(function()
+			token.setPosition(U.getScatterPosition(toZone, 6, 0.4))
+		end, 0.5)
+	end
 
-
-
-
+	U.sequence(U.map(powerTokens, function(token)
+		return function() transferToken(token) end
+	end), 0.15)
+end
 
 return P

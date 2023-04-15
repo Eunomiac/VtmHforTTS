@@ -8,11 +8,14 @@ local S = require("kingsdilemma.core.state")
 local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
 local V = require("kingsdilemma.core.voting")
+local OU = require("kingsdilemma.objects.objUtilities")
 local MSG = require("kingsdilemma.core.messaging")
 -- #endregion
 
 MessageQueue, QueueStatus = {}, {}
 
+local lineCount = 0
+local tokenCount = 1
 local TESTFUNCS = {
 	Camera = function(button)
 		if button == "-2" then
@@ -33,27 +36,69 @@ local TESTFUNCS = {
 			end)
 		end
 	end,
-	Riser = function(button)
+	Token = function(button)
 		if button == "-2" then
-			V.LowerRiser(Player[Turns.turn_color])
+			U.getHost().showInputDialog("Enter count", "1", function(response) tokenCount = tonumber(response) or 0 end)
 		else
-			V.ElevateRiser(Player[Turns.turn_color])
+			DIR.BumpToken("Morale", tokenCount)
+			DIR.BumpToken("Stability", tokenCount)
+			Wait.time(function() DIR.BumpToken("Morale", tokenCount * -1) end, 3)
+			Wait.time(function() DIR.BumpToken("Stability", tokenCount * -1) end, 3)
 		end
 	end,
 	Dilemma = function(button)
 		if button == "-2" then
-			DIR.ReleaseDilemmaCard(({"Aye", "Nay"})[U.randBetween(1, 2, true)])
+			DIR.ResolveDilemma(({"Aye", "Nay"})[U.randBetween(1, 2, true)])
 		else
 			DIR.DrawDilemmaCard()
 		end
 	end,
-	Lerp = function(button)
-		local testLight = getObjectFromGUID("bd6d92")
+	Messaging = function(button)
 		if button == "-2" then
-			L.SetLightMode("lightBalance", "on")
+			lineCount = 1
 		else
-			L.SetLightMode("lightBalance", "off")
+			lineCount = lineCount + 1
 		end
+		local msgTable = {}
+		for i = 1, lineCount do
+			table.insert(msgTable, "This is line " .. i)
+		end
+		MSG.Splash(msgTable, "ALL", 10)
+
+
+		-- local queryResponse = {Yes = "true", No = "false"}
+		-- U.RunSequence({
+		-- 	function()
+		-- 		MSG.SplashQuery(
+		-- 			"Does this Envelope's Story Card contain special instructions?",
+		-- 			"Leader",
+		-- 			queryResponse,
+		-- 			Player.Yellow
+		-- 		)
+		-- 		return function() return queryResponse.response ~= nil end
+		-- 	end,
+		-- 	function() return 5 end,
+		-- 	function()
+		-- 		if queryResponse.response == "true" then
+		-- 			return MSG.Splash({
+		-- 				"Carry out instructions, then place",
+		-- 				"new Dilemmas above Dilemma Deck."
+		-- 			}, P.GetLeader(), 10)
+		-- 		else
+		-- 			return MSG.Splash("Then I'll just add them.")
+		-- 		end
+		-- 	end
+		-- })
+		-- if button == "-2" then
+		-- 	log(responseObj)
+		-- else
+		-- 	MSG.SplashQuery(
+		-- 		"Does this Envelope's Story Card contain special instructions?",
+		-- 		"Leader",
+		-- 		responseObj,
+		-- 		Player.Brown
+		-- 	)
+		-- end
 	end
 }
 
@@ -82,7 +127,7 @@ local function toggleXmlElement(elemID, button)
 		if elemID == "debugControls" then
 			UI.hide("splashScreen")
 			if button ~= "-2" then
-				Lighting.ambient_intensity = 0.65
+				Lighting.ambient_intensity = 1.5
 				Lighting.ambient_type = 1
 			end
 		end
@@ -151,7 +196,10 @@ end
 
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
-	if string.match(id, "^toggleElem_") then
+	if string.match(id, "^splashQuery_Option") then
+		local stringIndex = string.gsub(id, "^splashQuery_Option", "")
+		MSG.QueryResponse(tonumber(stringIndex))
+	elseif string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""), button)
 	elseif id == "initSession" then
 		DIR.InitSession()
@@ -170,6 +218,8 @@ function HUD_Click(player, button, id)
 	elseif string.match(id, "^debug_testFunc") then
 		id = string.gsub(id, "^debug_testFunc", "") * 1
 		TESTFUNCS[id](button, player)
+	elseif id == "debug_logState" then
+		log(JSON.encode_pretty(S.getGameState()))
 	elseif id == "debug_resetState" then
 		S.resetGameState()
 		Global.call("UpdatePhaseDisplay")
@@ -217,7 +267,7 @@ function HUD_HoverOff(player, returnString, id)
 end
 
 function UpdatePhaseDisplay()
-	local mode, phase = S.getStateVal("gameMode"), S.getStateVal("gamePhase")
+	local mode, phase = S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
 	UI.setValue("currentGameModeDisplay", mode)
 	if mode ~= phase then
 		UI.setValue("currentGamePhaseDisplay", phase)

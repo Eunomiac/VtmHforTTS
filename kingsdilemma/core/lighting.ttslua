@@ -301,7 +301,7 @@ L.LIGHTMODES = {
 	lightBalance = {
 		loadRotation = Vector({16.91, 0, 0}),
 		default = function()
-			if S.isInMode({"NONE", "SESSIONINIT", "CAMPAIGNSETUP"}) then
+			if S.isInMode({"NONE", "SESSIONINIT", "CHRONSETUP"}) then
 				return "off"
 			else
 				return "on"
@@ -426,6 +426,22 @@ L.LIGHTMODES = {
 			angle = 100,
 			intensity = 2,
 			rotation = Vector(270, 0, 0) -- position = {0.00, 32.49, 26.14}
+		},
+		Aye = {
+			enabled = true,
+			color = C.LightColors.Blue,
+			range = 60,
+			angle = 100,
+			intensity = 2,
+			rotation = Vector(310, 0, 0) -- position = {0.00, 32.49, 26.14}
+		},
+		Nay = {
+			enabled = true,
+			color = C.LightColors.Red,
+			range = 60,
+			angle = 100,
+			intensity = 2,
+			rotation = Vector(310, 0, 0) -- position = {0.00, 32.49, 26.14}
 		}
 	},
 	lightDilemmaAye = {
@@ -528,6 +544,7 @@ end
 
 local function setEnabled(light, enabled, transitionTime)
 	local lComp = getComp(light)
+	if lComp == nil then return end
 	if lComp.get("enabled") ~= enabled then
 		if transitionTime == nil then transitionTime = DefaultTransitionTime end
 		if enabled == true then
@@ -573,7 +590,17 @@ local function getIntensity(light) return getComp(light).get("intensity") end
 local function getColor(light) return getComp(light).get("color") end
 local function getAngle(light) return getComp(light).get("spotAngle") end
 
-
+function L.InitLights()
+	U.forEach(S.getStateVal("lights"), function(mData, lightName)
+		if type(mData) == "string" then
+			L.SetLightMode(lightName, mData, nil, 0.5)
+		else
+			U.forEach(mData, function(mode, pColor)
+				L.SetLightMode(lightName, mode, pColor, 0.5)
+			end)
+		end
+	end)
+end
 
 local function setLightMode(lightName, mode, player, transitionTime)
 	if transitionTime == nil then transitionTime = DefaultTransitionTime end
@@ -600,10 +627,19 @@ local function setLightMode(lightName, mode, player, transitionTime)
 	if light == nil and lData.isSpawned then return false end
 	U.Val("setLightMode", {lightName, player}, U.isGameObject(light), "No light found")
 
+	if player then
+		local sData = S.getStateVal("lights", lightName)
+		if sData == nil then sData = {} end
+		sData[player.color] = mode
+		S.setStateVal(sData, "lights", lightName)
+	else
+		S.setStateVal(mode, "lights", lightName)
+	end
+
 	if type(mode) == "function" then mode = mode(player) end
 	U.Val("setLightMode", mode, type(mode) == "string" and lData[mode] ~= nil, "No such mode for '" .. lightName .. "'")
 	lData = lData[mode]
-	if type(lData) == "function" then lData = lData(player) end
+	if type(lData) == "function" then lData = lData() end
 	if type(lData) == "table" then lData = U.clone(lData) end
 
 	local function activateLight()
@@ -670,6 +706,7 @@ function L.ResetLights()
 		if modes.loadRotation then
 			local light = getLight(name)
 			local lComp = getComp(light)
+			if lComp == nil then return end
 			lComp.set("enabled", false)
 			light.setRotation(Vector(180, 0, 0))
 		end
@@ -681,6 +718,7 @@ function L.PrimeLights()
 		if modes.loadRotation then
 			local light = getLight(name)
 			local lComp = getComp(light)
+			if lComp == nil then return end
 			lComp.set("enabled", false)
 			light.setRotationSmooth(modes.loadRotation)
 		end

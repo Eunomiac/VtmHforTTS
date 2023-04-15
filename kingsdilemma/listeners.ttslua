@@ -49,6 +49,7 @@ function onLoad(save_data)
 	console.load()
 
 	S.InitializeGameState(save_data)
+
 	Global.call("UpdatePhaseDisplay")
 	UI.show("sessionInitDisplay")
 	L.PrimeLights()
@@ -70,9 +71,34 @@ function onLoad(save_data)
 			if #seats then player.changeColor(U.shift(seats)) end
 		end
 	end)
+
+	local function changeCardImages(cardObj)
+		local cardData = cardObj.getData()
+		cardData.CustomDeck = U.map(cardData.CustomDeck, function(dData)
+			return U.map(dData, function(val, key)
+				if key ~= "FaceURL" and key ~= "BackURL" then return val end
+				local seekVal = string.match(val, "/([^/]*)/$")
+				local imgVal = C.AssetConversion[seekVal]
+				if imgVal == nil then
+					log("Not found: " .. val)
+					return val
+				else
+					log({[seekVal] = imgVal})
+					return imgVal
+				end
+			end)
+		end)
+		cardObj.setCustomObject(cardData)
+		Wait.time(function() cardObj.reload() end, 1)
+	end
+
+	-- changeCardImages(O.SpawnSources.ayeCard())
+	-- changeCardImages(O.SpawnSources.nayCard())
+	-- changeCardImages(O.SpawnSources.passCard())
+
 	-- #endregion
 
-	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameCount"))
+	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount"))
 end
 
 function onSave() return JSON.encode(S.getGameState()) end
@@ -84,6 +110,10 @@ function onPlayerChangeColor(color)
 	local player = Player[color]
 
 	-- print(color)
+end
+
+function onPlayerTurnStart(pColor)
+	P.SetCamera("BehindScreen", pColor, "Brown")
 end
 
 local function getBoundedPos(obj, xMin, xMax, zMin, zMax)
@@ -98,6 +128,7 @@ end
 
 
 function onObjectDrop(pColor, obj)
+	if obj.hasTag("DebugObj") then return end
 	if S.isInPhase("SecretAgendas") and obj.hasTag("SecretAgenda") then
 		local player = S.getPlayer(pColor)
 		local handObjs = player.getHandObjects()
@@ -164,7 +195,7 @@ function onObjectDrop(pColor, obj)
 				return obj
 			end,
 			function()
-				return DIR.UpdateMomentum(resource)
+				return DIR.UpdateTokenLight(resource)
 			end
 		})
 	end

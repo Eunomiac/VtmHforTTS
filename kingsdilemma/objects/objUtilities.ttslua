@@ -2,7 +2,7 @@ local U = require("lib.utilities")
 local C = require("kingsdilemma.lib.constants")
 local OU = {}
 
-function OU.foldTransform(objOrTransform)
+function OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
 	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
 		objOrTransform = objOrTransform.getData().Transform
 	end
@@ -24,13 +24,19 @@ function OU.foldTransform(objOrTransform)
 			objOrTransform.scaleZ = 1
 		end
 		objOrTransform = {
-			position = {objOrTransform.posX, objOrTransform.posY, objOrTransform.posZ},
-			rotation = {objOrTransform.rotX, objOrTransform.rotY, objOrTransform.rotZ},
-			scale = {objOrTransform.scaleX, objOrTransform.scaleY, objOrTransform.scaleZ},
+			position = Vector({objOrTransform.posX, objOrTransform.posY, objOrTransform.posZ}),
+			rotation = Vector({objOrTransform.rotX, objOrTransform.rotY, objOrTransform.rotZ}),
+			scale = Vector({objOrTransform.scaleX, objOrTransform.scaleY, objOrTransform.scaleZ}),
 		}
 	end
 
 	if type(objOrTransform.position) == "table" then
+		if positionDelta ~= nil then
+			objOrTransform.position = objOrTransform.position:add(positionDelta)
+		end
+		if rotationDelta ~= nil then
+			objOrTransform.rotation = objOrTransform.rotation:add(rotationDelta)
+		end
 		return {
 			position = Vector(objOrTransform.position),
 			rotation = Vector(objOrTransform.rotation or {0, 0, 0}),
@@ -39,7 +45,10 @@ function OU.foldTransform(objOrTransform)
 	end
 end
 
-function OU.unfoldTransform(objOrTransform)
+function OU.unfoldTransform(objOrTransform, positionDelta, rotationDelta)
+	if positionDelta ~= nil or rotationDelta ~= nil then
+		objOrTransform = OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
+	end
 	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
 		return objOrTransform.getData().Transform
 	end
@@ -79,8 +88,22 @@ function OU.unfoldTransform(objOrTransform)
 		}
 	end
 end
+function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, rotationDelta)
+	local spawnData = sourceObj.getData()
+	local token
+	spawnData.Transform = OU.unfoldTransform(transformData, positionDelta, rotationDelta)
+	spawnData.Tags = tags
+	spawnObjectData({
+		data = spawnData,
+		callback_function = function(obj)
+			obj.setLock(false)
+			token = obj
+		end
+	})
+	return function() return token ~= nil and token.resting and not token.loading_custom end
+end
 
-function OU.getAngleOf(objOrTransform, isExcludingZero)
+function OU.getAngleOf(objOrTransform)
 	local posData = OU.foldTransform(objOrTransform).position
 	local zeroPos = Vector(0, 0, C.TableRadius)
 	local angle = posData:angle(zeroPos)
@@ -90,14 +113,11 @@ function OU.getAngleOf(objOrTransform, isExcludingZero)
 	return angle
 end
 
-function OU.GetNearestPlayerAngle(objOrTransform, isExcludingZero)
+function OU.GetNearestAngle(objOrTransform, seatAngles)
 	local objAngle = OU.getAngleOf(objOrTransform)
-	local playerAngles = U.clone(C.SeatAngles[S.GetSeatCount()])
-	if not isExcludingZero then
-		table.insert(playerAngles, 1, 0)
-	end
+	table.insert(seatAngles, 1, 0)
 	local nearestAngle = 1000
-	U.forEach(playerAngles, function(pAngle)
+	U.forEach(seatAngles, function(pAngle)
 		if math.abs(pAngle - objAngle) < math.abs(nearestAngle - objAngle) then
 			nearestAngle = pAngle
 		end
@@ -115,7 +135,142 @@ function OU.RotateByAngle(objOrTransform, angleDelta)
 	}
 end
 
+function OU.GetStepsBetween(startVector, endVector, numSteps)
+	-- Vector 5 -> Vector 3, 3 steps.  Distance = 2.  StepSize = Distance/(steps - 1)
+	-- Vector 25 -> 20, 6 steps.  Distance = 5. StepSize = Distance/(steps - 1)
+	local distVector = Vector(endVector):sub(Vector(startVector))
+	local vectorDelta = Vector(distVector):scale(Vector(1/(numSteps - 1), 1/(numSteps - 1), 1/(numSteps - 1)))
+	local steps = {}
+	local curVector = Vector(startVector)
+	while #steps < numSteps do
+		table.insert(steps, Vector(curVector))
+		curVector:add(Vector(vectorDelta))
+	end
+
+	-- log(steps)
+
+	return steps
+end
+
+function OU.FindNearestSnapPoint(objOrTransform, obj, includeAll)
+	local position = OU.foldTransform(objOrTransform).position
+
+	local snapPoints, unfilteredSnaps
+	if obj == nil then
+		snapPoints = Global.getSnapPoints()
+		unfilteredSnaps = Global.getSnapPoints()
+	else
+		snapPoints = obj.getSnapPoints()
+		unfilteredSnaps = obj.getSnapPoints()
+	end
+
+	if U.isGameObject(objOrTransform) then
+		local objTags = objOrTransform.getTags()
+		snapPoints = U.filter(snapPoints, function(snap)
+			-- log(snap)
+			-- log({tags = U.join(snap.tags, ", "), objTags = U.join(objOrTransform.getTags(), ", "), hasAnyTags = objOrTransform.hasAnyTags(snap.tags)})
+			if #U.getValues(snap.tags) == 0 then return true end
+			return U.find(snap.tags, function(tag) return U.isIn(tag, objTags) end)
+		end)
+	end
+
+	-- log({isGameObject = U.isGameObject(objOrTransform), objOrTransform = tostring(objOrTransform), numSnaps = #snapPoints, numUnfiltered = #unfilteredSnaps})
+
+	local snapPositions = U.iMap(snapPoints, function(snap) return obj.positionToWorld(snap.position) end)
+	local sortedPositions = U.clone(snapPositions)
+
+	table.sort(sortedPositions, function(a, b) return Vector(a):distance(position) < Vector(b):distance(position) end)
+
+	local distTolerance = 0.25 * (sortedPositions[1]:distance(sortedPositions[2]))
+
+	-- log({sorted = sortedPositions})
+
+	local nearestSnapPos = sortedPositions[1]
+
+	if includeAll then
+		return U.findIndex(unfilteredSnaps, function(objSnap)
+			local snapPos = obj.positionToWorld(objSnap.position)
+			return snapPos:distance(nearestSnapPos) < distTolerance
+		end)
+	else
+		return U.findIndex(snapPoints, function(objSnap)
+			local snapPos = obj.positionToWorld(objSnap.position)
+			return snapPos:distance(nearestSnapPos) < distTolerance
+		end)
+	end
+end
+
+function OU.SetBoardSnapPoints()
+	local board = O.UninteractableObjs.Board()
+	local resourceHorizSteps = U.iMap(OU.GetStepsBetween(
+		Vector(C.Spots.Board.ResourceTokens.Influence.center.position),
+		Vector(C.Spots.Board.ResourceTokens.Knowledge.center.position),
+		5
+	), function(pos) return pos.x end)
+	local cCardHorizSteps = U.iMap(OU.GetStepsBetween(
+		Vector(C.Spots.Board.ChronicleStickers.top.position),
+		Vector(C.Spots.Board.ChronicleStickers.bottom.position),
+		3
+	), function(pos) return pos.x end)
+	local cCardVertSteps = U.iMap(OU.GetStepsBetween(
+		Vector(C.Spots.Board.ChronicleStickers.top.position),
+		Vector(C.Spots.Board.ChronicleStickers.bottom.position),
+		5
+	), function(pos) return pos.z end)
+
+	-- log({horiz = cCardHorizSteps, vert = cCardVertSteps})
+
+	local snapPoints = {}
+	U.iForEach(OU.GetStepsBetween(
+		C.Spots.Board.StabilityToken.bottom.position,
+		C.Spots.Board.StabilityToken.top.position,
+		19), function(pos)
+			table.insert(snapPoints, {
+				position = U.roundVector(board.positionToLocal(pos)),
+				rotation = U.roundVector(Vector(C.Spots.Board.StabilityToken.top.rotation):sub(board.getRotation())),
+				rotation_snap = true,
+				tags = {"StabilityMarker"}
+			})
+		end)
+
+	U.iForEach(C.Resources, function(resName, i)
+		local startPos = Vector(C.Spots.Board.ResourceTokens[resName].bottom.position):setAt("x", resourceHorizSteps[i])
+		local endPos = Vector(C.Spots.Board.ResourceTokens[resName].top.position):setAt("x", resourceHorizSteps[i])
+		U.iForEach(OU.GetStepsBetween(
+			startPos,
+			endPos,
+			17), function(pos)
+				table.insert(snapPoints, {
+					position = U.roundVector(board.positionToLocal(pos)),
+					rotation = U.roundVector(Vector(C.Spots.Board.ResourceTokens[resName].top.rotation):sub(board.getRotation())),
+					rotation_snap = false,
+					tags = {resName}
+				})
+			end)
+		end)
+
+
+	U.iForEach(C.Resources, function(resName, i)
+		for j = 1, 3 do
+			local pos = Vector(C.Spots.Board.ChronicleStickers.top.position)
+			pos.x = cCardHorizSteps[j]
+			pos.z = cCardVertSteps[i]
+
+			table.insert(snapPoints, {
+				position = U.roundVector(board.positionToLocal(pos)),
+				rotation = U.roundVector(Vector(C.Spots.Board.ChronicleStickers.top.rotation):sub(board.getRotation())),
+				rotation_snap = true,
+				tags = {"ChronicleSticker"}
+			})
+		end
+	end)
+
+	board.setSnapPoints(snapPoints)
+	-- log(JSON.encode_pretty(snapPoints))
+end
+
 function OU.SetGlobalSnapPoints()
+
 	Global.setSnapPoints({
 		{
 			position = Vector({9.15, 1.46, 19.00}),
@@ -160,73 +315,73 @@ function OU.SetGlobalSnapPoints()
 			tags = {"EventCard", "TriggerCard"}
 		},
 		{
-			position = Vector({-7.75, 1.46, 8.05}),
+			position = Vector({-7.4, 1.46, 8.05}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, 3.63}),
+			position = Vector({-7.4, 1.46, 3.63}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -0.80}),
+			position = Vector({-7.4, 1.46, -0.80}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -5.23}),
+			position = Vector({-7.4, 1.46, -5.23}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -9.65}),
+			position = Vector({-7.4, 1.46, -9.65}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -14.08}),
+			position = Vector({-7.4, 1.46, -14.08}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -14.08}),
+			position = Vector({-7.4, 1.46, -14.08}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -18.50}),
+			position = Vector({-7.4, 1.46, -18.50}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -18.74}),
+			position = Vector({-7.4, 1.46, -18.74}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -18.99}),
+			position = Vector({-7.4, 1.46, -18.99}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -19.23}),
+			position = Vector({-7.4, 1.46, -19.23}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.75, 1.46, -19.47}),
+			position = Vector({-7.4, 1.46, -19.47}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,
 			tags = {"Dilemma"}
@@ -237,5 +392,12 @@ function OU.SetGlobalSnapPoints()
 
 end
 
+function OU.FindContainedObjGUID(container, findFunc)
+	U.Val("OU.FindContainedObjGUID", container, U.isGameObject(container), "'container' param is not a Game Object")
+	U.Val("OU.FindContainedObjGUID", findFunc, type(findFunc) == "function", "'findFunc' param is not a Function")
+	local objData = U.find(container.getObjects(), findFunc)
+	if objData == nil then return false end
+	return objData.guid
+end
 
 return OU

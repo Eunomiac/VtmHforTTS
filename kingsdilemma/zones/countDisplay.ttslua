@@ -3,73 +3,111 @@ local U = require("lib.utilities")
 local V = require("kingsdilemma.core.voting")
 local C = require("kingsdilemma.lib.constants")
 
-local countTag, isPublic
-local linkedZone, oppZone
+local isActive = false
+local countTag, isPublic, player, color
+local publicZone, oppZone
 local total = 0
-local value, subValue = "", ""
-local color = Color(C.LightColors.Amber)
+local value, subValue, icon, iconColor = "", "", "", Color.White
 
-local function getLinkedTotal() return linkedZone and linkedZone.call("GetCount") or 0 end
-local function getLinkedColor() return linkedZone and linkedZone.call("GetColor") or Color.Black end
-local function getOppTotal() return oppZone and oppZone.call("GetCount") or 0 end
+local ISDEBUGGING = false
 
-local function getVisibility()
-	local colorTag = U.findColorTag(self)
-	if isPublic then return U.join(S.getOtherColors(colorTag), "|")
-	else return colorTag or "" end
-end
 
-local function updateLinkedZone() if linkedZone then linkedZone.call("UpdateCount") end end
-local function updateOppZone() if oppZone then oppZone.call("UpdateCount") end end
+local function isLinkedPublic() return publicZone ~= nil end
+local function getPublicTotal() return isLinkedPublic() and publicZone.call("GetCount") or 0 end
 
-function GetColor() return color end
-function GetValue() return value end
-function GetCount() return total end
+local function isLinkedOpp() return oppZone ~= nil end
+local function getOppTotal() return isLinkedOpp() and oppZone.call("GetCount") or 0 end
+local function updateLinkedOpp() if isLinkedOpp() then oppZone.call("UpdateCount") end end
 
-function SetColor(col)
-	local oldColor = Color(color)
-	color = Color(col)
-	if not oldColor:equals(color, 0.1) then
-		UpdateXMLTable()
-	end
-end
-
-local function isContraLinked() return getLinkedTotal() > 0 and not getLinkedColor():equals(color, 0.1) end
-local function isShowingX() return GetCount() > 0 and (isContraLinked() or getOppTotal() > 0) end
+local function isShowingX() return isLinkedOpp() and total > 0 and getOppTotal() > 0 end
 
 local function updateValue()
+	if ISDEBUGGING then value, subValue = "+VV", "(SV)"; return UpdateXMLTable() end
+
 	local oldValue, oldSubValue = value, subValue
+
+	if getPublicTotal() > 0 then
+		subValue = "(" .. getPublicTotal .. ")"
+	else
+		subValue = ""
+	end
+
 	if isShowingX() then
 		value = "X"
-		if oldValue ~= value then
-			updateOppZone()
-		end
+		subValue = ""
 	elseif total == 0 then
 		value = ""
-		if oldValue == "X" then
-			updateOppZone()
-		end
+	elseif subValue ~= "" then
+		value = "+" .. tostring(total)
 	else
 		value = tostring(total)
 	end
 
-	local linkedTotal = getLinkedTotal()
-	local linkedColor = getLinkedColor()
-	if isShowingX() then
-		subValue = ""
-	elseif linkedTotal > 0 and color:equals(linkedColor, 0.1) then
-		subValue = "(" .. tostring(linkedTotal) .. ")"
-		if total > 0 then
-			value = "+" .. string.gsub(value, "[^%d]", "")
-		end
-	else
-		value = string.gsub(value, "[^%d]", "")
-		subValue = ""
-	end
-
 	if value ~= oldValue or subValue ~= oldSubValue then
+		updateLinkedOpp()
 		UpdateXMLTable()
 	end
+end
+
+function LinkToPublic(pZone) publicZone = pZone; UpdateCount() end
+function UnLinkPublic() publicZone = nil; UpdateCount() end
+function LinkToOpp(oZone) oppZone = oZone; UpdateCount() end
+
+function Activate() isActive = true; UpdateCount(); UpdateXMLTable() end
+function Deactivate() isActive = false; UpdateXMLTable() end
+
+function SetCountTag(tag) countTag = tag; UpdateCount() end
+function SetColor(col) color = col; UpdateXMLTable() end
+function SetIcon(ic) icon = ic; UpdateXMLTable() end
+function SetIconColor(col) iconColor = col; UpdateXMLTable() end
+
+function GetCount() return total end
+function StopCounting()
+	onObjectEnterZone = nil
+	onObjectLeaveZone = nil
+	UpdateCount = function() return end
+end
+function SetCount(value)
+	StopCounting()
+	total = value
+	updateValue()
+end
+
+local function setPublicDefault() isPublic = self.hasTag("Zone_PublicUI") end
+local function setPlayerDefault()
+	local colorTag = U.findColorTag(self)
+	if colorTag then
+		player = S.getPlayer(colorTag)
+	end
+end
+local function setCountTagDefault()
+	if self.hasTag("PowerToken") then
+		countTag = "PowerToken"
+	elseif self.hasTag("CoinToken") then
+		countTag = "CoinToken"
+	end
+end
+local function setColorDefault()
+	if self.hasTag("Zone_VoteAye") then
+		color = Color(C.LightColors.Blue)
+	elseif self.hasTag("Zone_VoteNay") then
+		color = Color(C.LightColors.Red)
+	else
+		color = Color(C.LightColors.Amber)
+	end
+end
+
+function onLoad()
+	if self.hasTag("SourceObj") then
+		onObjectEnterZone = nil
+		onObjectLeaveZone = nil
+		return
+	end
+	setPublicDefault()
+	setPlayerDefault()
+	setCountTagDefault()
+	setColorDefault()
+	UpdateCount()
 end
 
 function UpdateCount()
@@ -81,103 +119,121 @@ function UpdateCount()
 	updateValue()
 end
 
-function UpdateXMLTable()
-	local xmlTable = {}
-	if value == "" and subValue == "" then
-		table.insert(xmlTable, {})
-	else
-		local panelXML = {
-			tag = "Panel",
-			attributes = {
-				height = "800",
-				width = "600",
-				position = "0 -50 -150",
-				rotation = "-80 0 0",
-				visibility = getVisibility()
-			},
-			children = {}
-		}
-		if value ~= "" then
-			table.insert(panelXML.children, {
-				tag = "Text",
-				value = value,
-				attributes = {
-					ignoreLayout = "True",
-					rectAlignment = "LowerCenter",
-					height = "300",
-					color = U.GetHex(color),
-					outline = "Black",
-					outlineSize = "3",
-					font = "Fonts/Friz",
-					fontSize = "80",
-					scale = "1 2 1"
-				}
-			})
-		end
-		if subValue ~= "" then
-			table.insert(panelXML.children, {
-				tag = "Text",
-				value = subValue,
-				attributes = {
-					ignoreLayout = "True",
-					rectAlignment = "UpperCenter",
-					height = "100",
-					color = U.GetHex(color),
-					outline = "Black",
-					outlineSize = "2",
-					font = "Fonts/Friz",
-					fontSize = "40",
-					scale = "1 2 1"
-				}
-			})
-		end
-		table.insert(xmlTable, panelXML)
-	end
-
-	log({XMLTable = JSON.encode_pretty(xmlTable)})
-
-	self.UI.setXmlTable(xmlTable)
+local function getVisibility()
+	if player == nil then return "" end
+	if isPublic then return U.join(S.getOtherColors(player.color), "|") end
+	return player.color
 end
 
-function onLoad()
-	if self.hasTag("SourceObj") then
-		onObjectEnterZone = nil
-		onObjectLeaveZone = nil
-		return
-	end
-	isPublic = self.hasTag("Zone_PublicUI")
+local function getPlayerXMLTable(xmlTable, playerRef)
+	local thisPlayer = S.getPlayer(playerRef)
+	local playerAngle = S.getPlayerAngle(playerRef)
+	local rotationAngle = 180 - playerAngle + self.getRotation().y
+	return {
+		tag = "Panel",
+		attributes = {
+			visibility = thisPlayer.color,
+			rotation = "0 0 " .. rotationAngle
+		},
+		children = xmlTable
+	}
+end
 
-	if self.hasTag("PowerToken") then countTag = "PowerToken"
-	elseif self.hasTag("CoinToken") then countTag = "CoinToken"
-	end
-
-	local colorTag = U.findColorTag(self)
-
-	if colorTag ~= nil then
-		Wait.time(function()
-			if self.hasAnyTag({"Zone_VoteAye", "Zone_VoteNay"}) then
-				linkedZone = getObjectsWithAllTags({colorTag, "Zone_PublicUI", "PowerToken"})[1]
-				if self.hasTag("Zone_VoteAye") then
-					oppZone = getObjectsWithAllTags({colorTag, "Zone_VoteNay"})[1]
-				else
-					oppZone = getObjectsWithAllTags({colorTag, "Zone_VoteAye"})[1]
-				end
-			end
-			-- log({linkedZone = linkedZone, oppZone = oppZone})
-		end, 1)
+function UpdateXMLTable()
+	if not isActive or (value == "" and subValue == "") then
+		return self.UI.setXmlTable({{}})
 	end
 
-	if self.hasTag("Zone_VoteAye") then
-		color = Color(C.LightColors.Blue)
-	elseif self.hasTag("Zone_VoteNay") then
-		color = Color(C.LightColors.Red)
+	local xmlTable = {}
+	local panelXML = {
+		tag = "Panel",
+		attributes = {
+			height = "150",
+			-- color = U.GetHex(Color.Red:setAt("a", 0.5)),
+			width = "200",
+			position = "0 0 0",
+			rotation = "-80 0 0",
+			pivot = "0.5 0",
+			visibility = getVisibility()
+		},
+		children = {}
+	}
+	if value ~= "" then
+		if icon ~= "" then
+			table.insert(panelXML.children, {
+				tag = "Image",
+				attributes = {
+					image = icon,
+					color = U.GetHex(iconColor:setAt("a", 0.25)),
+					ignoreLayout = "True",
+					rectAlignment = "MiddleCenter",
+					height = "300",
+					width = "300",
+					position = "0 0 3",
+					-- offsetXY = "0 -35",
+					scale = "0.2 0.2 0.2"
+				}
+			})
+		end
+		table.insert(panelXML.children, {
+			tag = "Text",
+			value = value,
+			attributes = {
+				ignoreLayout = "True",
+				rectAlignment = "MiddleCenter",
+				height = "300",
+				width = "500",
+				color = U.GetHex(color),
+				outline = "Black",
+				outlineSize = "5",
+				font = "Fonts/FrizB",
+				fontSize = "200",
+				scale = "0.2 0.2 0.2"
+			}
+		})
 	end
+	if subValue ~= "" then
+		table.insert(panelXML.children, {
+			tag = "Text",
+			value = subValue,
+			attributes = {
+				ignoreLayout = "True",
+				rectAlignment = "UpperCenter",
+				height = "40",
+				color = U.GetHex(color),
+				outline = "Black",
+				outlineSize = "2",
+				font = "Fonts/Friz",
+				fontSize = "30",
+				scale = "1 1 1"
+			}
+		})
+	end
+	table.insert(xmlTable, panelXML)
 
-	UpdateCount()
+	if isPublic then
+		local visibleTo
+		if getVisibility() == "" then
+			visibleTo = S.getPlayers()
+		else
+			visibleTo = U.filter(S.getPlayers(), function(player)
+				return string.match(getVisibility(), player.color)
+			end)
+		end
+		-- log({visibleTo = U.map(visibleTo, function(v) return v.color end)})
+		local xmlWrapper = {}
+		U.forEach(visibleTo, function(player)
+			table.insert(xmlWrapper, getPlayerXMLTable(xmlTable, player))
+		end)
+		-- log({xmlWrapper = JSON.encode_pretty(xmlWrapper)})
+		self.UI.setXmlTable(xmlWrapper)
+	else
+		self.UI.setXmlTable(xmlTable)
+	end
 end
 
 local function zoneUpdate(zone, token)
-	if zone.guid == self.guid and token ~= nil and token.hasTag(countTag) then
+	if isActive and zone.guid == self.guid and token and countTag and token.hasTag(countTag) then
 		UpdateCount()
 	end
 end
