@@ -241,15 +241,15 @@ local ObjectData = {
 				Tags = {}
 			}
 		},
-		passCard = {
-			source = O.SpawnSources.passCard,
-			position = {0.00, 1.46, 42.50},
-			rotation = {0.00, 0.00, 0.00},
-			scale = {1.59, 1.00, 1.59},
-			data = {
-				Tags = {}
-			}
-		},
+		-- passCard = {
+		-- 	source = O.SpawnSources.passCard,
+		-- 	position = {0.00, 1.46, 42.50},
+		-- 	rotation = {0.00, 0.00, 0.00},
+		-- 	scale = {1.59, 1.00, 1.59},
+		-- 	data = {
+		-- 		Tags = {}
+		-- 	}
+		-- },
 		nayCard = {
 			source = O.SpawnSources.nayCard,
 			position = {-4.00, 1.46, 42.50},

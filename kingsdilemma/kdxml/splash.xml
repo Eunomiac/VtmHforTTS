@@ -37,8 +37,8 @@
 		image = "splash-bottom" />
 	<Image class="intro-top" offsetXY="0 25" />
 	<Image class="intro-bottom" offsetXY="0 -35" />
-	<Image class="query-top" offsetXY="0 50" />
-	<Image class="query-bottom" offsetXY="0 -50" />
+	<Image class="query-top" image="splash-top-noshadow" offsetXY="0 50" />
+	<Image class="query-bottom" image="splash-bottom-noshadow" offsetXY="0 -50" />
 
 	<Text class="splash"
 		alignment = "MiddleCenter"
@@ -84,10 +84,8 @@
 		height = "40"
 		width = "200"
 		color = "#997700"
-		outline = "#FFDD00"
-		outlineSize = "2"
 		rectAlignment = "MiddleCenter"
-		image = "splash-query"
+		image = "button-bg"
 		raycastTarget = "True"
     onMouseDown="HUD_Click"
     onMouseEnter="HUD_HoverOn"
@@ -103,6 +101,11 @@
 		alignment = "UpperLeft"
 		offsetXY = "400 -40"
 		fontSize = "70" />
+
+	<Panel class="splash-query-container"
+		rectAlignment = "UpperLeft"
+		offsetXY = "-50 -50"
+		scale = "0.6 0.6 0.6" />
 
 
 
@@ -163,7 +166,7 @@
 	</Panel>
 </Panel>
 
-<Panel id="splashQuery" active="false">
+<Panel id="splashQuery" class="splash-query-container" active="false">
 	<VerticalLayout class="splash-query">
 		<Image class="splash-top query-top" />
 		<Image class="splash-bottom query-bottom" />
@@ -171,23 +174,23 @@
 		<Text id="splashQueryPrompt" class="splash splash-query"></Text>
 		<HorizontalLayout class="splash-query">
 			<Panel id="splashQueryContainer_Option1" class="splash-query" active="false">
-				<Image id="splashQuery_Option1" class="splash-query" image="1" />
+				<Image id="splashQuery_Option1" class="splash-query" image="button-bg" />
 				<Text id="splashQueryText_Option1" class="splash-text splash-option"></Text>
 			</Panel>
 			<Panel id="splashQueryContainer_Option2" class="splash-query" active="false">
-				<Image id="splashQuery_Option2" class="splash-query" image="2" />
+				<Image id="splashQuery_Option2" class="splash-query" image="button-bg" />
 				<Text id="splashQueryText_Option2" class="splash-text splash-option"></Text>
 			</Panel>
 			<Panel id="splashQueryContainer_Option3" class="splash-query" active="false">
-				<Image id="splashQuery_Option3" class="splash-query" image="3" />
+				<Image id="splashQuery_Option3" class="splash-query" image="button-bg" />
 				<Text id="splashQueryText_Option3" class="splash-text splash-option"></Text>
 			</Panel>
 			<Panel id="splashQueryContainer_Option4" class="splash-query" active="false">
-				<Image id="splashQuery_Option4" class="splash-query" image="4" />
+				<Image id="splashQuery_Option4" class="splash-query" image="button-bg" />
 				<Text id="splashQueryText_Option4" class="splash-text splash-option"></Text>
 			</Panel>
 			<Panel id="splashQueryContainer_Option5" class="splash-query" active="false">
-				<Image id="splashQuery_Option5" class="splash-query" image="5" />
+				<Image id="splashQuery_Option5" class="splash-query" image="button-bg" />
 				<Text id="splashQueryText_Option5" class="splash-text splash-option"></Text>
 			</Panel>
 		</HorizontalLayout>

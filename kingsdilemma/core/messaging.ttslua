@@ -3,7 +3,8 @@ local S = require("kingsdilemma.core.state")
 
 local MSG = {}
 
-local DefaultDisplayTime = 1.5
+local DefaultDisplayTime = 0.5
+local MessageDisplayBuffer = 1
 
 function MSG.GetQueueStatus(queueRef)
 	local queueStatus = Global.getTable("QueueStatus")
@@ -134,7 +135,7 @@ end
 function MSG.Splash(message, queueRef, displayTime, attributes)
 	if queueRef == nil then queueRef = "ALL" end
 	MSG.Enqueue(message, queueRef, displayTime, attributes)
-	return {MSG.RunQueue(queueRef), (displayTime or DefaultDisplayTime) + 3}
+	return {MSG.RunQueue(queueRef), (displayTime or DefaultDisplayTime) + MessageDisplayBuffer}
 end
 
 function MSG.Enqueue(message, queueRef, displayTime, attributes)
@@ -155,7 +156,7 @@ end
 local currentQuery
 function MSG.QueryResponse(index)
 	if currentQuery ~= nil then
-		Wait.time(function() currentQuery.response = currentQuery[U.getKeys(currentQuery)[index]] end, 1)
+		Wait.time(function() currentQuery.response = currentQuery[U.getKeys(currentQuery)[index]] end, 0.25)
 	end
 	UI.hide("splashQuery")
 end

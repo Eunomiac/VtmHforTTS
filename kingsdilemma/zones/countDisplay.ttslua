@@ -12,7 +12,6 @@ local scaleFactor = "0.2"
 
 local ISDEBUGGING = false
 
-
 local function getPublicTotal() return publicZone and publicZone.call("GetCount") or 0 end
 
 local function isLinkedOpp() return oppZone ~= nil end
@@ -46,6 +45,11 @@ local function updateValue()
 	if value ~= oldValue or subValue ~= oldSubValue then
 		updateLinkedOpp()
 		UpdateXMLTable()
+		if self.hasTag("zonePrivateAye") then
+			V.UpdateHUD(player)
+		elseif self.hasTag("zonePrivateNay") then
+			V.UpdateHUD(player)
+		end
 	end
 end
 
@@ -54,8 +58,8 @@ function UnLinkPublic() publicZone = nil; UpdateCount() end
 function LinkToOpp(oZone) oppZone = oZone; UpdateCount() end
 function UnLinkOpp() oppZone = nil; UpdateCount() end
 
-function Activate() log({ACTIVATE = debug.traceback()}); isActive = true; UpdateCount(); UpdateXMLTable() end
-function Deactivate() log({DEACTIVATE = debug.traceback()}); isActive = false; UpdateXMLTable() end
+function Activate() isActive = true; UpdateCount(); UpdateXMLTable() end
+function Deactivate() isActive = false; UpdateXMLTable() end
 
 function SetCountTag(tag) countTag = tag; UpdateCount() end
 function SetColor(col) color = col; UpdateXMLTable() end

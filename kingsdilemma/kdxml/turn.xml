@@ -1,0 +1,126 @@
+<Defaults>
+
+	<Panel class="turn-HUD-container"
+		height = "250"
+		width = "2000"
+		rectAlignment = "LowerCenter"
+		offsetXY = "0 0"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+	<Panel class="turn-HUD"
+		preferredHeight = "60" flexibleHeight = "0"
+		preferredWidth = "300" flexibleWidth = "0"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+
+	<Image class="turn-HUD-top"
+		ignoreLayout = "true"
+		height = "270"
+		width = "2000"
+		rectAlignment = "UpperCenter"
+		offsetXY = "0 20"
+		image = "splash-top-noshadow" />
+
+	<Text class="turn-HUD"
+		alignment = "MiddleCenter"
+		font = "Fonts/Friz"
+		rectAlignment = "MiddleCenter"
+		resizeTextForBestFit = "False"
+		fontSize = "60"
+		color = "rgba(1, 1, 1, 0.5)"
+		shadow = "rgba(0, 0, 0, 1)"
+		active = "True"
+		shadowDistance = "1 -1"
+		verticalOverflow = "Overflow"
+		horizontalOverflow = "Overflow"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.25" />
+
+	<VerticalLayout class="turn-HUD"
+		height = "400"
+		width = "2000"
+		offsetXY = "0 0"
+		rectAlignment = "UpperCenter"
+		childAlignment = "MiddleCenter"
+		childForceExpandWidth = "true"
+		childForceExpandHeight = "false"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+	<HorizontalLayout class="turn-HUD"
+		preferredHeight = "60" flexibleHeight = "0"
+		padding = "10"
+		spacing = "0"
+		childAlignment = "UpperCenter"
+		childForceExpandWidth = "false"
+		childForceExpandHeight = "false" />
+
+	<Image class="turn-HUD-button"
+		height = "60"
+		width = "300"
+		color = "rgba(0.6, 0.47, 0, 0.5)"
+		rectAlignment = "MiddleCenter"
+		image = "button-bg"
+		raycastTarget = "True"
+    onMouseDown="Turn_HUD_Click"
+    onMouseEnter="Turn_HUD_HoverOn"
+		onMouseExit="Turn_HUD_HoverOff" />
+	<Image class="button-vote-aye"
+		color = "rgba(0, 1, 1, 0.5)" />
+	<Image class="button-vote-nay"
+		color = "rgba(1, 0, 0, 0.5)" />
+
+
+	<Image class="turn-HUD-icon"
+		height = "250"
+		width = "250"
+		scale = "0.16 0.16 0.16"
+		outline="rgba(0, 0, 0, 1)"
+		outlineSize = "10"
+		color = "rgba(1, 0.87, 0, 0.5)"
+		rectAlignment = "MiddleCenter"
+		offsetXY = "90 0" />
+	<Image class="turn-moderator-icon" scale="0.25 0.25 0.25" />
+
+
+	<Text class="turn-HUD-button"
+		alignment = "MiddleCenter"
+		font = "Fonts/CinzelBB"
+		fontSize = "25" />
+	<Text class="text-with-icon" alignment = "MiddleCenter" />
+	<Image class="turn-HUD-icon"  />
+
+</Defaults>
+
+<Panel id="passTurnHUD" class="turn-HUD-container" active="false">
+	<VerticalLayout class="turn-HUD">
+		<Image class="turn-HUD-top" />
+		<HorizontalLayout class="turn-HUD">
+			<Panel id="turnHUD_voteAye_container" class="turn-HUD" active="false">
+				<Image id="turnHUD_voteAye" class="turn-HUD-button button-vote-aye" image="button-bg" />
+				<Text id="turnHUD_voteAye_Text" class="turn-HUD turn-HUD-button button-vote-aye">Vote Aye</Text>
+			</Panel>
+			<Panel id="turnHUD_pass_container" class="turn-HUD" active="false">
+				<Image id="turnHUD_pass" class="turn-HUD-button button-pass" image="button-bg" />
+				<Text id="turnHUD_pass_Text" class="turn-HUD turn-HUD-button text-with-icon button-pass">Pass</Text>
+				<Image id="turnHUD_pass_Icon" class="turn-HUD-icon" image="powerIcon" />
+			</Panel>
+			<Panel id="turnHUD_passMod_container" class="turn-HUD" active="false">
+				<Image id="turnHUD_passMod" class="turn-HUD-button button-pass-mod" image="button-bg" />
+				<Text id="turnHUD_passMod_Text" class="turn-HUD turn-HUD-button text-with-icon button-pass-mod">Pass</Text>
+				<Image id="turnHUD_passMod_Icon" class="turn-HUD-icon turn-moderator-icon" image="moderatorIcon" />
+			</Panel>
+			<Panel id="turnHUD_voteNay_container" class="turn-HUD" active="false">
+				<Image id="turnHUD_voteNay" class="turn-HUD-button button-vote-nay" image="button-bg" />
+				<Text id="turnHUD_voteNay_Text" class="turn-HUD turn-HUD-button button-vote-nay">Vote Nay</Text>
+			</Panel>
+			<Panel id="turnHUD_stay_container" class="turn-HUD" active="false">
+				<Image id="turnHUD_stay" class="turn-HUD-button button-stay" image="button-bg" />
+				<Text id="turnHUD_stay_Text" class="turn-HUD turn-HUD-button button-stay">Pass</Text>
+			</Panel>
+		</HorizontalLayout>
+	</VerticalLayout>
+</Panel>

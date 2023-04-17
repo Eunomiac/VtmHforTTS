@@ -176,14 +176,27 @@ INITFUNCS = {
 		end
 	},
 	CHRONSETUP = function()
+		U.Assert("INITFUNCS.CHRONSETUP", S.getStateVal("gameState", "gameCount") == 1)
+		local queryResponse = {Prologue = "D1", ["Main Story"] = "0"}
 		return {
-			DIR.SetChronicleType,
+			function()
+				MSG.SplashQuery(
+					"How do you want to start your Chronicle of A King's Dilemma?",
+					"Host",
+					queryResponse,
+					S.getPlayer("Host")
+				)
+				return function() return queryResponse.response ~= nil end
+			end,
 			function() return P.SetCamera("Lectern") end,
 			function()
 				L.LoadLights({ "lightLectern" }, "default")
 				return MSG.Splash("Chronicle Setup")
 			end,
-			DIR.StartChronicle
+			function()
+				S.setStateVal(({ ["D1"] = "Harald IV", ["0"] = "Harald V" })[queryResponse.response], "gameState", "kingName")
+				return DIR.OpenEnvelope(queryResponse.response)
+			end
 		}
 	end,
 	GAMESETUP = {
@@ -269,11 +282,11 @@ INITFUNCS = {
 						U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
 					}
 				end,
-				function()
-					U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1)
-					U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
-					return 0.75
-				end,
+				-- function()
+				-- 	U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1)
+				-- 	U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
+				-- 	return 0.75
+				-- end,
 				function()
 					U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
 					U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
@@ -322,6 +335,7 @@ INITFUNCS = {
 			return {
 				function()
 					S.setStateVal(0, "roundState", "roundNum")
+					S.setStateVal(false, "roundState", "passModClaimed")
 					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
 				end,
 				DIR.ADVANCE
@@ -331,13 +345,13 @@ INITFUNCS = {
 	PLAY = {
 		StartRound = function()
 			return {
-				function()
-					return P.AssignLeader(U.getHost())
-				end,
+				-- function()
+				-- 	return P.AssignLeader(U.getHost())
+				-- end,
 				function()
 					S.setStateVal(S.getStateVal("roundState", "roundNum") + 1, "roundState", "roundNum")
 					S.setStateVal(getTokenPositions(), "roundState", "boardTokens", "positions")
-					S.setStateVal(P.GetLeader().color, "turnState", "currentPlayer")
+					S.setStateVal(P.GetLeader().color, "roundState", "currentTurn")
 					S.setStateVal(0, "roundState", "ayeTotal")
 					S.setStateVal(0, "roundState", "nayTotal")
 					U.forEach(S.getPlayers(), function(player)
@@ -360,13 +374,40 @@ INITFUNCS = {
 			return {
 				function()
 					P.SetCamera("BehindScreen")
-					return MSG.Splash("Discussion")
+					return MSG.Splash("The Debate")
 				end
 			}
 		end,
 		Vote = function()
+			local queryResponse = {Yes = "true", No = "false"}
 			return {
-				function() return DIR.PromptLeaderToConfirmDilemma() end
+				function()
+					MSG.SplashQuery(
+						"Does the card on display require a vote?",
+						"Leader",
+						queryResponse,
+						P.GetLeader()
+					)
+					return function() return queryResponse.response ~= nil end
+				end,
+				function()
+					if queryResponse.response == "true" then
+						return U.RunSequence({
+							function()
+								MSG.Splash("The Vote")
+								V.InitCountZones()
+								DIR.DisplayPassHUD(P.GetLeader())
+								return V.SetVotingLights()
+							end,
+							function() return V.StartTurn(P.GetLeader()) end
+						})
+					else
+						return U.RunSequence({
+							function() return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.EndRound) end,
+							function() return DIR.InitializePhase() end
+						})
+					end
+				end
 			}
 		end,
 		VoteResolution = function()
@@ -493,8 +534,8 @@ function DIR.JumpToStatePhase(mode, phase)
 		S.setStateVal(phase, "gameState", "gamePhase")
 	end
 
-	-- P.BrightenPlayerScreen()
 	-- ... further logic to resync game environment to whatever point in the game we're at.
+	P.ActivatePlayerScreenHUD()
 	return L.InitLights()
 end
 
@@ -523,7 +564,9 @@ function DIR.StartChronicle()
 	return U.RunSequence({
 		-- function() return L.SetLightMode("lightLectern", "spotlightChronicleCard") end,
 		-- function() return DIR.PlaceChronicleCard(kingName) end,
-		function() return P.SetCamera("Lectern") end,
+		function()
+
+			return P.SetCamera("Lectern") end,
 		function()
 			-- P.SetCamera("DilemmaPlinth")
 			return DIR.OpenEnvelope(startingEnvelope) --, true)
@@ -742,7 +785,7 @@ function DIR.AssignSelectedHouses()
 			function() return 2 end,
 			function() L.LoadLights({"lightBehind"}, "ambient"); return 2.5 end,
 			function()
-				-- P.BrightenPlayerScreen()
+				P.ActivatePlayerScreenHUD()
 				return L.LoadLights({ "lightFront" }, "ambient")
 			end,
 			function()
@@ -937,7 +980,6 @@ function DIR.OpenEnvelope(envKey, isStandard)
 			return function() return storyCard ~= nil end
 		end,
 		function()
-			L.SetLightMode({ "lightMainTop", "lightMainBottom" }, "ambient", nil, 3)
 			return L.SetLightMode("lightLectern", "spotlightTransit", nil, 0.3)
 		end
 	}
@@ -980,7 +1022,7 @@ function DIR.PresentStoryCard(storyCard)
 			end
 		end,
 		function()
-			return L.SetLightMode("lightLectern", "ambient")
+			return L.SetLightMode({ "lightLectern", "lightMainTop", "lightMainBottom" }, "ambient", nil, 2)
 		end
 	})
 end
@@ -1082,7 +1124,7 @@ function DIR.DrawDilemmaCard()
 	table.insert(seqFuncs, function()
 		return {
 			P.SetCamera("DilemmaDraw"),
-			MSG.Splash("Drawing Dilemma Card")
+			MSG.Splash("The Dilemma")
 		}
 	end)
 	if dilemmaSource.type == "Deck" then
@@ -1128,36 +1170,53 @@ function DIR.DrawDilemmaCard()
 	return U.RunSequence(seqFuncs)
 end
 
-function DIR.PromptLeaderToConfirmDilemma()
-	local queryResponse = {Yes = "true", No = "false"}
-	return U.RunSequence({
-		function()
-			MSG.SplashQuery(
-				"Does the card on display require a vote?",
-				"Leader",
-				queryResponse,
-				P.GetLeader()
-			)
-			return function() return queryResponse.response ~= nil end
-		end,
-		function()
-			if queryResponse.response == "true" then
-				return V.StartVote()
-			else
-				return U.RunSequence({
-					function() return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.EndRound) end,
-					function() return DIR.InitializePhase() end
-				})
-			end
-		end
-	})
-end
-
 -- #endregion
 
 -- #region Voting~
-function DIR.HUD_PassTurn()
-
+function DIR.DisplayPassHUD(playerRef)
+	local player = S.getPlayer(playerRef)
+	return U.RunSequence({
+		function()
+			UI.setAttribute("passTurnHUD", "visibility", player.color)
+			V.UpdateHUD(player, true)
+			return 0.5
+		end,
+		function()
+			UI.show("passTurnHUD")
+			return 0.5
+		end
+	})
+end
+function DIR.TurnHUDClick(elemID)
+	log({elemID = elemID})
+	U.RunSequence({
+		function()
+			UI.hide("passTurnHUD")
+			return V.EndTurn(elemID == "turnHUD_passMod") end,
+		function()
+			log("Into Next Function!")
+			local activePlayers = U.filter(Player.getAvailableColors(), function(pColor)
+				return pColor == S.getStateVal("roundState", "currentTurn") or U.isIn(S.getStateVal("turnState", pColor, "vote"), {false, "Aye", "Nay"})
+			end)
+			local playerIndex = U.findIndex(activePlayers, function(pColor) return pColor == S.getStateVal("roundState", "currentTurn") end)
+			local nextPlayer
+			if playerIndex == #activePlayers then
+				nextPlayer = activePlayers[1]
+			else
+				nextPlayer = activePlayers[playerIndex + 1]
+			end
+			log({activePlayers = activePlayers, playerIndex = playerIndex, nextPlayer = nextPlayer})
+			if P.GetLeader().color == nextPlayer then
+				return DIR.ADVANCE()
+			end
+			return U.RunSequence({
+				function()
+					DIR.DisplayPassHUD(nextPlayer)
+					return V.StartTurn(nextPlayer)
+				end
+			})
+		end
+	})
 end
 
 function DIR.EndVote()

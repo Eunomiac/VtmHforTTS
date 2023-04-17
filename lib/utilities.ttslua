@@ -694,6 +694,13 @@ function U.hasAnyTag(obj, tags)
 	return false
 end
 
+function U.findTag(obj, tagList)
+	for _, tag in pairs(tagList) do
+		if obj.hasTag(tag) then return tag end
+	end
+	return false
+end
+
 function U.findColorTag(obj)
 	U.Assert("U.findColorTag", obj, "userdata")
 	U.Assert("U.findColorTag", obj.hasTag, "function")

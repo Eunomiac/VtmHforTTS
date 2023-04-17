@@ -59,9 +59,9 @@ O.SpawnSources = {
 	moraleToken = generateGetterFunction("0f25a8"),
 	welfareToken = generateGetterFunction("1ce1ca"),
 	knowledgeToken = generateGetterFunction("2071f2"),
-	powerToken1 = generateGetterFunction("d27c56"),
-	powerToken5 = generateGetterFunction("c53570"),
-	powerToken10 = generateGetterFunction("1a6bc0"),
+	powerToken1 = generateGetterFunction("432031"),
+	powerToken5 = generateGetterFunction("b58e4f"),
+	powerToken10 = generateGetterFunction("780288"),
 	coinToken1 = generateGetterFunction("fcb33c"),
 	coinToken5 = generateGetterFunction("5253b1"),
 }

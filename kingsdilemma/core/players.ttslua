@@ -263,11 +263,12 @@ function P.GetPlayerScreen(playerRef)
 	return getObjectsWithAllTags({"screenCenter", player.color})[1]
 end
 
-function P.BrightenPlayerScreen(playerRef)
-	if playerRef == nil then return U.map(S.getPlayers(), P.BrightenPlayerScreen(player)) end
-	local houseCard = P.GetPlayerCard(playerRef)
-	if houseCard == nil then return end
-	houseCard.call("DimmerOff")
+function P.ActivatePlayerScreenHUD(playerRef)
+	if playerRef == nil then return U.map(S.getPlayers(), P.ActivatePlayerScreenHUD) end
+	local houseScreen = P.GetPlayerScreen(playerRef)
+	if houseScreen == nil then return 0 end
+	houseScreen.call("Activate")
+	return 0.5
 end
 
 local function spawnToken(objOrBounds, tokenType, tokenValue, yShift)

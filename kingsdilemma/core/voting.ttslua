@@ -1,4 +1,4 @@
-local P = require("kingsdilemma.core.players")
+ local P = require("kingsdilemma.core.players")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
 local O = require("kingsdilemma.lib.objects")
@@ -24,7 +24,7 @@ local function getVoteObjects(playerRef)
 		getObjectsWithAllTags({"PassCard", player.color})[1]
 end
 
-function V.ElevateRiser(playerRef, powerValue)
+local function elevateRiser(playerRef, powerValue)
 	local player = S.getPlayer(playerRef)
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
 	if powerValue == nil then powerValue = 0 end
@@ -36,7 +36,7 @@ function V.ElevateRiser(playerRef, powerValue)
 	return U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3 * (deltaElevation / 3))
 end
 
-function V.LowerRiser(playerRef)
+local function lowerRiser(playerRef)
 	local player = S.getPlayer(playerRef)
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
 	local riserPos = riser.getPosition()
@@ -102,14 +102,6 @@ function V.SpawnBalanceTokens(numTokens)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)
-end
-
-function V.StartVote()
-	return U.RunSequence({
-		V.InitCountZones,
-		V.SetVotingLights,
-		function() return V.StartTurn(P.GetLeader()) end
-	})
 end
 
 function V.SetVotingLights(playerRef)
@@ -184,18 +176,6 @@ function V.InitCountZones(playerRef)
 	local player = S.getPlayer(playerRef)
 	local ayeZone, nayZone, publicZone, ayeCard, nayCard, passCard = getVoteObjects(player)
 	local voteStatus = S.getStateVal("turnState", player.color, "vote")
-
-	log({
-		player = player,
-		playerColor = player.color,
-		ayeZone = ayeZone,
-		nayZone = nayZone,
-		publicZone = publicZone,
-		ayeCard = ayeCard,
-		nayCard = nayCard,
-		passCard = passCard,
-		voteStatus = voteStatus
-	})
 
 	if not S.isInPhase("Vote") or voteStatus == false then
 		if ayeCard then
@@ -300,58 +280,126 @@ function V.InitCountZones(playerRef)
 	end
 end
 
-function V.StartTurn(player)
+function V.StartTurn(playerRef)
+	local player = S.getPlayer(playerRef)
+	log("Starting Next Turn - " .. player.color)
 	return U.RunSequence({
 		function() S.setStateVal(player.color, "roundState", "currentTurn") end,
-		function() return V.SetVotingLights(player) end,
-		function() return V.DisplayPassTurnHUD(player) end
+		function()
+			V.InitCountZones(player)
+			return V.SetVotingLights(player)
+		end
 	})
 end
 
-function V.DisplayPassTurnHUD()
+function V.UpdateHUD(player, isForcing)
+	if isForcing == nil then isForcing = false end
+	if not isForcing and UI.getAttribute("passTurnHUD", "active") == "false" then return end
+	local ayeZone, nayZone = getVoteObjects(player)
+	local voteStatus = S.getPlayerVoteStatus(player)
+	local ayeCount, nayCount = 0, 0
 
+	if ayeZone then ayeCount = ayeZone.call("GetCount") end
+	if nayZone then nayCount = nayZone.call("GetCount") end
+
+	local elemVisibility = {
+		voteAye = true,
+		voteNay = true,
+		passMod = true,
+		pass = true,
+		stay = true
+	}
+	local elemText = {
+		voteAye = "Vote Aye",
+		voteNay = "Vote Nay",
+		passMod = "Pass",
+		pass = "Pass",
+		stay = "Stay"
+	}
+
+	if voteStatus == false then
+		elemVisibility.voteAye = ayeCount > 0 and nayCount == 0
+		elemVisibility.voteNay = nayCount > 0 and ayeCount == 0
+		elemVisibility.passMod = ayeCount == 0 and nayCount == 0 and not S.getStateVal("roundState", "passModClaimed")
+		elemVisibility.pass = ayeCount == 0 and nayCount == 0
+		elemVisibility.stay = false
+	elseif voteStatus == "Aye" then
+		elemVisibility.voteAye = ayeCount > 0
+		elemVisibility.voteNay = false
+		elemVisibility.passMod = false
+		elemVisibility.pass = false
+		elemVisibility.stay = ayeCount == 0
+		elemText.voteAye = "Add Power"
+	elseif voteStatus == "Nay" then
+		elemVisibility.voteAye = false
+		elemVisibility.voteNay = nayCount > 0
+		elemVisibility.passMod = false
+		elemVisibility.pass = false
+		elemVisibility.stay = nayCount == 0
+		elemText.voteNay = "Add Power"
+	end
+
+	-- log([[
+
+
+	-- ]] .. JSON.encode_pretty({[voteStatus == false and "false" or voteStatus] = elemVisibility}))
+
+	U.forEach(elemVisibility, function(isVisible, elemRef)
+		if isVisible then
+			UI.setValue("turnHUD_" .. elemRef .. "_Text", elemText[elemRef])
+			UI.show("turnHUD_" .. elemRef .. "_container")
+			UI.setAttribute("turnHUD_" .. elemRef .. "_container", "active", "true")
+		else
+			UI.setAttribute("turnHUD_" .. elemRef .. "_container", "active", "false")
+		end
+	end)
 end
 
-function V.UpdatePassTurnHUD(player) -- triggered by countDisplay.ttslua when tokens added to active zones
-
-end
-
-V.getVoteObjects = getVoteObjects
-
-function V.UpdateAyeTotal(addedPower)
+local function updateAyeTotal(addedPower)
 	S.setStateVal(S.getStateVal("roundState", "ayeTotal") + addedPower, "roundState", "ayeTotal")
 end
 
-function V.UpdateNayTotal(addedPower)
+local function updateNayTotal(addedPower)
 	S.setStateVal(S.getStateVal("roundState", "nayTotal") + addedPower, "roundState", "nayTotal")
 end
 
-function V.CheckForLeaderChange(player)
-
-
+function V.CheckForLeaderChange(playerRef)
+	local player = S.getPlayer(playerRef)
+	if player.color == P.GetLeader().color then return 0 end
+	local powerCommitted = U.map(S.getStateVal("turnState"), function(pData) return pData.powerCommitted end)
+	local playerPowerCommitted = powerCommitted[player.color]
+	powerCommitted[player.color] = nil
+	for pColor, power in pairs(powerCommitted) do
+		if pColor ~= player.color and power >= playerPowerCommitted then
+			return 0
+		end
+	end
+	return U.RunSequence({
+		function()
+			MSG.Splash({P.GetPlayerName(player) .. " has committed the most Power (" .. playerPowerCommitted .. ")",
+		"and claims Leadership over this vote."})
+			return P.AssignLeader(player)
+		end
+	})
 end
 
 function V.EndTurn(isPassMod)
 	-- need to have the HUD pass-turn click go through DIR, so it can check whether to call DIR.EndVote
-	local player = S.getPlayer(S.getStateVal("turnState", "currentPlayer"))
+	local player = S.getPlayer(S.getStateVal("roundState", "currentTurn"))
 	local ayeZone, nayZone, publicZone, ayeCard, nayCard, passCard = getVoteObjects(player)
 	local voteStatus = S.getStateVal("turnState", player.color, "vote")
 
 	if voteStatus == false then
 		local ayeCount = ayeZone.call("GetCount")
 		local nayCount = nayZone.call("GetCount")
-		if ayeCount > 0 and nayCount > 0 then
-			MSG.Splash("You cannot vote both Aye and Nay!", player.color)
-			return false, 0
-		end
 		if ayeCount > 0 then
 			S.setStateVal("Aye", "turnState", player.color, "vote")
 			S.setStateVal(ayeCount, "turnState", player.color, "powerCommitted")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Aye' with " .. ayeCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Blue)})
-					V.ElevateRiser(player, ayeCount)
+					elevateRiser(player, ayeCount)
 					return 2
 				end,
 				function()
@@ -359,7 +407,7 @@ function V.EndTurn(isPassMod)
 					return V.SetVotingLights(player)
 				end,
 				function()
-					V.UpdateAyeTotal(ayeCount)
+					updateAyeTotal(ayeCount)
 					return V.CheckForLeaderChange(player)
 				end,
 				function() return 0 end
@@ -368,27 +416,28 @@ function V.EndTurn(isPassMod)
 			S.setStateVal("Nay", "turnState", player.color, "vote")
 			S.setStateVal(nayCount, "turnState", player.color, "powerCommitted")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Nay' with " .. nayCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Red)})
-					return V.ElevateRiser(player, nayCount) end,
+					return elevateRiser(player, nayCount) end,
 				function()
 					OU.TransferObjects(nayZone, publicZone, "PowerToken")
 					return V.SetVotingLights(player)
 				end,
 				function()
-					V.UpdateNayTotal(nayCount)
+					updateNayTotal(nayCount)
 					return V.CheckForLeaderChange(player)
 				end,
 				function() return 0 end
 			})
 		elseif isPassMod then
 			S.setStateVal("PassMod", "turnState", player.color, "vote")
+			S.setStateVal(true, "roundState", "passModClaimed")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Passes to Become Moderator", nil, 3, {color = U.GetHex(C.Colors.Yellow)})
-					return V.LowerRiser()
+					return lowerRiser(player)
 				end,
 				function()
 					P.SpawnCoins(player, 1)
@@ -400,10 +449,10 @@ function V.EndTurn(isPassMod)
 		else
 			S.setStateVal("Pass", "turnState", player.color, "vote")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Passes to Gather Power", nil, 3, {color = U.GetHex(C.Colors.Amber)})
-					return V.LowerRiser()
+					return lowerRiser(player)
 				end,
 				function()
 					P.SpawnCoins(player, 1)
@@ -418,22 +467,22 @@ function V.EndTurn(isPassMod)
 		if ayeCount > 0 then
 			S.setStateVal(totalAyeCount, "turnState", player.color, "powerCommitted")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Aye' with another " .. ayeCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Blue)})
-					return V.ElevateRiser(player, totalAyeCount) end,
+					return elevateRiser(player, totalAyeCount) end,
 				function()
 					OU.TransferObjects(ayeZone, publicZone, "PowerToken")
 					return V.SetVotingLights(player)
 				end,
 				function()
-					V.UpdateAyeTotal(ayeCount)
+					updateAyeTotal(ayeCount)
 					return V.CheckForLeaderChange(player)
 				end,
 				function() return 0 end
 			})
 		else
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, 3, {color = U.GetHex(C.Colors.Blue)})
 				end,
@@ -446,16 +495,16 @@ function V.EndTurn(isPassMod)
 		if nayCount > 0 then
 			S.setStateVal(totalNayCount, "turnState", player.color, "powerCommitted")
 			V.InitCountZones(player)
-			return true, U.RunSequence({
+			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Nay' with another " .. nayCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Red)})
-					return V.ElevateRiser(player, totalNayCount) end,
+					return elevateRiser(player, totalNayCount) end,
 				function()
 					OU.TransferObjects(nayZone, publicZone, "PowerToken")
 					return V.SetVotingLights(player)
 				end,
 				function()
-					V.UpdateNayTotal(nayCount)
+					updateNayTotal(nayCount)
 					return V.CheckForLeaderChange(player)
 				end,
 				function() return 0 end

@@ -55,13 +55,15 @@ function onLoad()
 	player = S.getPlayer(color)
 	U.Val("HouseScreen.onLoad()", self, player and U.isIn(color, Player.getAvailableColors()), "Unable to locate player from color tag '" .. U.ToString(color) .. "'")
 
-	DimmerOff()
-	-- UpdateXMLTable()
+	-- DimmerOff()
+	UpdateXMLTable()
 end
 
 function DimmerOn() SetAlpha({global = 0.05}) end
 function DimmerOff() SetAlpha({global = 1}) end
 function Update() UpdateXMLTable() end
+
+function Activate()	return self.UI.show("rootPanel") end
 
 local function parseScale(val) return U.join({U.ToString(val), U.ToString(val), U.ToString(val)}, " ") end
 local function getRootPanelXML(children)
@@ -69,6 +71,10 @@ local function getRootPanelXML(children)
 			tag = "Panel",
 			attributes = {
 				id = "rootPanel",
+				active = "false",
+				showAnimation = "FadeIn",
+				hideAnimation = "FadeOut",
+				animationDuration = "5",
 				height = "400",
 				width = "600",
 				color = ISDEBUGGING and U.GetHex(C.Colors.White, 0.1) or "Clear",
