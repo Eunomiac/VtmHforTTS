@@ -59,8 +59,8 @@ local function showMessage(panelRef, mData, isLastMessage)
 	local panelRef, textContainer, textElem = "splashPanel_" .. panelRef, "splashTextContainer_" .. panelRef, "splashText_" .. panelRef
 	U.RunSequence({
 		function()
-			UI.setAttribute(panelRef, "height", tostring(400 + (#mData.message - 1) * 60))
-			UI.setAttribute(textContainer, "height", tostring(#mData.message * 60))
+			UI.setAttribute(panelRef, "height", U.ToString(400 + (#mData.message - 1) * 60))
+			UI.setAttribute(textContainer, "height", U.ToString(#mData.message * 60))
 			UI.setValue(textElem, U.join(mData.message, "\n"))
 			if mData.attributes then
 				UI.setAttributes(textElem, mData.attributes)
@@ -142,7 +142,7 @@ function MSG.Enqueue(message, queueRef, displayTime, attributes)
 		U.forEach(S.getPlayers(), function(player) MSG.Enqueue(message, player.color, displayTime, attributes) end)
 	else
 		local messageQueue = MSG.GetMessageQueue(queueRef)
-		if type(message) ~= "table" then message = {message} end
+		if U.Type(message) ~= "table" then message = {message} end
 		table.insert(messageQueue, {
 			message = message,
 			attributes = attributes,

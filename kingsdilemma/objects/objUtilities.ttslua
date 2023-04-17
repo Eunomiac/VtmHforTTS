@@ -3,11 +3,11 @@ local C = require("kingsdilemma.lib.constants")
 local OU = {}
 
 function OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
-	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
+	if U.Type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
 		objOrTransform = objOrTransform.getData().Transform
 	end
-	if type(objOrTransform) ~= "table" then return end
-	if type(objOrTransform.Transform) == "table" then
+	if U.Type(objOrTransform) ~= "table" then return end
+	if U.Type(objOrTransform.Transform) == "table" then
 		objOrTransform = objOrTransform
 	end
 	objOrTransform = U.clone(objOrTransform)
@@ -30,7 +30,7 @@ function OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
 		}
 	end
 
-	if type(objOrTransform.position) == "table" then
+	if U.Type(objOrTransform.position) == "table" then
 		if positionDelta ~= nil then
 			objOrTransform.position = objOrTransform.position:add(positionDelta)
 		end
@@ -49,11 +49,11 @@ function OU.unfoldTransform(objOrTransform, positionDelta, rotationDelta)
 	if positionDelta ~= nil or rotationDelta ~= nil then
 		objOrTransform = OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
 	end
-	if type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
+	if U.Type(objOrTransform) == "userdata" and objOrTransform.getData ~= nil then
 		return objOrTransform.getData().Transform
 	end
-	if type(objOrTransform) ~= "table" then return end
-	if type(objOrTransform.Transform) == "table" then
+	if U.Type(objOrTransform) ~= "table" then return end
+	if U.Type(objOrTransform.Transform) == "table" then
 		return U.clone(objOrTransform.Transform)
 	end
 
@@ -102,7 +102,27 @@ function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, ro
 	})
 	return function() return token ~= nil and token.resting and not token.loading_custom end
 end
+function OU.TransferObjects(fromZone, toZone, tag)
+	local objs = fromZone.getObjects()
+	if tag ~= nil then
+		objs = U.filter(objs, function(obj) return obj.hasTag(tag) end)
+	end
+	local toZoneBounds = toZone.getBounds()
+	toZoneBounds.size = toZone.getScale()
 
+	local function transferObj(obj)
+		obj.setPosition(obj.getPosition():add(Vector(0, 1, 0)))
+		obj.addForce(Vector(0, 50, 0), 3)
+		Wait.time(function()
+			obj.setPosition(U.getScatterPosition(toZoneBounds, 6, 0.4))
+		end, 0.5)
+	end
+
+	U.sequence(U.map(objs, function(obj)
+		return function() transferObj(obj) end
+	end), 0.15)
+
+end
 function OU.getAngleOf(objOrTransform)
 	local posData = OU.foldTransform(objOrTransform).position
 	local zeroPos = Vector(0, 0, C.TableRadius)
@@ -174,7 +194,7 @@ function OU.FindNearestSnapPoint(objOrTransform, obj, includeAll)
 		end)
 	end
 
-	-- log({isGameObject = U.isGameObject(objOrTransform), objOrTransform = tostring(objOrTransform), numSnaps = #snapPoints, numUnfiltered = #unfilteredSnaps})
+	-- log({isGameObject = U.isGameObject(objOrTransform), objOrTransform = U.ToString(objOrTransform), numSnaps = #snapPoints, numUnfiltered = #unfilteredSnaps})
 
 	local snapPositions = U.iMap(snapPoints, function(snap) return obj.positionToWorld(snap.position) end)
 	local sortedPositions = U.clone(snapPositions)
@@ -394,7 +414,7 @@ end
 
 function OU.FindContainedObjGUID(container, findFunc)
 	U.Val("OU.FindContainedObjGUID", container, U.isGameObject(container), "'container' param is not a Game Object")
-	U.Val("OU.FindContainedObjGUID", findFunc, type(findFunc) == "function", "'findFunc' param is not a Function")
+	U.Val("OU.FindContainedObjGUID", findFunc, U.Type(findFunc) == "function", "'findFunc' param is not a Function")
 	local objData = U.find(container.getObjects(), findFunc)
 	if objData == nil then return false end
 	return objData.guid

@@ -6,7 +6,7 @@ local function createAll()
 	for i=0,4 do
 			-- ranking
 			self.createInput({
-					value = vals[tostring(i*7 + 0)],
+					value = vals[U.ToString(i*7 + 0)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -25,7 +25,7 @@ local function createAll()
 
 			-- house
 			self.createInput({
-					value = vals[tostring(i*7 + 1)],
+					value = vals[U.ToString(i*7 + 1)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -43,7 +43,7 @@ local function createAll()
 
 			-- secret agenda
 			self.createInput({
-					value = vals[tostring(i*7 + 2)],
+					value = vals[U.ToString(i*7 + 2)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -62,7 +62,7 @@ local function createAll()
 
 			-- open agenda
 			self.createInput({
-					value = vals[tostring(i*7 + 3)],
+					value = vals[U.ToString(i*7 + 3)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -81,7 +81,7 @@ local function createAll()
 
 			-- coins
 			self.createInput({
-					value = vals[tostring(i*7 + 4)],
+					value = vals[U.ToString(i*7 + 4)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -100,7 +100,7 @@ local function createAll()
 
 			-- power
 			self.createInput({
-					value = vals[tostring(i*7 + 5)],
+					value = vals[U.ToString(i*7 + 5)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -119,7 +119,7 @@ local function createAll()
 
 			-- total
 			self.createInput({
-					value = vals[tostring(i*7 + 6)],
+					value = vals[U.ToString(i*7 + 6)],
 					input_function = "SaveInput",
 					tooltip="",
 					label = "",
@@ -180,7 +180,7 @@ function onLoad(saved_data)
 
 	vals = {}
 	for i=0,34 do
-			vals[tostring(i)] = ""
+			vals[U.ToString(i)] = ""
 	end
 
 	if saved_data ~= "" then
@@ -194,7 +194,7 @@ local function updateSave()
 	vals = {}
 	for _,input in pairs(self.getInputs()) do
 			if input.index <= 34 then
-					vals[tostring(input.index)] = tostring(input.value)
+					vals[U.ToString(input.index)] = U.ToString(input.value)
 			end
 	end
 
@@ -202,24 +202,24 @@ local function updateSave()
 			local row_total; row_total = 0
 			local is_set = false
 			for v=2,5 do
-					if tonumber(vals[tostring(r*7-v)]) then
+					if tonumber(vals[U.ToString(r*7-v)]) then
 							is_set = true
-							row_total = row_total + tonumber(vals[tostring(r*7-v)])
+							row_total = row_total + tonumber(vals[U.ToString(r*7-v)])
 					end
 			end
 			if not is_set then
 					row_total = ""
 			else
-					row_total = tostring(row_total)
+					row_total = U.ToString(row_total)
 			end
-			vals[tostring(r*7-1)] = row_total
+			vals[U.ToString(r*7-1)] = row_total
 			self.editInput({index=(r*7-1), value=row_total})
 	end
 
 	local pos = {}
 	for p=0,4 do
-			local v = tostring(p*7)
-			local t = tostring(p*7+6)
+			local v = U.ToString(p*7)
+			local t = U.ToString(p*7+6)
 			if vals[t] ~= "" then
 					local ps = {v, 0}
 					ps[2] = tonumber(vals[t])
@@ -246,8 +246,8 @@ local function updateSave()
 					last_total = ps[2]
 			end
 
-			vals[ps[1]] = tostring(k)
-			self.editInput({index=tonumber(ps[1]), value=tostring(rank)})
+			vals[ps[1]] = U.ToString(k)
+			self.editInput({index=tonumber(ps[1]), value=U.ToString(rank)})
 	end
 
 	--print(JSON.encode(vals))
@@ -341,7 +341,7 @@ end
 -- 	for i = 0, 4 do
 -- 		-- ranking
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 0)],
+-- 			value = vals[U.ToString(i * 7 + 0)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -360,7 +360,7 @@ end
 
 -- 		-- house
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 1)],
+-- 			value = vals[U.ToString(i * 7 + 1)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -378,7 +378,7 @@ end
 
 -- 		-- secret agenda
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 2)],
+-- 			value = vals[U.ToString(i * 7 + 2)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -397,7 +397,7 @@ end
 
 -- 		-- open agenda
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 3)],
+-- 			value = vals[U.ToString(i * 7 + 3)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -416,7 +416,7 @@ end
 
 -- 		-- coins
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 4)],
+-- 			value = vals[U.ToString(i * 7 + 4)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -435,7 +435,7 @@ end
 
 -- 		-- power
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 5)],
+-- 			value = vals[U.ToString(i * 7 + 5)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -454,7 +454,7 @@ end
 
 -- 		-- total
 -- 		self.createInput({
--- 			value = vals[tostring(i * 7 + 6)],
+-- 			value = vals[U.ToString(i * 7 + 6)],
 -- 			input_function = "SaveInput",
 -- 			tooltip = "",
 -- 			label = "",
@@ -514,7 +514,7 @@ end
 -- 	if self.memo == nil then self.memo = "@" end
 -- 	vals = {}
 -- 	for i = 0, 34 do
--- 		vals[tostring(i)] = ""
+-- 		vals[U.ToString(i)] = ""
 -- 	end
 
 -- 	if saved_data ~= "" then
@@ -528,7 +528,7 @@ end
 -- 	vals = {}
 -- 	for _, input in pairs(self.getInputs()) do
 -- 		if input.index <= 34 then
--- 			vals[tostring(input.index)] = tostring(input.value)
+-- 			vals[U.ToString(input.index)] = U.ToString(input.value)
 -- 		end
 -- 	end
 
@@ -536,24 +536,24 @@ end
 -- 		local row_total = "0"
 -- 		local is_set = false
 -- 		for v = 2, 5 do
--- 			if tonumber(vals[tostring(r * 7 - v)]) then
+-- 			if tonumber(vals[U.ToString(r * 7 - v)]) then
 -- 				is_set = true
--- 				row_total = tostring(row_total + tonumber(vals[tostring(r * 7 - v)]))
+-- 				row_total = U.ToString(row_total + tonumber(vals[U.ToString(r * 7 - v)]))
 -- 			end
 -- 		end
 -- 		if not is_set then
 -- 			row_total = ""
 -- 		else
--- 			row_total = tostring(row_total)
+-- 			row_total = U.ToString(row_total)
 -- 		end
--- 		vals[tostring(r * 7 - 1)] = row_total
+-- 		vals[U.ToString(r * 7 - 1)] = row_total
 -- 		self.editInput({ index = (r * 7 - 1), value = row_total })
 -- 	end
 
 -- 	local pos = {}
 -- 	for p = 0, 4 do
--- 		local v = tostring(p * 7)
--- 		local t = tostring(p * 7 + 6)
+-- 		local v = U.ToString(p * 7)
+-- 		local t = U.ToString(p * 7 + 6)
 -- 		if vals[t] ~= "" then
 -- 			local ps = { v, 0 }
 -- 			ps[2] = tonumber(vals[t])
@@ -580,8 +580,8 @@ end
 -- 			last_total = ps[2]
 -- 		end
 
--- 		vals[ps[1]] = tostring(k)
--- 		self.editInput({ index = tonumber(ps[1]), value = tostring(rank) })
+-- 		vals[ps[1]] = U.ToString(k)
+-- 		self.editInput({ index = tonumber(ps[1]), value = U.ToString(rank) })
 -- 	end
 
 -- 	--print(JSON.encode(vals))

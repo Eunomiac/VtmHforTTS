@@ -1,6 +1,7 @@
 local C = require("kingsdilemma.lib.constants")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
+local P = require("kingsdilemma.core.players")
 local DIR = require("kingsdilemma.core.director")
 
 local hideButtonBack = true
@@ -9,7 +10,9 @@ local thick = 0.12
 local gx, gy -- Global Offsets for calibrating against scan error
 
 local scanData
-local houseTitle, houseName, houseNum, player, color
+local houseTitle, houseName, houseNum, player, color, screen
+
+local function getScreen() if screen == nil and player then screen = P.GetPlayerScreen(player) end; return screen end
 
 local buttonsData = {
 	count = 0,
@@ -37,12 +40,28 @@ local buttonsData = {
 }
 local buttons = U.clone(buttonsData, true)
 
+function UpdatePrestige()
+	local scr = getScreen()
+	if scr then
+		scr.UI.setValue("prestigeElem", tostring(math.floor(GetPrestige())))
+	end
+end
+function UpdateCrave()
+	local scr = getScreen()
+	if scr then
+		scr.UI.setValue("craveElem", tostring(math.floor(GetPrestige())))
+	end
+end
+
 function GetPrestige()
 	if houseNum == nil then return nil end
 	local prestigeCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_prestige")
 	end) + houseNum / 100
-	S.setPlayerVal(prestigeCount, player, "prestige")
+	if prestigeCount ~= S.getPlayerVal(player, "prestige") then
+		S.setPlayerVal(prestigeCount, player, "prestige")
+		UpdatePrestige()
+	end
 	return prestigeCount
 end
 
@@ -51,7 +70,10 @@ function GetCrave()
 	local craveCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_crave")
 	end)
-	S.setPlayerVal(craveCount, player, "crave")
+	if craveCount ~= S.getPlayerVal(player, "crave") then
+		S.setPlayerVal(craveCount, player, "crave")
+		UpdateCrave()
+	end
 	return craveCount
 end
 
@@ -117,7 +139,7 @@ end
 
 local function add(name, amount, alt_click)
 	if alt_click then amount = amount * 10 end
-	buttons[name].label = tostring(tonumber(buttons[name].label) + amount)
+	buttons[name].label = U.ToString(tonumber(buttons[name].label) + amount)
 	self.editButton(buttons[name])
 	forceSave()
 end
@@ -199,7 +221,7 @@ local function setupButton(name, type, x, z)
 	end
 
 	-- if name == "crave39" and button_parameters.width == 0 or not button_parameters.width then
-	-- 	log("Width of Zero for Type '" .. type .. "' = " .. tostring(button_parameters.width))
+	-- 	log("Width of Zero for Type '" .. type .. "' = " .. U.ToString(button_parameters.width))
 	-- 	log({buttons = U.clone(buttons, true), button_parameters == U.clone(button_parameters)})
 	-- end
 
@@ -276,10 +298,11 @@ end
 function onLoad(saved_data)
 	-- log("LOADING HOUSE CARD")
 	-- Wait.time(function()
+		color = U.findColorTag(self)
+		if color == nil then return end
 		houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
 		houseName = string.gsub(self.getName(), "^.*of ", "")
 		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
-		color = U.findColorTag(self)
 		player = S.getPlayer(color)
 		scanData = C.scanData[houseName]
 
@@ -304,13 +327,13 @@ function onLoad(saved_data)
 		end
 		initCustomButtons()
 
-		Wait.time(function()
+		-- Wait.time(function()
 			GetPrestige()
 			GetCrave()
-		end, 2)
+		-- end, 2)
 
 
-	-- end, 1)
+	-- end, 5)
 end
 
 function Dud() return end
@@ -319,8 +342,8 @@ function editTextField(_, houseName)
 	U.sequence({
 		function()
 			S.setPlayerVal(houseName, player, "houseName")
+			P.GetPlayerScreen(color).call("UpdateXMLTable")
 			local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
-			houseScreen.reload()
 		end,
 		3,
 		function()

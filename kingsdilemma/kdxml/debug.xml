@@ -32,7 +32,7 @@
 		<Button id="debug_testFunc2">Test Func 2</Button>
 		<Button id="debug_testFunc3">Test Func 3</Button>
 		<Button id="debug_testFunc4">Test Func 4</Button>
-		<!-- <Button id="debug_testFunc5">Test Func 5</Button> -->
+		<Button id="debug_testFunc5">Test Func 5</Button>
 		<Text class="spacer_10"></Text>
 		<Button id="prompt_assignHouseName">Name House</Button>
 		<!-- <Text class="spacer_5"></Text>

@@ -7,19 +7,19 @@ local isActive = false
 local countTag, isPublic, player, color
 local publicZone, oppZone
 local total = 0
-local value, subValue, icon, iconColor = "", "", "", Color.White
+local value, subValue, icon, iconColor = "", "", "", C.Colors.White
+local scaleFactor = "0.2"
 
 local ISDEBUGGING = false
 
 
-local function isLinkedPublic() return publicZone ~= nil end
-local function getPublicTotal() return isLinkedPublic() and publicZone.call("GetCount") or 0 end
+local function getPublicTotal() return publicZone and publicZone.call("GetCount") or 0 end
 
 local function isLinkedOpp() return oppZone ~= nil end
-local function getOppTotal() return isLinkedOpp() and oppZone.call("GetCount") or 0 end
-local function updateLinkedOpp() if isLinkedOpp() then oppZone.call("UpdateCount") end end
+local function getOppTotal() return oppZone and oppZone.call("GetCount") or 0 end
+local function updateLinkedOpp() if oppZone then oppZone.call("UpdateCount") end end
 
-local function isShowingX() return isLinkedOpp() and total > 0 and getOppTotal() > 0 end
+local function isShowingX() return oppZone and total > 0 and getOppTotal() > 0 end
 
 local function updateValue()
 	if ISDEBUGGING then value, subValue = "+VV", "(SV)"; return UpdateXMLTable() end
@@ -27,7 +27,7 @@ local function updateValue()
 	local oldValue, oldSubValue = value, subValue
 
 	if getPublicTotal() > 0 then
-		subValue = "(" .. getPublicTotal .. ")"
+		subValue = "(" .. getPublicTotal() .. ")"
 	else
 		subValue = ""
 	end
@@ -38,9 +38,9 @@ local function updateValue()
 	elseif total == 0 then
 		value = ""
 	elseif subValue ~= "" then
-		value = "+" .. tostring(total)
+		value = "+" .. U.ToString(total)
 	else
-		value = tostring(total)
+		value = U.ToString(total)
 	end
 
 	if value ~= oldValue or subValue ~= oldSubValue then
@@ -52,12 +52,14 @@ end
 function LinkToPublic(pZone) publicZone = pZone; UpdateCount() end
 function UnLinkPublic() publicZone = nil; UpdateCount() end
 function LinkToOpp(oZone) oppZone = oZone; UpdateCount() end
+function UnLinkOpp() oppZone = nil; UpdateCount() end
 
-function Activate() isActive = true; UpdateCount(); UpdateXMLTable() end
-function Deactivate() isActive = false; UpdateXMLTable() end
+function Activate() log({ACTIVATE = debug.traceback()}); isActive = true; UpdateCount(); UpdateXMLTable() end
+function Deactivate() log({DEACTIVATE = debug.traceback()}); isActive = false; UpdateXMLTable() end
 
 function SetCountTag(tag) countTag = tag; UpdateCount() end
 function SetColor(col) color = col; UpdateXMLTable() end
+function SetScale(scl) scaleFactor = U.ToString(scl); UpdateXMLTable() end
 function SetIcon(ic) icon = ic; UpdateXMLTable() end
 function SetIconColor(col) iconColor = col; UpdateXMLTable() end
 
@@ -89,11 +91,11 @@ local function setCountTagDefault()
 end
 local function setColorDefault()
 	if self.hasTag("Zone_VoteAye") then
-		color = Color(C.LightColors.Blue)
+		color = Color(C.Colors.Blue)
 	elseif self.hasTag("Zone_VoteNay") then
-		color = Color(C.LightColors.Red)
+		color = Color(C.Colors.Red)
 	else
-		color = Color(C.LightColors.Amber)
+		color = Color(C.Colors.Amber)
 	end
 end
 
@@ -140,6 +142,7 @@ local function getPlayerXMLTable(xmlTable, playerRef)
 end
 
 function UpdateXMLTable()
+	-- log({isActive = isActive, value = value, subValue = subValue})
 	if not isActive or (value == "" and subValue == "") then
 		return self.UI.setXmlTable({{}})
 	end
@@ -149,7 +152,7 @@ function UpdateXMLTable()
 		tag = "Panel",
 		attributes = {
 			height = "150",
-			-- color = U.GetHex(Color.Red:setAt("a", 0.5)),
+			-- color = U.GetHex(C.Colors.Red:setAt("a", 0.5)),
 			width = "200",
 			position = "0 0 0",
 			rotation = "-80 0 0",
@@ -171,7 +174,7 @@ function UpdateXMLTable()
 					width = "300",
 					position = "0 0 3",
 					-- offsetXY = "0 -35",
-					scale = "0.2 0.2 0.2"
+					scale = scaleFactor .. " " .. scaleFactor .. " " .. scaleFactor
 				}
 			})
 		end
@@ -188,7 +191,7 @@ function UpdateXMLTable()
 				outlineSize = "5",
 				font = "Fonts/FrizB",
 				fontSize = "200",
-				scale = "0.2 0.2 0.2"
+				scale = scaleFactor .. " " .. scaleFactor .. " " .. scaleFactor
 			}
 		})
 	end

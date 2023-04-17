@@ -352,7 +352,7 @@ local function applyObjData(partName, playerRef, houseName)
 		if key == "Tags" then
 			if val == false then
 				val = {}
-			elseif type(val) == "table" then
+			elseif U.Type(val) == "table" then
 				val = U.concat(val, {partName})
 				if player ~= nil then
 					val = U.concat(val, {player.color})

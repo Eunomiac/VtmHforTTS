@@ -110,9 +110,9 @@ function DIR.InitCountZones()
 		local powerZone = getObjectsWithAllTags({"zonePrivatePower", player.color})[1]
 		if powerZone then
 			powerZone.call("SetCountTag", "PowerToken")
-			powerZone.call("SetColor", C.LightColors.Yellow)
+			powerZone.call("SetColor", C.Colors.Yellow)
 			powerZone.call("SetIcon", "powerIcon")
-			powerZone.call("SetIconColor", C.LightColors.Amber)
+			powerZone.call("SetIconColor", C.Colors.Amber)
 			powerZone.call("Activate")
 		end
 
@@ -120,50 +120,22 @@ function DIR.InitCountZones()
 		local coinZone = getObjectsWithAllTags({"zonePrivateCoin", player.color})[1]
 		if coinZone then
 			coinZone.call("SetCountTag", "CoinToken")
-			coinZone.call("SetColor", C.LightColors.Yellow)
+			coinZone.call("SetColor", C.Colors.Yellow)
 			coinZone.call("SetIcon", "coinIcon")
-			coinZone.call("SetIconColor", C.LightColors.Amber)
+			coinZone.call("SetIconColor", C.Colors.Amber)
 			coinZone.call("Activate")
 		end
 
-		if S.isInMode("VOTE") then
-			V.InitCountZones(player)
-		else
-			-- Player Private Aye & Player Private Nay
-			local ayeZone = getObjectsWithAllTags({"zonePrivateAye", player.color})[1]
-			local nayZone = getObjectsWithAllTags({"zonePrivateNay", player.color})[1]
-			if ayeZone then
-				ayeZone.call("SetCountTag", "PowerToken")
-				ayeZone.call("SetColor", C.LightColors.Blue)
-				ayeZone.call("UnLinkPublic")
-			end
-			if nayZone then
-				nayZone.call("SetCountTag", "PowerToken")
-				nayZone.call("SetColor", C.LightColors.Red)
-				nayZone.call("UnLinkPublic")
-			end
-			if ayeZone and nayZone then
-				ayeZone.call("LinkToOpp", nayZone)
-				nayZone.call("LinkToOpp", ayeZone)
-			end
-			if ayeZone then ayeZone.call("Activate") end
-			if nayZone then nayZone.call("Activate") end
-
-			-- Player Public Zone
-			local publicZone = getObjectsWithAllTags({"zonePublic", player.color})[1]
-			if publicZone then
-				publicZone.call("Deactivate")
-			end
-		end
+		V.InitCountZones(player)
 	end)
 
 	-- Balance Plinth
 	local balanceZone = getObjectsWithTag("zoneBalance")[1]
 	if balanceZone then
 		balanceZone.call("SetCountTag", "PowerToken")
-		balanceZone.call("SetColor", C.LightColors.Yellow)
+		balanceZone.call("SetColor", C.Colors.Yellow)
 		balanceZone.call("SetIcon", "powerIcon")
-		balanceZone.call("SetIconColor", C.LightColors.Amber)
+		balanceZone.call("SetIconColor", C.Colors.Amber)
 		balanceZone.call("Activate")
 	end
 end
@@ -248,13 +220,8 @@ INITFUNCS = {
 			local leader, moderator
 			return {
 				function()
-					leader = P.GetMostPrestigious()
-					local leaderName
-					if S.getPlayerVal(leader, "houseName") then
-						leaderName = "House " .. S.getPlayerVal(leader, "houseName")
-					else
-						leaderName = S.getPlayerVal(leader, "house")
-					end
+					leader = P.GetLeader()
+					local leaderName = P.GetLeaderName()
 					MSG.Splash(leaderName .. " Is Most Prestigious")
 					return L.SetLightMode("lightLeader", "on", nil, 2)
 				end,
@@ -262,13 +229,8 @@ INITFUNCS = {
 					return { 1, P.AssignLeader(leader) }
 				end,
 				function()
-					moderator = P.GetLeastPrestigious()
-					local moderatorName
-					if S.getPlayerVal(moderator, "houseName") then
-						moderatorName = "House " .. S.getPlayerVal(moderator, "houseName")
-					else
-						moderatorName = S.getPlayerVal(moderator, "house")
-					end
+					moderator = P.GetModerator()
+					local moderatorName = P.GetModeratorName()
 					MSG.Splash(moderatorName .. " Is Least Prestigious")
 					return L.SetLightMode("lightModerator", "on", nil, 2)
 				end,
@@ -359,13 +321,8 @@ INITFUNCS = {
 		PrepareFirstRound = function()
 			return {
 				function()
-					S.setStateVal({}, "roundState")
-					S.setStateVal({
-						roundNum = 0,
-						boardTokens = {
-							momentum = getTokenMomentums()
-						}
-					}, "roundState")
+					S.setStateVal(0, "roundState", "roundNum")
+					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
 				end,
 				DIR.ADVANCE
 			}
@@ -375,75 +332,59 @@ INITFUNCS = {
 		StartRound = function()
 			return {
 				function()
-					local roundState = S.getStateVal("roundState")
-					roundState.boardTokens.positions = getTokenPositions()
-					S.setStateVal(roundState, "roundState")
+					return P.AssignLeader(U.getHost())
+				end,
+				function()
+					S.setStateVal(S.getStateVal("roundState", "roundNum") + 1, "roundState", "roundNum")
+					S.setStateVal(getTokenPositions(), "roundState", "boardTokens", "positions")
+					S.setStateVal(P.GetLeader().color, "turnState", "currentPlayer")
+					S.setStateVal(0, "roundState", "ayeTotal")
+					S.setStateVal(0, "roundState", "nayTotal")
+					U.forEach(S.getPlayers(), function(player)
+						S.setStateVal(false, "turnState", player.color, "vote")
+						S.setStateVal(0, "turnState", player.color, "powerCommitted")
+					end)
+					return 1
 				end,
 				DIR.ADVANCE
 			}
 		end,
-
-
-
-			-- function onObjectDrop(_ obj)
-			-- 	if obj.hasTag("ResourceMarker") then
-			-- 		-- always track it with the light AND move it to nearest snap point
-			-- 		if not S.isInPhase("DilemmaResolution") then return end
-			-- 		-- but don't update StabilityMarker outside of DilemmaResolution
-			-- 	elseif obj.hasTag("StabilityMarker") then
-			-- 		-- always track it with the light
-			-- 		if not S.isInMode("PLAY") then return end
-			-- 		-- token positions are updated at start of every round anyways
-
-			-- 	end
-
-			-- end
-				-- Round Starts
-		-- saves positions of board tokens to roundState.boardTokens.positions.Influence, etc
-
-
-	-- ONOBJECTDROP
-		-- ResourceMarker:
-			-- compares new position to roundState position (always)
-				-- adds or subtracts that amount from roundState.boardTokens.positions.StabilityMarker
-				-- moves the StabilityMarker to its new position
-			-- moves light to follow the token (but doesn't change momentum)
-
-
-
-
-
-	-- Apply Momentum
-		-- Get current position of tokens on the board.
-		-- Compare to roundState.boardTokens.momentum.Influence, etc
-			-- For tokens that moved "with" their momentum, move those tokens an extra amount -- and the stability marker too
-			-- Update the momentum physically as well as by changing 'roundState.boardTokens.momentum.Influence', etc
-			-- (don't save positions, so players can move tokens to correct shit)
-	-- Round Ends
-		--
- 	-- Game Starts
-		-- Tokens Spawned at Center
-			-- SAVE POSITION & MOMENTUM
-		-- Legacy effects
-
 		DrawDilemma = function()
 			return {
 				function()
-					return DIR.StartRound(true)
+					return DIR.DrawDilemmaCard()
 				end
 			}
 		end,
-		-- Discussion = function()
-		-- end,
-		-- Vote = function()
-		-- end,
-		-- VoteResolution = function()
-		-- end,
-		-- DilemmaResolution = function()
-		-- end,
-		-- EndGameCheck = function()
-		-- 	-- if not over, loops back to PLAY.DrawDilemma
-		-- end
+		Discussion = function()
+			return {
+				function()
+					P.SetCamera("BehindScreen")
+					return MSG.Splash("Discussion")
+				end
+			}
+		end,
+		Vote = function()
+			return {
+				function() return DIR.PromptLeaderToConfirmDilemma() end
+			}
+		end,
+		VoteResolution = function()
+			return {
+				function() return 0 end
+			}
+		end,
+		DilemmaResolution = function()
+			return {
+				function() return DIR.DisplayDilemmaResult() end
+			}
+		end,
+		EndRound = function()
+			return {
+				function() return DIR.ResolveDilemma() end
+			}
+			-- if not over, loops back to PLAY.DrawDilemma
+		end
 	},
 	END = {
 		Score = function()
@@ -487,6 +428,7 @@ function DIR.InitSession()
 	return U.RunSequence({
 		function()
 			UI.hide("splashScreen")
+			P.SetCamera("BehindScreen")
 			DIR.InitCountZones()
 			return 0.75
 		end,
@@ -533,19 +475,25 @@ function DIR.InitializePhase()
 	local mode = S.getStateVal("gameState", "gameMode")
 	local phase = S.getStateVal("gameState", "gamePhase")
 	local seqFuncs = INITFUNCS[mode]
-	if type(seqFuncs) == "table" then
+	if U.Type(seqFuncs) == "table" then
 		seqFuncs = seqFuncs[phase]
 	end
-	if type(seqFuncs) == "function" then
+	if U.Type(seqFuncs) == "function" then
 		seqFuncs = seqFuncs()
 	end
 	U.RunSequence(seqFuncs)
 end
 
-function DIR.JumpToStatePhase()
-	local mode = S.getStateVal("gameState", "gameMode")
-	local phase = S.getStateVal("gameState", "gamePhase")
+function DIR.JumpToStatePhase(mode, phase)
+	if mode ~= nil then
+		S.setStateVal(mode, "gameState", "gameMode")
+		S.setStateVal(mode, "gameState", "gamePhase")
+	end
+	if phase ~= nil then
+		S.setStateVal(phase, "gameState", "gamePhase")
+	end
 
+	-- P.BrightenPlayerScreen()
 	-- ... further logic to resync game environment to whatever point in the game we're at.
 	return L.InitLights()
 end
@@ -634,16 +582,16 @@ local function getPlayerSelectedHouse(player)
 end
 
 local flagColors = {
-	Available = function() return Color.Grey end,
-	Hovered = function() return Color.White end,
+	Available = function() return C.Colors.Grey end,
+	Hovered = function() return C.Colors.White end,
 	ClaimedByOther = function(playerColor) return playerColor:setAt("a", 0.5) end,
 	ClaimedBySelf = function(playerColor) return playerColor end,
-	ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.1) end,
-	SelectedByOther = function(playerColor) return playerColor:lerp(Color.Black, 0.5) end,
-	SelectedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5) end,
+	ClaimedByAbsent = function() return C.Colors.Grey:setAt("a", 0.1) end,
+	SelectedByOther = function(playerColor) return playerColor:lerp(C.Colors.Black, 0.5) end,
+	SelectedBySelf = function(playerColor) return playerColor:lerp(C.Colors.White, 0.5) end,
 	SelectedByOtherHover = function(playerColor) return playerColor end,
-	SelectedBySelfHover = function() return Color.White end,
-	Invisible = function() return Color.Black:setAt("a", 0) end
+	SelectedBySelfHover = function() return C.Colors.White end,
+	Invisible = function() return C.Colors.Black:setAt("a", 0) end
 }
 
 function DIR.RefreshHouseHUD(houseName, player)
@@ -677,7 +625,7 @@ function DIR.RefreshHouseHUD(houseName, player)
 			flagAttrs.color = U.GetHex(flagColors.ClaimedByOther(statusColor))
 		elseif statusDetail == "BySelf" then
 			flagAttrs.color = U.GetHex(flagColors.ClaimedBySelf(statusColor))
-			hoverAttrs.color = U.GetHex(Color.White)
+			hoverAttrs.color = U.GetHex(C.Colors.White)
 		elseif statusDetail == "ByAbsent" then
 			flagAttrs.color = U.GetHex(flagColors.ClaimedByAbsent())
 		end
@@ -794,6 +742,7 @@ function DIR.AssignSelectedHouses()
 			function() return 2 end,
 			function() L.LoadLights({"lightBehind"}, "ambient"); return 2.5 end,
 			function()
+				-- P.BrightenPlayerScreen()
 				return L.LoadLights({ "lightFront" }, "ambient")
 			end,
 			function()
@@ -855,7 +804,7 @@ function DIR.EndSecretAgendas()
 	local heldAgendas = {}
 
 	U.forEach(S.getPlayers(), function(player)
-		U.concat(heldAgendas, U.filter(player.getHandObjects(), function(obj) return obj.hasTag("SecretAgenda") end))
+		heldAgendas = U.concat(heldAgendas, U.filter(player.getHandObjects(), function(obj) return obj.hasTag("SecretAgenda") end))
 	end)
 
 	U.forEach(heldAgendas, function(obj)
@@ -885,34 +834,9 @@ end
 -- #endregion
 
 -- #region Game Round~
-function DIR.StartRound(isRoundOne)
-
-
-	local roundState = S.getStateVal("roundState")
-
-	roundState.roundNum = roundState.roundNum + 1
-	if roundState.boardTokens == nil then roundState.boardTokens = {} end
-	roundState.boardTokens.positions = getTokenPositions()
-
-	-- {
-	-- 	roundNum = S.getStateVal("roundState", "roundNum") + 1
-	-- 	boardTokens = {
-
-	-- 	}
-
-	-- }
-	S.setStateVal(roundState, "roundState")
-	local turnState = {
-		currentPlayer = S.getStateVal("gameState", "leader")
-	}
-	U.iForEach(S.getPlayers(), function(player)
-		turnState[player.color] = {
-			vote = false,
-			powerCommitted = 0
-		}
-	end)
-	S.setStateVal(turnState, "turnState")
-	return DIR.DrawDilemmaCard()
+function DIR.StartRound()
+	DIR.JumpToStatePhase("PLAY", "StartRound")
+	return DIR.InitializePhase()
 end
 
 -- #region Opening Envelopes & Adding New Dilemmas~
@@ -1201,7 +1125,6 @@ function DIR.DrawDilemmaCard()
 			L.SetLightMode("lightDilemmaNay", "on", nil, 1)
 		}
 	end)
-	table.insert(seqFuncs, function() return DIR.PromptLeaderToConfirmDilemma() end)
 	return U.RunSequence(seqFuncs)
 end
 
@@ -1218,10 +1141,13 @@ function DIR.PromptLeaderToConfirmDilemma()
 			return function() return queryResponse.response ~= nil end
 		end,
 		function()
-			if queryResponse == "true" then
-				return DIR.StartVote()
+			if queryResponse.response == "true" then
+				return V.StartVote()
 			else
-				return DIR.ResolveDilemma("notDilemma")
+				return U.RunSequence({
+					function() return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.EndRound) end,
+					function() return DIR.InitializePhase() end
+				})
 			end
 		end
 	})
@@ -1230,58 +1156,21 @@ end
 -- #endregion
 
 -- #region Voting~
-function DIR.StartVote()
-	return U.RunSequence({
-		DIR.ActivatePlayerVoteZones,
-		DIR.ActivateVotingLights,
-		function() return DIR.StartTurn(P.GetLeader()) end
-	})
-end
-
-function DIR.StartTurn(player)
-	return U.RunSequence({
-		function() S.setStateVal(player.color, "roundState", "currentTurn") end,
-		DIR.ActivateVotingLights,
-		DIR.DisplayPassTurnHUD
-	})
-end
-
-function DIR.ActivateVotingLights()
-	local playerColor = S.getStateVal("roundState", "currentTurn")
-	if playerColor == nil then
-		return U.RunSequence({
-			-- lighting for start of voting phase, before turn spotlights activate
-		})
-	else
-		local player = Player[playerColor]
-		-- local voteStatus =
-		return U.RunSequence({
-			-- lighting to spotlight that player
-			-- also lighting to indicate his vote
-		})
-	end
-end
-
-function DIR.DisplayPassTurnHUD()
-
-end
-
-function DIR.UpdatePassTurnHUD(player)
-
-end
-
 function DIR.HUD_PassTurn()
 
 end
 
 function DIR.EndVote()
-
+	DIR.ADVANCE()
 end
 
 -- #endregion
 
 -- #region Dilemma Resolution~
-function DIR.DisplayDilemmaResult(voteResult)
+function DIR.DisplayDilemmaResult()
+	local voteResult = S.getStateVal("roundState", "voteResult")
+	if voteResult == nil then return 0 end
+
 	local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
 	if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
 	L.SetLightMode("lightDilemmaAye", "off", nil, 0.5)
@@ -1302,7 +1191,8 @@ function DIR.DisplayDilemmaResult(voteResult)
 	}
 end
 
-function DIR.ResolveDilemma(voteResult)
+function DIR.ResolveDilemma()
+	local voteResult = S.getStateVal("roundState", "voteResult")
 	local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
 	if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
 	L.SetLightMode("lightDilemmaMain", "off", nil, 2)
@@ -1311,7 +1201,7 @@ function DIR.ResolveDilemma(voteResult)
 	dilemmaCard.removeTag("OnDisplay")
 	dilemmaCard.addTag("Played")
 
-	if voteResult == "notDilemma" then
+	if voteResult == nil then
 		return U.RunSequence({
 			function()
 				return {
@@ -1334,6 +1224,13 @@ function DIR.ResolveDilemma(voteResult)
 			end
 		})
 	end
+
+	-- Apply Momentum
+		-- Get current position of tokens on the board.
+		-- Compare to roundState.boardTokens.momentum.Influence, etc
+			-- For tokens that moved "with" their momentum, move those tokens an extra amount -- and the stability marker too
+			-- Update the momentum physically as well as by changing 'roundState.boardTokens.momentum.Influence', etc
+			-- (don't save positions, so players can move tokens to correct shit)
 
 	local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
 	local dilemmaTransform = C.Spots.Main.Dilemma["board" .. voteResult][#playedDilemmas]

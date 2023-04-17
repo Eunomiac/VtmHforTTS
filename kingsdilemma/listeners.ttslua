@@ -165,6 +165,21 @@ function onObjectDrop(pColor, obj)
 				}))
 		end
 	elseif obj.hasTag("StabilityMarker") then
+		-- function onObjectDrop(_ obj)
+		-- 	if obj.hasTag("ResourceMarker") then
+		-- 		-- always track it with the light AND move it to nearest snap point
+		-- 		if not S.isInPhase("DilemmaResolution") then return end
+		-- 			-- but don't update StabilityMarker outside of DilemmaResolution
+		--    compares new position to roundState position (always)
+		-- 		adds or subtracts that amount from roundState.boardTokens.positions.StabilityMarker
+		-- 		moves the StabilityMarker to its new position
+		-- 	elseif obj.hasTag("StabilityMarker") then
+		-- 		-- always track it with the light
+		-- 		if not S.isInMode("PLAY") then return end
+		-- 		-- token positions are updated at start of every round anyways
+		-- 		set boardTokens.positions.StabilityMarker to new location
+		-- 	end
+
 		U.RunSequence({
 			function() return {obj, 0.1} end,
 			function()

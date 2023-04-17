@@ -83,7 +83,7 @@ function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
 end
 
 function P.RotateToPlayer(objs, player, fromAngle, fromTransform)
-	if type(objs) ~= "table" then objs = {objs} end
+	if U.Type(objs) ~= "table" then objs = {objs} end
 
 	return U.map(objs, function(obj)
 		local startPos = obj.getPosition()
@@ -130,10 +130,10 @@ end
 
 function P.DealAll(cards, playerRef)
 	local player = S.getPlayer(playerRef)
-	U.Val("P.DealAll", cards, type(cards) == "table" or (type(cards) == "userdata" and (cards.type == "Deck" or cards.type == "Card")))
+	U.Val("P.DealAll", cards, U.Type(cards) == "table" or (U.Type(cards) == "userdata" and (cards.type == "Deck" or cards.type == "Card")))
 
 	local function dealNextCard()
-		if type(cards) == "table" then
+		if U.Type(cards) == "table" then
 			if #cards > 0 then
 				U.shift(cards).deal(1, player.color)
 			end
@@ -149,7 +149,7 @@ function P.DealAll(cards, playerRef)
 
 
 	local numCards
-	if type(cards) == "table" then numCards = #cards
+	if U.Type(cards) == "table" then numCards = #cards
 	elseif cards.type == "Deck" then numCards = #cards.getObjects()
 	else return error("P.DealAll: Must submit a deck, a card, or a table of cards.") end
 
@@ -164,6 +164,14 @@ function P.DealAll(cards, playerRef)
 	U.RunSequence(seqFuncs)
 
 	return U.sequence(seqFuncs, 0.25)
+end
+
+function P.GetPlayerName(playerRef)
+	if S.getPlayerVal(playerRef, "houseName") then
+		return "House " .. S.getPlayerVal(playerRef, "houseName")
+	else
+		return S.getPlayerVal(playerRef, "house")
+	end
 end
 
 function P.GetMostPrestigious()
@@ -223,6 +231,8 @@ end
 
 function P.GetLeader() return S.getPlayer(S.getStateVal("gameState", "leader")) or P.GetMostPrestigious() end
 function P.GetModerator() return S.getPlayer(S.getStateVal("gameState", "moderator")) or P.GetLeastPrestigious() end
+function P.GetLeaderName() return P.GetPlayerName(P.GetLeader()) end
+function P.GetModeratorName() return P.GetPlayerName(P.GetModerator()) end
 
 function P.GetPlayerZone(playerRef, zoneRef)
 	local playerColor = S.getPlayer(playerRef).color
@@ -239,6 +249,25 @@ function P.GetPlayerZone(playerRef, zoneRef)
 	elseif zoneRef == "Public" then
 		return getObjectsWithAllTags({playerColor, "Zone_PublicUI"})[1]
 	end
+end
+
+function P.GetPlayerCard(playerRef)
+	local player = S.getPlayer(playerRef)
+	U.Val("P.GetPlayerCard()", playerRef, U.isPlayer(player), "Not a player")
+	return getObjectsWithAllTags({"HouseCard", player.color})[1]
+end
+
+function P.GetPlayerScreen(playerRef)
+	local player = S.getPlayer(playerRef)
+	U.Val("P.GetPlayerScreen()", playerRef, U.isPlayer(player), "Not a player")
+	return getObjectsWithAllTags({"screenCenter", player.color})[1]
+end
+
+function P.BrightenPlayerScreen(playerRef)
+	if playerRef == nil then return U.map(S.getPlayers(), P.BrightenPlayerScreen(player)) end
+	local houseCard = P.GetPlayerCard(playerRef)
+	if houseCard == nil then return end
+	houseCard.call("DimmerOff")
 end
 
 local function spawnToken(objOrBounds, tokenType, tokenValue, yShift)
@@ -326,22 +355,6 @@ function P.SpawnCoins(playerRef, numCoins)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)
-end
-
-function P.TransferPower(fromZone, toZone)
-	local powerTokens = U.filter(fromZone.getObjects(), function(obj) return obj.hasTag("PowerToken") end)
-
-	local function transferToken(token)
-		token.setPosition(token.getPosition():add(Vector(0, 1, 0)))
-		token.addForce(Vector(0, 50, 0), 3)
-		Wait.time(function()
-			token.setPosition(U.getScatterPosition(toZone, 6, 0.4))
-		end, 0.5)
-	end
-
-	U.sequence(U.map(powerTokens, function(token)
-		return function() transferToken(token) end
-	end), 0.15)
 end
 
 return P

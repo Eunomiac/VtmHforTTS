@@ -16,6 +16,21 @@ MessageQueue, QueueStatus = {}, {}
 
 local lineCount = 0
 local tokenCount = 1
+local testTable = {
+	playerData = {
+		Orange = {
+			prestige = 10
+		}
+	},
+	turnData = {
+		current = "Orange",
+		Orange = {
+			vote = false,
+			committedPower = 0
+		}
+	},
+	roundData = {}
+}
 local TESTFUNCS = {
 	Camera = function(button)
 		if button == "-2" then
@@ -99,6 +114,9 @@ local TESTFUNCS = {
 		-- 		Player.Brown
 		-- 	)
 		-- end
+	end,
+	Transfer = function(button)
+		V.EndTurn(button ~= "-2")
 	end
 }
 
@@ -182,8 +200,7 @@ local function promptAssignHouseName(player)
 				U.sequence({
 					function()
 						S.setPlayerVal(houseName, targetPlayer, "houseName")
-						local houseScreen = getObjectsWithAllTags({"screenCenter", targetPlayer.color})[1]
-						houseScreen.reload()
+						P.GetPlayerScreen(targetPlayer).call("UpdateXMLTable")
 					end,
 					3,
 					function()
