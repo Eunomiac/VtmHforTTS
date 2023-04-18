@@ -287,32 +287,75 @@ function Turn_HUD_Click(_, _, id) DIR.TurnHUDClick(id) end
 
 function Turn_HUD_HoverOn(_, _, id)
 	-- UI.setAttribute(id .. "_container", "scale", "1.2 1.2 1.2")
-	-- UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,1)")
-	-- if id == "turnHUD_voteAye" then
-	-- 	UI.setAttribute(id, "color", "rgba(0,1,1,1)")
-	-- elseif id == "turnHUD_voteNay" then
-	-- 	UI.setAttribute(id, "color", "rgba(1,0,0,1)")
-	-- elseif id == "turnHUD_stay" then
-	-- 	UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
-	-- else
-	-- 	UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
-	-- 	UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0, 1)")
-	-- end
+	UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,1)")
+	if id == "turnHUD_voteAye" then
+		UI.setAttribute(id, "color", "rgba(0,1,1,1)")
+	elseif id == "turnHUD_voteNay" then
+		UI.setAttribute(id, "color", "rgba(1,0,0,1)")
+	elseif id == "turnHUD_stay" then
+		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
+	else
+		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
+		UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0, 1)")
+	end
 end
 
 function Turn_HUD_HoverOff(_, _, id)
 	-- UI.setAttribute(id .. "_container", "scale", "1 1 1")
-	-- UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,0.5)")
-	-- if id == "turnHUD_voteAye" then
-	-- 	UI.setAttribute(id, "color", "rgba(0,1,1,0.5)")
-	-- elseif id == "turnHUD_voteNay" then
-	-- 	UI.setAttribute(id, "color", "rgba(1,0,0,0.5)")
-	-- elseif id == "turnHUD_stay" then
-	-- 	UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
-	-- else
-	-- 	UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
-	-- 	UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0,0.5)")
-	-- end
+	UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,0.5)")
+	if id == "turnHUD_voteAye" then
+		UI.setAttribute(id, "color", "rgba(0,1,1,0.5)")
+	elseif id == "turnHUD_voteNay" then
+		UI.setAttribute(id, "color", "rgba(1,0,0,0.5)")
+	elseif id == "turnHUD_stay" then
+		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
+	else
+		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
+		UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0,0.5)")
+	end
+end
+
+function Consequence_HUD_Click(_, button, id)
+	local _, outcome, conType, resource = unpack(U.split(id, "_"))
+	UI.hide(id)
+	if conType ~= "O" then
+		UI.hide(string.gsub(id, "consequence", "conDisplay"))
+	end
+	log({outcome = outcome, conType = conType, resource = resource, id = id, displayHide = string.gsub(id, "consequence", "conDisplay")})
+	if button == "-2" then
+		conType = "O"
+	else
+		conType = ({O = "P", P = "N", N = "O"})[conType]
+	end
+	S.setStateVal(conType, "roundState", "consequences", outcome, resource)
+	UI.show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource)
+	if conType ~= "O" then
+		UI.show("conDisplay_" .. outcome .. "_" .. conType .. "_" .. resource)
+	end
+end
+
+function Consequence_HUD_HoverOn(_, _, id)
+	local _, outcome, conType, _ = unpack(U.split(id, "_"))
+	if conType == "O" then
+		UI.setAttribute(id, "color", "#7F7F7FFF")
+	elseif outcome == "P" then
+		UI.setAttribute(id, "color", "#1E87FFFF")
+	elseif outcome == "N" then
+		UI.setAttribute(id, "color", "#DA1917FF")
+	end
+end
+
+function Consequence_HUD_HoverOff(_, _, id)
+	local _, outcome, conType, _ = unpack(U.split(id, "_"))
+	if conType == "O" then
+		UI.setAttribute(id, "color", "#7F7F7F7F")
+	elseif outcome == "P" then
+		UI.setAttribute(id, "color", "#1E87FF7F")
+	elseif outcome == "N" then
+		UI.setAttribute(id, "color", "#DA19177F")
+	end
+
+
 end
 
 function UpdatePhaseDisplay()

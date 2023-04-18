@@ -11,9 +11,9 @@
 	<Panel class="turn-HUD"
 		preferredHeight = "60" flexibleHeight = "0"
 		preferredWidth = "300" flexibleWidth = "0"
-		showAnimation = "FadeIn"
-		hideAnimation = "FadeOut"
-		animationDuration = "0.5" />
+		showAnimation = ""
+		hideAnimation = ""
+		animationDuration = "0" />
 
 	<Image class="turn-HUD-top"
 		ignoreLayout = "true"
@@ -35,9 +35,9 @@
 		shadowDistance = "1 -1"
 		verticalOverflow = "Overflow"
 		horizontalOverflow = "Overflow"
-		showAnimation = "FadeIn"
-		hideAnimation = "FadeOut"
-		animationDuration = "0.25" />
+		showAnimation = ""
+		hideAnimation = ""
+		animationDuration = "0" />
 
 	<VerticalLayout class="turn-HUD"
 		height = "400"

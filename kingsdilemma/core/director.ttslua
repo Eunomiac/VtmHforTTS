@@ -164,14 +164,12 @@ INITFUNCS = {
 						function() return #U.filter(players, function(pl) return pl.getHandCount() == 0 end) == 0 end
 					}
 				end,
-				function() DIR.ADVANCE() end
+				DIR.ADVANCE
 			}
 		end,
 		HouseSelection = function()
 			return {
-				function()
-					DIR.InitHouseSelection()
-				end
+				DIR.InitHouseSelection
 			}
 		end
 	},
@@ -180,13 +178,12 @@ INITFUNCS = {
 		local queryResponse = {Prologue = "D1", ["Main Story"] = "0"}
 		return {
 			function()
-				MSG.SplashQuery(
+				return MSG.SplashQuery(
 					"How do you want to start your Chronicle of A King's Dilemma?",
 					"Host",
 					queryResponse,
 					S.getPlayer("Host")
 				)
-				return function() return queryResponse.response ~= nil end
 			end,
 			function() return P.SetCamera("Lectern") end,
 			function()
@@ -233,30 +230,24 @@ INITFUNCS = {
 			local leader, moderator
 			return {
 				function()
-					leader = P.GetLeader()
-					local leaderName = P.GetLeaderName()
-					MSG.Splash(leaderName .. " Is Most Prestigious")
-					return L.SetLightMode("lightLeader", "on", nil, 2)
+					MSG.Splash(P.GetLeaderName() .. " Is Most Prestigious")
+					L.SetLightMode("lightLeader", "on", nil, 2)
+					return 1
 				end,
+				function() return P.AssignLeader(leader) end,
 				function()
-					return { 1, P.AssignLeader(leader) }
+					MSG.Splash(P.GetModeratorName() .. " Is Least Prestigious")
+					L.SetLightMode("lightModerator", "on", nil, 2)
+					return 1
 				end,
-				function()
-					moderator = P.GetModerator()
-					local moderatorName = P.GetModeratorName()
-					MSG.Splash(moderatorName .. " Is Least Prestigious")
-					return L.SetLightMode("lightModerator", "on", nil, 2)
-				end,
-				function()
-					return { 1, P.AssignModerator(moderator) }
-				end,
+				function() return P.AssignModerator(moderator) end,
 				DIR.ADVANCE
 			}
 		end,
 		LegacySetup = function()
 			return {
-				function() return P.SetCamera("MainBoard") end,
 				function()
+					P.SetCamera("MainBoard")
 					return MSG.Splash("Applying Legacy Effects")
 				end,
 				function()
@@ -282,11 +273,6 @@ INITFUNCS = {
 						U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
 					}
 				end,
-				-- function()
-				-- 	U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1)
-				-- 	U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
-				-- 	return 0.75
-				-- end,
 				function()
 					U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
 					U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
@@ -309,25 +295,20 @@ INITFUNCS = {
 					return function() return isSpawned == true end
 				end,
 				function()
-					U.setRotationSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.rotation), 2)
-					return U.setPositionSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.position), 2, "speedUp")
-				end,
-				function()
-					local leastPrestigious = P.GetLeastPrestigious()
-					return P.DealAll(agendaDeck, leastPrestigious)
-				end,
-				function() return P.SetCamera("BehindScreen") end,
-				function()
-					local leastPrestigious = P.GetLeastPrestigious()
-					local pNum = S.getPlayerNum(leastPrestigious)
 					return {
-						L.SetLightMode("lightLectern", "off"),
-						L.SetLightMode("lightPlayerSpotlight", "player" .. pNum),
-						L.SetLightMode("lightFront", "dim")
+						U.setRotationSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.rotation), 2),
+						U.setPositionSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.position), 2, "speedUp")
 					}
 				end,
 				function()
-					return MSG.Splash("Choose Your Secret Agenda", P.GetLeastPrestigious().color)
+					P.SetCamera("BehindScreen")
+					return P.DealAll(agendaDeck, P.GetLeastPrestigious())
+				end,
+				function()
+					L.SetLightMode("lightLectern", "off")
+					L.SetLightMode("lightPlayerSpotlight", "player" .. S.getPlayerNum(P.GetLeastPrestigious()))
+					L.SetLightMode("lightFront", "dim")
+					return MSG.Splash("Choose Your Secret Agenda", P.GetLeastPrestigious())
 				end
 			}
 		end,
@@ -337,17 +318,14 @@ INITFUNCS = {
 					S.setStateVal(0, "roundState", "roundNum")
 					S.setStateVal(false, "roundState", "passModClaimed")
 					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
-				end,
-				DIR.ADVANCE
+					return DIR.ADVANCE()
+				end
 			}
 		end
 	},
 	PLAY = {
 		StartRound = function()
 			return {
-				-- function()
-				-- 	return P.AssignLeader(U.getHost())
-				-- end,
 				function()
 					S.setStateVal(S.getStateVal("roundState", "roundNum") + 1, "roundState", "roundNum")
 					S.setStateVal(getTokenPositions(), "roundState", "boardTokens", "positions")
@@ -358,21 +336,31 @@ INITFUNCS = {
 						S.setStateVal(false, "turnState", player.color, "vote")
 						S.setStateVal(0, "turnState", player.color, "powerCommitted")
 					end)
-					return 1
-				end,
-				DIR.ADVANCE
+					return DIR.ADVANCE()
+				end
 			}
 		end,
 		DrawDilemma = function()
 			return {
 				function()
-					return DIR.DrawDilemmaCard()
+					return {
+						P.SetCamera("DilemmaDraw"),
+						MSG.Splash("The Dilemma")
+					}
+				end,
+				DIR.DrawDilemmaCard,
+				function()
+					UI.setAttribute("consequencesQuery", "visibility", P.GetLeader().color)
+					UI.show("consequencesQuery")
+					UI.show("consequencesSidebar")
+					return 0
 				end
 			}
 		end,
 		Discussion = function()
 			return {
 				function()
+					UI.hide("consequencesQuery")
 					P.SetCamera("BehindScreen")
 					return MSG.Splash("The Debate")
 				end
@@ -382,13 +370,12 @@ INITFUNCS = {
 			local queryResponse = {Yes = "true", No = "false"}
 			return {
 				function()
-					MSG.SplashQuery(
+					return MSG.SplashQuery(
 						"Does the card on display require a vote?",
-						"Leader",
+						P.GetLeaderName(),
 						queryResponse,
 						P.GetLeader()
 					)
-					return function() return queryResponse.response ~= nil end
 				end,
 				function()
 					if queryResponse.response == "true" then
@@ -396,10 +383,12 @@ INITFUNCS = {
 							function()
 								MSG.Splash("The Vote")
 								V.InitCountZones()
-								DIR.DisplayPassHUD(P.GetLeader())
 								return V.SetVotingLights()
 							end,
-							function() return V.StartTurn(P.GetLeader()) end
+							function()
+								DIR.DisplayPassHUD(P.GetLeader())
+								return V.StartTurn(P.GetLeader())
+							end
 						})
 					else
 						return U.RunSequence({
@@ -412,10 +401,120 @@ INITFUNCS = {
 		end,
 		VoteResolution = function()
 			return {
-				function() return 0 end
+				function()
+					UI.hide("consequencesSidebar")
+					return {
+						L.SetLightMode({"lightBehind", "lightFront"}, "ambient"),
+						L.SetLightMode({"lightPlayerSpotlight"}, "off")
+					}
+				end,
+				function()
+					local nayTotal = S.getStateVal("roundState", "nayTotal")
+					local ayeTotal = S.getStateVal("roundState", "ayeTotal")
+					if ayeTotal == nayTotal then
+						local query = {Aye = "Aye", Nay = "Nay"}
+						return U.RunSequence({
+							function()
+								if ayeTotal == 0 then
+									return MSG.SplashQuery(
+										"The decision, and responsibility for its consequences, falls to you.",
+										P.GetModeratorName(),
+										query,
+										P.GetModerator()
+									)
+								else
+									return MSG.SplashQuery(
+										"The tie-breaking vote is yours to cast.",
+										P.GetModeratorName(),
+										query,
+										P.GetModerator()
+									)
+								end
+							end,
+							function()
+								S.setStateVal(query.response, "roundState", "voteResult")
+								if ayeTotal == 0 then
+									return {
+										MSG.Splash(P.GetModeratorName() .. " claims leadership over the vote."),
+										P.AssignLeader(P.GetModerator())
+									}
+								end
+								return 0
+							end
+						})
+					elseif ayeTotal > nayTotal then
+						S.setStateVal("Aye", "roundState", "voteResult")
+					else
+						S.setStateVal("Nay", "roundState", "voteResult")
+					end
+					return 0
+				end,
+				function()
+					if S.getStateVal("roundState", "voteResult") == "Aye" then
+						return MSG.Splash("The resolution passes!", nil, nil, {color = U.GetHex(Color.Blue)})
+					else
+						return MSG.Splash("The resolution is rejected!", nil, nil, {color = U.GetHex(Color.Red)})
+					end
+				end,
+				function()
+					if S.getPlayerVoteStatus(P.GetLeader()) ~= S.getStateVal("roundState", "voteResult") then
+						-- CHECK IF LEADER HELD BY LOSING SIDE
+							-- Yes = Assign Leader to player on Winning Side with Most Power Committed
+								-- IF TIE - Prompt Moderator to decide; they can bargain freely before pushing button
+					else
+						return 0
+					end
+				end,
+				function()
+					local passPlayers = U.filter(S.getPlayers(), function(player) return U.isIn(S.getPlayerVoteStatus(player), {"Pass", "PassMod"}) end)
+					if #passPlayers > 0 then
+						MSG.Splash("Granting Coin for Abstaining")
+						return {
+						-- Grant 1 coin to each player that passed (don't do it during voting)
+							0
+						}
+					end
+					return 0
+				end,
+				function()
+					local passPowerPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == "Pass" end)
+					if #passPowerPlayers > 0 then -- AND if there is any power on the Balance
+						MSG.Splash("Sharing Balance Among Players Who Gathered Power")
+						return {
+						-- Split Balance Power among players who passed to gather power
+							0
+						}
+					end
+					return 0
+				end,
+				function()
+					local losingPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) ~= S.getStateVal("roundState", "voteResult") end)
+					if #losingPlayers > 0 then
+						MSG.Splash("Returning Power to Losing Players")
+						return {
+							-- Return Power of Losing Players to behind screen
+							0
+						}
+					end
+					return 0
+				end,
+				function()
+					local winningPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == S.getStateVal("roundState", "voteResult") end)
+					if #winningPlayers > 0 then
+						MSG.Splash("Transferring Committed Power to Balance")
+						return {
+							-- Transfer Power of Winning Players to Balance
+							0
+						}
+					end
+					return 0
+				end,
+				function() return L.SetLightMode("lightVote", "off") end,
+				DIR.ADVANCE
 			}
 		end,
 		DilemmaResolution = function()
+			V.InitCountZones()
 			return {
 				function() return DIR.DisplayDilemmaResult() end
 			}
@@ -477,10 +576,6 @@ function DIR.InitSession()
 			DIR.InitCountZones()
 			return 0.75
 		end,
-		-- function()
-		-- 	L.LoadLights({"lightLectern", "lightMainTop", "lightMainBottom", "lightLeader", "lightModerator"}, "default")
-		-- 	return 3
-		-- end,
 		function()
 			if S.isInMode(C.Modes.NONE) then
 				DIR.ADVANCE()
@@ -1019,14 +1114,17 @@ function DIR.PresentStoryCard(storyCard)
 			}
 		end,
 		function()
-			P.SetCamera("MainBoard")
+			return P.SetCamera("MainBoard")
+		end,
+		function()
+			L.SetLightMode({ "lightMainTop", "lightMainBottom" }, "ambient", nil, 2)
 			return function()
 				return not Vector.equals(storyCard.getPosition(),
 					Vector(C.Spots.Staging.StoryCard.Display.position), 1)
 			end
 		end,
 		function()
-			return L.SetLightMode({ "lightLectern", "lightMainTop", "lightMainBottom" }, "ambient", nil, 2)
+			return L.SetLightMode({ "lightLectern" }, "ambient", nil, 2)
 		end
 	})
 end
@@ -1125,12 +1223,6 @@ function DIR.DrawDilemmaCard()
 	dilemmaSource = dilemmaSource[1]
 	local dilemmaCard
 	local seqFuncs = {}
-	table.insert(seqFuncs, function()
-		return {
-			P.SetCamera("DilemmaDraw"),
-			MSG.Splash("The Dilemma")
-		}
-	end)
 	if dilemmaSource.type == "Deck" then
 		table.insert(seqFuncs, function()
 			L.SetLightMode("lightLectern", "spotlightDilemmaDeck")

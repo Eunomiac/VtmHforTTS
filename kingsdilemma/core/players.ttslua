@@ -125,7 +125,7 @@ function P.SetCamera(cameraMode, playerRef, playerCamRef)
 
 	-- log(cameraData)
 	playerCam.lookAt(cameraData)
-	return 1
+	return 0.5
 end
 
 function P.DealAll(cards, playerRef)
@@ -212,6 +212,7 @@ function P.GetNextLeastPrestigious(playerRef)
 end
 
 function P.AssignLeader(playerRef)
+	if playerRef == nil then return P.AssignLeader(P.GetMostPrestigious()) end
 	local player = S.getPlayer(playerRef)
 	S.setStateVal(player.color, "gameState", "leader")
 	return {
@@ -221,6 +222,7 @@ function P.AssignLeader(playerRef)
 end
 
 function P.AssignModerator(playerRef)
+	if playerRef == nil then return P.AssignModerator(P.GetLeastPrestigious()) end
 	local player = S.getPlayer(playerRef)
 	S.setStateVal(player.color, "gameState", "moderator")
 	return {
