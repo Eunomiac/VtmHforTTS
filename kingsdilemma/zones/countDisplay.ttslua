@@ -7,7 +7,7 @@ local isActive = false
 local countTag, isPublic, player, color
 local publicZone, oppZone
 local total = 0
-local value, subValue, icon, iconColor = "", "", "", C.Colors.White
+local value, subValue, icon, iconColor = "", "", "", Color.White
 local scaleFactor = "0.2"
 
 local ISDEBUGGING = false
@@ -95,11 +95,11 @@ local function setCountTagDefault()
 end
 local function setColorDefault()
 	if self.hasTag("Zone_VoteAye") then
-		color = Color(C.Colors.Blue)
+		color = Color(Color.Blue)
 	elseif self.hasTag("Zone_VoteNay") then
-		color = Color(C.Colors.Red)
+		color = Color(Color.Red)
 	else
-		color = Color(C.Colors.Amber)
+		color = Color(C.RootColors.Amber)
 	end
 end
 
@@ -156,7 +156,7 @@ function UpdateXMLTable()
 		tag = "Panel",
 		attributes = {
 			height = "150",
-			-- color = U.GetHex(C.Colors.Red:setAt("a", 0.5)),
+			-- color = U.GetHex(Color.Red:setAt("a", 0.5)),
 			width = "200",
 			position = "0 0 0",
 			rotation = "-80 0 0",

@@ -110,9 +110,9 @@ function DIR.InitCountZones()
 		local powerZone = getObjectsWithAllTags({"zonePrivatePower", player.color})[1]
 		if powerZone then
 			powerZone.call("SetCountTag", "PowerToken")
-			powerZone.call("SetColor", C.Colors.Yellow)
+			powerZone.call("SetColor", Color.Yellow)
 			powerZone.call("SetIcon", "powerIcon")
-			powerZone.call("SetIconColor", C.Colors.Amber)
+			powerZone.call("SetIconColor", C.RootColors.Amber)
 			powerZone.call("Activate")
 		end
 
@@ -120,9 +120,9 @@ function DIR.InitCountZones()
 		local coinZone = getObjectsWithAllTags({"zonePrivateCoin", player.color})[1]
 		if coinZone then
 			coinZone.call("SetCountTag", "CoinToken")
-			coinZone.call("SetColor", C.Colors.Yellow)
+			coinZone.call("SetColor", Color.Yellow)
 			coinZone.call("SetIcon", "coinIcon")
-			coinZone.call("SetIconColor", C.Colors.Amber)
+			coinZone.call("SetIconColor", C.RootColors.Amber)
 			coinZone.call("Activate")
 		end
 
@@ -133,9 +133,9 @@ function DIR.InitCountZones()
 	local balanceZone = getObjectsWithTag("zoneBalance")[1]
 	if balanceZone then
 		balanceZone.call("SetCountTag", "PowerToken")
-		balanceZone.call("SetColor", C.Colors.Yellow)
+		balanceZone.call("SetColor", Color.Yellow)
 		balanceZone.call("SetIcon", "powerIcon")
-		balanceZone.call("SetIconColor", C.Colors.Amber)
+		balanceZone.call("SetIconColor", C.RootColors.Amber)
 		balanceZone.call("Activate")
 	end
 end
@@ -468,6 +468,10 @@ function DIR.InitSession()
 	UI.show("gameStatusDisplay")
 	return U.RunSequence({
 		function()
+			S.UpdateSeatedPlayers()
+			return 0
+		end,
+		function()
 			UI.hide("splashScreen")
 			P.SetCamera("BehindScreen")
 			DIR.InitCountZones()
@@ -625,16 +629,16 @@ local function getPlayerSelectedHouse(player)
 end
 
 local flagColors = {
-	Available = function() return C.Colors.Grey end,
-	Hovered = function() return C.Colors.White end,
+	Available = function() return Color.Grey end,
+	Hovered = function() return Color.White end,
 	ClaimedByOther = function(playerColor) return playerColor:setAt("a", 0.5) end,
 	ClaimedBySelf = function(playerColor) return playerColor end,
-	ClaimedByAbsent = function() return C.Colors.Grey:setAt("a", 0.1) end,
-	SelectedByOther = function(playerColor) return playerColor:lerp(C.Colors.Black, 0.5) end,
-	SelectedBySelf = function(playerColor) return playerColor:lerp(C.Colors.White, 0.5) end,
+	ClaimedByAbsent = function() return Color.Grey:setAt("a", 0.1) end,
+	SelectedByOther = function(playerColor) return playerColor:lerp(C.RootColors.PureBlack, 0.5) end,
+	SelectedBySelf = function(playerColor) return playerColor:lerp(Color.White, 0.5) end,
 	SelectedByOtherHover = function(playerColor) return playerColor end,
-	SelectedBySelfHover = function() return C.Colors.White end,
-	Invisible = function() return C.Colors.Black:setAt("a", 0) end
+	SelectedBySelfHover = function() return Color.White end,
+	Invisible = function() return C.RootColors.PureBlack:setAt("a", 0) end
 }
 
 function DIR.RefreshHouseHUD(houseName, player)
@@ -668,7 +672,7 @@ function DIR.RefreshHouseHUD(houseName, player)
 			flagAttrs.color = U.GetHex(flagColors.ClaimedByOther(statusColor))
 		elseif statusDetail == "BySelf" then
 			flagAttrs.color = U.GetHex(flagColors.ClaimedBySelf(statusColor))
-			hoverAttrs.color = U.GetHex(C.Colors.White)
+			hoverAttrs.color = U.GetHex(Color.White)
 		elseif statusDetail == "ByAbsent" then
 			flagAttrs.color = U.GetHex(flagColors.ClaimedByAbsent())
 		end
@@ -851,11 +855,11 @@ function DIR.EndSecretAgendas()
 	end)
 
 	U.forEach(heldAgendas, function(obj)
-		obj.useHands = false
+		obj.use_hands = false
 		obj.setLock(true)
 		obj.setPositionSmooth(C.Spots.Staging.SecretAgenda.Burnt.position)
 		obj.setRotationSmooth(C.Spots.Staging.SecretAgenda.Burnt.rotation)
-		Wait.time(function() obj.useHands = true end, 0.5)
+		Wait.time(function() obj.use_hands = true end, 0.5)
 	end)
 	U.AlertGM("Secret Agendas Dealt!")
 end

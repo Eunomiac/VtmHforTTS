@@ -25,7 +25,7 @@ local function generateLightModes(lightTag)
 			off = function()
 				return {
 					enabled = false,
-					color = C.Colors.AmbientLight,
+					color = Color.Grey,
 					range = 66,
 					angle = 20,
 					intensity = 0.75,
@@ -36,7 +36,7 @@ local function generateLightModes(lightTag)
 			ambient = function()
 				return {
 					enabled = true,
-					color = C.Colors.AmbientLight,
+					color = Color.Grey,
 					range = 66,
 					angle = 20,
 					intensity = 0.75,
@@ -47,7 +47,7 @@ local function generateLightModes(lightTag)
 			momentumUp1 = function()
 				return {
 					enabled = true,
-					color = C.Colors.Amber,
+					color = C.RootColors.Amber,
 					range = 66,
 					angle = 25,
 					intensity = 0.75,
@@ -58,7 +58,7 @@ local function generateLightModes(lightTag)
 			momentumUp2 = function()
 				return {
 					enabled = true,
-					color = C.Colors.Yellow,
+					color = Color.Yellow,
 					range = 66,
 					angle = 20,
 					intensity = 1.5,
@@ -69,7 +69,7 @@ local function generateLightModes(lightTag)
 			momentumDown1 = function()
 				return {
 					enabled = true,
-					color = C.Colors.Amber,
+					color = C.RootColors.Amber,
 					range = 66,
 					angle = 25,
 					intensity = 0.75,
@@ -80,7 +80,7 @@ local function generateLightModes(lightTag)
 			momentumDown2 = function()
 				return {
 					enabled = true,
-					color = C.Colors.Yellow,
+					color = Color.Yellow,
 					range = 66,
 					angle = 20,
 					intensity = 1.5,
@@ -106,7 +106,7 @@ local function generateLightModes(lightTag)
 		return function()
 			return {
 				enabled = true,
-				color = C.Colors.AmbientLight,
+				color = Color.Grey,
 				range = 60,
 				angle = 40,
 				intensity = 10,
@@ -125,7 +125,7 @@ L.LIGHTMODES = {
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 70,
 			intensity = 2,
@@ -133,7 +133,7 @@ L.LIGHTMODES = {
 		},
 		spotlightChronicleCard = {
 			enabled = true,
-			color = C.Colors.AmbientLight:lerp(C.Colors.Yellow, 0.25),
+			color = Color.Grey:lerp(Color.Yellow, 0.25),
 			range = 200,
 			angle = 35,
 			intensity = 2,
@@ -141,7 +141,7 @@ L.LIGHTMODES = {
 		},
 		spotlightEnvelope = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 30,
 			intensity = 2,
@@ -149,7 +149,7 @@ L.LIGHTMODES = {
 		},
 		spotlightStickers = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 30,
 			intensity = 2,
@@ -157,7 +157,7 @@ L.LIGHTMODES = {
 		},
 		spotlightMystery = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 33,
 			intensity = 2,
@@ -165,7 +165,7 @@ L.LIGHTMODES = {
 		},
 		spotlightPlinth = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 30,
 			intensity = 2,
@@ -173,7 +173,7 @@ L.LIGHTMODES = {
 		},
 		spotlightTransit = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 50,
 			intensity = 1,
@@ -181,7 +181,7 @@ L.LIGHTMODES = {
 		},
 		spotlightDilemmaDeck = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 25,
 			intensity = 1.5,
@@ -189,7 +189,7 @@ L.LIGHTMODES = {
 		},
 		storyCard = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 200,
 			angle = 25,
 			intensity = 1.5,
@@ -204,7 +204,7 @@ L.LIGHTMODES = {
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 83,
 			angle = 60,
 			intensity = 1.5
@@ -217,7 +217,7 @@ L.LIGHTMODES = {
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 83,
 			angle = 60,
 			intensity = 1.5
@@ -312,7 +312,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = C.Colors.Amber,
+			color = Color.Grey,
 			range = 30,
 			angle = 30,
 			intensity = 2,
@@ -320,7 +320,7 @@ L.LIGHTMODES = {
 		},
 		bright = {
 			enabled = true,
-			color = C.Colors.Yellow,
+			color = Color.White,
 			range = 40,
 			angle = 40,
 			intensity = 4,
@@ -335,14 +335,14 @@ L.LIGHTMODES = {
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 50,
 			angle = 60,
 			intensity = 4
 		},
 		dim = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 50,
 			angle = 60,
 			intensity = 2
@@ -353,35 +353,35 @@ L.LIGHTMODES = {
 		isSpawned = true,
 		off = {
 			enabled = false,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 25,
 			angle = 85,
 			intensity = 4
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 25,
 			angle = 85,
 			intensity = 4
 		},
 		dim = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 25,
 			angle = 85,
 			intensity = 2
 		},
 		aye = {
 			enabled = true,
-			color = C.Colors.Blue,
+			color = Color.Blue,
 			range = 25,
 			angle = 85,
 			intensity = 2.75
 		},
 		nay = {
 			enabled = true,
-			color = C.Colors.Red,
+			color = Color.Red,
 			range = 25,
 			angle = 85,
 			intensity = 1.5
@@ -392,28 +392,28 @@ L.LIGHTMODES = {
 		isSpawned = true,
 		off = {
 			enabled = false,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 55,
 			angle = 57,
 			intensity = 1
 		},
 		ambient = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 55,
 			angle = 57,
 			intensity = 1
 		},
 		aye = {
 			enabled = true,
-			color = C.Colors.Blue,
+			color = Color.Blue,
 			range = 55,
 			angle = 50,
 			intensity = 1
 		},
 		nay = {
 			enabled = true,
-			color = C.Colors.Red,
+			color = Color.Red,
 			range = 55,
 			angle = 50,
 			intensity = 1
@@ -428,7 +428,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = C.Colors.AmbientLight,
+			color = Color.Grey,
 			range = 60,
 			angle = 100,
 			intensity = 2,
@@ -436,7 +436,7 @@ L.LIGHTMODES = {
 		},
 		Aye = {
 			enabled = true,
-			color = C.Colors.Blue,
+			color = Color.Blue,
 			range = 60,
 			angle = 100,
 			intensity = 2,
@@ -444,7 +444,7 @@ L.LIGHTMODES = {
 		},
 		Nay = {
 			enabled = true,
-			color = C.Colors.Red,
+			color = Color.Red,
 			range = 60,
 			angle = 100,
 			intensity = 2,
@@ -460,7 +460,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = C.Colors.Blue,
+			color = Color.Blue,
 			range = 60,
 			angle = 40,
 			intensity = 2,
@@ -476,7 +476,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = C.Colors.Red,
+			color = Color.Red,
 			range = 25,
 			angle = 20,
 			intensity = 2.5,
@@ -537,7 +537,7 @@ local function showArrow(light)
 	if playerColor ~= nil then
 		return light.highlightOn(Color[playerColor])
 	else
-		return light.highlightOn(C.Colors.White)
+		return light.highlightOn(Color.White)
 	end
 end
 

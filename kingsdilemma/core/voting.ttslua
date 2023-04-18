@@ -122,14 +122,14 @@ function V.SetVotingLights(playerRef)
 			}
 		elseif voteStatus == "Aye" then
 			return {
-				L.SetLightMode("lightPlayerSpotlight", "player" .. playerNum, nil, 0.5, C.Colors.Blue),
+				L.SetLightMode("lightPlayerSpotlight", "player" .. playerNum, nil, 0.5, Color.Blue),
 				L.SetLightMode("lightBehind", "ambient", player),
 				L.SetLightMode("lightFront", "aye", player),
 				L.SetLightMode("lightVote", "aye", player)
 			}
 		elseif voteStatus == "Nay" then
 			return {
-				L.SetLightMode("lightPlayerSpotlight", "player" .. playerNum, nil, 0.5, C.Colors.Red),
+				L.SetLightMode("lightPlayerSpotlight", "player" .. playerNum, nil, 0.5, Color.Red),
 				L.SetLightMode("lightBehind", "ambient", player),
 				L.SetLightMode("lightFront", "nay", player),
 				L.SetLightMode("lightVote", "nay", player)
@@ -192,12 +192,12 @@ function V.InitCountZones(playerRef)
 
 		if ayeZone then
 			ayeZone.call("SetCountTag", "PowerToken")
-			ayeZone.call("SetColor", C.Colors.Blue)
+			ayeZone.call("SetColor", Color.Blue)
 			ayeZone.call("UnLinkPublic")
 		end
 		if nayZone then
 			nayZone.call("SetCountTag", "PowerToken")
-			nayZone.call("SetColor", C.Colors.Red)
+			nayZone.call("SetColor", Color.Red)
 			nayZone.call("UnLinkPublic")
 		end
 		if ayeZone and nayZone then
@@ -221,13 +221,13 @@ function V.InitCountZones(playerRef)
 		end
 		if ayeZone then
 			ayeZone.call("SetCountTag", "PowerToken")
-			ayeZone.call("SetColor", C.Colors.Blue)
+			ayeZone.call("SetColor", Color.Blue)
 			ayeZone.call("UnLinkOpp")
 			if publicZone then ayeZone.call("LinkToPublic", publicZone) end
 		end
 		if publicZone then
 			publicZone.call("SetCountTag", "PowerToken")
-			publicZone.call("SetColor", C.Colors.Blue)
+			publicZone.call("SetColor", Color.Blue)
 			publicZone.call("SetScale", "0.4")
 			publicZone.call("SetIcon", "powerIcon")
 			publicZone.call("SetIconColor", Color(0, 0, 1))
@@ -248,13 +248,13 @@ function V.InitCountZones(playerRef)
 		end
 		if nayZone then
 			nayZone.call("SetCountTag", "PowerToken")
-			nayZone.call("SetColor", C.Colors.Red)
+			nayZone.call("SetColor", Color.Red)
 			nayZone.call("UnLinkOpp")
 			if publicZone then nayZone.call("LinkToPublic", publicZone) end
 		end
 		if publicZone then
 			publicZone.call("SetCountTag", "PowerToken")
-			publicZone.call("SetColor", C.Colors.Red)
+			publicZone.call("SetColor", Color.Red)
 			publicZone.call("SetScale", "0.4")
 			publicZone.call("SetIcon", "powerIcon")
 			publicZone.call("SetIconColor", Color(0.5, 0, 0))
@@ -398,7 +398,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Aye' with " .. ayeCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Blue)})
+					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Aye' with " .. ayeCount .. " Power", nil, nil, {color = U.GetHex(Color.Blue)})
 					elevateRiser(player, ayeCount)
 					return 2
 				end,
@@ -418,7 +418,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Nay' with " .. nayCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Red)})
+					MSG.Splash(P.GetPlayerName(player) .. " Votes 'Nay' with " .. nayCount .. " Power", nil, nil, {color = U.GetHex(Color.Red)})
 					return elevateRiser(player, nayCount) end,
 				function()
 					OU.TransferObjects(nayZone, publicZone, "PowerToken")
@@ -436,7 +436,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Passes to Become Moderator", nil, 3, {color = U.GetHex(C.Colors.Yellow)})
+					MSG.Splash(P.GetPlayerName(player) .. " Passes to Become Moderator", nil, nil, {color = U.GetHex(Color.Yellow)})
 					return lowerRiser(player)
 				end,
 				function()
@@ -451,7 +451,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Passes to Gather Power", nil, 3, {color = U.GetHex(C.Colors.Amber)})
+					MSG.Splash(P.GetPlayerName(player) .. " Passes to Gather Power", nil, nil, {color = U.GetHex(C.RootColors.Amber)})
 					return lowerRiser(player)
 				end,
 				function()
@@ -469,7 +469,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Aye' with another " .. ayeCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Blue)})
+					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Aye' with another " .. ayeCount .. " Power", nil, nil, {color = U.GetHex(Color.Blue)})
 					return elevateRiser(player, totalAyeCount) end,
 				function()
 					OU.TransferObjects(ayeZone, publicZone, "PowerToken")
@@ -484,7 +484,7 @@ function V.EndTurn(isPassMod)
 		else
 			return U.RunSequence({
 				function()
-					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, 3, {color = U.GetHex(C.Colors.Blue)})
+					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Blue)})
 				end,
 				function() return 0 end
 			})
@@ -497,7 +497,7 @@ function V.EndTurn(isPassMod)
 			V.InitCountZones(player)
 			return U.RunSequence({
 				function()
-					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Nay' with another " .. nayCount .. " Power", nil, 3, {color = U.GetHex(C.Colors.Red)})
+					MSG.Splash(P.GetPlayerName(player) .. " Supports 'Nay' with another " .. nayCount .. " Power", nil, nil, {color = U.GetHex(Color.Red)})
 					return elevateRiser(player, totalNayCount) end,
 				function()
 					OU.TransferObjects(nayZone, publicZone, "PowerToken")
@@ -512,7 +512,7 @@ function V.EndTurn(isPassMod)
 		else
 			return true, U.RunSequence({
 				function()
-					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, 3, {color = U.GetHex(C.Colors.Red)})
+					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Red)})
 				end,
 				function() return 0 end
 			})

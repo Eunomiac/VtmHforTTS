@@ -1,156 +1,52 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
+local C = require("kingsdilemma.lib.constants")
 
 local MSG = {}
 
-local DefaultDisplayTime = 0.5
-local MessageDisplayBuffer = 1
+local DefaultDisplayTime = 1.5
+local DefaultDisplayBuffer = 0.5
 
-function MSG.GetQueueStatus(queueRef)
-	local queueStatus = Global.getTable("QueueStatus")
-	if queueStatus == nil then error("Get: Can't read QueueStatus table") end
-	if queueStatus[queueRef] == nil then return false end
-	return queueStatus[queueRef]
+local defaultTextAttributes = {
+	color = U.GetHex(Color.White),
+	fontSize = "40",
+	font = "Fonts/Friz",
+	alignment = "MiddleCenter"
+}
+
+local function showPanel(panelID, displayTime)
+	UI.setAttribute(panelID, "active", "false")
+	UI.show(panelID)
+	return displayTime
 end
 
-function MSG.SetQueueStatus(queueRef, status)
-	local queueStatus = Global.getTable("QueueStatus")
-	if queueStatus == nil then error("Set: Can't read QueueStatus table") end
-	if queueStatus[queueRef] == nil then queueStatus[queueRef] = {} end
-	queueStatus[queueRef] = status
-	Global.setTable("QueueStatus", queueStatus)
-end
+local function hidePanel(panelID, displayBuffer) UI.hide(panelID); return displayBuffer + 0.5 end
 
-function MSG.GetMessageQueue(queueRef)
-	local messageQueue = Global.getTable("MessageQueue")
-	if messageQueue == nil then error("Get: Can't read MessageQueue table") end
-	if messageQueue[queueRef] == nil then return {} end
-	return messageQueue[queueRef]
-end
-
-function MSG.SetMessageQueue(queueRef, queueData)
-	local messageQueue = Global.getTable("MessageQueue")
-	if messageQueue == nil then error("Set: Can't read MessageQueue table") end
-	if messageQueue[queueRef] == nil then messageQueue[queueRef] = {} end
-	messageQueue[queueRef] = queueData
-	Global.setTable("MessageQueue", messageQueue)
-end
-
-local function showPanel(queueRef)
-	if queueRef == "ALL" then
-		U.forEach(S.getPlayers(), function(player) showPanel(player.color) end)
-	else
-		UI.setAttribute("splashTextContainer_" .. queueRef, "active", "false")
-		UI.show("splashPanel_" .. queueRef)
+function MSG.Splash(messageLines, playerRef, displayTime, attributes)
+	attributes = U.merge(defaultTextAttributes, attributes or {})
+	local dTime, dBuffer = displayTime or DefaultDisplayTime, DefaultDisplayBuffer
+	if type(displayTime) == "table" then
+		dTime, dBuffer = displayTime.displayTime or DefaultDisplayTime, displayTime.displayBuffer or DefaultDisplayBuffer
 	end
-	return 0
-end
+	if type(messageLines) ~= "table" then messageLines = {messageLines} end
+	local panelRef
+	if playerRef == nil then panelRef = "All"
+	else panelRef = S.getPlayer(playerRef).color end
+	local panelID, textID = "splashPanel_" .. panelRef, "splashText_" .. panelRef
 
-local function hidePanel(queueRef)
-	if queueRef == "ALL" then
-		U.forEach(S.getPlayers(), function(player) hidePanel(player.color) end)
-	else
-		UI.hide("splashPanel_" .. queueRef)
-	end
-	return 1
-end
-
-local function showMessage(panelRef, mData, isLastMessage)
-	local isMessageDone = false
-	local panelRef, textContainer, textElem = "splashPanel_" .. panelRef, "splashTextContainer_" .. panelRef, "splashText_" .. panelRef
-	U.RunSequence({
+	return U.RunSequence({
 		function()
-			UI.setAttribute(panelRef, "height", U.ToString(400 + (#mData.message - 1) * 60))
-			UI.setAttribute(textContainer, "height", U.ToString(#mData.message * 60))
-			UI.setValue(textElem, U.join(mData.message, "\n"))
-			if mData.attributes then
-				UI.setAttributes(textElem, mData.attributes)
+			UI.setAttribute(panelID, "active", "false")
+			UI.setValue(textID, U.join(messageLines, "\n"))
+			if attributes then
+				UI.setAttributes(textID, attributes)
 			end
-			UI.show(textContainer)
-			return mData.displayTime
+			return showPanel(panelID, dTime)
 		end,
 		function()
-			if isLastMessage == true then
-				return hidePanel(panelRef)
-			else
-				UI.hide(textContainer)
-				return 0.75
-			end
-		end,
-		function() isMessageDone = true end
+			return hidePanel(panelID, dBuffer)
+		end
 	})
-	return function() return isMessageDone == true end
-end
-
-local function showMessages(panelRef, messages)
-	local areMessagesDone = false
-	local lastMessage = U.pop(messages)
-	U.RunSequence(U.concat(
-		U.iMap(messages, function(mData) return function() return showMessage(panelRef, mData) end end),
-		function() return showMessage(panelRef, lastMessage, true) end,
-		{function() areMessagesDone = true end}
-	))
-	return function() return areMessagesDone == true end
-end
-
-local function showMessageQueue(panelRef, isLeavingOpen)
-	if isLeavingOpen == nil then isLeavingOpen = false end
-	local isQueueDone = false
-	local messageQueue = U.clone(MSG.GetMessageQueue(panelRef))
-	MSG.SetMessageQueue(panelRef, {})
-	if #messageQueue == 0 then
-		if isLeavingOpen then return 0
-		else return hidePanel(panelRef)
-		end
-	else
-		return U.RunSequence({
-			function() return showMessages(panelRef, messageQueue) end,
-			function() return showMessageQueue(panelRef, isLeavingOpen) end
-		})
-	end
-	-- return function()
-		-- log("splashPanel_" .. panelRef)
-		-- return UI.getAttribute("splashPanel_" .. panelRef, "active") == "false" or UI.getAttribute("splashPanel_" .. panelRef, "active") == "False" end
-end
-
-function MSG.RunQueue(queueRef, isLeavingOpen)
-	if queueRef == "ALL" then
-		return U.map(S.getPlayers(), function(player) return MSG.RunQueue(player.color) end)
-	else
-		local startTime = os.time()
-		local queueStatus = MSG.GetQueueStatus(queueRef)
-		if not queueStatus then
-			MSG.SetQueueStatus(queueRef, true)
-			U.RunSequence({
-				function() return showPanel(queueRef) end,
-				function() return showMessageQueue(queueRef, isLeavingOpen) end,
-				function() queueStatus = false; MSG.SetQueueStatus(queueRef, false); return 0.5 end
-			})
-		end
-		return function() return (os.time() - startTime > 1)
-			and string.lower(UI.getAttribute("splashPanel_" .. queueRef, "active")) == "false" end
-	end
-end
-
-function MSG.Splash(message, queueRef, displayTime, attributes)
-	if queueRef == nil then queueRef = "ALL" end
-	MSG.Enqueue(message, queueRef, displayTime, attributes)
-	return {MSG.RunQueue(queueRef), (displayTime or DefaultDisplayTime) + MessageDisplayBuffer}
-end
-
-function MSG.Enqueue(message, queueRef, displayTime, attributes)
-	if queueRef == "ALL" then
-		U.forEach(S.getPlayers(), function(player) MSG.Enqueue(message, player.color, displayTime, attributes) end)
-	else
-		local messageQueue = MSG.GetMessageQueue(queueRef)
-		if U.Type(message) ~= "table" then message = {message} end
-		table.insert(messageQueue, {
-			message = message,
-			attributes = attributes,
-			displayTime = displayTime or DefaultDisplayTime
-		})
-		MSG.SetMessageQueue(queueRef, messageQueue)
-	end
 end
 
 local currentQuery
@@ -161,10 +57,16 @@ function MSG.QueryResponse(index)
 	UI.hide("splashQuery")
 end
 
-function MSG.SplashQuery(query, displayName, responseObj, player)
+function MSG.SplashQuery(query, displayName, responseObj, playerRef)
+
 	currentQuery = responseObj
+	local player = S.getPlayer(playerRef)
+
+	log({query=query, displayName = displayName, responseObj = responseObj, playerRef = playerRef, player = player, pColor = player.color})
+
 	UI.setAttributes("splashQuery", {active = "false", visibility = player.color})
-	UI.setValue("splashQueryPlayerPrompt", string.gsub(displayName .. ":", "::", ":"))
+	UI.setValue("splashQueryPlayerPrompt", displayName)
+	UI.setAttribute("splashQueryPlayerPrompt", "color", U.GetHex(Color[player.color]:lerp(Color.White, 0.5)))
 	UI.setValue("splashQueryPrompt", query)
 
 	local answerText = U.getKeys(responseObj)
@@ -172,7 +74,6 @@ function MSG.SplashQuery(query, displayName, responseObj, player)
 	for i = 1, #answerText do
 		UI.setAttribute("splashQueryContainer_Option" .. i, "active", "true")
 		UI.setValue("splashQueryText_Option" .. i, answerText[i])
-		UI.setAttribute("splashQuery_Option" .. i, "image", currentQuery[answerText[i]])
 	end
 
 	for i = #answerText + 1, 5 do
@@ -180,10 +81,9 @@ function MSG.SplashQuery(query, displayName, responseObj, player)
 		UI.setValue("splashQueryText_Option" .. i, "")
 	end
 
-	Wait.time(function()
-		log({visibility = UI.getAttribute("splashQuery", "visibility")})
-		UI.show("splashQuery") end
-	, 2)
+	UI.show("splashQuery")
+
+	return function() return currentQuery.response ~= nil end
 end
 
 return MSG

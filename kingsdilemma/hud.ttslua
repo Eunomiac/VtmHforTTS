@@ -78,7 +78,7 @@ local TESTFUNCS = {
 		for i = 1, lineCount do
 			table.insert(msgTable, "This is line " .. i)
 		end
-		MSG.Splash(msgTable, "ALL", 10)
+		MSG.Splash(msgTable, "All", 10)
 
 
 		-- local queryResponse = {Yes = "true", No = "false"}

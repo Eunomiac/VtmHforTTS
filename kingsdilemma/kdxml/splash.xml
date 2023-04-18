@@ -1,75 +1,145 @@
 <Defaults>
-	<Panel class="splash-screen"
-		color = "rgba(0, 0, 0, 0.75)"
-		offsetXY = "0 75"
+	<Panel class="splash-panel"
+		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
-		scale = "1.25 1.25 1.25" />
-	<Panel class="splash"
-		height = "400"
-		width = "2000"
-		rectAlignment = "UpperCenter"
-		offsetXY = "0 0"
+		animationDuration = "0.5"
+		childForceExpandHeight = "false"
+		childAlignment = "MiddleCenter"
+		padding = "5 5 5 5" />
+
+	<VerticalLayout class="splash-root"
+		spacing = "0"
+		rectAlignment = "MiddleCenter"
+		childAlignment = "UpperCenter"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
 		animationDuration = "0.5" />
-	<Panel class="intro-splash" showAnimation = "" hideAnimation = "" rectAlignment = "MiddleCenter" offsetXY = "0 0" />
-	<Panel class="splash-text"
-		height = "60"
-		width = "2000"
-		showAnimation = "FadeIn"
-		hideAnimation = "FadeOut"
-		animationDuration = "0.5" />
-	<Panel class="splash-intro-text" height = "100" />
+	<VerticalLayout class="splash"
+		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
+		childAlignment = "MiddleCenter" />
 
 	<Image class="splash-top"
-		ignoreLayout = "true"
-		height = "270"
-		width = "2000"
-		rectAlignment = "UpperCenter"
-		offsetXY = "0 20"
-		image = "splash-top" />
+		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
+		preferredHeight = "100" flexibleHeight = "0" minHeight = "100"
+		image = "splash-border-above" />
 	<Image class="splash-bottom"
+		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
+		preferredHeight = "100" flexibleHeight = "0" minHeight = "100"
+		image = "splash-border-under" />
+	<Image class="splash-bg"
 		ignoreLayout = "true"
-		height = "270"
-		width = "2000"
-		rectAlignment = "LowerCenter"
-		offsetXY = "0 -30"
-		image = "splash-bottom" />
-	<Image class="intro-top" offsetXY="0 25" />
-	<Image class="intro-bottom" offsetXY="0 -35" />
-	<Image class="query-top" image="splash-top-noshadow" offsetXY="0 50" />
-	<Image class="query-bottom" image="splash-bottom-noshadow" offsetXY="0 -50" />
+		preserveAspect = "false"
+		height = "100%"
+		width = "150%"
+		image = "splash-bg" />
 
 	<Text class="splash"
 		alignment = "MiddleCenter"
 		font = "Fonts/Friz"
-		rectAlignment = "MiddleCenter"
-		resizeTextForBestFit = "False"
-		fontSize = "60"
-		color = "White"
-		shadow = "Black"
-		active = "True"
+		resizeTextForBestFit = "false"
+		fontSize = "40"
+		showAnimation = ""
+		hideAnimation = ""
+		animationDuration = "0"
+		preferredWidth = "1000" minWidth = "1000"
+		color = "rgba(1,1,1,1)"
+		shadow = "rgba(0,0,0,1)"
 		shadowDistance = "1 -1"
 		verticalOverflow = "Overflow"
-		horizontalOverflow = "Overflow"
-		showAnimation = "FadeIn"
-		hideAnimation = "FadeOut"
-		animationDuration = "0.25" />
-	<Text class="splash-intro" font="Fonts/FrizSC" fontStyle="Bold" alignment = "UpperCenter" />
-	<Text class="subtitle" alignment = "LowerCenter" rectAlignment = "LowerCenter" height = "30" fontSize = "30" />
-	<Text class="splash-query" fontSize = "40" />
+		horizontalOverflow = "Wrap" />
+</Defaults>
 
-	<VerticalLayout class="splash-query"
-		height = "400"
-		width = "2000"
-		offsetXY = "0 0"
+<Defaults> <!-- Splash Screen Defaults -->
+	<Panel class="splash-screen"
+		offsetXY = "0 100"
+		color = "rgba(0, 0, 0, 0.95)"
+		scale = "1.25 1.25 1.25" />
+</Defaults>
+<Panel id="splashScreen" class="splash-panel splash-screen" active="true">
+	<VerticalLayout class="splash-root">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_All" class="splash" scale="1.25 1.25 1.25">THE KING'S DILEMMA</Text>
+			<Text id="gameNumText" class="splash" scale="0.7 0.7 0.7"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+</Panel>
+
+<Defaults> <!-- Splash HUD Defaults -->
+	<Panel class="splash-hud" offsetXY = "0 325" />
+</Defaults>
+<Panel id="splashHUD" class="splash-panel splash-hud">
+	<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_All" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+
+	<VerticalLayout id="splashPanel_Brown" class="splash-root" visibility="Brown" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_Brown" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+
+	<VerticalLayout id="splashPanel_Red" class="splash-root" visibility="Red" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_Red" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+
+	<VerticalLayout id="splashPanel_Orange" class="splash-root" visibility="Orange" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_Orange" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+
+	<VerticalLayout id="splashPanel_Yellow" class="splash-root" visibility="Yellow" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_Yellow" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+
+	<VerticalLayout id="splashPanel_Green" class="splash-root" visibility="Green" active="false">
+		<Image class="splash-top" />
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashText_Green" class="splash"></Text>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
+	</VerticalLayout>
+</Panel>
+
+<Defaults> <!-- Splash Query Defaults -->
+	<Panel class="splash-query"
+		offsetXY = "-400 350"
+		scale = "0.6 0.6 0.6" />
+	<Text class="player-prompt"
 		rectAlignment = "UpperCenter"
-		childAlignment = "MiddleCenter"
-		childForceExpandWidth = "true"
-		childForceExpandHeight = "false"
-		showAnimation = "FadeIn"
-		hideAnimation = "FadeOut"
-		animationDuration = "0.5" />
+		ignoreLayout = "true"
+		color = "#FFFFFF"
+		font = "Fonts/CinzelBB"
+		alignment = "UpperCenter"
+		shadow = "#000000"
+		shadowDistance = "2 -2"
+		fontSize = "70" />
+
 	<HorizontalLayout class="splash-query"
 		preferredHeight = "60" flexibleHeight = "0"
 		padding = "10"
@@ -77,122 +147,57 @@
 		childAlignment = "UpperCenter"
 		childForceExpandWidth = "false"
 		childForceExpandHeight = "false" />
-	<Panel class="splash-query"
+	<Panel class="splash-option"
 		preferredHeight = "40" flexibleHeight = "0"
 		preferredWidth = "200" flexibleWidth = "0" />
-	<Image class="splash-query"
-		height = "40"
-		width = "200"
-		color = "#997700"
-		rectAlignment = "MiddleCenter"
+	<Image class="splash-option"
+		color = "#99770088"
 		image = "button-bg"
-		raycastTarget = "True"
+		raycastTarget = "true"
     onMouseDown="HUD_Click"
     onMouseEnter="HUD_HoverOn"
 		onMouseExit="HUD_HoverOff" />
 	<Text class="splash-option"
+		color = "#FFFFFF88"
 		alignment = "MiddleCenter"
 		font = "Fonts/CinzelBB"
 		fontSize = "25" />
-	<Text class="player-prompt"
-		rectAlignment = "UpperCenter"
-		ignoreLayout = "true"
-		font = "Fonts/CinzelBB"
-		alignment = "UpperLeft"
-		offsetXY = "400 -40"
-		fontSize = "70" />
 
 	<Panel class="splash-query-container"
 		rectAlignment = "UpperLeft"
 		offsetXY = "-50 -50"
 		scale = "0.6 0.6 0.6" />
-
-
-
-
-
 </Defaults>
-
-<Panel id="splashScreen" class="splash-screen" active="true">
-	<Panel class="splash intro-splash">
-		<Image class="splash-top intro-top" />
-		<Image class="splash-bottom intro-bottom" />
-		<Panel class="splash-text splash-intro-text">
-			<Text class="splash splash-intro">The King's Dilemma</Text>
-			<Text id="gameNumText" class="splash subtitle"></Text>
-		</Panel>
-	</Panel>
-</Panel>
-
-<Panel id="splashHUD">
-	<Panel id="splashPanel_Brown" class="splash" visibility="Brown" active="false">
+<Panel id="splashQuery" class="splash-panel splash-query" active="false">
+	<VerticalLayout class="splash-root">
 		<Image class="splash-top" />
-		<Image class="splash-bottom" />
-		<Panel id="splashTextContainer_Brown" class="splash-text">
-			<Text id="splashText_Brown" class="splash"></Text>
-		</Panel>
-	</Panel>
-
-	<Panel id="splashPanel_Red" class="splash" visibility="Red" active="false">
-		<Image class="splash-top" />
-		<Image class="splash-bottom" />
-		<Panel id="splashTextContainer_Red" class="splash-text">
-			<Text id="splashText_Red" class="splash"></Text>
-		</Panel>
-	</Panel>
-
-	<Panel id="splashPanel_Orange" class="splash" visibility="Orange" active="false">
-		<Image class="splash-top" />
-		<Image class="splash-bottom" />
-		<Panel id="splashTextContainer_Orange" class="splash-text">
-			<Text id="splashText_Orange" class="splash"></Text>
-		</Panel>
-	</Panel>
-
-	<Panel id="splashPanel_Yellow" class="splash" visibility="Yellow" active="false">
-		<Image class="splash-top" />
-		<Image class="splash-bottom" />
-		<Panel id="splashTextContainer_Yellow" class="splash-text">
-			<Text id="splashText_Yellow" class="splash"></Text>
-		</Panel>
-	</Panel>
-
-	<Panel id="splashPanel_Green" class="splash" visibility="Green" active="false">
-		<Image class="splash-top" />
-		<Image class="splash-bottom" />
-		<Panel id="splashTextContainer_Green" class="splash-text">
-			<Text id="splashText_Green" class="splash"></Text>
-		</Panel>
-	</Panel>
-</Panel>
-
-<Panel id="splashQuery" class="splash-query-container" active="false">
-	<VerticalLayout class="splash-query">
-		<Image class="splash-top query-top" />
-		<Image class="splash-bottom query-bottom" />
 		<Text id="splashQueryPlayerPrompt" class="splash player-prompt"></Text>
-		<Text id="splashQueryPrompt" class="splash splash-query"></Text>
-		<HorizontalLayout class="splash-query">
-			<Panel id="splashQueryContainer_Option1" class="splash-query" active="false">
-				<Image id="splashQuery_Option1" class="splash-query" image="button-bg" />
-				<Text id="splashQueryText_Option1" class="splash-text splash-option"></Text>
-			</Panel>
-			<Panel id="splashQueryContainer_Option2" class="splash-query" active="false">
-				<Image id="splashQuery_Option2" class="splash-query" image="button-bg" />
-				<Text id="splashQueryText_Option2" class="splash-text splash-option"></Text>
-			</Panel>
-			<Panel id="splashQueryContainer_Option3" class="splash-query" active="false">
-				<Image id="splashQuery_Option3" class="splash-query" image="button-bg" />
-				<Text id="splashQueryText_Option3" class="splash-text splash-option"></Text>
-			</Panel>
-			<Panel id="splashQueryContainer_Option4" class="splash-query" active="false">
-				<Image id="splashQuery_Option4" class="splash-query" image="button-bg" />
-				<Text id="splashQueryText_Option4" class="splash-text splash-option"></Text>
-			</Panel>
-			<Panel id="splashQueryContainer_Option5" class="splash-query" active="false">
-				<Image id="splashQuery_Option5" class="splash-query" image="button-bg" />
-				<Text id="splashQueryText_Option5" class="splash-text splash-option"></Text>
-			</Panel>
-		</HorizontalLayout>
+		<VerticalLayout class="splash">
+			<Image class="splash-bg" />
+			<Text id="splashQueryPrompt" class="splash"></Text>
+			<HorizontalLayout class="splash-query">
+				<Panel id="splashQueryContainer_Option1" class="splash-option" active="false">
+					<Image id="splashQuery_Option1" class="splash-option" />
+					<Text id="splashQueryText_Option1" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option2" class="splash-option" active="false">
+					<Image id="splashQuery_Option2" class="splash-option" />
+					<Text id="splashQueryText_Option2" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option3" class="splash-option" active="false">
+					<Image id="splashQuery_Option3" class="splash-option" />
+					<Text id="splashQueryText_Option3" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option4" class="splash-option" active="false">
+					<Image id="splashQuery_Option4" class="splash-option" />
+					<Text id="splashQueryText_Option4" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option5" class="splash-option" active="false">
+					<Image id="splashQuery_Option5" class="splash-option" />
+					<Text id="splashQueryText_Option5" class="splash splash-option"></Text>
+				</Panel>
+			</HorizontalLayout>
+		</VerticalLayout>
+		<Image class="splash-bottom" />
 	</VerticalLayout>
 </Panel>

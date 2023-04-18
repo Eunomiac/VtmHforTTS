@@ -1,6 +1,6 @@
 local C = {}
 
-C.SeatAngleSpan = 220
+C.SeatAngleSpan = 180
 
 C.TableRadius = 57
 
@@ -598,27 +598,20 @@ C.Spots = {
 	}
 }
 
-C.Colors = {
-	AmbientLight = Color(0.5, 0.5, 0.5, 1),
-	StabilityToken = {
-		center = Color(1, 1, 1, 1),
-		half = Color(1, 0.8, 0.5, 1),
-		ends = Color(1, 0, 0, 1)
-	},
-	Balance = Color(1, 0.9, 0.25, 1),
+C.RootColors = {
 	Amber = Color(1, 0.67, 0, 1),
-	Yellow = Color(1, 0.88, 0, 1),
-	Blue = Color(0, 1, 1, 1),
-	Red = Color(1, 0, 0, 1),
-	White = Color(1, 1, 1, 1),
-	Black = Color(0, 0, 0, 1),
-	MedBlack = Color(0.2, 0.2, 0.2, 1),
-	Grey = Color(0.5, 0.5, 0.5, 1),
-	Purple = Color(0.627, 0.125, 0.941, 1)
+	PureBlack = Color(0, 0, 0, 1),
+	PureRed = Color(1, 0, 0, 1),
+	PureBlue = Color(0, 0, 1, 1)
 }
 
-C.rotFaceDown = {0, 0, 0}
-C.rotFaceUp = {0, 180, 0}
+C.Colors = {
+	StabilityToken = {
+		center = Color.White,
+		half = Color(C.RootColors.Amber),
+		ends = Color(C.RootColors.PureRed)
+	}
+}
 
 C.scanData = {
 	Blodyn = {

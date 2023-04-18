@@ -21,7 +21,7 @@
 		width = "2000"
 		rectAlignment = "UpperCenter"
 		offsetXY = "0 20"
-		image = "splash-top-noshadow" />
+		image = "splash-top" />
 
 	<Text class="turn-HUD"
 		alignment = "MiddleCenter"

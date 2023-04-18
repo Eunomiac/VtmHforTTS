@@ -46,6 +46,9 @@ console.autoexec = U.join(autoExecString, ";")
 
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
+
+	-- U.forEach(C.RootColors, function(color, name) Color.Add(name, color) end)
+	-- log({PureBlack = C.RootColors.PureBlack})
 	console.load()
 
 	S.InitializeGameState(save_data)

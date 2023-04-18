@@ -117,7 +117,7 @@ function P.SetCamera(cameraMode, playerRef, playerCamRef)
 	end
 	local cameraData = U.clone(C.CameraAngles[cameraMode])
 
-	if cameraData.isPlayerAngle then
+	if cameraData.isPlayerAngle and S.getPlayerAngle(player) then
 		cameraData.position = Vector(cameraData.position):rotateOver("y", S.getPlayerAngle(player))
 		cameraData.yaw = S.getPlayerAngle(player) + cameraData.yaw
 		cameraData.isPlayerAngle = nil

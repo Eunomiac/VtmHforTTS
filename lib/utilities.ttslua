@@ -194,6 +194,7 @@ function U.findSnapPoint(snapPoints, pos, fuzziness)
 end
 
 function U.GetHex(color, newAlpha)
+	U.Val("U.GetHex()", color, color ~= nil, "Color is nil!")
 	if newAlpha ~= nil then
 		color = Color(color):setAt("a", newAlpha)
 	end
@@ -943,11 +944,11 @@ function U.RunSequence(funcs, maxWait, frequency)
 
 	local function runNextFunc(lastFuncReturnTest)
 		local thisFunc = U.shift(funcs)
-		if thisFunc == nil then
-			isDone = true
-			return
-		end
 		U.waitUntil(function()
+			if thisFunc == nil then
+				isDone = true
+				return
+			end
 			runNextFunc(thisFunc())
 		end, lastFuncReturnTest, false, maxWait, frequency)
 	end
