@@ -79,29 +79,33 @@ function U.isObjectAbove(obj, testObj, params)
 	return #U.findAboveObject(obj, testObj, params) > 0
 end
 
-function U.getScatterPosition(boundsOrObj, yShift, padPercent)
+function U.getScatterPosition(boundsOrPosOrObj, yShift, padPercentOrDiameter)
 	if yShift == nil then yShift = 2 end
-	if padPercent == nil then padPercent = 0 end
+	if padPercentOrDiameter == nil then padPercentOrDiameter = 0 end
 	local center, size
-	if U.Type(boundsOrObj) == "userdata" then
-		if boundsOrObj.type == "Scripting" then
-			boundsOrObj = {
-				center = boundsOrObj.getPosition(),
-				size = boundsOrObj.getScale()
+	if U.Type(boundsOrPosOrObj) == "userdata" then
+		if boundsOrPosOrObj.type == "Scripting" then
+			boundsOrPosOrObj = {
+				center = boundsOrPosOrObj.getPosition(),
+				size = boundsOrPosOrObj.getScale()
 			}
 		else
-			boundsOrObj = boundsOrObj.getBounds()
+			boundsOrPosOrObj = boundsOrPosOrObj.getBounds()
 		end
 	end
-	if U.Type(boundsOrObj) == "table" and boundsOrObj.center ~= nil and boundsOrObj.size ~= nil then
-		center = Vector(boundsOrObj.center):add(Vector(0, yShift, 0))
-		size = boundsOrObj.size
+	if U.Type(boundsOrPosOrObj) == "table" and boundsOrPosOrObj.center ~= nil and boundsOrPosOrObj.size ~= nil then
+		center = Vector(boundsOrPosOrObj.center):add(Vector(0, yShift, 0))
+		size = boundsOrPosOrObj.size
+	elseif U.Type(boundsOrPosOrObj) == "table" and boundsOrPosOrObj.x ~= nil and boundsOrPosOrObj.y ~= nil and boundsOrPosOrObj.z ~= nil then
+		center = Vector(boundsOrPosOrObj)
+		size = Vector(padPercentOrDiameter * 2, 0, padPercentOrDiameter * 2)
+		padPercentOrDiameter = 0
 	else
-		U.AlertGM("[U.scatterObjects] Error: Must provide an object or a table with 'center' and 'size'.")
+		U.AlertGM("[U.scatterObjects] Error: Must provide a position, an object, or a table with 'center' and 'size'.")
 		return
 	end
-	local spanX = size.x * (1 - padPercent)
-	local spanZ = size.z * (1 - padPercent)
+	local spanX = size.x * (1 - padPercentOrDiameter)
+	local spanZ = size.z * (1 - padPercentOrDiameter)
 	local mins = Vector(
 		center.x - 0.5 * spanX,
 		center.y,
@@ -565,7 +569,10 @@ function U.shift(arr)
 	return table.remove(arr, 1)
 end
 function U.unshift(elem, arr) table.insert(arr, 1, elem) end
-
+function U.pluck(arr, func)
+	local index = U.findIndex(arr, func)
+	return table.remove(arr, index)
+end
 
 function U.flatten(tb)
 	local newTable = {}
@@ -586,6 +593,12 @@ function U.find(tb, func)
     if (func(v,k)) then return v end
   end
   return nil
+end
+
+function U.sumVals(tb)
+	local total = 0
+	U.forEach(U.getValues(tb), function(v) total = total + v end)
+	return total
 end
 
 function U.findIndex(tb, func)
@@ -799,6 +812,18 @@ function U.roundTableVals(tb, sigDigits)
   return newTable
 end
 
+function U.cycle(val, min, max)
+	local cycleRange = max - min
+	while val > max do
+		val = val - cycleRange
+	end
+	while val < min do
+		val = val + cycleRange
+	end
+	return val
+end
+
+
 function U.getValues(tb)
 	local values = {}
 	for _, val in pairs(tb) do
@@ -1006,17 +1031,6 @@ end
 --         - nil: wait the default delay of 0.5 seconds
 --         - a function: waits until the function returns 'true'
 --         - a table of the above: waits until ALL are passed (so a number would represent minimum amount of time to wait)
-
-function U.cycle(val, min, max)
-	local cycleRange = max - min
-	while val > max do
-		val = val - cycleRange
-	end
-	while val < min do
-		val = val + cycleRange
-	end
-	return val
-end
 
 function U.sequence(funcs, timeDelay)
 	timeDelay = timeDelay or 0.5 -- Set default value if none provided

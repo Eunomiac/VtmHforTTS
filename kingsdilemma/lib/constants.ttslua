@@ -64,7 +64,11 @@ C.Phases = {
 		Discussion = "Discussion",
 		Vote = "Vote",
 		VoteResolution = "VoteResolution",
-		DilemmaResolution = "DilemmaResolution",
+		DisplayOutcome = "DisplayOutcome",
+		ApplyChanges = "ApplyChanges",
+		ApplyMomentum = "ApplyMomentum",
+		StickerCheck = "StickerCheck",
+		EnvelopeCheck = "EnvelopeCheck",
 		EndRound = "EndRound"
 	},
 	END = {
@@ -159,8 +163,14 @@ C.CameraAngles = {
 		distance = 75
 	},
 	DilemmaDraw = {
-		position = Vector({0,13.11,50.15}),
+		position = Vector({0,13.11,30.15}),
 		pitch = 1.51,
+		yaw = 0,
+		distance = 75
+	},
+	DilemmaResult = {
+		position = Vector({0,0,40}),
+		pitch = 14.34,
 		yaw = 0,
 		distance = 75
 	},

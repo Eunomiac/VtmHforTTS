@@ -1,6 +1,7 @@
 require("vscode/console")
 local O = require("kingsdilemma.lib.objects")
 local U = require("lib.utilities")
+local OU = require("kingsdilemma.objects.objUtilities")
 local S = require("kingsdilemma.core.state")
 local C = require("kingsdilemma.lib.constants")
 local L = require("kingsdilemma.core.lighting")
@@ -121,6 +122,28 @@ function onPlayerTurnStart(pColor)
 	P.SetCamera("BehindScreen", pColor, "Brown")
 end
 
+function onPlayerAction(player, action, targets)
+	if action == Player.Action.Delete and #targets > 0 then
+		local coinOrPower = U.filter(
+			targets,
+			function(obj) return U.hasAnyTag(obj, {"PowerToken", "CoinToken"}) end
+		)
+
+		if #coinOrPower == 0 then return false end
+
+		if #coinOrPower == 1 then
+			OU.SplitObjByValue(coinOrPower[1])
+		else
+			OU.CombineObjsByValue(coinOrPower)
+		end
+
+		return false
+	end
+
+	return true
+end
+
+
 local function getBoundedPos(obj, xMin, xMax, zMin, zMax)
 	local pos = obj.getPosition()
 	if pos.x > xMax then pos.x = xMax end
@@ -129,8 +152,6 @@ local function getBoundedPos(obj, xMin, xMax, zMin, zMax)
 	if pos.z < zMin then pos.z = zMin end
 	return Vector(pos)
 end
-
-
 
 function onObjectDrop(pColor, obj)
 	if obj.hasTag("DebugObj") then return end
@@ -186,7 +207,9 @@ function onObjectDrop(pColor, obj)
 		-- 	end
 
 		U.RunSequence({
-			function() return {obj, 0.1} end,
+			function()
+				return {obj, 0.1}
+			end,
 			function()
 				obj.setPosition(getBoundedPos(
 					obj,
@@ -202,6 +225,7 @@ function onObjectDrop(pColor, obj)
 	elseif obj.hasTag("ResourceMarker") then
 		local resource = U.find({"Influence", "Wealth", "Morale", "Welfare", "Knowledge"}, function(res) return obj.hasTag(res) end)
 		if resource == nil then return end
+
 		U.RunSequence({
 			function() return {obj, 0.1} end,
 			function()
@@ -212,9 +236,15 @@ function onObjectDrop(pColor, obj)
 					C.Spots.Board.ResourceTokens[resource].bottom.position.z,
 					C.Spots.Board.ResourceTokens[resource].top.position.z
 				))
+				if S.isInMode(C.Modes.PLAY) then
+					DIR.BumpToken("Stability", DIR.GetStabilityBump())
+				end
 				return obj
 			end,
 			function()
+				if S.isInMode(C.Modes.PLAY) then
+					DIR.UpdateTokenLight("Stability")
+				end
 				return DIR.UpdateTokenLight(resource)
 			end
 		})

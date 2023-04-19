@@ -171,7 +171,7 @@ function UpdateXMLTable()
 				tag = "Image",
 				attributes = {
 					image = icon,
-					color = U.GetHex(iconColor:setAt("a", 0.25)),
+					color = U.GetHex(iconColor:setAt("a", 0.75)),
 					ignoreLayout = "True",
 					rectAlignment = "MiddleCenter",
 					height = "300",

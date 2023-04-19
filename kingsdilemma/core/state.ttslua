@@ -405,9 +405,7 @@ end
 
 function S.getPlayerVoteStatus(playerRef) return S.getPlayerTurnVal(playerRef, "vote") end
 
-function S.getPlayerPowerCommitted(playerRef)
-
-end
+function S.getPlayerPowerCommitted(playerRef) return S.getPlayerTurnVal(playerRef, "powerCommitted") end
 
 -- function S.getPlayer(playerRef)
 

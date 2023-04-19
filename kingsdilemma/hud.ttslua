@@ -61,13 +61,6 @@ local TESTFUNCS = {
 			Wait.time(function() DIR.BumpToken("Stability", tokenCount * -1) end, 3)
 		end
 	end,
-	Dilemma = function(button)
-		if button == "-2" then
-			DIR.ResolveDilemma(({"Aye", "Nay"})[U.randBetween(1, 2, true)])
-		else
-			DIR.DrawDilemmaCard()
-		end
-	end,
 	Messaging = function(button)
 		if button == "-2" then
 			lineCount = 1
@@ -273,6 +266,11 @@ function HUD_HoverOn(player, returnString, id)
 	if string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOn(player, houseName)
+	elseif string.match(id, "^splashQuery_") then
+		--"#99770088"   --"#FFFFFF88"
+		local optionRef = string.gsub(id, "^splashQuery_", "")
+		UI.setAttribute(id, "color", "#FFD700FF")
+		UI.setAttribute("splashQueryText_" .. optionRef, "color", "#FFFFFFFF")
 	end
 end
 
@@ -280,6 +278,11 @@ function HUD_HoverOff(player, returnString, id)
 	if string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOff(player, houseName)
+	elseif string.match(id, "^splashQuery_") then
+		--"#99770088"   --"#FFFFFF88"
+		local optionRef = string.gsub(id, "^splashQuery_", "")
+		UI.setAttribute(id, "color", "#FFD70011")
+		UI.setAttribute("splashQueryText_" .. optionRef, "color", "#FFFFFF44")
 	end
 end
 

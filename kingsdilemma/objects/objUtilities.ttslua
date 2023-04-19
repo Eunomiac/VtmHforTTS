@@ -1,5 +1,6 @@
 local U = require("lib.utilities")
 local C = require("kingsdilemma.lib.constants")
+local O = require("kingsdilemma.lib.objects")
 local OU = {}
 
 function OU.foldTransform(objOrTransform, positionDelta, rotationDelta)
@@ -88,6 +89,108 @@ function OU.unfoldTransform(objOrTransform, positionDelta, rotationDelta)
 		}
 	end
 end
+
+function OU.SpawnToken(objOrBounds, tokenType, tokenValue, yShift)
+	if yShift == nil then yShift = 3 end
+	local sourceObj
+	if tokenType == "Power" then
+		sourceObj = O.SpawnSources["powerToken" .. tokenValue]()
+	elseif tokenType == "Coin" then
+		sourceObj = O.SpawnSources["coinToken" .. tokenValue]()
+	end
+	local spawnData = sourceObj.getData()
+	spawnData.Value = tokenValue
+	spawnData.Transform = OU.unfoldTransform({
+		position = U.getScatterPosition(objOrBounds, yShift, 0.6),
+		rotation = U.isGameObject(objOrBounds) and objOrBounds.getRotation() or Vector(0, 0, 0),
+		scale = sourceObj.getScale()
+	})
+	spawnData.Tags = {tokenType .. "Token", "Value" .. tokenValue}
+	spawnObjectData({
+		data = spawnData,
+		callback_function = function(obj)
+			obj.setLock(false)
+		end
+	})
+	return 0.1
+end
+
+function OU.GetTotalValue(zoneOrObjs, tag)
+	if type(zoneOrObjs) == "userdata" then return OU.GetTotalValue(zoneOrObjs.getObjects(), tag) end
+	if tag ~= nil then zoneOrObjs = U.filter(zoneOrObjs, function(obj) return obj.hasTag(tag) end) end
+	local total = 0
+	U.forEach(zoneOrObjs, function(obj) total = total + obj.value end)
+	return total
+end
+function OU.GetUpValueData(objs, tag)
+	objs = U.filter(objs, function(obj) return obj.hasTag(tag) end)
+
+	local totalValue = OU.GetTotalValue(objs, tag)
+
+	if tag == "CoinToken" then
+		return {
+			coinToken5 = math.floor(totalValue / 5),
+			coinToken1 = totalValue - (5 * math.floor(totalValue / 5))
+		}
+	elseif tag == "PowerToken" then
+		log({
+			totalValue = totalValue,
+			powerToken10 = math.floor(totalValue / 10),
+			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
+			powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
+		})
+		return {
+			powerToken10 = math.floor(totalValue / 10),
+			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
+			powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
+		}
+	else
+		return {}
+	end
+end
+function OU.GetDownValueData(obj)
+	if obj.hasTag("CoinToken") then
+		if obj.value == 5 then
+			return 1, O.SpawnSources.coinToken1(), {"CoinToken", "Value1"}
+		end
+	elseif obj.hasTag("PowerToken") then
+		if obj.value == 10 then
+			return 5, O.SpawnSources.powerToken5(), {"PowerToken", "Value5"}
+		elseif obj.value == 5 then
+			return 1, O.SpawnSources.powerToken1(), {"PowerToken", "Value1"}
+		end
+	end
+	return false, false, false
+end
+
+function OU.GetNumObjsByVal(objs, val, tag)
+	return #U.filter(objs, function(obj) return obj.hasTag(tag) and obj.value == val end)
+end
+
+function OU.GetNumCombinedObjs(objs)
+	return {
+		power = U.sumVals(OU.GetUpValueData(objs, "PowerToken")),
+		coin = U.sumVals(OU.GetUpValueData(objs, "CoinToken"))
+	}
+end
+
+function OU.GetNumSplitObjs(objs)
+	return {
+		power = U.sumVals(
+			U.map(
+				U.filter(objs, function(o) return o.hasTag("PowerToken") end),
+				function(pToken) return OU.GetDownValueData(pToken) or 0 end
+			)
+		),
+		coin = U.sumVals(
+			U.map(
+				U.filter(objs, function(o) return o.hasTag("CoinToken") end),
+				function(cToken) return OU.GetDownValueData(cToken) or 0 end
+			)
+		)
+	}
+end
+
 function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, rotationDelta)
 	local spawnData = sourceObj.getData()
 	local token
@@ -102,13 +205,24 @@ function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, ro
 	})
 	return function() return token ~= nil and token.resting and not token.loading_custom end
 end
-function OU.TransferObjects(fromZone, toZone, tag)
+function OU.JumpDestroy(obj, delayTime)
+	delayTime = delayTime or 0.5
+	obj.setPosition(obj.getPosition():add(Vector(0, 1, 0)))
+	obj.addForce(Vector(0, 50, 0), 3)
+	Wait.time(function() obj.destruct() end, delayTime)
+	return delayTime
+end
+
+function OU.TransferObjects(fromZone, toZone, tag, amount)
+
 	local objs = fromZone.getObjects()
 	if tag ~= nil then
 		objs = U.filter(objs, function(obj) return obj.hasTag(tag) end)
 	end
 	local toZoneBounds = toZone.getBounds()
 	toZoneBounds.size = toZone.getScale()
+
+	amount = amount or #objs
 
 	local function transferObj(obj)
 		obj.setPosition(obj.getPosition():add(Vector(0, 1, 0)))
@@ -118,11 +232,153 @@ function OU.TransferObjects(fromZone, toZone, tag)
 		end, 0.5)
 	end
 
-	U.sequence(U.map(objs, function(obj)
-		return function() transferObj(obj) end
-	end), 0.15)
+	local seqFuncs = {}
+
+	for i = 1, amount do
+		local obj = U.shift(objs)
+		table.insert(seqFuncs, function() transferObj(obj) end)
+	end
+
+	U.sequence(seqFuncs, 0.15)
+end
+
+function OU.SplitObjByValue(obj)
+	local newValue, spawnSource, tags = OU.GetDownValueData(obj)
+	if spawnSource == false then return 0 end
+
+	local position = obj.getPosition()
+
+	local seqFuncs = {
+		function() OU.JumpDestroy(obj, 0.25) end
+	}
+
+	for i = 1, obj.value / newValue do
+		table.insert(seqFuncs, function()
+			OU.SpawnFromSourceObj(spawnSource, tags, {
+				position = U.getScatterPosition(Vector(position), 1, 1),
+				rotation = spawnSource.getRotation(),
+				scale = spawnSource.getScale()
+			})
+		end)
+	end
+
+	return U.sequence(seqFuncs, 0.15)
+end
+
+function OU.CombineObjsByValue(objs)
+	local powerObjs = U.filter(objs, function(obj) return obj.hasTag("PowerToken") end)
+	local coinObjs = U.filter(objs, function(obj) return obj.hasTag("CoinToken") end)
+
+	local function getAvgCoord(os, coord)
+		local coordTotal = 0
+		U.forEach(os, function(obj) coordTotal = coordTotal + obj.getPosition()[coord] end)
+		return coordTotal / #os
+	end
+
+	local position = Vector(getAvgCoord(objs, "x"), getAvgCoord(objs, "y"), getAvgCoord(objs, "z"))
+	local spawnDataPower = OU.GetUpValueData(powerObjs, "PowerToken")
+	local spawnDataCoin = OU.GetUpValueData(coinObjs, "CoinToken")
+
+	local seqFuncs = {}
+
+	for i = 1, #powerObjs do
+		table.insert(seqFuncs, function() OU.JumpDestroy(powerObjs[i], 0.25) end)
+	end
+	U.iForEach({1, 5, 10}, function(val)
+		local spawnDataKey = "powerToken" .. val
+		if spawnDataPower[spawnDataKey] == nil then return end
+		local spawnSource = O.SpawnSources[spawnDataKey]()
+		local tags = {"PowerToken", "Value" .. val}
+		for i = 1, spawnDataPower[spawnDataKey] do
+			table.insert(seqFuncs, function()
+				OU.SpawnFromSourceObj(spawnSource, tags, {
+					position = U.getScatterPosition(Vector(position), 1, 1),
+					rotation = spawnSource.getRotation(),
+					scale = spawnSource.getScale()
+				})
+			end)
+		end
+	end)
+	for i = 1, #coinObjs do
+		table.insert(seqFuncs, function() OU.JumpDestroy(coinObjs[i], 0.25) end)
+	end
+	U.iForEach({1, 5}, function(val)
+		local spawnDataKey = "coinToken" .. val
+		if spawnDataCoin[spawnDataKey] == nil then return end
+		local spawnSource = O.SpawnSources[spawnDataKey]()
+		local tags = {"CoinToken", "Value" .. val}
+		for i = 1, spawnDataCoin[spawnDataKey] do
+			table.insert(seqFuncs, function()
+				OU.SpawnFromSourceObj(spawnSource, tags, {
+					position = U.getScatterPosition(Vector(position), 1, 1),
+					rotation = spawnSource.getRotation(),
+					scale = spawnSource.getScale()
+				})
+			end)
+		end
+	end)
+
+	return U.sequence(seqFuncs, 0.15)
+end
+
+function OU.TransferValue(fromZone, toZone, amount, tag)
+	U.Val("OU.TransferValue", fromZone, U.Type(fromZone) == "userdata" and fromZone.type == "Scripting", "From-zone is not a zone.")
+	U.Val("OU.TransferValue", toZones, U.Type(toZone) == "userdata" and toZone.type == "Scripting", "To-zone is not a zone.")
+	U.Val("OU.TransferValue", amounts, amount == "ALL" or U.Type(amount) == "number", "Amount must be 'ALL' or a number.")
+
+	local function jump(val)
+
+
+	end
+
+
+	local fromSplitFuncs, fromJumpFuncs, fromSpawnFuncs = {}, {}, {}
+
+	local fromZoneAmount = amount
+	local fromZoneObjs = U.filter(fromZone.getObjects(), function(obj) return obj.hasTag(tag) end)
+
+	for _, val in ipairs({10, 5, 1}) do
+		while fromZoneAmount >= val and OU.GetNumObjsByVal(fromZoneObjs, val, tag) > 0 do
+			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == val end)
+			table.insert(fromJumpFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
+			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZone, string.gsub(tag, "Token$", ""), val) end)
+			fromZoneAmount = fromZoneAmount - val
+		end
+	end
+
+	if fromZoneAmount > 0 then
+		if fromZoneAmount > 5 and OU.GetNumObjsByVal(fromZoneObjs, 10, tag) > 0 then
+			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 10 end)
+			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
+			fromZoneAmount = fromZoneAmount - 5
+		end
+		if fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, 5, tag) > 0 then
+			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 5 end)
+			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
+			fromZoneAmount = fromZoneAmount - math.min(fromZoneAmount, math.max(5, fromZoneAmount))
+		end
+		if fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, 10, tag) > 0 then
+			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 10 end)
+			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
+			fromZoneAmount = fromZoneAmount - math.min(fromZoneAmount, math.max(10, fromZoneAmount))
+		end
+	end
+
+	if #fromSplitFuncs > 0 then
+		return U.RunSequence({
+			function() return U.sequence(fromSplitFuncs, 0.5) end,
+			function() return OU.TransferValue(fromZone, toZone, fromZoneAmount, tag) end
+		})
+	end
+
+	return U.RunSequence({
+		function() return U.sequence(fromJumpFuncs, 0.15) end,
+		function() return U.sequence(fromSpawnFuncs, 0.25) end,
+		function() return 2 end
+	})
 
 end
+
 function OU.getAngleOf(objOrTransform)
 	local posData = OU.foldTransform(objOrTransform).position
 	local zeroPos = Vector(0, 0, C.TableRadius)

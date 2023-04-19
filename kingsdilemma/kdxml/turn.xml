@@ -21,7 +21,7 @@
 		width = "2000"
 		rectAlignment = "UpperCenter"
 		offsetXY = "0 20"
-		image = "splash-top" />
+		image = "splash-border-above" />
 
 	<Text class="turn-HUD"
 		alignment = "MiddleCenter"
@@ -90,14 +90,14 @@
 		alignment = "MiddleCenter"
 		font = "Fonts/CinzelBB"
 		fontSize = "25" />
-	<Text class="text-with-icon" alignment = "MiddleCenter" />
+	<Text class="text-with-icon" alignment = "UpperCenter" offsetXY="-15 5" />
+	<Text class="small-text" alignment = "LowerCenter" font="Fonts/FrizI" fontSize = "18" offsetXY="-15 -5" />
 	<Image class="turn-HUD-icon"  />
 
 </Defaults>
 
 <Panel id="passTurnHUD" class="turn-HUD-container" active="false">
 	<VerticalLayout class="turn-HUD">
-		<Image class="turn-HUD-top" />
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye" class="turn-HUD-button button-vote-aye" image="button-bg" />
@@ -106,11 +106,13 @@
 			<Panel id="turnHUD_pass_container" class="turn-HUD" active="false">
 				<Image id="turnHUD_pass" class="turn-HUD-button button-pass" image="button-bg" />
 				<Text id="turnHUD_pass_Text" class="turn-HUD turn-HUD-button text-with-icon button-pass">Pass</Text>
+				<Text id="turnHUD_pass_SubText" class="turn-HUD turn-HUD-button text-with-icon small-text button-pass">to Gather Power</Text>
 				<Image id="turnHUD_pass_Icon" class="turn-HUD-icon" image="powerIcon" />
 			</Panel>
 			<Panel id="turnHUD_passMod_container" class="turn-HUD" active="false">
 				<Image id="turnHUD_passMod" class="turn-HUD-button button-pass-mod" image="button-bg" />
 				<Text id="turnHUD_passMod_Text" class="turn-HUD turn-HUD-button text-with-icon button-pass-mod">Pass</Text>
+				<Text id="turnHUD_passMod_SubText" class="turn-HUD turn-HUD-button text-with-icon small-text button-pass">to Become Moderator</Text>
 				<Image id="turnHUD_passMod_Icon" class="turn-HUD-icon turn-moderator-icon" image="moderatorIcon" />
 			</Panel>
 			<Panel id="turnHUD_voteNay_container" class="turn-HUD" active="false">
@@ -119,7 +121,7 @@
 			</Panel>
 			<Panel id="turnHUD_stay_container" class="turn-HUD" active="false">
 				<Image id="turnHUD_stay" class="turn-HUD-button button-stay" image="button-bg" />
-				<Text id="turnHUD_stay_Text" class="turn-HUD turn-HUD-button button-stay">Pass</Text>
+				<Text id="turnHUD_stay_Text" class="turn-HUD turn-HUD-button button-stay">Stay</Text>
 			</Panel>
 		</HorizontalLayout>
 	</VerticalLayout>

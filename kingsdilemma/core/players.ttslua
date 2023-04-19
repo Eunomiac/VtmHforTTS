@@ -117,6 +117,8 @@ function P.SetCamera(cameraMode, playerRef, playerCamRef)
 	end
 	local cameraData = U.clone(C.CameraAngles[cameraMode])
 
+	U.Val("P.SetCamera", cameraMode, cameraData ~= nil, "Not a valid camera mode")
+
 	if cameraData.isPlayerAngle and S.getPlayerAngle(player) then
 		cameraData.position = Vector(cameraData.position):rotateOver("y", S.getPlayerAngle(player))
 		cameraData.yaw = S.getPlayerAngle(player) + cameraData.yaw
@@ -273,55 +275,6 @@ function P.ActivatePlayerScreenHUD(playerRef)
 	return 0.5
 end
 
-local function spawnToken(objOrBounds, tokenType, tokenValue, yShift)
-	if yShift == nil then yShift = 3 end
-	local sourceObj
-	if tokenType == "Power" then
-		sourceObj = O.SpawnSources["powerToken" .. tokenValue]()
-	elseif tokenType == "Coin" then
-		sourceObj = O.SpawnSources["coinToken" .. tokenValue]()
-	end
-	local spawnData = sourceObj.getData()
-	spawnData.Value = tokenValue
-	spawnData.Transform = OU.unfoldTransform({
-		position = U.getScatterPosition(objOrBounds, yShift, 0.3),
-		rotation = U.isGameObject(objOrBounds) and objOrBounds.getRotation() or Vector(0, 0, 0),
-		scale = sourceObj.getScale()
-	})
-	spawnData.Tags = {tokenType .. "Token", "Value" .. tokenValue}
-	spawnObjectData({
-		data = spawnData,
-		callback_function = function(obj)
-			obj.setLock(false)
-		end
-	})
-	return 0.1
-end
-
-local function splitToken(token)
-	local tokenPos = token.getPosition()
-	if tokenPos.y < C.TableHeight + 1 then
-		tokenPos:add(Vector(0, 3, 0))
-	end
-
-	if token.value == 10 then
-		for i = 1, 2 do
-			spawnToken({
-				center = tokenPos,
-				size = Vector(2, 0, 2)
-			}, "Power", 5)
-		end
-		token.destruct()
-	elseif token.value == 5 then
-		for i = 1, 5 do
-			spawnToken({
-				center = tokenPos,
-				size = Vector(2, 0, 2)
-			}, "Power", 1)
-		end
-		token.destruct()
-	end
-end
 
 function P.SpawnPower(playerRef, numPower)
 	local powerZone = P.GetPlayerZone(playerRef, "Power")
@@ -329,15 +282,15 @@ function P.SpawnPower(playerRef, numPower)
 
 	while math.floor(numPower / 10) > 0 and numPower > 10 do
 		numPower = numPower - 10
-		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 10) end)
+		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 10) end)
 	end
 	while math.floor(numPower / 5) > 0 and numPower > 5 do
 		numPower = numPower - 5
-		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 5) end)
+		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 5) end)
 	end
 	while numPower > 0 do
 		numPower = numPower - 1
-		table.insert(seqFuncs, 1, function() return spawnToken(powerZone, "Power", 1) end)
+		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 1) end)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)
@@ -350,11 +303,11 @@ function P.SpawnCoins(playerRef, numCoins)
 
 	while math.floor(numCoins / 5) > 0 and numCoins > 5 do
 		numCoins = numCoins - 5
-		table.insert(seqFuncs, 1, function() return spawnToken(coinZone, "Coin", 5) end)
+		table.insert(seqFuncs, 1, function() return OU.SpawnToken(coinZone, "Coin", 5) end)
 	end
 	while numCoins > 0 do
 		numCoins = numCoins - 1
-		table.insert(seqFuncs, 1, function() return spawnToken(coinZone, "Coin", 1) end)
+		table.insert(seqFuncs, 1, function() return OU.SpawnToken(coinZone, "Coin", 1) end)
 	end
 
 	return U.RunSequence(seqFuncs, nil, 1)

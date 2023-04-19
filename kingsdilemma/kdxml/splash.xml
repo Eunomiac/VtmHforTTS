@@ -13,18 +13,18 @@
 		childAlignment = "UpperCenter"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
+		childForceExpandHeight = "false"
+		padding = "0 0 0 0"
 		animationDuration = "0.5" />
 	<VerticalLayout class="splash"
-		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
-		childAlignment = "MiddleCenter" />
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
+		childAlignment = "UpperCenter" />
 
 	<Image class="splash-top"
-		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
-		preferredHeight = "100" flexibleHeight = "0" minHeight = "100"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		image = "splash-border-above" />
 	<Image class="splash-bottom"
-		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
-		preferredHeight = "100" flexibleHeight = "0" minHeight = "100"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		image = "splash-border-under" />
 	<Image class="splash-bg"
 		ignoreLayout = "true"
@@ -32,6 +32,7 @@
 		height = "100%"
 		width = "150%"
 		image = "splash-bg" />
+	<Image class="intro-bg" height = "134%" />
 
 	<Text class="splash"
 		alignment = "MiddleCenter"
@@ -53,13 +54,13 @@
 	<Panel class="splash-screen"
 		offsetXY = "0 100"
 		color = "rgba(0, 0, 0, 0.95)"
-		scale = "1.25 1.25 1.25" />
+		scale = "1.75 1.75 1.75" />
 </Defaults>
 <Panel id="splashScreen" class="splash-panel splash-screen" active="true">
 	<VerticalLayout class="splash-root">
 		<Image class="splash-top" />
 		<VerticalLayout class="splash">
-			<Image class="splash-bg" />
+			<Image class="splash-bg intro-bg" />
 			<Text id="splashText_All" class="splash" scale="1.25 1.25 1.25">THE KING'S DILEMMA</Text>
 			<Text id="gameNumText" class="splash" scale="0.7 0.7 0.7"></Text>
 		</VerticalLayout>
@@ -141,24 +142,27 @@
 		fontSize = "70" />
 
 	<HorizontalLayout class="splash-query"
-		preferredHeight = "60" flexibleHeight = "0"
+		preferredHeight = "110" flexibleHeight = "0"
 		padding = "10"
 		spacing = "20"
 		childAlignment = "UpperCenter"
 		childForceExpandWidth = "false"
 		childForceExpandHeight = "false" />
 	<Panel class="splash-option"
-		preferredHeight = "40" flexibleHeight = "0"
-		preferredWidth = "200" flexibleWidth = "0" />
+		preferredHeight = "80" flexibleHeight = "0"
+		preferredWidth = "400" flexibleWidth = "0" />
 	<Image class="splash-option"
-		color = "#99770088"
+		preserveAspect = "false"
+		preferredHeight = "80" flexibleHeight = "0"
+		preferredWidth = "400" flexibleWidth = "0"
+		color = "#FFD70011"
 		image = "button-bg"
 		raycastTarget = "true"
     onMouseDown="HUD_Click"
     onMouseEnter="HUD_HoverOn"
 		onMouseExit="HUD_HoverOff" />
 	<Text class="splash-option"
-		color = "#FFFFFF88"
+		color = "#FFFFFF44"
 		alignment = "MiddleCenter"
 		font = "Fonts/CinzelBB"
 		fontSize = "25" />

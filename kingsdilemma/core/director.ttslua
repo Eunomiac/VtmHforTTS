@@ -26,7 +26,7 @@ local function getBoardTokens()
 	return tokens
 end
 
-local function getTokenPositions()
+local function getTokenPositionsFromBoard()
 	local board = O.UninteractableObjs.Board()
 	local boardTokens = getBoardTokens()
 	return {
@@ -39,14 +39,37 @@ local function getTokenPositions()
 	}
 end
 
+local function getTokenPositionsFromState()
+	return {
+		Influence = S.getStateVal("roundState", "boardTokens", "positions", "Influence"),
+		Wealth = S.getStateVal("roundState", "boardTokens", "positions", "Wealth"),
+		Morale = S.getStateVal("roundState", "boardTokens", "positions", "Morale"),
+		Welfare = S.getStateVal("roundState", "boardTokens", "positions", "Welfare"),
+		Knowledge = S.getStateVal("roundState", "boardTokens", "positions", "Knowledge"),
+	}
+end
+
+
+local function getTokenPositionDeltas(startPositions, endPositions)
+	local boardPositions = getTokenPositionsFromBoard()
+	local statePositions = getTokenPositionsFromState()
+	return {
+		Influence = endPositions.Influence - startPositions.Influence,
+		Wealth = endPositions.Wealth - startPositions.Wealth,
+		Morale = endPositions.Morale - startPositions.Morale,
+		Welfare = endPositions.Welfare - startPositions.Welfare,
+		Knowledge = endPositions.Knowledge - startPositions.Knowledge
+	}
+end
+
 local function getTokenMomentum(resource)
 	local startTurnData = S.getStateVal("roundState", "boardTokens")
-	if startTurnData == nil or startTurnData[resource] == nil or startTurnData[resource].momentum == nil then
+	if startTurnData == nil or startTurnData.momentum == nil or startTurnData.momentum[resource] == nil then
 		local token = getBoardTokens().resource[resource]
 		U.Assert("getTokenMomentum", token, "Object")
 		return U.isFlipped(token) and -1 or 1
 	else
-		return startTurnData[resource].momentum
+		return startTurnData.momentum[resource]
 	end
 end
 
@@ -58,6 +81,36 @@ local function getTokenMomentums()
 		Welfare = getTokenMomentum("Welfare"),
 		Knowledge = getTokenMomentum("Knowledge"),
 	}
+end
+
+local function getUnboundTokenPositionsAfterApplyingMomentum()
+	local tokenMomentums = getTokenMomentums()
+	local curTokenPositions = getTokenPositionsFromBoard()
+	local positionDeltas = getTokenPositionDeltas(getTokenPositionsFromState(), curTokenPositions)
+	local newTokenPositions = U.clone(curTokenPositions)
+
+	U.iForEach(C.Resources, function(resource)
+		if tokenMomentums[resource] * positionDeltas[resource] > 0 then
+			-- moving in same direction: apply momentum
+			newTokenPositions[resource] = newTokenPositions[resource] + tokenMomentums[resource]
+		end
+	end)
+
+	return newTokenPositions
+end
+
+local function getStabilityTokenBumpsFromMomentum()
+	return getTokenPositionDeltas(
+		getTokenPositionsFromBoard(),
+		getUnboundTokenPositionsAfterApplyingMomentum()
+	)
+end
+
+local function getResourceTokenBumpsFromMomentum()
+	return getTokenPositionDeltas(
+		getTokenPositionsFromBoard(),
+		getUnboundTokenPositionsAfterApplyingMomentum()
+	)
 end
 
 local function bumpToken(token, unitForceVector, count, lightName)
@@ -97,6 +150,12 @@ local function bumpResourceToken(tokenName, count)
 end
 
 function DIR.BumpToken(tokenName, count)
+	local tokenPos = getTokenPositionsFromBoard()
+	local min, max = 1, tokenName == "Stability" and 19 or 17
+	if tokenName == "Stability" and (tokenPos.Stability == 19 or tokenPos.Stability == 1) then
+		return 0
+	end
+	count = math.max(math.min(count, max - tokenPos[tokenName]), min - tokenPos[tokenName])
 	if tokenName == "Stability" then
 		return bumpStabilityToken(count)
 	elseif U.isIn(tokenName, C.Resources) then
@@ -328,7 +387,7 @@ INITFUNCS = {
 			return {
 				function()
 					S.setStateVal(S.getStateVal("roundState", "roundNum") + 1, "roundState", "roundNum")
-					S.setStateVal(getTokenPositions(), "roundState", "boardTokens", "positions")
+					S.setStateVal(getTokenPositionsFromBoard(), "roundState", "boardTokens", "positions")
 					S.setStateVal(P.GetLeader().color, "roundState", "currentTurn")
 					S.setStateVal(0, "roundState", "ayeTotal")
 					S.setStateVal(0, "roundState", "nayTotal")
@@ -341,6 +400,11 @@ INITFUNCS = {
 			}
 		end,
 		DrawDilemma = function()
+			local coverCard = O.Pieces.CoverCard()
+			local dilemmaSource = U.findBelowObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end)
+			U.Val("DIR.DrawDilemmaCard", dilemmaSource, #dilemmaSource == 1)
+			dilemmaSource = dilemmaSource[1]
+			local dilemmaCard
 			return {
 				function()
 					return {
@@ -348,7 +412,44 @@ INITFUNCS = {
 						MSG.Splash("The Dilemma")
 					}
 				end,
-				DIR.DrawDilemmaCard,
+				function()
+					L.SetLightMode("lightLectern", "spotlightDilemmaDeck")
+					if dilemmaSource.type == "Deck" then
+						dilemmaSource.takeObject({
+							position = C.Spots.Staging.DilemmaDraw.position,
+							rotation = C.Spots.Staging.DilemmaDraw.rotation,
+							top = false,
+							callback_function = function(obj)
+								obj.setLock(true)
+								dilemmaCard = obj
+							end
+						})
+						return function() return dilemmaCard ~= nil end
+					elseif dilemmaSource.type == "Card" then
+						dilemmaCard = dilemmaSource
+						dilemmaCard.setLock(true)
+						return {
+							U.setPositionSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.position),
+							U.setRotationSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.rotation)
+						}
+					end
+				end,
+				function()
+					L.SetLightMode("lightLectern", "off", nil, 0.5)
+					L.SetLightMode("lightDilemmaMain", "on", nil, 2)
+					dilemmaCard.addTag("OnDisplay")
+					return {
+						U.setPositionSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.position, 2, "speedUp"),
+						U.setRotationSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.rotation, 2, "speedUp"),
+						U.setScaleSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.scale, 2, "speedUp")
+					}
+				end,
+				function()
+					return {
+						L.SetLightMode("lightDilemmaAye", "on", nil, 1),
+						L.SetLightMode("lightDilemmaNay", "on", nil, 1)
+					}
+				end,
 				function()
 					UI.setAttribute("consequencesQuery", "visibility", P.GetLeader().color)
 					UI.show("consequencesQuery")
@@ -404,7 +505,8 @@ INITFUNCS = {
 				function()
 					UI.hide("consequencesSidebar")
 					return {
-						L.SetLightMode({"lightBehind", "lightFront"}, "ambient"),
+						L.SetLightMode({"lightBehind"}, "ambient"),
+						L.SetLightMode({"lightFront"}, "dim"),
 						L.SetLightMode({"lightPlayerSpotlight"}, "off")
 					}
 				end,
@@ -415,14 +517,19 @@ INITFUNCS = {
 						local query = {Aye = "Aye", Nay = "Nay"}
 						return U.RunSequence({
 							function()
+								return L.SetLightMode({"lightPlayerSpotlight"}, "player" .. S.getPlayerNum(P.GetModerator()), nil, 1)
+							end,
+							function()
 								if ayeTotal == 0 then
+									MSG.Splash("The decision is the Moderator's to make.")
 									return MSG.SplashQuery(
-										"The decision, and responsibility for its consequences, falls to you.",
+										"Does the proposed resolution succeed?",
 										P.GetModeratorName(),
 										query,
 										P.GetModerator()
 									)
 								else
+									MSG.Splash("The Moderator will break the tie.")
 									return MSG.SplashQuery(
 										"The tie-breaking vote is yours to cast.",
 										P.GetModeratorName(),
@@ -432,6 +539,7 @@ INITFUNCS = {
 								end
 							end,
 							function()
+								L.SetLightMode({"lightPlayerSpotlight"}, "off")
 								S.setStateVal(query.response, "roundState", "voteResult")
 								if ayeTotal == 0 then
 									return {
@@ -458,9 +566,40 @@ INITFUNCS = {
 				end,
 				function()
 					if S.getPlayerVoteStatus(P.GetLeader()) ~= S.getStateVal("roundState", "voteResult") then
-						-- CHECK IF LEADER HELD BY LOSING SIDE
-							-- Yes = Assign Leader to player on Winning Side with Most Power Committed
-								-- IF TIE - Prompt Moderator to decide; they can bargain freely before pushing button
+						local winningPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == S.getStateVal("roundState", "voteResult") end)
+						table.sort(winningPlayers, function(playerA, playerB) return S.getPlayerPowerCommitted(playerA) > S.getPlayerPowerCommitted(playerB) end)
+						if #winningPlayers > 1 and S.getPlayerPowerCommitted(winningPlayers[1]) == S.getPlayerPowerCommitted(winningPlayers[2]) then
+							local tiedPlayers = U.filter(winningPlayers, function(player) return S.getPlayerPowerCommitted(player) == S.getPlayerPowerCommitted(winningPlayers[1]) end)
+							local queryResponse = {}
+							U.forEach(tiedPlayers, function(player) queryResponse[P.GetPlayerName(player)] = player end)
+							return U.RunSequence({
+								function()
+									return MSG.SplashQuery(
+										"Of the supporting players who committed the most power, who shall become Leader?",
+										P.GetModeratorName(),
+										queryResponse,
+										P.GetModerator()
+									)
+								end,
+								function()
+									MSG.Splash(P.GetModeratorName() .. " assigns Leadership to " .. P.GetPlayerName(queryResponse.response))
+									return 0.5
+								end,
+								function()
+									return P.AssignLeader(queryResponse.response)
+								end
+							})
+						else
+							return U.RunSequence({
+								function()
+									MSG.Splash(P.GetPlayerName(winningPlayers[1]) .. " supported the vote with the most Power and claims Leadership.")
+									return 0.5
+								end,
+								function()
+									return P.AssignLeader(winningPlayers[1])
+								end
+							})
+						end
 					else
 						return 0
 					end
@@ -468,44 +607,104 @@ INITFUNCS = {
 				function()
 					local passPlayers = U.filter(S.getPlayers(), function(player) return U.isIn(S.getPlayerVoteStatus(player), {"Pass", "PassMod"}) end)
 					if #passPlayers > 0 then
-						MSG.Splash("Granting Coin for Abstaining")
-						return {
-						-- Grant 1 coin to each player that passed (don't do it during voting)
-							0
-						}
+						return U.RunSequence({
+							function()
+								MSG.Splash("Granting Coin for Abstaining")
+								return U.map(passPlayers, function(player) return L.SetLightMode("lightFront", "ambient", player, 1) end)
+							end,
+							unpack(U.iMap(passPlayers, function(player) return
+								U.RunSequence({
+									function()
+										L.SetLightMode("lightFront", "bright", player, 0.5)
+										return P.SpawnCoins(player, 1)
+									end,
+									function() return L.SetLightMode("lightFront", "dim", player, 0.5) end
+								})
+							end))
+						})
 					end
 					return 0
 				end,
 				function()
 					local passPowerPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == "Pass" end)
-					if #passPowerPlayers > 0 then -- AND if there is any power on the Balance
-						MSG.Splash("Sharing Balance Among Players Who Gathered Power")
-						return {
-						-- Split Balance Power among players who passed to gather power
-							0
-						}
+					local balanceZone = getObjectsWithTag("zoneBalance")[1]
+					local balancePower = OU.GetTotalValue(balanceZone, "PowerToken")
+					if #passPowerPlayers > 0 and balancePower >= #passPowerPlayers then
+						local powerPerPlayer = math.floor(balancePower / #passPowerPlayers)
+						if powerPerPlayer > 0 then
+							return U.RunSequence({
+								function()
+									MSG.Splash("Distributing Balance Power")
+									return U.map(passPowerPlayers, function(player) return L.SetLightMode("lightFront", "ambient", player, 1) end)
+								end,
+								unpack(U.iMap(passPowerPlayers, function(player) return
+									U.RunSequence({
+										function()
+											L.SetLightMode("lightFront", "bright", player, 0.5)
+											return OU.TransferValue(
+												balanceZone,
+												P.GetPlayerZone(player, "Power"),
+												powerPerPlayer,
+												"PowerToken")
+										end,
+										function() return L.SetLightMode("lightFront", "dim", player, 0.5) end
+									})
+								end))
+							})
+						end
 					end
 					return 0
 				end,
 				function()
-					local losingPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) ~= S.getStateVal("roundState", "voteResult") end)
+					local losingPlayers = U.filter(S.getPlayers(), function(player) return U.isIn(S.getPlayerVoteStatus(player), {"Aye", "Nay"}) and S.getPlayerVoteStatus(player) ~= S.getStateVal("roundState", "voteResult") end)
 					if #losingPlayers > 0 then
-						MSG.Splash("Returning Power to Losing Players")
-						return {
-							-- Return Power of Losing Players to behind screen
-							0
-						}
+						return U.RunSequence({
+							function()
+								MSG.Splash("Returning Power to Losing Players")
+								return U.map(losingPlayers, function(player) return L.SetLightMode("lightFront", "ambient", player, 1) end)
+							end,
+							unpack(U.iMap(losingPlayers, function(player) return
+								U.RunSequence({
+									function()
+										L.SetLightMode("lightFront", "bright", player, 0.5)
+										Wait.time(function() V.LowerRiser(player) end, 2)
+										return OU.TransferValue(
+											P.GetPlayerZone(player, "Public"),
+											P.GetPlayerZone(player, "Power"),
+											OU.GetTotalValue(P.GetPlayerZone(player, "Public"), "PowerToken"),
+											"PowerToken")
+									end,
+									function() return L.SetLightMode("lightFront", "dim", player, 0.5) end
+								})
+							end))
+						})
 					end
 					return 0
 				end,
 				function()
 					local winningPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == S.getStateVal("roundState", "voteResult") end)
 					if #winningPlayers > 0 then
-						MSG.Splash("Transferring Committed Power to Balance")
-						return {
-							-- Transfer Power of Winning Players to Balance
-							0
-						}
+						local balanceZone = getObjectsWithTag("zoneBalance")[1]
+						return U.RunSequence({
+							function()
+								MSG.Splash("Moving Committed Power to Balance")
+								return U.map(winningPlayers, function(player) return L.SetLightMode("lightFront", "ambient", player, 1) end)
+							end,
+							unpack(U.iMap(winningPlayers, function(player) return
+								U.RunSequence({
+									function()
+										L.SetLightMode("lightFront", "bright", player, 0.5)
+										Wait.time(function() V.LowerRiser(player) end, 2)
+										return OU.TransferValue(
+											P.GetPlayerZone(player, "Public"),
+											balanceZone,
+											OU.GetTotalValue(P.GetPlayerZone(player, "Public"), "PowerToken"),
+											"PowerToken")
+									end,
+									function() return L.SetLightMode("lightFront", "dim", player, 0.5) end
+								})
+							end))
+						})
 					end
 					return 0
 				end,
@@ -513,17 +712,235 @@ INITFUNCS = {
 				DIR.ADVANCE
 			}
 		end,
-		DilemmaResolution = function()
+		DisplayOutcome = function()
 			V.InitCountZones()
 			return {
-				function() return DIR.DisplayDilemmaResult() end
+				function()
+					local voteResult = S.getStateVal("roundState", "voteResult")
+					if voteResult == nil then return 0 end
+
+					local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
+					if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
+
+					P.SetCamera("DilemmaResult")
+					MSG.Splash("Rewards & Consequences")
+
+					L.SetLightMode("lightDilemmaAye", "off", nil, 0.5)
+					L.SetLightMode("lightDilemmaNay", "off", nil, 0.5)
+					L.SetLightMode("lightDilemmaMain", voteResult or "off", nil, 2)
+
+					if voteResult == nil then
+						S.setStateVal(C.Phases.EnvelopeCheck, "gameState", "gamePhase")
+						-- next 'DIR.ADVANCE' will move to EndRound
+						return 0
+					end
+
+					if voteResult == "Nay" then
+						dilemmaCard.alt_view_angle = Vector(0, 180, 180)
+					else
+						dilemmaCard.alt_view_angle = Vector(0, 0, 0)
+					end
+
+					return {
+						U.setPositionSlow(dilemmaCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].position, 2),
+						U.setRotationSlow(dilemmaCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].rotation, 2),
+						dilemmaCard
+					}
+				end,
+				DIR.ADVANCE
+			}
+		end,
+		ApplyChanges = function()
+			return {
+				function() return MSG.Splash("Apply Changes to Resources") end
+			}
+		end,
+		ApplyMomentum = function()
+			local resourceTokens = getBoardTokens().resource
+			local resourceDeltas = getTokenPositionDeltas(getTokenPositionsFromState(), getTokenPositionsFromBoard())
+			local resourceBumps = getResourceTokenBumpsFromMomentum()
+			local stabilityBumps = getStabilityTokenBumpsFromMomentum()
+			log({stateData = S.getStateVal("roundState", "boardTokens"), resourceDeltas = resourceDeltas, resourceBumps = resourceBumps, stabilityBumps = stabilityBumps})
+			return {
+				function() return MSG.Splash("Applying Momentum") end,
+				function()
+					return U.RunSequence(U.iMap(C.Resources, function(resource)
+						if resourceDeltas[resource] == 0 then return function() return 0 end end
+						if resourceBumps[resource] == 0 then
+							-- Token moved, but opposite direction to momentum: flip momentum
+							return function()
+								S.setStateVal(resourceDeltas[resource] > 0 and 1 or -1, "roundState", "boardTokens", "momentum", resource)
+								return U.RunSequence({
+									function()
+										resourceTokens[resource].flip()
+										return resourceTokens[resource]
+									end,
+									function() DIR.UpdateTokenLight(resource); return 0 end
+								})
+							end
+						else
+							-- Token moved in same direction to momentum: bump by momentum, bump stability, set momentum to 2
+							return function()
+								return U.RunSequence({
+									function()
+										return {
+											DIR.BumpToken("Stability", stabilityBumps[resource]),
+											DIR.BumpToken(resource, resourceBumps[resource])
+										}
+									end,
+									function()
+										S.setStateVal(resourceDeltas[resource] > 0 and 2 or -2, "roundState", "boardTokens", "momentum", resource)
+										return {
+											DIR.UpdateTokenLight(resource),
+											DIR.UpdateTokenLight("Stability")
+										}
+									end
+								})
+							end
+						end
+					end))
+				end,
+				DIR.ADVANCE
+			}
+		end,
+		StickerCheck = function()
+			return {
+				function()
+					MSG.Splash("Checking for Chronicle Stickers")
+					local queryResponse = {Yes = "true", No = "false"}
+					return U.RunSequence({
+						function()
+							return MSG.SplashQuery(
+								"Does the Dilemma unlock a Chronicle Sticker?",
+								P.GetLeaderName(),
+								queryResponse,
+								P.GetLeader()
+							)
+						end,
+						function()
+							if queryResponse.response == "true" then
+								return MSG.Splash("I gotta add Sticker retrieval in here ...")
+							end
+						end,
+						DIR.ADVANCE
+					})
+				end
+			}
+		end,
+		EnvelopeCheck = function()
+			return {
+				function()
+					MSG.Splash("Checking for Chronicle Envelopes")
+					local queryResponse = {Yes = "true", No = "false"}
+					return U.RunSequence({
+						function()
+							return MSG.SplashQuery(
+								"Does the Dilemma unlock a Chronicle Envelope?",
+								P.GetLeaderName(),
+								queryResponse,
+								P.GetLeader()
+							)
+						end,
+						function()
+							if queryResponse.response == "true" then
+								return MSG.Splash("I gotta add Envelope retrieval in here ...")
+							end
+						end,
+						DIR.ADVANCE
+					})
+				end
 			}
 		end,
 		EndRound = function()
 			return {
-				function() return DIR.ResolveDilemma() end
+				function()
+					local voteResult = S.getStateVal("roundState", "voteResult")
+					local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
+					if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
+					L.SetLightMode("lightDilemmaMain", "off", nil, 2)
+					L.SetLightMode("lightLectern", "ambient")
+
+					dilemmaCard.removeTag("OnDisplay")
+					dilemmaCard.addTag("Played")
+
+					if voteResult == nil then
+						return U.RunSequence({
+							function()
+								return {
+									L.SetLightMode("lightLectern", "storyCard"),
+									U.setPositionSlow(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0))),
+									U.setRotationSlow(C.Spots.Staging.StoryCard.Display.rotation),
+									U.setScaleSlow(C.Spots.Staging.StoryCard.Display.scale)
+								}
+							end,
+							function()
+								dilemmaCard.setLock(false)
+								return { dilemmaCard, 0.5 }
+							end,
+							function()
+								local curPos = Vector(dilemmaCard.getPosition())
+								return function() return not dilemmaCard.getPosition():equals(curPos, 1) end
+							end,
+							function()
+								-- 'spoof' state so next DIR.ADVANCE jumps to StartRound
+								S.setStateVal("gameState", "gameMode", C.Modes.GAMESETUP)
+								S.setStateVal("gameState", "gamePhase", C.Phases.GAMESETUP.PrepareFirstRound)
+								return L.SetLightMode("lightLectern", "ambient")
+							end
+						})
+					end
+
+					local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
+					local dilemmaTransform = C.Spots.Main.Dilemma["board" .. voteResult][#playedDilemmas]
+
+					return U.RunSequence({
+						function()
+							dilemmaCard.setLock(false)
+							return {
+								U.setPositionSlow(dilemmaCard, dilemmaTransform.position, 2),
+								U.setRotationSlow(dilemmaCard, dilemmaTransform.rotation, 2),
+								U.setScaleSlow(dilemmaCard, dilemmaTransform.scale, 2)
+							}
+						end,
+						function()
+							-- Check Abdication
+							local stabilityToken = getObjectsWithTag("StabilityMarker")[1]
+							local stabilityZPos = stabilityToken.getPosition().z
+							if stabilityZPos > 9 or stabilityZPos < -15 then
+								return DIR.EndGame("Abdication")
+							end
+
+							-- Check King Death
+							local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
+							if #playedDilemmas == 10 then
+								return DIR.EndGame("Death")
+							elseif #playedDilemmas > 6 then
+								local queryResponse = {Yes = "true", No = "false"}
+								return U.RunSequence({
+									function()
+										return MSG.SplashQuery(
+											"Does the dilemma bear a skull icon?",
+											P.GetLeaderName(),
+											queryResponse,
+											P.GetLeader()
+										)
+									end,
+									function()
+										if queryResponse.response == "true" then
+											return DIR.EndGame("Death")
+										end
+
+										return DIR.InitializePhase()
+									end
+								})
+							else
+								DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.StartRound)
+								return DIR.InitializePhase()
+							end
+						end
+					})
+				end
 			}
-			-- if not over, loops back to PLAY.DrawDilemma
 		end
 	},
 	END = {
@@ -976,10 +1393,6 @@ end
 -- #endregion
 
 -- #region Game Round~
-function DIR.StartRound()
-	DIR.JumpToStatePhase("PLAY", "StartRound")
-	return DIR.InitializePhase()
-end
 
 -- #region Opening Envelopes & Adding New Dilemmas~
 local function getDilemmaDeck()
@@ -1215,59 +1628,6 @@ end
 
 -- #endregion
 
--- #region Drawing Dilemma Cards~
-function DIR.DrawDilemmaCard()
-	local coverCard = O.Pieces.CoverCard()
-	local dilemmaSource = U.findBelowObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end)
-	U.Val("DIR.DrawDilemmaCard", dilemmaSource, #dilemmaSource == 1)
-	dilemmaSource = dilemmaSource[1]
-	local dilemmaCard
-	local seqFuncs = {}
-	if dilemmaSource.type == "Deck" then
-		table.insert(seqFuncs, function()
-			L.SetLightMode("lightLectern", "spotlightDilemmaDeck")
-			dilemmaSource.takeObject({
-				position = C.Spots.Staging.DilemmaDraw.position,
-				rotation = C.Spots.Staging.DilemmaDraw.rotation,
-				top = false,
-				callback_function = function(obj)
-					obj.setLock(true)
-					dilemmaCard = obj
-				end
-			})
-			return function() return dilemmaCard ~= nil end
-		end)
-	else
-		table.insert(seqFuncs, function()
-			L.SetLightMode("lightLectern", "spotlightDilemmaDeck")
-			dilemmaCard.setLock(true)
-			return {
-				U.setPositionSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.position),
-				U.setRotationSlow(dilemmaCard, C.Spots.Staging.DilemmaDraw.rotation)
-			}
-		end)
-	end
-	table.insert(seqFuncs, function()
-		L.SetLightMode("lightLectern", "off", nil, 0.5)
-		L.SetLightMode("lightDilemmaMain", "on", nil, 2)
-		dilemmaCard.addTag("OnDisplay")
-		return {
-			U.setPositionSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.position, 2, "speedUp"),
-			U.setRotationSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.rotation, 2, "speedUp"),
-			U.setScaleSlow(dilemmaCard, C.Spots.Main.Dilemma.faceDown.scale, 2, "speedUp")
-		}
-	end)
-	table.insert(seqFuncs, function()
-		return {
-			L.SetLightMode("lightDilemmaAye", "on", nil, 1),
-			L.SetLightMode("lightDilemmaNay", "on", nil, 1)
-		}
-	end)
-	return U.RunSequence(seqFuncs)
-end
-
--- #endregion
-
 -- #region Voting~
 function DIR.DisplayPassHUD(playerRef)
 	local player = S.getPlayer(playerRef)
@@ -1290,7 +1650,6 @@ function DIR.TurnHUDClick(elemID)
 			UI.hide("passTurnHUD")
 			return V.EndTurn(elemID == "turnHUD_passMod") end,
 		function()
-			log("Into Next Function!")
 			local activePlayers = U.filter(Player.getAvailableColors(), function(pColor)
 				return pColor == S.getStateVal("roundState", "currentTurn") or U.isIn(S.getStateVal("turnState", pColor, "vote"), {false, "Aye", "Nay"})
 			end)
@@ -1303,7 +1662,8 @@ function DIR.TurnHUDClick(elemID)
 			end
 			log({activePlayers = activePlayers, playerIndex = playerIndex, nextPlayer = nextPlayer})
 			if P.GetLeader().color == nextPlayer then
-				return DIR.ADVANCE()
+				-- return DIR.ADVANCE()
+				return 0
 			end
 			return U.RunSequence({
 				function()
@@ -1314,101 +1674,18 @@ function DIR.TurnHUDClick(elemID)
 		end
 	})
 end
-
-function DIR.EndVote()
-	DIR.ADVANCE()
-end
-
 -- #endregion
 
--- #region Dilemma Resolution~
-function DIR.DisplayDilemmaResult()
-	local voteResult = S.getStateVal("roundState", "voteResult")
-	if voteResult == nil then return 0 end
 
-	local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
-	if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
-	L.SetLightMode("lightDilemmaAye", "off", nil, 0.5)
-	L.SetLightMode("lightDilemmaNay", "off", nil, 0.5)
-	L.SetLightMode("lightDilemmaMain", voteResult, nil, 2)
-	-- L.SetLightMode("lightLectern", "storyCard")
+-- #region Momentum & Stability~
+function DIR.BumpStability(amount)
 
-	if voteResult == "Nay" then
-		dilemmaCard.alt_view_angle = Vector(0, 180, 180)
-	else
-		dilemmaCard.alt_view_angle = Vector(0, 0, 0)
-	end
 
-	return {
-		U.setPositionSlow(dilemmaCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].position, 2),
-		U.setRotationSlow(dilemmaCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].rotation, 2),
-		dilemmaCard
-	}
 end
 
-function DIR.ResolveDilemma()
-	local voteResult = S.getStateVal("roundState", "voteResult")
-	local dilemmaCard = getObjectsWithAllTags({ "Dilemma", "OnDisplay" })[1]
-	if dilemmaCard == nil then return U.AlertGM("No Dilemma Card Displayed!") end
-	L.SetLightMode("lightDilemmaMain", "off", nil, 2)
-	L.SetLightMode("lightLectern", "ambient")
+function DIR.ApplyTokenMomentum(resource)
 
-	dilemmaCard.removeTag("OnDisplay")
-	dilemmaCard.addTag("Played")
-
-	if voteResult == nil then
-		return U.RunSequence({
-			function()
-				return {
-					L.SetLightMode("lightLectern", "storyCard"),
-					U.setPositionSlow(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0))),
-					U.setRotationSlow(C.Spots.Staging.StoryCard.Display.rotation),
-					U.setScaleSlow(C.Spots.Staging.StoryCard.Display.scale)
-				}
-			end,
-			function()
-				dilemmaCard.setLock(false)
-				return { dilemmaCard, 0.5 }
-			end,
-			function()
-				local curPos = Vector(dilemmaCard.getPosition())
-				return function() return not dilemmaCard.getPosition():equals(curPos, 1) end
-			end,
-			function()
-				return L.SetLightMode("lightLectern", "ambient")
-			end
-		})
-	end
-
-	-- Apply Momentum
-		-- Get current position of tokens on the board.
-		-- Compare to roundState.boardTokens.momentum.Influence, etc
-			-- For tokens that moved "with" their momentum, move those tokens an extra amount -- and the stability marker too
-			-- Update the momentum physically as well as by changing 'roundState.boardTokens.momentum.Influence', etc
-			-- (don't save positions, so players can move tokens to correct shit)
-
-	local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
-	local dilemmaTransform = C.Spots.Main.Dilemma["board" .. voteResult][#playedDilemmas]
-
-	return U.RunSequence({
-		function()
-			dilemmaCard.setLock(false)
-			return {
-				U.setPositionSlow(dilemmaCard, dilemmaTransform.position, 2),
-				U.setRotationSlow(dilemmaCard, dilemmaTransform.rotation, 2),
-				U.setScaleSlow(dilemmaCard, dilemmaTransform.scale, 2)
-			}
-		end,
-		function()
-			Wait.frames(function() dilemmaCard.addForce(Vector(0, -1, 0), 3) end)
-			return DIR.EndRound()
-		end
-	})
 end
-
--- #endregion
-
--- #region Momentum~
 
 
 function DIR.GetUpdatedTokenMomentum(token, resource)
@@ -1448,10 +1725,7 @@ function DIR.UpdateTokenLight(resource)
 end
 
 function DIR.UpdateMomentum(resource)
-	if resource == nil then
-		return U.map(U.getKeys(C.Spots.Board.ResourceTokens),
-			function(res) return DIR.UpdateMomentum(res) end)
-	end
+	if resource == nil then return U.map(C.Resources, DIR.UpdateMomentum) end
 	local token = getObjectsWithAllTags({ "ResourceMarker", resource })[1]
 	U.Assert("DIR.UpdateMomentum", token, "Object")
 	local newMomentum = DIR.GetUpdatedTokenMomentum(token, resource)
@@ -1471,51 +1745,20 @@ function DIR.UpdateMomentum(resource)
 	return U.RunSequence(seqFuncs)
 end
 
+function DIR.GetStabilityBump()
+	local stabilityPos = S.getStateVal("roundState", "boardTokens", "positions", "Stability")
+	local curPositions = getTokenPositionsFromBoard()
+	U.forEach(C.Resources, function(resource)
+		local prevPos = S.getStateVal("roundState", "boardTokens", "positions", resource)
+		local curPos = curPositions[resource]
+		local deltaPos = curPos - prevPos
+		stabilityPos = math.max(math.min(stabilityPos + deltaPos, 19), 1)
+	end)
+	local boardStabilityPos = curPositions.Stability
+	return stabilityPos - boardStabilityPos
+end
 -- #endregion
 
-function DIR.EndRound()
-	return U.RunSequence({
-		DIR.UpdateMomentum,
-		function()
-			-- Check Abdication
-			local stabilityToken = getObjectsWithTag("StabilityMarker")[1]
-			local stabilityZPos = stabilityToken.getPosition().z
-			if stabilityZPos > 9 or stabilityZPos < -15 then
-				return DIR.EndGame("Abdication")
-			end
-
-			-- Check King Death
-			local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
-			if #playedDilemmas == 10 then
-				return DIR.EndGame("Death")
-			elseif #playedDilemmas > 6 then
-				return DIR.PromptKingDeath()
-			else
-				return DIR.StartRound()
-			end
-		end
-	})
-end
-
-function DIR.PromptKingDeath()
-	local isKingDead
-
-	return U.RunSequence({
-		function()
-			U.getHost().showOptionsDialog("Does the Dilemma bear a skull?", { "Yes", "No" }, 2, function(_, i)
-				isKingDead = i == 1
-			end)
-			return function() return isKingDead ~= nil end
-		end,
-		function()
-			if isKingDead then
-				return DIR.EndGame("Death")
-			else
-				return DIR.StartRound()
-			end
-		end
-	})
-end
 
 -- #endregion
 

@@ -26,6 +26,7 @@ end
 
 local function elevateRiser(playerRef, powerValue)
 	local player = S.getPlayer(playerRef)
+	local publicZone = P.GetPlayerZone(player, "Public")
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
 	if powerValue == nil then powerValue = 0 end
 	if powerValue > riserPowerMax then powerValue = riserPowerMax end
@@ -33,10 +34,27 @@ local function elevateRiser(playerRef, powerValue)
 	local riserElevation = Vector(riserMinElevation):lerp(Vector(riserMaxElevation), powerValue / riserPowerMax)
 	local deltaElevation = math.abs(riserPos.y - riserElevation.y)
 	riserPos:setAt("y", riserElevation.y)
-	return U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3 * (deltaElevation / 3))
+
+	-- Lock and simultaneously elevate any power tokens on riser
+	local powerTokens = U.filter(publicZone.getObjects(), function(obj) return obj.hasTag("PowerToken") end)
+	return {
+		U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3 * (deltaElevation / 3)),
+		unpack(U.map(powerTokens, function(token)
+			token.setLock(true)
+			return U.RunSequence({
+				function()
+					return U.Lerp(function(pos) token.setPositionSmooth(pos) end, token.getPosition(), Vector(token.getPosition()):add(Vector(0, deltaElevation, 0)), 3 * (deltaElevation / 3))
+				end,
+				function()
+					token.setLock(false)
+					return 0
+				end
+			})
+		end))
+	}
 end
 
-local function lowerRiser(playerRef)
+function V.LowerRiser(playerRef)
 	local player = S.getPlayer(playerRef)
 	local riser = getObjectsWithAllTags({player.color, "plinthRiser"})[1]
 	local riserPos = riser.getPosition()
@@ -192,12 +210,12 @@ function V.InitCountZones(playerRef)
 
 		if ayeZone then
 			ayeZone.call("SetCountTag", "PowerToken")
-			ayeZone.call("SetColor", Color.Blue)
+			ayeZone.call("SetColor", Color(0, 1, 1, 1))
 			ayeZone.call("UnLinkPublic")
 		end
 		if nayZone then
 			nayZone.call("SetCountTag", "PowerToken")
-			nayZone.call("SetColor", Color.Red)
+			nayZone.call("SetColor", Color(1, 0, 0, 1))
 			nayZone.call("UnLinkPublic")
 		end
 		if ayeZone and nayZone then
@@ -221,13 +239,13 @@ function V.InitCountZones(playerRef)
 		end
 		if ayeZone then
 			ayeZone.call("SetCountTag", "PowerToken")
-			ayeZone.call("SetColor", Color.Blue)
+			ayeZone.call("SetColor",Color(0, 1, 1, 1))
 			ayeZone.call("UnLinkOpp")
 			if publicZone then ayeZone.call("LinkToPublic", publicZone) end
 		end
 		if publicZone then
 			publicZone.call("SetCountTag", "PowerToken")
-			publicZone.call("SetColor", Color.Blue)
+			publicZone.call("SetColor",Color(0, 1, 1, 1))
 			publicZone.call("SetScale", "0.4")
 			publicZone.call("SetIcon", "powerIcon")
 			publicZone.call("SetIconColor", Color(0, 0, 1))
@@ -248,13 +266,13 @@ function V.InitCountZones(playerRef)
 		end
 		if nayZone then
 			nayZone.call("SetCountTag", "PowerToken")
-			nayZone.call("SetColor", Color.Red)
+			nayZone.call("SetColor", Color(1, 0, 0, 1))
 			nayZone.call("UnLinkOpp")
 			if publicZone then nayZone.call("LinkToPublic", publicZone) end
 		end
 		if publicZone then
 			publicZone.call("SetCountTag", "PowerToken")
-			publicZone.call("SetColor", Color.Red)
+			publicZone.call("SetColor", Color(1, 0, 0, 1))
 			publicZone.call("SetScale", "0.4")
 			publicZone.call("SetIcon", "powerIcon")
 			publicZone.call("SetIconColor", Color(0.5, 0, 0))
@@ -339,11 +357,6 @@ function V.UpdateHUD(player, isForcing)
 		elemText.voteNay = "Add Power"
 	end
 
-	-- log([[
-
-
-	-- ]] .. JSON.encode_pretty({[voteStatus == false and "false" or voteStatus] = elemVisibility}))
-
 	U.forEach(elemVisibility, function(isVisible, elemRef)
 		if isVisible then
 			UI.setValue("turnHUD_" .. elemRef .. "_Text", elemText[elemRef])
@@ -384,7 +397,6 @@ function V.CheckForLeaderChange(playerRef)
 end
 
 function V.EndTurn(isPassMod)
-	-- need to have the HUD pass-turn click go through DIR, so it can check whether to call DIR.EndVote
 	local player = S.getPlayer(S.getStateVal("roundState", "currentTurn"))
 	local ayeZone, nayZone, publicZone, ayeCard, nayCard, passCard = getVoteObjects(player)
 	local voteStatus = S.getStateVal("turnState", player.color, "vote")
@@ -427,8 +439,7 @@ function V.EndTurn(isPassMod)
 				function()
 					updateNayTotal(nayCount)
 					return V.CheckForLeaderChange(player)
-				end,
-				function() return 0 end
+				end
 			})
 		elseif isPassMod then
 			S.setStateVal("PassMod", "turnState", player.color, "vote")
@@ -437,14 +448,10 @@ function V.EndTurn(isPassMod)
 			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Passes to Become Moderator", nil, nil, {color = U.GetHex(Color.Yellow)})
-					return lowerRiser(player)
+					return V.LowerRiser(player)
 				end,
-				function()
-					P.SpawnCoins(player, 1)
-					return P.AssignModerator(player)
-				end,
-				function() return V.SetVotingLights(player) end,
-				function() return 0 end
+				function() return P.AssignModerator(player) end,
+				function() return V.SetVotingLights(player) end
 			})
 		else
 			S.setStateVal("Pass", "turnState", player.color, "vote")
@@ -452,13 +459,9 @@ function V.EndTurn(isPassMod)
 			return U.RunSequence({
 				function()
 					MSG.Splash(P.GetPlayerName(player) .. " Passes to Gather Power", nil, nil, {color = U.GetHex(C.RootColors.Amber)})
-					return lowerRiser(player)
+					return V.LowerRiser(player)
 				end,
-				function()
-					P.SpawnCoins(player, 1)
-					return V.SetVotingLights(player)
-				end,
-				function() return 0 end
+				function() return V.SetVotingLights(player) end
 			})
 		end
 	elseif voteStatus == "Aye" then
@@ -478,15 +481,11 @@ function V.EndTurn(isPassMod)
 				function()
 					updateAyeTotal(ayeCount)
 					return V.CheckForLeaderChange(player)
-				end,
-				function() return 0 end
+				end
 			})
 		else
 			return U.RunSequence({
-				function()
-					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Blue)})
-				end,
-				function() return 0 end
+				function() return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Blue)}) end
 			})
 		end
 	elseif voteStatus == "Nay" then
@@ -506,15 +505,11 @@ function V.EndTurn(isPassMod)
 				function()
 					updateNayTotal(nayCount)
 					return V.CheckForLeaderChange(player)
-				end,
-				function() return 0 end
+				end
 			})
 		else
-			return true, U.RunSequence({
-				function()
-					return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Red)})
-				end,
-				function() return 0 end
+			return U.RunSequence({
+				function() return MSG.Splash(P.GetPlayerName(player) .. " Stays", nil, nil, {color = U.GetHex(Color.Red)}) end
 			})
 		end
 	end

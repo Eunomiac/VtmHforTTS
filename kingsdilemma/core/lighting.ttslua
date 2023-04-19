@@ -372,6 +372,13 @@ L.LIGHTMODES = {
 			angle = 85,
 			intensity = 2
 		},
+		bright = {
+			enabled = true,
+			color = Color.White,
+			range = 25,
+			angle = 85,
+			intensity = 4
+		},
 		aye = {
 			enabled = true,
 			color = Color.Blue,
