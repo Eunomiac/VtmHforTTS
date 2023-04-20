@@ -8,7 +8,7 @@ local countTag, isPublic, player, color
 local publicZone, oppZone
 local total = 0
 local value, subValue, icon, iconColor = "", "", "", Color.White
-local scaleFactor = "0.2"
+local textScaleFactor = 0.2
 
 local ISDEBUGGING = false
 
@@ -24,11 +24,21 @@ local function updateValue()
 	if ISDEBUGGING then value, subValue = "+VV", "(SV)"; return UpdateXMLTable() end
 
 	local oldValue, oldSubValue = value, subValue
+	value = ""
+	subValue = ""
+
 
 	if getPublicTotal() > 0 then
-		subValue = "(" .. getPublicTotal() .. ")"
-	else
-		subValue = ""
+		local voteStatus = S.getPlayerVoteStatus(player)
+		if self.hasTag("zonePrivate" .. voteStatus) then
+			local publicTotal = getPublicTotal()
+
+			if total == 0 then
+				subValue = U.ToString(publicTotal)
+			else
+				subValue = "+" .. U.ToString(publicTotal) .. " = " .. U.ToString(publicTotal + total)
+			end
+		end
 	end
 
 	if isShowingX() then
@@ -36,8 +46,6 @@ local function updateValue()
 		subValue = ""
 	elseif total == 0 then
 		value = ""
-	elseif subValue ~= "" then
-		value = "+" .. U.ToString(total)
 	else
 		value = U.ToString(total)
 	end
@@ -63,7 +71,7 @@ function Deactivate() isActive = false; UpdateXMLTable() end
 
 function SetCountTag(tag) countTag = tag; UpdateCount() end
 function SetColor(col) color = col; UpdateXMLTable() end
-function SetScale(scl) scaleFactor = U.ToString(scl); UpdateXMLTable() end
+function SetScale(scl) textScaleFactor = scl; UpdateXMLTable() end
 function SetIcon(ic) icon = ic; UpdateXMLTable() end
 function SetIconColor(col) iconColor = col; UpdateXMLTable() end
 
@@ -116,13 +124,16 @@ function onLoad()
 	UpdateCount()
 end
 
-function UpdateCount()
+function UpdateCount(isRecounting)
+	if isRecounting == nil then isRecounting = true end
 	total = 0
 	U.forEach(self.getObjects(), function(token)
 		total = total + token.value
 	end)
 
 	updateValue()
+
+	if isRecounting then Wait.time(UpdateCount, 2) end
 end
 
 local function getVisibility()
@@ -178,7 +189,7 @@ function UpdateXMLTable()
 					width = "300",
 					position = "0 0 3",
 					-- offsetXY = "0 -35",
-					scale = scaleFactor .. " " .. scaleFactor .. " " .. scaleFactor
+					scale = textScaleFactor .. " " .. textScaleFactor .. " " .. textScaleFactor
 				}
 			})
 		end
@@ -188,14 +199,15 @@ function UpdateXMLTable()
 			attributes = {
 				ignoreLayout = "True",
 				rectAlignment = "MiddleCenter",
-				height = "300",
+				height = tostring(U.round(60 / 0.2, 0)),
 				width = "500",
 				color = U.GetHex(color),
-				outline = "Black",
-				outlineSize = "5",
+				outline = U.GetHex(Color(0, 0, 0, 1)),
+				outlineSize = tostring(U.round(1 / 0.2, 0)),
 				font = "Fonts/FrizB",
-				fontSize = "200",
-				scale = scaleFactor .. " " .. scaleFactor .. " " .. scaleFactor
+				fontSize = tostring(U.round(40 / 0.2, 0)),
+				scale = textScaleFactor .. " " .. textScaleFactor .. " " .. textScaleFactor,
+				offsetXY = subValue == "" and "0 0" or "0 -50"
 			}
 		})
 	end
@@ -205,14 +217,16 @@ function UpdateXMLTable()
 			value = subValue,
 			attributes = {
 				ignoreLayout = "True",
-				rectAlignment = "UpperCenter",
-				height = "40",
-				color = U.GetHex(color),
-				outline = "Black",
-				outlineSize = "2",
-				font = "Fonts/Friz",
-				fontSize = "30",
-				scale = "1 1 1"
+				rectAlignment = "MiddleCenter",
+				height = tostring(U.round(40 / textScaleFactor, 0)),
+				width = "500",
+				color = U.GetHex(Color(color):lerp(Color.Grey, 0.5)),
+				outline = U.GetHex(Color(0, 0, 0, 1)),
+				outlineSize = tostring(U.round(1 / textScaleFactor, 0)),
+				font = "Fonts/FrizI",
+				fontSize = tostring(U.round(30 / textScaleFactor, 0)),
+				scale = textScaleFactor .. " " .. textScaleFactor .. " " .. textScaleFactor,
+				offsetXY = "0 50"
 			}
 		})
 	end

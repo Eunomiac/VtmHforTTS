@@ -107,6 +107,25 @@ function P.RotateToPlayer(objs, player, fromAngle, fromTransform)
 	end)
 end
 
+function P.AssignOpenSeat(player) player.changeColor(S.getOpenColors()[1]) end
+
+function P.AssignPlayerColors()
+	local openSeats = S.getOpenColors()
+	local spectators = Player.getSpectators()
+	log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
+	local seqFuncs = {}
+	while #openSeats > 0 and #spectators > 0 do
+		local player = U.shift(spectators)
+		local color = U.shift(openSeats)
+		table.insert(seqFuncs, function()
+			log({player = player.steam_name, color = color})
+			player.changeColor(color)
+			return 1
+		end)
+	end
+	return U.RunSequence(seqFuncs)
+end
+
 function P.SetCamera(cameraMode, playerRef, playerCamRef)
 	if playerRef == nil then return U.map(S.getPlayers(), function(player) return P.SetCamera(cameraMode, player) end) end
 

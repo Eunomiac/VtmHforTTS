@@ -10,39 +10,39 @@ local MSG = require("kingsdilemma.core.messaging")
 local DIR = require("kingsdilemma.core.director")
 
 
-function GetSelectedObject()
-	for _, player in pairs(Player.getPlayers()) do
-		local selObjs = player.getSelectedObjects()
-		if selObjs and #selObjs > 0 then
-			return selObjs[1]
-		end
-	end
-	return getObjectFromGUID("e19593")
-end
+-- function GetSelectedObject()
+-- 	for _, player in pairs(Player.getPlayers()) do
+-- 		local selObjs = player.getSelectedObjects()
+-- 		if selObjs and #selObjs > 0 then
+-- 			return selObjs[1]
+-- 		end
+-- 	end
+-- 	return getObjectFromGUID("e19593")
+-- end
 
-local autoExecString = {
-	">",
-	"alias list ls -a",
-	"alias show list -r"
-}
+-- local autoExecString = {
+-- 	">",
+-- 	"alias list ls -a",
+-- 	"alias show list -r"
+-- }
 
-U.forEach({
-	oFocus = {
-		"add /objectFocus Player",
-		"call /GetSelectedObject",
-		"set /objectFocus ~",
-		"call /stringColorToRGB Pink",
-		"add /hColor ~",
-		"call /objectFocus/highlightOn /hColor 5",
-		"echo 'Changing focus to highlighted object.'"
-	}
-}, function (arrStr, name)
-	console[name] = U.join(arrStr, ";")
-	table.insert(autoExecString, "alias " .. name .. " exec -s /console/" .. name)
-end)
+-- U.forEach({
+-- 	oFocus = {
+-- 		"add /objectFocus Player",
+-- 		"call /GetSelectedObject",
+-- 		"set /objectFocus ~",
+-- 		"call /stringColorToRGB Pink",
+-- 		"add /hColor ~",
+-- 		"call /objectFocus/highlightOn /hColor 5",
+-- 		"echo 'Changing focus to highlighted object.'"
+-- 	}
+-- }, function (arrStr, name)
+-- 	console[name] = U.join(arrStr, ";")
+-- 	table.insert(autoExecString, "alias " .. name .. " exec -s /console/" .. name)
+-- end)
 
 
-console.autoexec = U.join(autoExecString, ";")
+-- console.autoexec = U.join(autoExecString, ";")
 
 
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
@@ -68,39 +68,39 @@ function onLoad(save_data)
 		oFunc().gizmo_selectable = false
 	end)
 
-	-- #region DEBUG
-	-- Assign names to test function buttons
-	Global.call("InitTestFuncButtons")
-	-- Auto-assign "Player X"'s to colors
-	local seats = U.clone(C.SeatColors)
-	U.forEach(Player.getSpectators(), function(player)
-		if string.match(player.steam_name, "^Player %d$") then
-			while seats[1] and Player[seats[1]].steam_name ~= nil do
-				U.shift(seats)
-			end
-			if #seats then player.changeColor(U.shift(seats)) end
-		end
-	end)
+	-- P.AssignPlayerColors()
 
-	local function changeCardImages(cardObj)
-		local cardData = cardObj.getData()
-		cardData.CustomDeck = U.map(cardData.CustomDeck, function(dData)
-			return U.map(dData, function(val, key)
-				if key ~= "FaceURL" and key ~= "BackURL" then return val end
-				local seekVal = string.match(val, "/([^/]*)/$")
-				local imgVal = C.AssetConversion[seekVal]
-				if imgVal == nil then
-					log("Not found: " .. val)
-					return val
-				else
-					log({[seekVal] = imgVal})
-					return imgVal
-				end
-			end)
-		end)
-		cardObj.setCustomObject(cardData)
-		Wait.time(function() cardObj.reload() end, 1)
-	end
+	-- #region DEBUG
+	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
+
+	-- Auto-assign "Player X"'s to colors
+	-- local seats = U.clone(C.SeatColors)
+	-- U.forEach(Player.getSpectators(), function(player)
+	-- 	while seats[1] and Player[seats[1]].steam_name ~= nil do
+	-- 		U.shift(seats)
+	-- 	end
+	-- 	if #seats then player.changeColor(U.shift(seats)) end
+	-- end)
+
+	-- local function changeCardImages(cardObj)
+	-- 	local cardData = cardObj.getData()
+	-- 	cardData.CustomDeck = U.map(cardData.CustomDeck, function(dData)
+	-- 		return U.map(dData, function(val, key)
+	-- 			if key ~= "FaceURL" and key ~= "BackURL" then return val end
+	-- 			local seekVal = string.match(val, "/([^/]*)/$")
+	-- 			local imgVal = C.AssetConversion[seekVal]
+	-- 			if imgVal == nil then
+	-- 				log("Not found: " .. val)
+	-- 				return val
+	-- 			else
+	-- 				log({[seekVal] = imgVal})
+	-- 				return imgVal
+	-- 			end
+	-- 		end)
+	-- 	end)
+	-- 	cardObj.setCustomObject(cardData)
+	-- 	Wait.time(function() cardObj.reload() end, 1)
+	-- end
 
 	-- #endregion
 
@@ -109,7 +109,7 @@ end
 
 function onSave() return JSON.encode(S.getGameState()) end
 
-function onUpdate() console.update() end
+-- function onUpdate() console.update() end
 
 function onPlayerChangeColor(color)
 	if color == "Grey" then return end

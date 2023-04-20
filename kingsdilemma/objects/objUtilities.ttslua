@@ -326,13 +326,7 @@ function OU.TransferValue(fromZone, toZone, amount, tag)
 	U.Val("OU.TransferValue", toZones, U.Type(toZone) == "userdata" and toZone.type == "Scripting", "To-zone is not a zone.")
 	U.Val("OU.TransferValue", amounts, amount == "ALL" or U.Type(amount) == "number", "Amount must be 'ALL' or a number.")
 
-	local function jump(val)
-
-
-	end
-
-
-	local fromSplitFuncs, fromJumpFuncs, fromSpawnFuncs = {}, {}, {}
+	local fromJumpFuncs, fromSpawnFuncs = {}, {}
 
 	local fromZoneAmount = amount
 	local fromZoneObjs = U.filter(fromZone.getObjects(), function(obj) return obj.hasTag(tag) end)
@@ -346,29 +340,20 @@ function OU.TransferValue(fromZone, toZone, amount, tag)
 		end
 	end
 
-	if fromZoneAmount > 0 then
-		if fromZoneAmount > 5 and OU.GetNumObjsByVal(fromZoneObjs, 10, tag) > 0 then
-			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 10 end)
-			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
-			fromZoneAmount = fromZoneAmount - 5
-		end
-		if fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, 5, tag) > 0 then
-			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 5 end)
-			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
-			fromZoneAmount = fromZoneAmount - math.min(fromZoneAmount, math.max(5, fromZoneAmount))
-		end
-		if fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, 10, tag) > 0 then
-			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == 10 end)
-			table.insert(fromSplitFuncs, function() OU.SplitObjByValue(thisObj) end)
-			fromZoneAmount = fromZoneAmount - math.min(fromZoneAmount, math.max(10, fromZoneAmount))
+	for _, val in ipairs({5, 10}) do
+		while fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, val, tag) > 0 do
+			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == val end)
+			table.insert(fromJumpFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
+			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZone, string.gsub(tag, "Token$", ""), val) end)
+			fromZoneAmount = fromZoneAmount - val
 		end
 	end
 
-	if #fromSplitFuncs > 0 then
-		return U.RunSequence({
-			function() return U.sequence(fromSplitFuncs, 0.5) end,
-			function() return OU.TransferValue(fromZone, toZone, fromZoneAmount, tag) end
-		})
+	for _, val in ipairs({10, 5, 1}) do
+		while (-1 * fromZoneAmount) >= val do
+			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(fromZone, string.gsub(tag, "Token$", ""), val) end)
+			fromZoneAmount = fromZoneAmount + val
+		end
 	end
 
 	return U.RunSequence({

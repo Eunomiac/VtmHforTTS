@@ -62,7 +62,7 @@ function MSG.SplashQuery(query, displayName, responseObj, playerRef)
 	currentQuery = responseObj
 	local player = S.getPlayer(playerRef)
 
-	log({query=query, displayName = displayName, responseObj = responseObj, playerRef = playerRef, player = player, pColor = player.color})
+	-- log({query=query, displayName = displayName, responseObj = responseObj, playerRef = playerRef, player = player, pColor = player.color})
 
 	UI.setAttributes("splashQuery", {active = "false", visibility = player.color})
 	UI.setValue("splashQueryPlayerPrompt", displayName)

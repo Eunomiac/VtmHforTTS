@@ -110,6 +110,53 @@ local TESTFUNCS = {
 	end,
 	Transfer = function(button)
 		V.EndTurn(button ~= "-2")
+	end,
+	Fetcher = function(button)
+		if button == "-2" then
+			U.RunSequence({
+				function()
+					MSG.Splash("Checking for Chronicle Stickers")
+					local queryResponse = {Yes = "true", No = "false"}
+					return U.RunSequence({
+						function()
+							return MSG.SplashQuery(
+								"Does the Dilemma unlock a Chronicle Sticker?",
+								P.GetLeaderName(),
+								queryResponse,
+								P.GetLeader()
+							)
+						end,
+						function()
+							if queryResponse.response == "true" then
+								return DIR.PromptForSticker(P.GetLeader())
+							end
+						end
+					})
+				end
+			})
+		else
+			U.RunSequence({
+				function()
+					MSG.Splash("Checking for Chronicle Envelopes")
+					local queryResponse = {Yes = "true", No = "false"}
+					return U.RunSequence({
+						function()
+							return MSG.SplashQuery(
+								"Does the Dilemma unlock a Chronicle Envelope?",
+								P.GetLeaderName(),
+								queryResponse,
+								P.GetLeader()
+							)
+						end,
+						function()
+							if queryResponse.response == "true" then
+								return DIR.PromptForEnvelope(P.GetLeader())
+							end
+						end
+					})
+				end
+			})
+		end
 	end
 }
 
@@ -194,6 +241,7 @@ local function promptAssignHouseName(player)
 					function()
 						S.setPlayerVal(houseName, targetPlayer, "houseName")
 						P.GetPlayerScreen(targetPlayer).call("UpdateXMLTable")
+						P.GetPlayerScreen(targetPlayer).call("Activate")
 					end,
 					3,
 					function()
@@ -324,7 +372,7 @@ function Consequence_HUD_Click(_, button, id)
 	if conType ~= "O" then
 		UI.hide(string.gsub(id, "consequence", "conDisplay"))
 	end
-	log({outcome = outcome, conType = conType, resource = resource, id = id, displayHide = string.gsub(id, "consequence", "conDisplay")})
+	-- log({outcome = outcome, conType = conType, resource = resource, id = id, displayHide = string.gsub(id, "consequence", "conDisplay")})
 	if button == "-2" then
 		conType = "O"
 	else
@@ -359,6 +407,14 @@ function Consequence_HUD_HoverOff(_, _, id)
 	end
 
 
+end
+
+function FetcherHUD_Sticker(player, value)
+	DIR.ConfirmFetchSticker(player, value)
+end
+
+function FetcherHUD_Envelope(player, value)
+	DIR.ConfirmFetchEnvelope(player, value)
 end
 
 function UpdatePhaseDisplay()

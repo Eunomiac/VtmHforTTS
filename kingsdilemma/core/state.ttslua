@@ -16,7 +16,15 @@ local INITGAMESTATE = {
 	roundState = {},
 	turnState = {},
 	playerData = {},
-	playerStorage = {},
+	playerStorage = {
+		[C.AdminID] = {
+			crave = 0,
+			house = "Olwyn",
+			houseName = "Hightower",
+			id = C.AdminID,
+			prestige = 0.05
+		}
+	},
 	lights = {}
 }
 
@@ -339,6 +347,8 @@ end
 
 -- #region PLAYER DATA
 function S.getPlayerColor(playerRef) return S.getPlayer(playerRef).color end
+
+function S.getOpenColors() return U.filter(Player.getAvailableColors(), function(color) return not U.isPlayer(Player[color]) end) end
 
 function S.getOtherColors(playerRef)
 	local player = S.getPlayer(playerRef)

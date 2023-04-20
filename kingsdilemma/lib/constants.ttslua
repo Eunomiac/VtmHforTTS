@@ -1,6 +1,6 @@
 local C = {}
 
-C.SeatAngleSpan = 180
+C.SeatAngleSpan = 240
 
 C.TableRadius = 57
 
@@ -269,6 +269,13 @@ C.Spots = {
 				scale = Vector({1.59, 1.00, 1.59})
 			}
 		},
+		Sticker = {
+			Display = {
+				position = Vector({0.00, 6, 26.00}),
+				rotation = Vector({0.00, 180.00, 0.00}),
+				scale = Vector({1, 1, 1})
+			}
+		},
 		SecretAgenda = {
 			High = {
 				position = Vector({0.00, 15.00, 26.00}),
@@ -331,6 +338,16 @@ C.Spots = {
 				position = Vector({0.00, 1.57, 39.30}),
 				rotation = Vector({270, 180, 0}),
 				scale = Vector({10, 1.00, 10})
+			},
+			faceUpAyeShrink = {
+				position = Vector({0.00, 1.18, 39.30}),
+				rotation = Vector({270, 180, 0}),
+				scale = Vector({5, 1, 5})
+			},
+			faceUpNayShrink = {
+				position = Vector({0.00, 1.5, 39.30}),
+				rotation = Vector({270, 180, 0}),
+				scale = Vector({5, 1.00, 5})
 			},
 			boardAye = {
 				{

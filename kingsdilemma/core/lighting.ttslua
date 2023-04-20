@@ -147,7 +147,7 @@ L.LIGHTMODES = {
 			intensity = 2,
 			rotation = Vector(290, 0, 8)
 		},
-		spotlightStickers = {
+		spotlightSticker = {
 			enabled = true,
 			color = Color.Grey,
 			range = 200,
@@ -370,7 +370,7 @@ L.LIGHTMODES = {
 			color = Color.Grey,
 			range = 25,
 			angle = 85,
-			intensity = 2
+			intensity = 1
 		},
 		bright = {
 			enabled = true,
