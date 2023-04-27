@@ -133,12 +133,12 @@ function OU.GetUpValueData(objs, tag)
 			coinToken1 = totalValue - (5 * math.floor(totalValue / 5))
 		}
 	elseif tag == "PowerToken" then
-		log({
-			totalValue = totalValue,
-			powerToken10 = math.floor(totalValue / 10),
-			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
-			powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
-		})
+		-- log({
+		-- 	totalValue = totalValue,
+		-- 	powerToken10 = math.floor(totalValue / 10),
+		-- 	powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
+		-- 	powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
+		-- })
 		return {
 			powerToken10 = math.floor(totalValue / 10),
 			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),

@@ -207,9 +207,9 @@ local function promptSimClick(player, button)
 		log("Simulating clicks on " .. U.join(otherColors, ", "))
 		local houses = U.shuffle(U.clone(C.Houses))
 		for _, col in pairs(otherColors) do
-			local clickElemID = "houseHover_" .. U.shift(houses) .. "_" .. col
+			local clickElemID = "houseHUD_Button_" .. U.shift(houses)
 			log("Simulating " .. col .. " Player clicking '" .. clickElemID .. "'")
-			HUD_Click(Player[col], "-1", clickElemID)
+			House_HUD_Click(Player[col], "-1", clickElemID)
 		end
 	else
 		local playerOptions = U.map(players, function(pl, i)
@@ -219,9 +219,9 @@ local function promptSimClick(player, button)
 			local targetPlayer = players[i]
 			player.showOptionsDialog("Which territory?", C.Houses, 1, function(houseName)
 				if houseName == nil then return end
-				local clickElemID = "houseHover_" .. houseName .. "_" .. targetPlayer.color
+				local clickElemID = "houseHUD_Button_" .. houseName
 				log("Simulating " .. targetPlayer.color .. " Player clicking '" .. clickElemID .. "'")
-				HUD_Click(targetPlayer, "-1", clickElemID)
+				House_HUD_Click(targetPlayer, "-1", clickElemID)
 			end)
 		end)
 	end
@@ -255,7 +255,8 @@ end
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^splashQuery_Option") then
-		local stringIndex = string.gsub(id, "^splashQuery_Option", "")
+		local _, optionRef, color = unpack(U.split(id, "_"))
+		local stringIndex = string.gsub(optionRef, "Option", "")
 		MSG.QueryResponse(tonumber(stringIndex))
 	elseif string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""), button)
@@ -315,71 +316,85 @@ function HUD_HoverOn(player, returnString, id)
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOn(player, houseName)
 	elseif string.match(id, "^splashQuery_") then
-		--"#99770088"   --"#FFFFFF88"
-		local optionRef = string.gsub(id, "^splashQuery_", "")
+		local _, optionRef, color = unpack(U.split(id, "_"))
 		UI.setAttribute(id, "color", "#FFD700FF")
-		UI.setAttribute("splashQueryText_" .. optionRef, "color", "#FFFFFFFF")
+		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFFFF")
 	end
 end
 
 function HUD_HoverOff(player, returnString, id)
+	log({player = player, returnString = returnString, id = id})
 	if string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOff(player, houseName)
 	elseif string.match(id, "^splashQuery_") then
-		--"#99770088"   --"#FFFFFF88"
-		local optionRef = string.gsub(id, "^splashQuery_", "")
+		local _, optionRef, color = unpack(U.split(id, "_"))
 		UI.setAttribute(id, "color", "#FFD70011")
-		UI.setAttribute("splashQueryText_" .. optionRef, "color", "#FFFFFF44")
+		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFF44")
 	end
 end
 
-function Turn_HUD_Click(_, _, id) DIR.TurnHUDClick(id) end
+function House_HUD_Click(player, _, id)
+	local _, _, houseName = unpack(U.split(id, "_"))
+	DIR.HouseHUDClick(player, houseName)
+end
+
+function House_HUD_HoverOn(player, _, id)
+	local _, _, buttonRef = unpack(U.split(id, "_"))
+	DIR.HouseHUDHoverOn(player, buttonRef)
+end
+
+function House_HUD_HoverOff(player, _, id)
+	local _, _, buttonRef = unpack(U.split(id, "_"))
+	DIR.HouseHUDHoverOff(player, buttonRef)
+end
+
+function Turn_HUD_Click(_, _, id)
+	local _, action, color = unpack(U.split(id, "_"))
+	DIR.TurnHUDClick(action, color)
+end
 
 function Turn_HUD_HoverOn(_, _, id)
-	-- UI.setAttribute(id .. "_container", "scale", "1.2 1.2 1.2")
-	UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,1)")
-	if id == "turnHUD_voteAye" then
+	local _, action, color = unpack(U.split(id, "_"))
+	UI.setAttribute("turnHUD_" .. action .. "_Text_" .. color, "color", "rgba(1,1,1,1)")
+	if action == "voteAye" then
 		UI.setAttribute(id, "color", "rgba(0,1,1,1)")
-	elseif id == "turnHUD_voteNay" then
+	elseif action == "voteNay" then
 		UI.setAttribute(id, "color", "rgba(1,0,0,1)")
-	elseif id == "turnHUD_stay" then
+	elseif action == "stay" then
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
 	else
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0, 1)")
-		UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0, 1)")
 	end
 end
 
 function Turn_HUD_HoverOff(_, _, id)
-	-- UI.setAttribute(id .. "_container", "scale", "1 1 1")
-	UI.setAttribute(id .. "_Text", "color", "rgba(1,1,1,0.5)")
-	if id == "turnHUD_voteAye" then
+	local _, action, color = unpack(U.split(id, "_"))
+	UI.setAttribute("turnHUD_" .. action .. "_Text_" .. color, "color", "rgba(1,1,1,0.5)")
+	if id == "voteAye" then
 		UI.setAttribute(id, "color", "rgba(0,1,1,0.5)")
-	elseif id == "turnHUD_voteNay" then
+	elseif id == "voteNay" then
 		UI.setAttribute(id, "color", "rgba(1,0,0,0.5)")
-	elseif id == "turnHUD_stay" then
+	elseif id == "stay" then
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
 	else
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
-		UI.setAttribute(id .. "_Icon", "color", "rgba(1, 0.87, 0,0.5)")
 	end
 end
 
 function Consequence_HUD_Click(_, button, id)
-	local _, outcome, conType, resource = unpack(U.split(id, "_"))
+	local _, outcome, conType, resource, color = unpack(U.split(id, "_"))
 	UI.hide(id)
 	if conType ~= "O" then
-		UI.hide(string.gsub(id, "consequence", "conDisplay"))
+		UI.hide(string.gsub(string.gsub(id, "consequence", "conDisplay"), "_" .. color, ""))
 	end
-	-- log({outcome = outcome, conType = conType, resource = resource, id = id, displayHide = string.gsub(id, "consequence", "conDisplay")})
 	if button == "-2" then
 		conType = "O"
 	else
 		conType = ({O = "P", P = "N", N = "O"})[conType]
 	end
 	S.setStateVal(conType, "roundState", "consequences", outcome, resource)
-	UI.show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource)
+	UI.show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource .. "_" .. color)
 	if conType ~= "O" then
 		UI.show("conDisplay_" .. outcome .. "_" .. conType .. "_" .. resource)
 	end

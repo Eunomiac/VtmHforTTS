@@ -112,13 +112,13 @@ function P.AssignOpenSeat(player) player.changeColor(S.getOpenColors()[1]) end
 function P.AssignPlayerColors()
 	local openSeats = S.getOpenColors()
 	local spectators = Player.getSpectators()
-	log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
+	-- log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
 	local seqFuncs = {}
 	while #openSeats > 0 and #spectators > 0 do
 		local player = U.shift(spectators)
 		local color = U.shift(openSeats)
 		table.insert(seqFuncs, function()
-			log({player = player.steam_name, color = color})
+			-- log({player = player.steam_name, color = color})
 			player.changeColor(color)
 			return 1
 		end)
@@ -174,7 +174,7 @@ function P.DealAll(cards, playerRef)
 	elseif cards.type == "Deck" then numCards = #cards.getObjects()
 	else return error("P.DealAll: Must submit a deck, a card, or a table of cards.") end
 
-	log({cards, player.color, numCards})
+	-- log({cards, player.color, numCards})
 
 	local seqFuncs = {}
 

@@ -329,9 +329,9 @@ function S.getPlayer(playerRef)
 				return U.ToString(player.steam_id) == C.AdminID
 			end)
 		end
-		if U.isPlayer(Player[playerRef]) then return Player[playerRef] end
 		return U.find(S.getPlayers(), function(player)
-			return U.ToString(player.steam_id) == playerRef
+			return player.color == playerRef
+					or U.ToString(player.steam_id) == playerRef
 					or U.ToString(player.steam_name) == playerRef
 		end)
 	elseif U.Type(playerRef) == "number" then
@@ -393,49 +393,36 @@ function S.getPlayerOf(obj)
 	end
 end
 
-function S.getPlayerHouse(playerRef)
+function S.getPlayerOfHouse(houseName) -- returns COLOR is player is present, ID if player is not present, and false if house is unclaimed
+	-- check if any present players have claimed that house
+	for _, pData in pairs(S.getStateVal("playerData")) do
+		if S.getPlayerHouse(pData.id) == houseName then
+			return pData.color
+		end
+	end
 
+	-- check if any stored players have claimed that house
+	for _, sData in pairs(S.getStateVal("playerStorage")) do
+		if sData.house == houseName then
+			return sData.id
+		end
+	end
+
+	return false
 end
 
-function S.getPlayerHouseName(playerRef)
+function S.getPlayerHouse(playerRef) return S.getPlayerVal(playerRef, "house") end
 
-end
+function S.getPlayerHouseName(playerRef) return S.getPlayerVal(playerRef, "houseName") end
 
-function S.getPlayerHouseNameDisplay(playerRef)
+function S.getPlayerPrestige(playerRef) return S.getPlayerVal(playerRef, "prestige") end
 
-end
-
-function S.getPlayerPrestige(playerRef)
-
-end
-
-function S.getPlayerCrave(playerRef)
-
-end
+function S.getPlayerCrave(playerRef) return S.getPlayerVal(playerRef, "crave") end
 
 function S.getPlayerVoteStatus(playerRef) return S.getPlayerTurnVal(playerRef, "vote") end
 
 function S.getPlayerPowerCommitted(playerRef) return S.getPlayerTurnVal(playerRef, "powerCommitted") end
 
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
 -- #endregion
 
 

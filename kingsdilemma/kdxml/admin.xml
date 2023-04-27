@@ -20,7 +20,7 @@
 		font = "Fonts/FrizB" />
 </Defaults>
 
-<VerticalLayout class="adminContainer">
+<VerticalLayout class="adminContainer" visibility="Host">
 	<HorizontalLayout id="sessionInitDisplay" class="gameStatusDisplay" active="False">
 		<Text class="gameStatusDisplay" color="White">Start Session:</Text>
 		<Button id="initSession">Initialize</Button>

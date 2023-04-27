@@ -17,7 +17,7 @@
 		alignment = "UpperLeft" />
 </Defaults>
 
-<HorizontalLayout class="buttonPanel debugButtonPanel">
+<HorizontalLayout class="buttonPanel debugButtonPanel" visibility="Host">
 	<Button id="toggleElem_debugControls" class="buttonPanelToggle">►</Button>
 	<VerticalLayout id="debugControls" class="buttonBar" active="False">
 		<Button id="debug_logState">Log State</Button>

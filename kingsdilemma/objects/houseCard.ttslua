@@ -339,11 +339,17 @@ end
 function Dud() return end
 
 function editTextField(_, houseName)
+	local pScreen = P.GetPlayerScreen(color)
 	U.sequence({
 		function()
 			S.setPlayerVal(houseName, player, "houseName")
-			P.GetPlayerScreen(color).call("UpdateXMLTable")
-			local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
+			return 0.5
+		end,
+		function()
+			pScreen.call("UpdateXMLTable")
+		end,
+		function()
+			pScreen.call("Activate")
 		end,
 		3,
 		function()
