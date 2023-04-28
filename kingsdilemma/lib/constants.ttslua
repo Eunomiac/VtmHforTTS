@@ -35,6 +35,70 @@ C.HousePrefixes = {
 
 C.Resources = {"Influence", "Wealth", "Morale", "Welfare", "Knowledge"}
 C.SecretAgendas = {"Extremist", "Greedy", "Moderate", "Opportunist", "Opulent", "Rebel"}
+C.SecretAgendaData = {
+	Extremist = {
+		-- if resPoints is missing, function assumed to return actual score
+		resFunc = function(_, allData)
+			local min, max = 20, 0
+			for _, spot in pairs(allData) do
+				if spot < min then min = spot end
+				if spot > max then max = spot end
+			end
+			return max - min
+		end,
+		coinPoints = {4, 2, 1}
+	},
+	Greedy = {
+		resFunc = function(resSpot)
+			return resSpot >= 13 or resSpot <= 5
+		end,
+		resPoints = {4, 7, 11, 7, 4, 0},
+		coinPoints = {8, 6, 4}
+	},
+	Moderate = {
+		resFunc = function(resSpot) return resSpot <= 13 and resSpot >= 5 end,
+		resPoints = {0, 6, 7, 10, 13, 14},
+		coinPoints = {5, 3, 1}
+	},
+	Opportunist = {
+		resFunc = function(resSpot) return resSpot <= 9 end,
+		resPoints = {0, 4, 7, 10, 14, 15},
+		coinPoints = {6, 4, 2}
+	},
+	Opulent = {
+		resFunc = function(resSpot) return resSpot >= 9 end,
+		resPoints = {0, 4, 7, 10, 14, 15},
+		coinPoints = {6, 4, 2}
+	},
+	Rebel = { -- *** WILL HAVE TO HANDLE THE CHECK FOR EXTRA CRAVE MANUALLY
+		resFunc = function(resSpot) return resSpot >= 13 or resSpot >= 5 end,
+		resPoints = {0, 9, 13, 17, 19, 20},
+		coinPoints = {3, 2, 1}
+	}
+}
+C.FinalScoring = {
+	Death = {
+		{prestige = 5, crave = 0},
+		{prestige = 4, crave = 0},
+		{prestige = 2, crave = 1},
+		{prestige = 2, crave = 1},
+		{prestige = 0, crave = 2}
+	},
+	AbdicatedTop = {
+		{prestige = 3, crave = 0},
+		{prestige = 2, crave = 0},
+		{prestige = 1, crave = 0},
+		{prestige = 1, crave = 0},
+		{prestige = 0, crave = 2}
+	},
+	AbdicatedBottom = {
+		{prestige = 0, crave = 3},
+		{prestige = 0, crave = 2},
+		{prestige = 0, crave = 1},
+		{prestige = 0, crave = 1},
+		{prestige = 2, crave = 0}
+	}
+}
 C.Modes = {
 	NONE = "NONE",
 	SESSIONINIT = "SESSIONINIT",
@@ -77,68 +141,6 @@ C.Phases = {
 		Achievements = "Achievements",
 		Alignments = "Alignments",
 		Cleanup = "Cleanup"
-	}
-}
-
-C.RoundSteps = {
-	Draw = "Draw",
-	Vote = {
-		ActivatePlayerVoteZones = {
-			AyeZone = "active, oppToNay",
-			NayZone = "active, oppToAye",
-			PublicZone = "inactive",
-			PassCard = "canPassAndMod" and "active, flippable" or "active, locked"
-		},
-		ActivateVotingLightModes = {
-
-		},
-		Leader_StartTurn = "SetLightModes",
-			-- Wait for Leader to Pass Turn
-		EndTurn = {
-			DeterminePlayerVoteStatus = {
-				[false] = {
-					AyeOrNay = {
-						"MovePowerToPublicPlinth",
-						"UpdateOverallTotalDisplay",
-						"RaisePlayerPlithsProportionally"
-					},
-					Pass = {
-						"DeactivateLights",
-						"SetZones"
-					}
-				},
-				AyeOrNay = {
-					"MovePowerToPublicPlinth",
-					"UpdateOverallTotalDisplay",
-					"RaisePlayerPlithsProportionally"
-				}, -- because "stay" is really just 'move zero power'
-				-- no 'Pass' because a passed player is out of voting.
-			},
-			CleanUp = {
-				"CheckForLeaderTransfer",
-				"CheckForNextTurn_OR_DIR.ADVANCE",
-				"TransferTurn-LoopBack"
-			}
-		}
-	},
-	VoteResolution = {
-		"DetermineWinner", -- with possible Moderator tiebreaker
-		"ReassignLeader",
-		"DistributePassCardCoin",
-		"DistributeBalancePower",
-		"WinningPowerToBalance",
-		"RecoverLosingPower",
-		"ResetVotingState"
-	},
-	DilemmaResolution = {
-		"DisplayOutcome", -- players manually adjust board tokens here
-		"ApplyMomentum",
-		"ChronicleSticker",
-		"StageEnvelope",
-		"PlaceDilemmaCard",
-		"OpenStagedEnvelope",
-		"CheckKingStatus",
-		"EndRound"
 	}
 }
 
@@ -271,7 +273,7 @@ C.Spots = {
 		},
 		Sticker = {
 			Display = {
-				position = Vector({0.00, 6, 26.00}),
+				position = Vector({0.00, 3.81, 26.00}),
 				rotation = Vector({0.00, 180.00, 0.00}),
 				scale = Vector({1, 1, 1})
 			}

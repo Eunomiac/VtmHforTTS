@@ -20,10 +20,14 @@
 		font = "Fonts/FrizB" />
 </Defaults>
 
-<VerticalLayout class="adminContainer">
+<VerticalLayout class="adminContainer" visibility="Host">
+	<HorizontalLayout id="sessionPreflightDisplay" class="gameStatusDisplay" active="False">
+		<Text class="gameStatusDisplay" color="White">Initialize:</Text>
+		<Button id="initPreflight">Preflight</Button>
+	</HorizontalLayout>
 	<HorizontalLayout id="sessionInitDisplay" class="gameStatusDisplay" active="False">
-		<Text class="gameStatusDisplay" color="White">Start Session:</Text>
-		<Button id="initSession">Initialize</Button>
+		<Text class="gameStatusDisplay" color="White">Initialize:</Text>
+		<Button id="initSession">Session</Button>
 	</HorizontalLayout>
 	<HorizontalLayout id="gameStatusDisplay" class="gameStatusDisplay" active="False">
 		<Text class="gameStatusDisplay" color="White">Current:</Text>

@@ -31,6 +31,22 @@ local INITGAMESTATE = {
 -- #region Initializing, Refreshing, Resetting Game State ~
 function S.GetSeatCount() return #Player.getAvailableColors() end
 
+function S.ArePlayersSeated()
+	local players = Player.getPlayers()
+	-- log(#players .. " Players: " .. U.join(U.map(players, function(player) return player.color end), ", "))
+	if #players < 3 then return false end
+	local seats = U.clone(C.SeatColors)
+	for i = 1, 5 do
+		-- log("... [" .. i .. ": " .. C.SeatColors[i] .. "] ")
+		if i > #players then return true end
+		local thisPlayer = U.pluck(players, function(player) return player.color == C.SeatColors[i] end)
+		-- log("... [" .. i .. ": " .. C.SeatColors[i] .. "] = " .. (thisPlayer == nil and "NIL" or thisPlayer.color))
+		if thisPlayer == nil then return false end
+	end
+	log("All Players Confirmed.")
+	return true
+end
+
 function S.getSeatAngles()
 	local angleSpan = C.SeatAngleSpan
 	local startAngle = 180 - 0.5 * angleSpan
@@ -41,6 +57,7 @@ function S.getSeatAngles()
 end
 
 function S.UpdateSeatedPlayers()
+	if not S.ArePlayersSeated() then return nil end
 	local angles = S.getSeatAngles()
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
@@ -61,6 +78,7 @@ function S.InitializeGameState(save_data)
 		save_data = JSON.decode(save_data)
 	end
 	if save_data then
+		save_data.arePlayersSeated = false
 		-- save_data.gameCount = nil
 		-- save_data.gameMode = nil
 		-- save_data.chronicleType = nil
@@ -329,9 +347,9 @@ function S.getPlayer(playerRef)
 				return U.ToString(player.steam_id) == C.AdminID
 			end)
 		end
-		if U.isPlayer(Player[playerRef]) then return Player[playerRef] end
 		return U.find(S.getPlayers(), function(player)
-			return U.ToString(player.steam_id) == playerRef
+			return player.color == playerRef
+					or U.ToString(player.steam_id) == playerRef
 					or U.ToString(player.steam_name) == playerRef
 		end)
 	elseif U.Type(playerRef) == "number" then
@@ -393,49 +411,36 @@ function S.getPlayerOf(obj)
 	end
 end
 
-function S.getPlayerHouse(playerRef)
-
+function S.getPlayerOfHouse(houseName) -- returns COLOR is player is present, ID if player is not present, and false if house is unclaimed
+	-- check if any present players have claimed that house
+	for _, pData in pairs(S.getStateVal("playerData")) do
+		if S.getPlayerHouse(pData.id) == houseName then
+			return pData.color
+end
 end
 
-function S.getPlayerHouseName(playerRef)
-
+	-- check if any stored players have claimed that house
+	for _, sData in pairs(S.getStateVal("playerStorage")) do
+		if sData.house == houseName then
+			return sData.id
+end
 end
 
-function S.getPlayerHouseNameDisplay(playerRef)
-
+	return false
 end
 
-function S.getPlayerPrestige(playerRef)
+function S.getPlayerHouse(playerRef) return S.getPlayerVal(playerRef, "house") end
 
-end
+function S.getPlayerHouseName(playerRef) return S.getPlayerVal(playerRef, "houseName") end
 
-function S.getPlayerCrave(playerRef)
+function S.getPlayerPrestige(playerRef) return S.getPlayerVal(playerRef, "prestige") end
 
-end
+function S.getPlayerCrave(playerRef) return S.getPlayerVal(playerRef, "crave") end
 
 function S.getPlayerVoteStatus(playerRef) return S.getPlayerTurnVal(playerRef, "vote") end
 
 function S.getPlayerPowerCommitted(playerRef) return S.getPlayerTurnVal(playerRef, "powerCommitted") end
 
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
-
--- function S.getPlayer(playerRef)
-
--- end
 -- #endregion
 
 

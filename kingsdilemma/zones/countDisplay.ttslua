@@ -117,11 +117,16 @@ function onLoad()
 		onObjectLeaveZone = nil
 		return
 	end
-	setPublicDefault()
-	setPlayerDefault()
-	setCountTagDefault()
-	setColorDefault()
-	UpdateCount()
+	U.waitUntil(function()
+		setPublicDefault()
+		setPlayerDefault()
+		setCountTagDefault()
+		setColorDefault()
+		UpdateCount()
+	end, function()
+		log("Waiting for players to be seated ...")
+		return S.ArePlayersSeated() == true
+	end)
 end
 
 function UpdateCount(isRecounting)
@@ -133,7 +138,7 @@ function UpdateCount(isRecounting)
 
 	updateValue()
 
-	if isRecounting then Wait.time(UpdateCount, 2) end
+	if isRecounting then Wait.time(function() UpdateCount(false) end, 2) end
 end
 
 local function getVisibility()

@@ -293,7 +293,7 @@ end
 
 function V.StartTurn(playerRef)
 	local player = S.getPlayer(playerRef)
-	log("Starting Next Turn - " .. player.color)
+	-- log("Starting Next Turn - " .. player.color)
 	return U.RunSequence({
 		function() S.setStateVal(player.color, "roundState", "currentTurn") end,
 		function()
@@ -305,7 +305,7 @@ end
 
 function V.UpdateHUD(player, isForcing)
 	if isForcing == nil then isForcing = false end
-	if not isForcing and UI.getAttribute("passTurnHUD", "active") == "false" then return end
+	if not isForcing and UI.getAttribute("turnHUD_" .. player.color, "active") == "false" then return end
 	local ayeZone, nayZone = getVoteObjects(player)
 	local voteStatus = S.getPlayerVoteStatus(player)
 	local ayeCount, nayCount = 0, 0
@@ -352,11 +352,11 @@ function V.UpdateHUD(player, isForcing)
 
 	U.forEach(elemVisibility, function(isVisible, elemRef)
 		if isVisible then
-			UI.setValue("turnHUD_" .. elemRef .. "_Text", elemText[elemRef])
-			UI.show("turnHUD_" .. elemRef .. "_container")
-			UI.setAttribute("turnHUD_" .. elemRef .. "_container", "active", "true")
+			UI.setValue("turnHUD_" .. elemRef .. "_Text_" .. player.color, elemText[elemRef])
+			UI.show("turnHUD_" .. elemRef .. "_container_" .. player.color)
+			UI.setAttribute("turnHUD_" .. elemRef .. "_container_" .. player.color, "active", "true")
 		else
-			UI.setAttribute("turnHUD_" .. elemRef .. "_container", "active", "false")
+			UI.setAttribute("turnHUD_" .. elemRef .. "_container_" .. player.color, "active", "false")
 		end
 	end)
 end

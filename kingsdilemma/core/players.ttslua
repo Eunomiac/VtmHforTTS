@@ -82,26 +82,26 @@ function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
 	return OU.RotateByAngle(objOrTransform, toAngle - fromAngle)
 end
 
-function P.RotateToPlayer(objs, player, fromAngle, fromTransform)
+function P.RotateToPlayer(objs, player, fromAngle, fromTransform, totalTime)
+	if totalTime == nil then totalTime = 2 end
 	if U.Type(objs) ~= "table" then objs = {objs} end
 
 	return U.map(objs, function(obj)
 		local startPos = obj.getPosition()
 		local toData = P.getRotatedPlayerTransform(fromTransform or obj, player, fromAngle)
 		local endPos, endRot = toData.position, toData.rotation
+		local raiseTime, travelTime = totalTime / 4, totalTime / 2
 
 		return U.RunSequence({
 			function()
-				return U.setPositionSlow(obj, Vector(startPos):add(Vector(0, 2, 0)), 0.5)
+				U.setRotationSlow(obj, endRot, totalTime)
+				return U.setPositionSlow(obj, Vector(startPos):add(Vector(0, 2, 0)), raiseTime)
 			end,
 			function()
-				return {
-					U.setPositionSlow(obj, Vector(endPos):add(Vector(0, 2, 0)), 1.5),
-					U.setRotationSlow(obj, endRot, 1.5)
-				}
+				return U.setPositionSlow(obj, Vector(endPos):add(Vector(0, 2, 0)), travelTime)
 			end,
 			function()
-				return U.setPositionSlow(obj, endPos, 0.5)
+				return U.setPositionSlow(obj, endPos, raiseTime)
 			end
 		})
 	end)
@@ -112,13 +112,13 @@ function P.AssignOpenSeat(player) player.changeColor(S.getOpenColors()[1]) end
 function P.AssignPlayerColors()
 	local openSeats = S.getOpenColors()
 	local spectators = Player.getSpectators()
-	log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
+	-- log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
 	local seqFuncs = {}
 	while #openSeats > 0 and #spectators > 0 do
 		local player = U.shift(spectators)
 		local color = U.shift(openSeats)
 		table.insert(seqFuncs, function()
-			log({player = player.steam_name, color = color})
+			-- log({player = player.steam_name, color = color})
 			player.changeColor(color)
 			return 1
 		end)
@@ -174,7 +174,7 @@ function P.DealAll(cards, playerRef)
 	elseif cards.type == "Deck" then numCards = #cards.getObjects()
 	else return error("P.DealAll: Must submit a deck, a card, or a table of cards.") end
 
-	log({cards, player.color, numCards})
+	-- log({cards, player.color, numCards})
 
 	local seqFuncs = {}
 
@@ -237,8 +237,8 @@ function P.AssignLeader(playerRef)
 	local player = S.getPlayer(playerRef)
 	S.setStateVal(player.color, "gameState", "leader")
 	return {
-		P.RotateToPlayer(O.Leader.Figure(), player, 0, C.Spots.Storage.LeaderFigure),
-		P.RotateToPlayer(O.Leader.Light(), player, 0, C.Spots.Storage.LeaderLight)
+		P.RotateToPlayer(O.Leader.Figure(), player, 0, C.Spots.Storage.LeaderFigure, 1),
+		P.RotateToPlayer(O.Leader.Light(), player, 0, C.Spots.Storage.LeaderLight, 1)
 	}
 end
 
@@ -247,8 +247,8 @@ function P.AssignModerator(playerRef)
 	local player = S.getPlayer(playerRef)
 	S.setStateVal(player.color, "gameState", "moderator")
 	return {
-		P.RotateToPlayer(O.Moderator.Figure(), player, 0, C.Spots.Storage.ModeratorFigure),
-		P.RotateToPlayer(O.Moderator.Light(), player, 0, C.Spots.Storage.ModeratorLight)
+		P.RotateToPlayer(O.Moderator.Figure(), player, 0, C.Spots.Storage.ModeratorFigure, 1),
+		P.RotateToPlayer(O.Moderator.Light(), player, 0, C.Spots.Storage.ModeratorLight, 1)
 	}
 end
 

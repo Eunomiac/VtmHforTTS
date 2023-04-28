@@ -4,7 +4,6 @@ local U = require("lib.utilities")
 
 local ISDEBUGGING = false
 
-local player
 local alphas = {
 	global = 1,
 	name = 1,
@@ -22,13 +21,36 @@ local scales = {
 	score = 1
 }
 
-function GetPlayer() return player end
-function GetColor() return player and Color[player.color] end
-function GetHouse() return player and S.getPlayerVal(player, "house") end
-function GetHouseName() return player and S.getPlayerVal(player, "houseName") end
+local color
+function GetColor()
+	if color == nil then
+		color = U.findColorTag(self)
+	end
+	return color
+end
 
-function GetPrestige() return player and S.getPlayerVal(player, "prestige") end
-function GetCrave() return player and S.getPlayerVal(player, "crave") end
+local player
+function GetPlayer()
+	if player == nil then
+		if GetColor() == nil then return end
+		if not U.isPlayer(S.getPlayer(GetColor())) then return end
+		player = S.getPlayer(GetColor())
+	end
+	return player
+end
+
+local house
+function GetHouse()
+	if house == nil then
+		if GetPlayer() == nil then return end
+		house = S.getPlayerVal(GetPlayer(), "house")
+	end
+	return house
+end
+
+function GetHouseName()return GetPlayer() and S.getPlayerVal(GetPlayer(), "houseName") end
+function GetPrestige() return GetPlayer() and S.getPlayerVal(GetPlayer(), "prestige") end
+function GetCrave() return GetPlayer() and S.getPlayerVal(GetPlayer(), "crave") end
 
 function SetAlpha(params)
 	U.forEach(params, function(alpha, key)
@@ -49,15 +71,24 @@ end
 
 
 function onLoad()
+
 	if self.hasTag("SourceObj") then return end
 
-	local color = U.findColorTag(self)
-	if color == nil then return end
-	player = S.getPlayer(color)
-	U.Val("HouseScreen.onLoad()", self, player and U.isIn(color, Player.getAvailableColors()), "Unable to locate player from color tag '" .. U.ToString(color) .. "'")
+	U.waitUntil(function()
+		if GetColor() == nil then return end
+		if GetPlayer() == nil then return end
+		if GetHouse() == nil then return end
 
-	-- DimmerOff()
-	UpdateXMLTable()
+		log({PLAYER = GetPlayer()})
+
+		U.Val("HouseScreen.onLoad()", self, GetPlayer() and U.isIn(color, Player.getAvailableColors()), "Unable to locate player from color tag '" .. U.ToString(color) .. "'")
+
+		-- DimmerOff()
+		UpdateXMLTable()
+	end, function()
+		return S.ArePlayersSeated() == true
+	end)
+
 end
 
 function DimmerOn() SetAlpha({global = 0.05}) end
@@ -97,7 +128,7 @@ local function getNamePanelXML()
 				height = "1500",
 				width = "3000",
 				offsetXY = GetHouseName() and "0 60" or "0 50",
-				color = U.GetHex(GetHouseName() and GetColor() or Color.Grey, alphas.global * alphas.name * (GetHouseName() and 1 or 0.5)),
+				color = U.GetHex(GetHouseName() and Color[GetColor()] or Color.Grey, alphas.global * alphas.name * (GetHouseName() and 1 or 0.5)),
 				-- outline = U.GetHex(Color.Black, alphas.global * alphas.name),
 				-- outlineSize = "15",
 				font = "Fonts/CinzelBB",
@@ -113,7 +144,7 @@ local function getNamePanelXML()
 				rectAlignment = "UpperCenter",
 				height = "1500",
 				width = "3000",
-				color = U.GetHex(GetHouseName() and GetColor() or Color.Grey, alphas.global * alphas.name * (GetHouseName() and 1 or 0.5)),
+				color = U.GetHex(GetHouseName() and Color[GetColor()] or Color.Grey, alphas.global * alphas.name * (GetHouseName() and 1 or 0.5)),
 				outline = U.GetHex(Color.Black, alphas.global * alphas.name),
 				outlineSize = "15",
 				font = "Fonts/CinzelBB",
@@ -134,7 +165,7 @@ local function getNamePanelXML()
 				height = "1500",
 				width = "3000",
 				offsetXY = "0 -25",
-				color = U.GetHex(GetColor():lerp(C.RootColors.PureBlack, 0), alphas.global * alphas.name),
+				color = U.GetHex(Color[GetColor()]:lerp(C.RootColors.PureBlack, 0), alphas.global * alphas.name),
 				-- outline = U.GetHex(Color.Black, alphas.global * alphas.name),
 				-- outlineSize = "15",
 				font = "Fonts/FrizSC",
@@ -148,7 +179,7 @@ local function getNamePanelXML()
 			tag = "Panel",
 			attributes = {
 				id = "namePanel",
-				visibility = U.join(S.getOtherColors(player), "|"),
+				visibility = U.join(S.getOtherColors(GetPlayer()), "|"),
 				height = "200",
 				width = "600",
 				color = ISDEBUGGING and U.GetHex(Color(1, 0, 1, 0.1)) or "Clear",
@@ -212,7 +243,7 @@ local function getPrestigeCravePanelXML()
 					},
 					{
 						tag = "Text",
-						value = math.floor(S.getPlayerVal(player, "prestige")),
+						value = math.floor(S.getPlayerVal(GetPlayer(), "prestige")),
 						attributes = {
 							id = "prestigeElem",
 							height = "500",
@@ -266,7 +297,7 @@ local function getPrestigeCravePanelXML()
 					},
 					{
 						tag = "Text",
-						value = math.floor(S.getPlayerVal(player, "crave")),
+						value = math.floor(S.getPlayerVal(GetPlayer(), "crave")),
 						attributes = {
 							id = "craveElem",
 							height = "500",
@@ -366,7 +397,7 @@ end
 
 
 function UpdateXMLTable()
-	if player == nil then return end
+	if GetPlayer() == nil then return end
 	self.UI.setXmlTable({
 		getRootPanelXML({
 			getNamePanelXML(),

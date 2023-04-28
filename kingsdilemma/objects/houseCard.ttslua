@@ -10,9 +10,58 @@ local thick = 0.12
 local gx, gy -- Global Offsets for calibrating against scan error
 
 local scanData
-local houseTitle, houseName, houseNum, player, color, screen
 
-local function getScreen() if screen == nil and player then screen = P.GetPlayerScreen(player) end; return screen end
+local color
+function GetColor()
+	if color == nil then
+		color = U.findColorTag(self)
+	end
+	return color
+end
+
+local player
+function GetPlayer()
+	if player == nil then
+		if GetColor() == nil then return end
+		if not U.isPlayer(S.getPlayer(GetColor())) then return end
+		player = S.getPlayer(GetColor())
+	end
+	return player
+end
+
+local screen
+function GetScreen()
+	if screen == nil then
+		if GetPlayer() == nil then return end
+		screen = P.GetPlayerScreen(GetPlayer())
+	end
+	return screen
+end
+
+local house
+function GetHouse()
+	if house == nil then
+		house = string.gsub(self.getName(), "^.*of ", "")
+	end
+	return house
+end
+
+local rulerTitle
+function GetRulerTitle()
+	if rulerTitle == nil then
+		rulerTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
+	end
+	return rulerTitle
+end
+
+local houseNum
+function GetHouseNum()
+	if houseNum == nil then
+		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
+	end
+	return houseNum
+end
+
 
 local buttonsData = {
 	count = 0,
@@ -41,37 +90,37 @@ local buttonsData = {
 local buttons = U.clone(buttonsData, true)
 
 function UpdatePrestige()
-	local scr = getScreen()
+	local scr = GetScreen()
 	if scr then
 		scr.UI.setValue("prestigeElem", tostring(math.floor(GetPrestige())))
 	end
 end
 function UpdateCrave()
-	local scr = getScreen()
+	local scr = GetScreen()
 	if scr then
 		scr.UI.setValue("craveElem", tostring(math.floor(GetPrestige())))
 	end
 end
 
 function GetPrestige()
-	if houseNum == nil then return nil end
+	if GetHouseNum() == nil then return nil end
 	local prestigeCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_prestige")
-	end) + houseNum / 100
-	if prestigeCount ~= S.getPlayerVal(player, "prestige") then
-		S.setPlayerVal(prestigeCount, player, "prestige")
+	end) + GetHouseNum() / 100
+	if prestigeCount ~= S.getPlayerVal(GetPlayer(), "prestige") then
+		S.setPlayerVal(prestigeCount, GetPlayer(), "prestige")
 		UpdatePrestige()
 	end
 	return prestigeCount
 end
 
 function GetCrave()
-	if houseNum == nil then return nil end
+	if GetHouseNum() == nil then return nil end
 	local craveCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_crave")
 	end)
-	if craveCount ~= S.getPlayerVal(player, "crave") then
-		S.setPlayerVal(craveCount, player, "crave")
+	if craveCount ~= S.getPlayerVal(GetPlayer(), "crave") then
+		S.setPlayerVal(craveCount, GetPlayer(), "crave")
 		UpdateCrave()
 	end
 	return craveCount
@@ -80,13 +129,13 @@ end
 local function createTextField(name)
 	-- local player = S.getPlayer(U.findColorTag(self))
 	-- log({colorTag = U.findColorTag(self), player = player})
-	if player == nil then return end
+	if GetPlayer() == nil then return end
 	self.UI.setXmlTable({
 		{
 			tag = "InputField",
 			value = name,
 			attributes = {
-				visibility = color,
+				visibility = GetColor(),
 				onEndEdit = "editTextField",
 				color = "Clear",
 				placeholder = " ",
@@ -239,7 +288,7 @@ end
 local function initCustomButtons()
 	-- local player = S.getPlayer(U.findColorTag(self))
 	-- log({player = player, colorTag = U.findColorTag(self)})
-	local houseName = S.getPlayerVal(player, "houseName") or ""
+	local houseName = S.getPlayerVal(GetPlayer(), "houseName") or ""
 	createTextField(houseName)
 
 	-- prestige tracker. Potentially worth simplifying the on_click to fill up to clicked square, rather than 1 by 1.
@@ -296,20 +345,18 @@ local function initCustomButtons()
 end
 
 function onLoad(saved_data)
-	-- log("LOADING HOUSE CARD")
-	-- Wait.time(function()
-		color = U.findColorTag(self)
-		if color == nil then return end
-		houseTitle = string.gsub(self.getName(), "^(.*) of.*$", "%1s")
-		houseName = string.gsub(self.getName(), "^.*of ", "")
-		houseNum = string.gsub(self.getDescription(), ".-(%d+)", "%1") * 1
-		player = S.getPlayer(color)
-		scanData = C.scanData[houseName]
 
-		-- log("The " .. houseTitle .. " of " .. houseName .. " is #" .. houseNum)
+	if self.hasTag("SourceObj") then return end
+
+	U.waitUntil(function()
+		if GetColor() == nil then return end
+		if GetPlayer() == nil then return end
+		if GetHouse() == nil then return end
+
+		scanData = C.scanData[GetHouse()]
 
 		if scanData == nil then
-			return error("[House Card] Error: '" .. houseName .. "' is not a recognized House.")
+			return error("[House Card] Error: '" .. GetHouse() .. "' is not a recognized House.")
 		end
 
 		gx = scanData.globalOffsets.gx
@@ -327,23 +374,29 @@ function onLoad(saved_data)
 		end
 		initCustomButtons()
 
-		-- Wait.time(function()
-			GetPrestige()
-			GetCrave()
-		-- end, 2)
+		GetPrestige()
+		GetCrave()
+	end, function()
+		return S.ArePlayersSeated() == true
+	end)
 
 
-	-- end, 5)
 end
 
 function Dud() return end
 
 function editTextField(_, houseName)
+	local pScreen = P.GetPlayerScreen(color)
 	U.sequence({
 		function()
-			S.setPlayerVal(houseName, player, "houseName")
-			P.GetPlayerScreen(color).call("UpdateXMLTable")
-			local houseScreen = getObjectsWithAllTags({"screenCenter", color})[1]
+			S.setPlayerVal(houseName, GetPlayer(), "houseName")
+			return 0.5
+		end,
+		function()
+			GetScreen().call("UpdateXMLTable")
+		end,
+		function()
+			GetScreen().call("Activate")
 		end,
 		3,
 		function()

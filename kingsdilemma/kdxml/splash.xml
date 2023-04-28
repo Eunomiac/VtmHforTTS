@@ -209,7 +209,8 @@
 		offsetXY = "-50 -50"
 		scale = "0.6 0.6 0.6" />
 </Defaults>
-<Panel id="splashQuery" class="splash-panel splash-query" active="false">
+
+<Panel id="splashQuery_Brown" class="splash-panel splash-query" visibility="Brown" active="false">
 	<VerticalLayout class="splash-root">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -217,28 +218,172 @@
 			<Image class="splash-bottom" />
 		</VerticalLayout>
 		<VerticalLayout class="splash">
-			<Text id="splashQueryPlayerPrompt" class="splash player-prompt">Leader</Text>
-			<Text id="splashQueryPrompt" class="splash splash-query-prompt">This is a test query.</Text>
+			<Text id="splashQueryPlayerPrompt_Brown" class="splash player-prompt">Leader</Text>
+			<Text id="splashQueryPrompt_Brown" class="splash splash-query-prompt">This is a test query.</Text>
 			<HorizontalLayout class="splash-query">
-				<Panel id="splashQueryContainer_Option1" class="splash-option" active="false">
-					<Image id="splashQuery_Option1" class="splash-option" />
-					<Text id="splashQueryText_Option1" class="splash splash-option">Yes</Text>
+				<Panel id="splashQueryContainer_Option1_Brown" class="splash-option" active="false">
+					<Image id="splashQuery_Option1_Brown" class="splash-option" />
+					<Text id="splashQueryText_Option1_Brown" class="splash splash-option">Yes</Text>
 				</Panel>
-				<Panel id="splashQueryContainer_Option2" class="splash-option" active="false">
-					<Image id="splashQuery_Option2" class="splash-option" />
-					<Text id="splashQueryText_Option2" class="splash splash-option">No</Text>
+				<Panel id="splashQueryContainer_Option2_Brown" class="splash-option" active="false">
+					<Image id="splashQuery_Option2_Brown" class="splash-option" />
+					<Text id="splashQueryText_Option2_Brown" class="splash splash-option">No</Text>
 				</Panel>
-				<Panel id="splashQueryContainer_Option3" class="splash-option" active="false">
-					<Image id="splashQuery_Option3" class="splash-option" />
-					<Text id="splashQueryText_Option3" class="splash splash-option">Maybe</Text>
+				<Panel id="splashQueryContainer_Option3_Brown" class="splash-option" active="false">
+					<Image id="splashQuery_Option3_Brown" class="splash-option" />
+					<Text id="splashQueryText_Option3_Brown" class="splash splash-option">Maybe</Text>
 				</Panel>
-				<Panel id="splashQueryContainer_Option4" class="splash-option" active="false">
-					<Image id="splashQuery_Option4" class="splash-option" />
-					<Text id="splashQueryText_Option4" class="splash splash-option"></Text>
+				<Panel id="splashQueryContainer_Option4_Brown" class="splash-option" active="false">
+					<Image id="splashQuery_Option4_Brown" class="splash-option" />
+					<Text id="splashQueryText_Option4_Brown" class="splash splash-option"></Text>
 				</Panel>
-				<Panel id="splashQueryContainer_Option5" class="splash-option" active="false">
-					<Image id="splashQuery_Option5" class="splash-option" />
-					<Text id="splashQueryText_Option5" class="splash splash-option"></Text>
+				<Panel id="splashQueryContainer_Option5_Brown" class="splash-option" active="false">
+					<Image id="splashQuery_Option5_Brown" class="splash-option" />
+					<Text id="splashQueryText_Option5_Brown" class="splash splash-option"></Text>
+				</Panel>
+			</HorizontalLayout>
+		</VerticalLayout>
+	</VerticalLayout>
+</Panel>
+
+<Panel id="splashQuery_Red" class="splash-panel splash-query" visibility="Red" active="false">
+	<VerticalLayout class="splash-root">
+		<VerticalLayout class="splash-image-container">
+			<Image class="splash-top" />
+			<Image class="splash-bg" />
+			<Image class="splash-bottom" />
+		</VerticalLayout>
+		<VerticalLayout class="splash">
+			<Text id="splashQueryPlayerPrompt_Red" class="splash player-prompt">Leader</Text>
+			<Text id="splashQueryPrompt_Red" class="splash splash-query-prompt">This is a test query.</Text>
+			<HorizontalLayout class="splash-query">
+				<Panel id="splashQueryContainer_Option1_Red" class="splash-option" active="false">
+					<Image id="splashQuery_Option1_Red" class="splash-option" />
+					<Text id="splashQueryText_Option1_Red" class="splash splash-option">Yes</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option2_Red" class="splash-option" active="false">
+					<Image id="splashQuery_Option2_Red" class="splash-option" />
+					<Text id="splashQueryText_Option2_Red" class="splash splash-option">No</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option3_Red" class="splash-option" active="false">
+					<Image id="splashQuery_Option3_Red" class="splash-option" />
+					<Text id="splashQueryText_Option3_Red" class="splash splash-option">Maybe</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option4_Red" class="splash-option" active="false">
+					<Image id="splashQuery_Option4_Red" class="splash-option" />
+					<Text id="splashQueryText_Option4_Red" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option5_Red" class="splash-option" active="false">
+					<Image id="splashQuery_Option5_Red" class="splash-option" />
+					<Text id="splashQueryText_Option5_Red" class="splash splash-option"></Text>
+				</Panel>
+			</HorizontalLayout>
+		</VerticalLayout>
+	</VerticalLayout>
+</Panel>
+
+<Panel id="splashQuery_Orange" class="splash-panel splash-query" visibility="Orange" active="false">
+	<VerticalLayout class="splash-root">
+		<VerticalLayout class="splash-image-container">
+			<Image class="splash-top" />
+			<Image class="splash-bg" />
+			<Image class="splash-bottom" />
+		</VerticalLayout>
+		<VerticalLayout class="splash">
+			<Text id="splashQueryPlayerPrompt_Orange" class="splash player-prompt">Leader</Text>
+			<Text id="splashQueryPrompt_Orange" class="splash splash-query-prompt">This is a test query.</Text>
+			<HorizontalLayout class="splash-query">
+				<Panel id="splashQueryContainer_Option1_Orange" class="splash-option" active="false">
+					<Image id="splashQuery_Option1_Orange" class="splash-option" />
+					<Text id="splashQueryText_Option1_Orange" class="splash splash-option">Yes</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option2_Orange" class="splash-option" active="false">
+					<Image id="splashQuery_Option2_Orange" class="splash-option" />
+					<Text id="splashQueryText_Option2_Orange" class="splash splash-option">No</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option3_Orange" class="splash-option" active="false">
+					<Image id="splashQuery_Option3_Orange" class="splash-option" />
+					<Text id="splashQueryText_Option3_Orange" class="splash splash-option">Maybe</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option4_Orange" class="splash-option" active="false">
+					<Image id="splashQuery_Option4_Orange" class="splash-option" />
+					<Text id="splashQueryText_Option4_Orange" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option5_Orange" class="splash-option" active="false">
+					<Image id="splashQuery_Option5_Orange" class="splash-option" />
+					<Text id="splashQueryText_Option5_Orange" class="splash splash-option"></Text>
+				</Panel>
+			</HorizontalLayout>
+		</VerticalLayout>
+	</VerticalLayout>
+</Panel>
+
+<Panel id="splashQuery_Yellow" class="splash-panel splash-query" visibility="Yellow" active="false">
+	<VerticalLayout class="splash-root">
+		<VerticalLayout class="splash-image-container">
+			<Image class="splash-top" />
+			<Image class="splash-bg" />
+			<Image class="splash-bottom" />
+		</VerticalLayout>
+		<VerticalLayout class="splash">
+			<Text id="splashQueryPlayerPrompt_Yellow" class="splash player-prompt">Leader</Text>
+			<Text id="splashQueryPrompt_Yellow" class="splash splash-query-prompt">This is a test query.</Text>
+			<HorizontalLayout class="splash-query">
+				<Panel id="splashQueryContainer_Option1_Yellow" class="splash-option" active="false">
+					<Image id="splashQuery_Option1_Yellow" class="splash-option" />
+					<Text id="splashQueryText_Option1_Yellow" class="splash splash-option">Yes</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option2_Yellow" class="splash-option" active="false">
+					<Image id="splashQuery_Option2_Yellow" class="splash-option" />
+					<Text id="splashQueryText_Option2_Yellow" class="splash splash-option">No</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option3_Yellow" class="splash-option" active="false">
+					<Image id="splashQuery_Option3_Yellow" class="splash-option" />
+					<Text id="splashQueryText_Option3_Yellow" class="splash splash-option">Maybe</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option4_Yellow" class="splash-option" active="false">
+					<Image id="splashQuery_Option4_Yellow" class="splash-option" />
+					<Text id="splashQueryText_Option4_Yellow" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option5_Yellow" class="splash-option" active="false">
+					<Image id="splashQuery_Option5_Yellow" class="splash-option" />
+					<Text id="splashQueryText_Option5_Yellow" class="splash splash-option"></Text>
+				</Panel>
+			</HorizontalLayout>
+		</VerticalLayout>
+	</VerticalLayout>
+</Panel>
+
+<Panel id="splashQuery_Green" class="splash-panel splash-query" visibility="Green" active="false">
+	<VerticalLayout class="splash-root">
+		<VerticalLayout class="splash-image-container">
+			<Image class="splash-top" />
+			<Image class="splash-bg" />
+			<Image class="splash-bottom" />
+		</VerticalLayout>
+		<VerticalLayout class="splash">
+			<Text id="splashQueryPlayerPrompt_Green" class="splash player-prompt">Leader</Text>
+			<Text id="splashQueryPrompt_Green" class="splash splash-query-prompt">This is a test query.</Text>
+			<HorizontalLayout class="splash-query">
+				<Panel id="splashQueryContainer_Option1_Green" class="splash-option" active="false">
+					<Image id="splashQuery_Option1_Green" class="splash-option" />
+					<Text id="splashQueryText_Option1_Green" class="splash splash-option">Yes</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option2_Green" class="splash-option" active="false">
+					<Image id="splashQuery_Option2_Green" class="splash-option" />
+					<Text id="splashQueryText_Option2_Green" class="splash splash-option">No</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option3_Green" class="splash-option" active="false">
+					<Image id="splashQuery_Option3_Green" class="splash-option" />
+					<Text id="splashQueryText_Option3_Green" class="splash splash-option">Maybe</Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option4_Green" class="splash-option" active="false">
+					<Image id="splashQuery_Option4_Green" class="splash-option" />
+					<Text id="splashQueryText_Option4_Green" class="splash splash-option"></Text>
+				</Panel>
+				<Panel id="splashQueryContainer_Option5_Green" class="splash-option" active="false">
+					<Image id="splashQuery_Option5_Green" class="splash-option" />
+					<Text id="splashQueryText_Option5_Green" class="splash splash-option"></Text>
 				</Panel>
 			</HorizontalLayout>
 		</VerticalLayout>

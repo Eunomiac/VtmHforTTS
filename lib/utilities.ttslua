@@ -571,6 +571,7 @@ end
 function U.unshift(elem, arr) table.insert(arr, 1, elem) end
 function U.pluck(arr, func)
 	local index = U.findIndex(arr, func)
+	if index == nil then return nil end
 	return table.remove(arr, index)
 end
 
@@ -896,7 +897,7 @@ end
 function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 	if afterFunc == nil then return end
 	if isForcing == nil then isForcing = false end
-	if maxWait == nil then maxWait = 1000 end
+	if maxWait == nil then maxWait = 9999 end
 	if testFrequency == nil then testFrequency = 15 end
 
 	local frameCount = 0
@@ -929,7 +930,7 @@ function U.waitUntil(afterFunc, testRef, isForcing, maxWait, testFrequency)
 			while not pCheckFunc() do
 				local waitFrames = testFrequency
 				frameCount = frameCount + waitFrames
-				if frameCount > maxWait and not hasWaited then
+				if (maxWait < 9999 and frameCount > maxWait) and not hasWaited then
 					log(debug.traceback())
 					hasWaited = true
 					if isForcing then
