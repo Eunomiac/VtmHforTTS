@@ -260,6 +260,8 @@ function HUD_Click(player, button, id)
 		MSG.QueryResponse(tonumber(stringIndex))
 	elseif string.match(id, "^toggleElem_") then
 		toggleXmlElement(string.gsub(id, "^toggleElem_", ""), button)
+	elseif id == "initPreflight" then
+		DIR.InitPreflight()
 	elseif id == "initSession" then
 		DIR.InitSession()
 	elseif id == "advanceGamePhase" then

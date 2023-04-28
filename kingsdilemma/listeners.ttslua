@@ -47,64 +47,8 @@ local DIR = require("kingsdilemma.core.director")
 
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
-
-	-- U.forEach(C.RootColors, function(color, name) Color.Add(name, color) end)
-	-- log({PureBlack = C.RootColors.PureBlack})
-	console.load()
-
 	S.InitializeGameState(save_data)
-
-	Global.call("UpdatePhaseDisplay")
-	UI.show("sessionInitDisplay")
-	U.forEach(getObjectsWithTag("Private"), function(obj)
-		local color = U.findColorTag(obj)
-		if color then
-			obj.setInvisibleTo(S.getOtherColors(color))
-		end
-	end)
-	L.PrimeLights()
-	U.forEach(O.UninteractableObjs, function(oFunc)
-		oFunc().interactable = false
-		oFunc().gizmo_selectable = false
-	end)
-
-	-- P.AssignPlayerColors()
-
-	-- #region DEBUG
-	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
-
-	-- Auto-assign "Player X"'s to colors
-	-- local seats = U.clone(C.SeatColors)
-	-- U.forEach(Player.getSpectators(), function(player)
-	-- 	while seats[1] and Player[seats[1]].steam_name ~= nil do
-	-- 		U.shift(seats)
-	-- 	end
-	-- 	if #seats then player.changeColor(U.shift(seats)) end
-	-- end)
-
-	-- local function changeCardImages(cardObj)
-	-- 	local cardData = cardObj.getData()
-	-- 	cardData.CustomDeck = U.map(cardData.CustomDeck, function(dData)
-	-- 		return U.map(dData, function(val, key)
-	-- 			if key ~= "FaceURL" and key ~= "BackURL" then return val end
-	-- 			local seekVal = string.match(val, "/([^/]*)/$")
-	-- 			local imgVal = C.AssetConversion[seekVal]
-	-- 			if imgVal == nil then
-	-- 				log("Not found: " .. val)
-	-- 				return val
-	-- 			else
-	-- 				log({[seekVal] = imgVal})
-	-- 				return imgVal
-	-- 			end
-	-- 		end)
-	-- 	end)
-	-- 	cardObj.setCustomObject(cardData)
-	-- 	Wait.time(function() cardObj.reload() end, 1)
-	-- end
-
-	-- #endregion
-
-	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount"))
+	UI.show("sessionPreflightDisplay")
 end
 
 function onSave() return JSON.encode(S.getGameState()) end

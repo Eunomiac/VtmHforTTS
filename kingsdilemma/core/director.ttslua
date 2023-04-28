@@ -1029,6 +1029,32 @@ INITFUNCS = {
 -- #endregion
 
 -- #region Session Setup & Phase Control~
+function DIR.InitPreflight()
+	UI.hide("sessionPreflightDisplay")
+	UI.show("sessionInitDisplay")
+
+	Global.call("UpdatePhaseDisplay")
+	U.forEach(getObjectsWithTag("Private"), function(obj)
+		local color = U.findColorTag(obj)
+		if color then
+			obj.setInvisibleTo(S.getOtherColors(color))
+		end
+	end)
+	L.PrimeLights()
+	U.forEach(O.UninteractableObjs, function(oFunc)
+		oFunc().interactable = false
+		oFunc().gizmo_selectable = false
+	end)
+
+	-- #region DEBUG
+	console.load()
+	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
+	-- #endregion
+
+	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount"))
+end
+
+
 function DIR.InitSession()
 	UI.hide("sessionInitDisplay")
 	UI.show("gameStatusDisplay")
@@ -1841,6 +1867,29 @@ function DIR.EndGame(endTrigger)
 	end
 end
 
+function DIR.GetSecretAgenda(playerRef)
+	local player = S.getPlayer(playerRef)
+	local secretAgendaCard = getObjectsWithAllTags({player.color, "SecretAgenda"})
+	U.Val("DIR.GetSecretAgenda", secretAgendaCard, #secretAgendaCard == 1, "Unable to find " .. player.color .. "'s Secret Agenda!")
+	secretAgendaCard = secretAgendaCard[1]
+	local secretAgendaTag = U.find(secretAgendaCard.getTags(), function(tag) return string.match(tag, "^SA_") end)
+	U.Val("DIR.GetSecretAgenda", secretAgendaTag, U.Type(secretAgendaTag) == "string", "Unable to find " .. player.color .. "'s Secret Agenda type!")
+	return string.gsub(secretAgendaTag, "^SA_", "")
+end
+
+function DIR.GetSecretAgendaScore(playerRef)
+	local secretAgendaData = C.SecretAgendaData[DIR.GetSecretAgenda(playerRef)]
+	local tokenPositions = getTokenPositionsFromBoard()
+	if U.isIn("resPoints", secretAgendaData) then
+		--
+	end
+
+	local resFuncResult = secretAgendaData.resFunc()
+end
+
+-- function DIR.
+
+
 local function getUpdatedChronicleCardState(cScriptState)
 	local scriptState = JSON.decode(cScriptState)
 	local playerKeys = { "1", "8", "15", "22", "29" }
@@ -1876,18 +1925,6 @@ function DIR.UpdateChronicleCardNames()
 	local cData = cCard.getData()
 	cCard.setCustomObject({ LuaScriptState = getUpdatedChronicleCardState(cData.LuaScriptState) })
 	cCard.reload()
-end
-
-function DIR.GetSecretAgendaScore(playerRef)
-	local player = S.getPlayer(playerRef)
-	local secretAgendaCard = getObjectsWithAllTags({player.color, "SecretAgenda"})
-	U.Val("DIR.GetSecretAgendaScore", secretAgendaCard, #secretAgendaCard == 1, "Unable to find " .. player.color .. "'s Secret Agenda!")
-	secretAgendaCard = secretAgendaCard[1]
-	local secretAgendaTag = U.find(secretAgendaCard.getTags(), function(tag) return string.match(tag, "^SA_") end)
-	U.Val("DIR.GetSecretAgendaScore", secretAgendaTag, U.Type(secretAgendaTag) == "string", "Unable to find " .. player.color .. "'s Secret Agenda type!")
-	secretAgendaTag = string.gsub(secretAgendaTag, "^SA_", "")
-	local secretAgendaData = C.SecretAgendaData[secretAgendaTag]
-
 end
 
 -- #endregion
