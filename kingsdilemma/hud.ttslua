@@ -236,7 +236,7 @@ function HUD_Click(player, button, id)
 	elseif id == "initPreflight" then
 		DIR.InitPreflight()
 	elseif id == "initSession" then
-		DIR.InitSession()
+		DIR.InitSession(button == "-2")
 	elseif id == "advanceGamePhase" then
 		DIR.ADVANCE()
 	elseif id == "prompt_simClick" then

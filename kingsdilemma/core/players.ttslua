@@ -6,8 +6,8 @@ local OU = require("kingsdilemma.objects.objUtilities")
 
 local P = {}
 
-function P.InitializeSeats()
-	S.UpdateSeatedPlayers()
+function P.InitializeSeatHandZones()
+	S.UpdatedSeatedPlayerData()
 
 	local seats = U.slice(Player.getColors(), 2, 6)
 	-- log({SeatColors = seats})
@@ -109,21 +109,27 @@ end
 
 function P.AssignOpenSeat(player) player.changeColor(S.getOpenColors()[1]) end
 
-function P.AssignPlayerColors()
-	local openSeats = S.getOpenColors()
-	local spectators = Player.getSpectators()
-	-- log({openSeats = U.join(openSeats, ", "), spectators = U.join(U.iMap(spectators, function(spec) return spec.steam_name end), ", "), num = {#openSeats, #spectators}})
-	local seqFuncs = {}
-	while #openSeats > 0 and #spectators > 0 do
-		local player = U.shift(spectators)
-		local color = U.shift(openSeats)
-		table.insert(seqFuncs, function()
-			-- log({player = player.steam_name, color = color})
-			player.changeColor(color)
-			return 1
-		end)
+function P.AssignPlayerColors(isNotShuffling)
+	if S.isInMode(C.Modes.NONE) then
+		local players = U.slice(Player.getPlayers(), 1, 5)
+		local seatColors = U.slice(Player.getColors(), 2, #players + 1)
+		if isNotShuffling ~= true then
+			U.shuffle(seatColors)
+		end
+		return U.RunSequence({
+			function()
+				U.forEach(Player.getPlayers(), function(player) player.changeColor("Grey") end)
+				return function() return U.find(Player.getPlayers(), function(player) return player.color ~= "Grey" end) == nil end
+			end,
+			function()
+				U.forEach(players, function(player) player.changeColor(U.shift(seatColors)) end)
+				return function() return U.find(players, function(player) return player.color == "Grey" end) == nil end
+			end
+		})
+	else
+		U.AlertGM("Players should seat themselves manually.")
+		return 0
 	end
-	return U.RunSequence(seqFuncs)
 end
 
 function P.SetCamera(cameraMode, playerRef, playerCamRef)

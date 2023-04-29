@@ -188,7 +188,7 @@ function V.InitCountZones(playerRef)
 	local ayeZone, nayZone, publicZone, ayeCard, nayCard, passCard = getVoteObjects(player)
 	local voteStatus = S.getStateVal("turnState", player.color, "vote")
 
-	if not S.isInPhase("Vote") or voteStatus == false then
+	if not S.isInPhase(C.Phases.PLAY.Vote) or voteStatus == false then
 		if ayeCard then
 			ayeCard.setPositionSmooth(ayeCard.getPosition():setAt("y", C.TableHeight))
 		end
@@ -198,7 +198,7 @@ function V.InitCountZones(playerRef)
 		if passCard then
 			passCard.setPositionSmooth(passCard.getPosition():setAt("y", C.TableHeight))
 			passCard.setRotationSmooth(passCard.getRotation():setAt("z", 0))
-			passCard.setLock(not S.isInPhase("Vote"))
+			passCard.setLock(not S.isInPhase(C.Phases.PLAY.Vote))
 		end
 
 		if ayeZone then
@@ -382,8 +382,7 @@ function V.CheckForLeaderChange(playerRef)
 	end
 	return U.RunSequence({
 		function()
-			MSG.Splash({P.GetPlayerName(player) .. " has committed the most Power (" .. playerPowerCommitted .. ")",
-		"and claims Leadership over this vote."})
+			MSG.Splash({P.GetPlayerName(player) .. " claims Leadership over the vote."})
 			return P.AssignLeader(player)
 		end
 	})

@@ -742,8 +742,15 @@ end
 function U.getHost()
 	local hosts = U.filter(Player.getPlayers(), function(player) return player.host end)
 	if #hosts == 1 then return hosts[1] end
-	-- If there are multiple hosts, this is a hotseat game being debugged: Player.Brown is the assumed host.
-	return Player.Brown
+	-- If there are multiple hosts, this is a hotseat game being debugged: "Eunomiac", "Player 0" or "Player 1" is the assumed host.
+	local host = U.find(Player.getPlayers(), function(player) return player.steam_name == "Eunomiac" end)
+	if host == nil then
+		host = U.find(Player.getPlayers(), function(player) return player.steam_name == "Player 0" end)
+	end
+	if host == nil then
+		host = U.find(Player.getPlayers(), function(player) return player.steam_name == "Player 1" end)
+	end
+	return host
 end
 
 function U.getZoneBounds(zone)

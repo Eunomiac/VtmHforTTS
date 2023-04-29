@@ -1,7 +1,8 @@
 <Defaults> <!-- Debug Control Defaults -->
 	<HorizontalLayout class = "debugDisplayPanel"
 	  rectAlignment = "UpperRight"
-		height = "1500"
+		offsetXY = "0 -125"
+		height = "1100"
 		width = "550"
 		spacing = "12" />
 	<HorizontalLayout class="debugButtonPanel"
@@ -12,7 +13,7 @@
 		padding = "5 5 5 5"
 		height = "1500"
 		width = "125" />
-	<Button class="debugStateToggle" rectAlignment = "UpperRight" />
+	<Button class="debugStateToggle" ignoreLayout = "true" width = "25" offsetXY = "0 0" rectAlignment = "UpperRight" />
 
 	<Text class = "codeDisplay"
 		fontSize = "8"
@@ -20,6 +21,7 @@
 </Defaults>
 
 <HorizontalLayout class="buttonPanel debugButtonPanel" visibility="Host">
+	<Button id="toggleElem_debugControls" class="buttonPanelToggle">►</Button>
 	<VerticalLayout id="debugControls" class="buttonBar" active="False">
 		<Button id="debug_logState">Log State</Button>
 		<Button id="debug_resetState">Reset State</Button>
@@ -43,11 +45,9 @@
 		<Text class="spacer_5"></Text>
 		<Button id="prompt_simClick">Sim Click</Button>
 	</VerticalLayout>
-	<Button id="toggleElem_debugControls" class="buttonPanelToggle debugStateToggle">►</Button>
 </HorizontalLayout>
 
 <HorizontalLayout class="debugDisplayPanel" visibility="Host">
-	<Button id="toggleElem_stateDisplayPanel" class="buttonPanelToggle">►</Button>
 	<Panel id="stateDisplayPanel_1" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_1" class="codeDisplay"></Text>
 	</Panel>
@@ -60,4 +60,5 @@
 		<Panel id="stateDisplayPanel_4" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_4" class="codeDisplay"></Text>
 	</Panel>
+	<Button id="toggleElem_stateDisplayPanel" class="buttonPanelToggle  debugStateToggle">►</Button>
 </HorizontalLayout>

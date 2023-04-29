@@ -301,7 +301,7 @@ L.LIGHTMODES = {
 	lightBalance = {
 		loadRotation = Vector({16.91, 0, 0}),
 		default = function()
-			if S.isInMode({"NONE", "SESSIONINIT", "CHRONSETUP"}) then
+			if S.isInMode({C.Modes.NONE, C.Modes.SESSIONINIT, C.Modes.CHRONSETUP}) then
 				return "off"
 			else
 				return "on"
@@ -456,6 +456,21 @@ L.LIGHTMODES = {
 			angle = 100,
 			intensity = 2,
 			rotation = Vector(310, 0, 0) -- position = {0.00, 32.49, 26.14}
+		}
+	},
+	lightDilemmaRef = {
+		isPlayerLight = true,
+		default = "off",
+		isSpawned = true,
+		off = {
+			enabled = false
+		},
+		on = {
+			enabled = true,
+			color = Color.Grey,
+			range = 33,
+			angle = 40,
+			intensity = 2
 		}
 	},
 	lightDilemmaAye = {
@@ -717,6 +732,36 @@ local function setLightMode(lightName, mode, player, transitionTime, colorShift)
 	end
 
 	return activateLight()
+end
+
+function L.PulseLight(lightName, playerRef, peakColor)
+	if not lightName or not L.LIGHTMODES[lightName] then return end
+	if L.LIGHTMODES[lightName].isPlayerLight and playerRef == nil then
+		return U.map(S.getPlayers(), function(player) return L.PulseLight(lightName, player, peakColor) end)
+	end
+
+	local light = getLight(lightName, playerRef)
+	local baseColor = getColor(light)
+	local baseIntensity = getIntensity(light)
+	local baseAngle = getAngle(light)
+	local baseRange = getRange(light)
+	if peakColor == nil then peakColor = Color(baseColor):lerp(Color.White, 0.5) end
+	local peakIntensity = 2 * baseIntensity
+	local peakAngle = 1.5 * baseAngle
+	local peakRange = 2 * baseRange
+
+	U.Lerp(function(color) setColor(light, color) end, baseColor, peakColor, 0.5)
+	U.Lerp(function(intensity) setIntensity(light, intensity) end, baseIntensity, peakIntensity, 0.5)
+	U.Lerp(function(angle) setAngle(light, angle) end, baseAngle, peakAngle, 0.5)
+	U.Lerp(function(range) setRange(light, range) end, baseRange, peakRange, 0.5)
+	Wait.time(function()
+		U.Lerp(function(color) setColor(light, color) end, peakColor, baseColor, 0.5)
+		U.Lerp(function(intensity) setIntensity(light, intensity) end, peakIntensity, baseIntensity, 0.5)
+		U.Lerp(function(angle) setAngle(light, angle) end, peakAngle, baseAngle, 0.5)
+		U.Lerp(function(range) setRange(light, range) end, peakRange, baseRange, 0.5)
+	end, 0.5)
+
+	return 1
 end
 
 function L.ResetLights()

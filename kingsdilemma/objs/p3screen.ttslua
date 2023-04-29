@@ -286,6 +286,15 @@ local ObjectData = {
 				Tags = {}
 			}
 		},
+		lightDilemmaRef = {
+			source = O.SpawnSources.lightDilemmaRef,
+			position = {0.00, 9.2, 50.84},
+			rotation = {83.9, 0, 0},
+			scale = {1, 1, 1},
+			data = {
+				Tags = {}
+			}
+		},
 		plinthBase = {
 			source = O.SpawnSources.plinthBase,
 			position = {0.00, 1.58, 32.42},
@@ -427,7 +436,12 @@ function HouseScreen.Spawn(playerRef, houseName, isResettingHouseCard)
 		local isSpawned = false
 		spawnObjectData({
 			data = spawnData,
-			callback_function = function() isSpawned = true end
+			callback_function = function(obj)
+				if string.match(objName, "^light") then
+					obj.getChildren()[1].getChildren()[2].getComponents()[2].set("enabled", false)
+				end
+				isSpawned = true
+			end
 		})
 
 		return function() return isSpawned == true end

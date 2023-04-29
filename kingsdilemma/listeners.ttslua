@@ -48,47 +48,68 @@ local DIR = require("kingsdilemma.core.director")
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
 	S.InitializeGameState(save_data)
-	UI.show("sessionPreflightDisplay")
+	-- UI.show("sessionPreflightDisplay")
+	DIR.InitPreflight()
 end
 
 function onSave() return JSON.encode(S.getGameState()) end
 
 -- function onUpdate() console.update() end
 
-function onPlayerChangeColor(color)
-	if color == "Grey" then return end
-	local player = Player[color]
-
-	-- print(color)
-end
-
 function onPlayerTurnStart(pColor)
+
 	P.SetCamera("BehindScreen", pColor, "Brown")
 end
 
 function onPlayerAction(player, action, targets)
-	if action == Player.Action.Delete and #targets > 0 then
-		local coinOrPower = U.filter(
-			targets,
-			function(obj) return U.hasAnyTag(obj, {"PowerToken", "CoinToken"}) end
-		)
-
-		if #coinOrPower == 0 then return false end
-
-		if #coinOrPower == 1 then
-			OU.SplitObjByValue(coinOrPower[1])
+	if #targets == 0 then return true end
+	if action == Player.Action.FlipOver then
+		U.forEach(targets, function(target)
+			if U.hasAnyTag(target, {"PowerToken", "CoinToken"}) then
+				OU.SplitObjByValue(target)
+			else
+				target.flip()
+			end
+		end)
+		return false
+	elseif action == Player.Action.Group then
+		if U.find(targets, function(target) return U.hasAnyTag(target, {"PowerToken", "CoinToken"}) end) then
+			OU.CombineObjsByValue(targets)
 		else
-			OU.CombineObjsByValue(coinOrPower)
+			return true
 		end
-
+		return false
+	elseif action == Player.Action.Delete then
+		if player.host then return true end
+		U.forEach(targets, function(target)
+			if U.hasAnyTag(target, {"PowerToken", "CoinToken"}) then
+				target.destruct()
+			end
+		end)
 		return false
 	end
+	-- 	local coinOrPower = U.filter(
+	-- 		targets,
+	-- 		function(obj) return U.hasAnyTag(obj, {"PowerToken", "CoinToken"}) end
+	-- 	)
+
+	-- 	if #coinOrPower == 0 then return false end
+
+	-- 	if #coinOrPower == 1 then
+	-- 		OU.SplitObjByValue(coinOrPower[1])
+	-- 	else
+	-- 		OU.CombineObjsByValue(coinOrPower)
+	-- 	end
+
+	-- 	return false
+	-- end
 
 	return true
 end
 
 function tryObjectEnterContainer(container, object)
 	if container.hasTag("StoryCard") and object.hasTag("StoryCard") then return false end
+	if container.hasTag("Played") and object.hasTag("Played") then return false end
 	return true
 end
 
@@ -103,7 +124,7 @@ end
 
 function onObjectDrop(pColor, obj)
 	if obj.hasTag("DebugObj") then return end
-	if S.isInPhase("SecretAgendas") and obj.hasTag("SecretAgenda") then
+	if S.isInPhase(C.Phases.GAMESETUP.SecretAgendas) and obj.hasTag("SecretAgenda") then
 		local player = S.getPlayer(pColor)
 		local handObjs = player.getHandObjects()
 		if U.find(handObjs, function(o) return o.guid == obj.guid end) then

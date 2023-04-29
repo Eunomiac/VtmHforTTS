@@ -124,7 +124,7 @@ function onLoad()
 		setColorDefault()
 		UpdateCount()
 	end, function()
-		log("Waiting for players to be seated ...")
+		-- log("Waiting for players to be seated ...")
 		return S.ArePlayersSeated() == true
 	end)
 end

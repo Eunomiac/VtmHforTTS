@@ -79,7 +79,7 @@ function onLoad()
 		if GetPlayer() == nil then return end
 		if GetHouse() == nil then return end
 
-		log({PLAYER = GetPlayer()})
+		-- log({PLAYER = GetPlayer()})
 
 		U.Val("HouseScreen.onLoad()", self, GetPlayer() and U.isIn(color, Player.getAvailableColors()), "Unable to locate player from color tag '" .. U.ToString(color) .. "'")
 

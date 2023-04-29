@@ -191,7 +191,7 @@ function OU.GetNumSplitObjs(objs)
 	}
 end
 
-function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, rotationDelta)
+function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, rotationDelta, isLocked)
 	local spawnData = sourceObj.getData()
 	local token
 	spawnData.Transform = OU.unfoldTransform(transformData, positionDelta, rotationDelta)
@@ -199,7 +199,7 @@ function OU.SpawnFromSourceObj(sourceObj, tags, transformData, positionDelta, ro
 	spawnObjectData({
 		data = spawnData,
 		callback_function = function(obj)
-			obj.setLock(false)
+			obj.setLock(isLocked == true)
 			token = obj
 		end
 	})
@@ -321,21 +321,23 @@ function OU.CombineObjsByValue(objs)
 	return U.sequence(seqFuncs, 0.15)
 end
 
-function OU.TransferValue(fromZone, toZone, amount, tag)
+function OU.TransferValue(fromZone, toZones, amountPerZone, tag)
 	U.Val("OU.TransferValue", fromZone, U.Type(fromZone) == "userdata" and fromZone.type == "Scripting", "From-zone is not a zone.")
-	U.Val("OU.TransferValue", toZones, U.Type(toZone) == "userdata" and toZone.type == "Scripting", "To-zone is not a zone.")
-	U.Val("OU.TransferValue", amounts, amount == "ALL" or U.Type(amount) == "number", "Amount must be 'ALL' or a number.")
+	if U.Type(toZones) == "userdata" then toZones = {toZones} end
 
-	local fromJumpFuncs, fromSpawnFuncs = {}, {}
+	-- U.Val("OU.TransferValue", toZones, U.Type(toZone) == "userdata" and toZone.type == "Scripting", "To-zone is not a zone.")
+	-- U.Val("OU.TransferValue", amounts, amount == "ALL" or U.Type(amount) == "number", "Amount must be 'ALL' or a number.")
 
-	local fromZoneAmount = amount
+	local fromZoneFuncs = {}
+
+	local fromZoneAmount = amountPerZone * #toZones
 	local fromZoneObjs = U.filter(fromZone.getObjects(), function(obj) return obj.hasTag(tag) end)
 
 	for _, val in ipairs({10, 5, 1}) do
 		while fromZoneAmount >= val and OU.GetNumObjsByVal(fromZoneObjs, val, tag) > 0 do
 			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == val end)
-			table.insert(fromJumpFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
-			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZone, string.gsub(tag, "Token$", ""), val) end)
+			table.insert(fromZoneFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
+			-- table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZones, string.gsub(tag, "Token$", ""), val) end)
 			fromZoneAmount = fromZoneAmount - val
 		end
 	end
@@ -343,25 +345,45 @@ function OU.TransferValue(fromZone, toZone, amount, tag)
 	for _, val in ipairs({5, 10}) do
 		while fromZoneAmount > 0 and OU.GetNumObjsByVal(fromZoneObjs, val, tag) > 0 do
 			local thisObj = U.pluck(fromZoneObjs, function(obj) return obj.hasTag(tag) and obj.value == val end)
-			table.insert(fromJumpFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
-			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZone, string.gsub(tag, "Token$", ""), val) end)
+			table.insert(fromZoneFuncs, function() OU.JumpDestroy(thisObj, 0.15) end)
+			-- table.insert(fromSpawnFuncs, function() return OU.SpawnToken(toZones, string.gsub(tag, "Token$", ""), val) end)
 			fromZoneAmount = fromZoneAmount - val
 		end
 	end
 
-	for _, val in ipairs({10, 5, 1}) do
-		while (-1 * fromZoneAmount) >= val do
-			table.insert(fromSpawnFuncs, function() return OU.SpawnToken(fromZone, string.gsub(tag, "Token$", ""), val) end)
-			fromZoneAmount = fromZoneAmount + val
+	-- if fromZoneAmount is negative now, spawn value to zero it out
+	if fromZoneAmount < 0 then
+		for _, val in ipairs({10, 5, 1}) do
+			while (-1 * fromZoneAmount) >= val do
+				table.insert(fromZoneFuncs, function() return OU.SpawnToken(fromZone, string.gsub(tag, "Token$", ""), val) end)
+				fromZoneAmount = fromZoneAmount + val
+			end
 		end
 	end
 
-	return U.RunSequence({
-		function() return U.sequence(fromJumpFuncs, 0.15) end,
-		function() return U.sequence(fromSpawnFuncs, 0.25) end,
-		function() return 2 end
-	})
+	local seqFuncs = {
+		function() return U.sequence(fromZoneFuncs, 0.15) end
+	}
 
+	local function spawnToZoneTokens(toZone, amount)
+		local toZoneFuncs = {}
+		for _, val in ipairs({10, 5, 1}) do
+			while amount >= val do
+				table.insert(toZoneFuncs, function() return OU.SpawnToken(toZone, string.gsub(tag, "Token$", ""), val) end)
+				amount = amount - val
+			end
+		end
+		U.sequence(toZoneFuncs, 0.15)
+		return 1
+	end
+
+	U.iForEach(toZones, function(toZone)
+		table.insert(seqFuncs, function()
+			return spawnToZoneTokens(toZone, amountPerZone)
+		end)
+	end)
+
+	return U.RunSequence(seqFuncs)
 end
 
 function OU.getAngleOf(objOrTransform)

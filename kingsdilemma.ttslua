@@ -21,8 +21,7 @@ local NOTES = [[
 ]]
 
 -- DEVELOPMENT
-require("vscode/console")
-ISDEBUGGING = false
+-- require("vscode/console")
 
 -- MODULES
 U = require("lib.utilities")
@@ -36,7 +35,7 @@ V = require("kingsdilemma.core.voting")
 gameState = {}
 
 -- COMPONENTS
-require("kingsdilemma.debug")
+-- require("kingsdilemma.debug")
 require("kingsdilemma.hud")
 require("kingsdilemma.listeners")
 
