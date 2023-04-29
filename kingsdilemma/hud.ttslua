@@ -146,6 +146,13 @@ end
 -- #region Primary UI Event Functions
 local function toggleXmlElement(elemID, button)
 	-- log("Toggling " .. elemID)
+	if elemID == "stateDisplayPanel" then
+		toggleXmlElement("stateDisplayPanel_1", button)
+		toggleXmlElement("stateDisplayPanel_2", button)
+		toggleXmlElement("stateDisplayPanel_3", button)
+		toggleXmlElement("stateDisplayPanel_4", button)
+		return
+	end
 	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
 		UI.setAttribute(elemID, "active", "true")
 		if elemID == "debugControls" then

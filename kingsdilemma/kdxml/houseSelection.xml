@@ -16,271 +16,98 @@
 </Defaults>
 
 <Panel id="houseSelectionHUD" class="hud-container" active="false">
-	<Image class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056111/B55080715B64106E02C74224F3247419046EB149/" />
+	<Image class="house-hud" image="0-base-greyscale" />
 
-	<Image id="houseHUD_BannerBW_Allwed" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527218/1CDDCB9247F724D89BFC79FFC2CC9ECFAB452763/" />
-	<Image id="houseHUD_BannerBW_Aontas" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527272/C3045638E57B8767CFE03D3289E5901C9BE9343E/" />
-	<Image id="houseHUD_BannerBW_Blodyn" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527325/93CE5068210D26E2290B1EDD4BD9494F85C8B5AE/" />
-	<Image id="houseHUD_BannerBW_Coden" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527387/FECB8EF4DE3DC3718612ECE680F3F0E95D828A03/" />
-	<Image id="houseHUD_BannerBW_Crann" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527448/8091DAD7BEAE2854BF1DA119BF80BB55D161AED7/" />
-	<Image id="houseHUD_BannerBW_Dualak" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527517/53C16C9FE5DD2AEC6FC39584D74A9AF17ECB849F/" />
-	<Image id="houseHUD_BannerBW_Gamam" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527639/1957D8903428F07AEBE4E4C20B98D0721D230F0E/" />
-	<Image id="houseHUD_BannerBW_Natar" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527703/3404FF9B6670DD0E3064A86ACEA4BAAEB76C1EF2/" />
-	<Image id="houseHUD_BannerBW_Olwyn" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527761/AB08F2FF2C61CE38BB27BC401CE3C61C0A2795A6/" />
-	<Image id="houseHUD_BannerBW_Solad" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527809/8C67DA786B890F7337A43DE92F5D3B43B08261D4/" />
-	<Image id="houseHUD_BannerBW_Tiryll" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527867/6EA93AF644EB3F6CF64E3616806D0CEAA4AD793A/" />
-	<Image id="houseHUD_BannerBW_Tork" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527930/587EDE54FCD719EA21E163B946C1E4AB20B39B45/" />
-	<Image id="houseHUD_BannerBW_Wylio" class="house-hud" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527977/A13E1749AFF5AF7F52738ADB11272A4C60183039/" />
+	<Image id="houseHUD_BannerBW_Allwed" class="house-hud" image="3-bannerBW-Allwed" />
+	<Image id="houseHUD_BannerBW_Aontas" class="house-hud" image="3-bannerBW-Aontas" />
+	<Image id="houseHUD_BannerBW_Blodyn" class="house-hud" image="3-bannerBW-Blodyn" />
+	<Image id="houseHUD_BannerBW_Coden" class="house-hud" image="3-bannerBW-Coden" />
+	<Image id="houseHUD_BannerBW_Crann" class="house-hud" image="3-bannerBW-Crann" />
+	<Image id="houseHUD_BannerBW_Dualak" class="house-hud" image="3-bannerBW-Dualak" />
+	<Image id="houseHUD_BannerBW_Gamam" class="house-hud" image="3-bannerBW-Gamam" />
+	<Image id="houseHUD_BannerBW_Natar" class="house-hud" image="3-bannerBW-Natar" />
+	<Image id="houseHUD_BannerBW_Olwyn" class="house-hud" image="3-bannerBW-Olwyn" />
+	<Image id="houseHUD_BannerBW_Solad" class="house-hud" image="3-bannerBW-Solad" />
+	<Image id="houseHUD_BannerBW_Tiryll" class="house-hud" image="3-bannerBW-Tiryll" />
+	<Image id="houseHUD_BannerBW_Tork" class="house-hud" image="3-bannerBW-Tork" />
+	<Image id="houseHUD_BannerBW_Wylio" class="house-hud" image="3-bannerBW-Wylio" />
 
-	<Image id="houseHUD_Dark_Allwed" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-	<Image id="houseHUD_Dark_Aontas" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-	<Image id="houseHUD_Dark_Blodyn" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-	<Image id="houseHUD_Dark_BorderlandsNorth" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-	<Image id="houseHUD_Dark_BorderlandsSouth" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-	<Image id="houseHUD_Dark_Cidlada" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-	<Image id="houseHUD_Dark_Coden" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-	<Image id="houseHUD_Dark_Crann" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-	<Image id="houseHUD_Dark_Dualak" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-	<Image id="houseHUD_Dark_Gamam" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-	<Image id="houseHUD_Dark_Kauppias" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-	<Image id="houseHUD_Dark_Lybra" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-	<Image id="houseHUD_Dark_Mhuir" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-	<Image id="houseHUD_Dark_Natar" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-	<Image id="houseHUD_Dark_Olwyn" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-	<Image id="houseHUD_Dark_Solad" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-	<Image id="houseHUD_Dark_Tiryll" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-	<Image id="houseHUD_Dark_Tork" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-	<Image id="houseHUD_Dark_Wylio" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
+	<Image id="houseHUD_Dark_Allwed" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
+	<Image id="houseHUD_Dark_Aontas" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
+	<Image id="houseHUD_Dark_Blodyn" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
+	<Image id="houseHUD_Dark_BorderlandsNorth" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
+	<Image id="houseHUD_Dark_BorderlandsSouth" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
+	<Image id="houseHUD_Dark_Cidlada" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
+	<Image id="houseHUD_Dark_Coden" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
+	<Image id="houseHUD_Dark_Crann" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
+	<Image id="houseHUD_Dark_Dualak" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
+	<Image id="houseHUD_Dark_Gamam" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
+	<Image id="houseHUD_Dark_Kauppias" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
+	<Image id="houseHUD_Dark_Lybra" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
+	<Image id="houseHUD_Dark_Mhuir" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
+	<Image id="houseHUD_Dark_Natar" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
+	<Image id="houseHUD_Dark_Olwyn" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
+	<Image id="houseHUD_Dark_Solad" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
+	<Image id="houseHUD_Dark_Tiryll" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
+	<Image id="houseHUD_Dark_Tork" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
+	<Image id="houseHUD_Dark_Wylio" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
 
-
-	<Image id="houseHUD_Overlay_Allwed" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526284/2DDA554711BC115BDDB53BA7275BEF95DCA24711/" />
-	<Image id="houseHUD_Overlay_Blodyn" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526356/5133E9B1132BB1B854F1A87AEBEEC6DE2F199686/" />
-	<Image id="houseHUD_Overlay_Coden" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526451/B5671DEAF097A2C9E017227B787C2023045344D8/" />
-	<Image id="houseHUD_Overlay_Crann" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526539/BFC4ADC9BFE5E4445ADB3AA9E4B8C7DAAF8A60E2/" />
-	<Image id="houseHUD_Overlay_Dualak" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526610/ECD5110C63D63D74754D54F054CA71FB41346943/" />
-	<Image id="houseHUD_Overlay_Gamam" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526675/814FC05E1919EC2EF5F1BDDA56CB417EA8BE8DA3/" />
-	<Image id="houseHUD_Overlay_Natar" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526760/B8493CE5D190A064DE2BEBDE5CF57C29D75EF211/" />
-	<Image id="houseHUD_Overlay_Olwyn" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526831/4FE7B1756599EC185BFF4BAF3D08540EBB949C99/" />
-	<Image id="houseHUD_Overlay_Solad" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672526922/F4065C7AD0442569AF8B7ABCCBCF00349CB15C6F/" />
-	<Image id="houseHUD_Overlay_Tiryll" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527032/7589239050C8568E32C2BB87152E63E7DA26E999/" />
-	<Image id="houseHUD_Overlay_Tork" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527092/7C7B874A6789F317B84122E8CD2F42CD0F4560CE/" />
-	<Image id="houseHUD_Overlay_Wylio" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672527165/6FF7E49A3977247672982B6073CF7B9658957BE5/" />
-
+	<Image id="houseHUD_Overlay_Allwed" class="house-hud house-hud-fade" image="2-colorizer-Allwed" />
+	<Image id="houseHUD_Overlay_Blodyn" class="house-hud house-hud-fade" image="2-colorizer-Blodyn" />
+	<Image id="houseHUD_Overlay_Coden" class="house-hud house-hud-fade" image="2-colorizer-Coden" />
+	<Image id="houseHUD_Overlay_Crann" class="house-hud house-hud-fade" image="2-colorizer-Crann" />
+	<Image id="houseHUD_Overlay_Dualak" class="house-hud house-hud-fade" image="2-colorizer-Dualak" />
+	<Image id="houseHUD_Overlay_Gamam" class="house-hud house-hud-fade" image="2-colorizer-Gamam" />
+	<Image id="houseHUD_Overlay_Natar" class="house-hud house-hud-fade" image="2-colorizer-Natar" />
+	<Image id="houseHUD_Overlay_Olwyn" class="house-hud house-hud-fade" image="2-colorizer-Olwyn" />
+	<Image id="houseHUD_Overlay_Solad" class="house-hud house-hud-fade" image="2-colorizer-Solad" />
+	<Image id="houseHUD_Overlay_Tiryll" class="house-hud house-hud-fade" image="2-colorizer-Tiryll" />
+	<Image id="houseHUD_Overlay_Tork" class="house-hud house-hud-fade" image="2-colorizer-Tork" />
+	<Image id="houseHUD_Overlay_Wylio" class="house-hud house-hud-fade" image="2-colorizer-Wylio" />
 
 	<Panel id="houseHUD_Brown" class="house-hud" visibility="Brown">
-		<Image id="houseHUD_Bright_Allwed_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-		<Image id="houseHUD_Bright_Aontas_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-		<Image id="houseHUD_Bright_Blodyn_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_Cidlada_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-		<Image id="houseHUD_Bright_Coden_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-		<Image id="houseHUD_Bright_Crann_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-		<Image id="houseHUD_Bright_Dualak_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-		<Image id="houseHUD_Bright_Gamam_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-		<Image id="houseHUD_Bright_Kauppias_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-		<Image id="houseHUD_Bright_Lybra_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-		<Image id="houseHUD_Bright_Mhuir_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-		<Image id="houseHUD_Bright_Natar_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-		<Image id="houseHUD_Bright_Olwyn_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-		<Image id="houseHUD_Bright_Solad_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-		<Image id="houseHUD_Bright_Tiryll_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-		<Image id="houseHUD_Bright_Tork_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-		<Image id="houseHUD_Bright_Wylio_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
+		<Image id="houseHUD_Bright_Allwed_Brown" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Brown" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Brown" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Brown" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Brown" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Brown" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Brown" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Brown" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Brown" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Brown" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Brown" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Brown" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Brown" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Brown" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Brown" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Brown" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Brown" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529016/EBFCFBDAC7C5DA0B0080EF36CBC28801B2072807/" />
-		<Image id="houseHUD_Info_Aontas_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056696/E46973FC387104CB7884EDD2C120B830BB0E5D13/" />
-		<Image id="houseHUD_Info_Blodyn_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529156/6EBF5316A8E57A03BBC4696D0CD3112029D66116/" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056946/70A991E4A1D113AE83E8F7791DC2F3C063F3E70A/" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056820/20FA0525DF059928ADFA47C6F3C2D590E4928E56/" />
-		<Image id="houseHUD_Info_Cidlada_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529341/A30F6C1B8F4E1E98DF6388A7FCC418C1BA37C95D/" />
-		<Image id="houseHUD_Info_Coden_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529404/6FBE7E0D2ED54EEFA9662C068232B4D25F2C6E21/" />
-		<Image id="houseHUD_Info_Crann_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529477/1507BF0EB0D05E63677BCB0CDF12C51BB92EBE73/" />
-		<Image id="houseHUD_Info_Dualak_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529538/BA3531EDECF2AAFDEB02DA2BE12780DF550FB9E0/" />
-		<Image id="houseHUD_Info_Enkhal_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513057086/59329817FBCE19EC8FB5B6A4C3320E7457A83000/" />
-		<Image id="houseHUD_Info_Gamam_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529673/5E3BFB336798FFF07069CF4AB2AFD4A9ED98495E/" />
-		<Image id="houseHUD_Info_Kauppias_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056464/BB85A87669DA9D38969F73101DB849FFF1A15285/" />
-		<Image id="houseHUD_Info_Lybra_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056573/74C36C69A8DEADF695B5772F50F6A287AA157472/" />
-		<Image id="houseHUD_Info_Mhuir_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529858/58FD4931BADC86F2B25EF3EC55ABE53BC86C2A89/" />
-		<Image id="houseHUD_Info_Natar_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529913/4B5BEC945AB88128024B7CC9285BD88C531CE6A1/" />
-		<Image id="houseHUD_Info_Olwyn_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529997/B5FB49C06C015FFD3F9ECA3048BD0B203F4994EE/" />
-		<Image id="houseHUD_Info_Solad_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530064/7A5E0C911AEA27BA90B013301647A40C7D96B4CD/" />
-		<Image id="houseHUD_Info_Tiryll_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530137/3BB8DFEE3E5EBEDD53F14965CD4A6BFA0D61389F/" />
-		<Image id="houseHUD_Info_Tork_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530203/22E5132F738B552444E369C3F0B39F8CDFD8CFDE/" />
-		<Image id="houseHUD_Info_Wylio_Brown" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530276/49AFEF1B2882A076D7C75D57D893833814EF2A92/" />
+		<Image id="houseHUD_Info_Allwed_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
 	</Panel>
 
-	<Panel id="houseHUD_Red" class="house-hud" visibility="Red">
-		<Image id="houseHUD_Bright_Allwed_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-		<Image id="houseHUD_Bright_Aontas_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-		<Image id="houseHUD_Bright_Blodyn_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_Cidlada_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-		<Image id="houseHUD_Bright_Coden_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-		<Image id="houseHUD_Bright_Crann_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-		<Image id="houseHUD_Bright_Dualak_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-		<Image id="houseHUD_Bright_Gamam_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-		<Image id="houseHUD_Bright_Kauppias_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-		<Image id="houseHUD_Bright_Lybra_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-		<Image id="houseHUD_Bright_Mhuir_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-		<Image id="houseHUD_Bright_Natar_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-		<Image id="houseHUD_Bright_Olwyn_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-		<Image id="houseHUD_Bright_Solad_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-		<Image id="houseHUD_Bright_Tiryll_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-		<Image id="houseHUD_Bright_Tork_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-		<Image id="houseHUD_Bright_Wylio_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
-
-		<Image id="houseHUD_Info_Allwed_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529016/EBFCFBDAC7C5DA0B0080EF36CBC28801B2072807/" />
-		<Image id="houseHUD_Info_Aontas_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056696/E46973FC387104CB7884EDD2C120B830BB0E5D13/" />
-		<Image id="houseHUD_Info_Blodyn_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529156/6EBF5316A8E57A03BBC4696D0CD3112029D66116/" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056946/70A991E4A1D113AE83E8F7791DC2F3C063F3E70A/" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056820/20FA0525DF059928ADFA47C6F3C2D590E4928E56/" />
-		<Image id="houseHUD_Info_Cidlada_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529341/A30F6C1B8F4E1E98DF6388A7FCC418C1BA37C95D/" />
-		<Image id="houseHUD_Info_Coden_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529404/6FBE7E0D2ED54EEFA9662C068232B4D25F2C6E21/" />
-		<Image id="houseHUD_Info_Crann_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529477/1507BF0EB0D05E63677BCB0CDF12C51BB92EBE73/" />
-		<Image id="houseHUD_Info_Dualak_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529538/BA3531EDECF2AAFDEB02DA2BE12780DF550FB9E0/" />
-		<Image id="houseHUD_Info_Enkhal_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513057086/59329817FBCE19EC8FB5B6A4C3320E7457A83000/" />
-		<Image id="houseHUD_Info_Gamam_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529673/5E3BFB336798FFF07069CF4AB2AFD4A9ED98495E/" />
-		<Image id="houseHUD_Info_Kauppias_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056464/BB85A87669DA9D38969F73101DB849FFF1A15285/" />
-		<Image id="houseHUD_Info_Lybra_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056573/74C36C69A8DEADF695B5772F50F6A287AA157472/" />
-		<Image id="houseHUD_Info_Mhuir_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529858/58FD4931BADC86F2B25EF3EC55ABE53BC86C2A89/" />
-		<Image id="houseHUD_Info_Natar_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529913/4B5BEC945AB88128024B7CC9285BD88C531CE6A1/" />
-		<Image id="houseHUD_Info_Olwyn_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529997/B5FB49C06C015FFD3F9ECA3048BD0B203F4994EE/" />
-		<Image id="houseHUD_Info_Solad_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530064/7A5E0C911AEA27BA90B013301647A40C7D96B4CD/" />
-		<Image id="houseHUD_Info_Tiryll_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530137/3BB8DFEE3E5EBEDD53F14965CD4A6BFA0D61389F/" />
-		<Image id="houseHUD_Info_Tork_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530203/22E5132F738B552444E369C3F0B39F8CDFD8CFDE/" />
-		<Image id="houseHUD_Info_Wylio_Red" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530276/49AFEF1B2882A076D7C75D57D893833814EF2A92/" />
-	</Panel>
-
-	<Panel id="houseHUD_Orange" class="house-hud" visibility="Orange">
-		<Image id="houseHUD_Bright_Allwed_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-		<Image id="houseHUD_Bright_Aontas_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-		<Image id="houseHUD_Bright_Blodyn_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_Cidlada_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-		<Image id="houseHUD_Bright_Coden_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-		<Image id="houseHUD_Bright_Crann_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-		<Image id="houseHUD_Bright_Dualak_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-		<Image id="houseHUD_Bright_Gamam_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-		<Image id="houseHUD_Bright_Kauppias_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-		<Image id="houseHUD_Bright_Lybra_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-		<Image id="houseHUD_Bright_Mhuir_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-		<Image id="houseHUD_Bright_Natar_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-		<Image id="houseHUD_Bright_Olwyn_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-		<Image id="houseHUD_Bright_Solad_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-		<Image id="houseHUD_Bright_Tiryll_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-		<Image id="houseHUD_Bright_Tork_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-		<Image id="houseHUD_Bright_Wylio_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
-
-		<Image id="houseHUD_Info_Allwed_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529016/EBFCFBDAC7C5DA0B0080EF36CBC28801B2072807/" />
-		<Image id="houseHUD_Info_Aontas_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056696/E46973FC387104CB7884EDD2C120B830BB0E5D13/" />
-		<Image id="houseHUD_Info_Blodyn_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529156/6EBF5316A8E57A03BBC4696D0CD3112029D66116/" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056946/70A991E4A1D113AE83E8F7791DC2F3C063F3E70A/" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056820/20FA0525DF059928ADFA47C6F3C2D590E4928E56/" />
-		<Image id="houseHUD_Info_Cidlada_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529341/A30F6C1B8F4E1E98DF6388A7FCC418C1BA37C95D/" />
-		<Image id="houseHUD_Info_Coden_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529404/6FBE7E0D2ED54EEFA9662C068232B4D25F2C6E21/" />
-		<Image id="houseHUD_Info_Crann_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529477/1507BF0EB0D05E63677BCB0CDF12C51BB92EBE73/" />
-		<Image id="houseHUD_Info_Dualak_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529538/BA3531EDECF2AAFDEB02DA2BE12780DF550FB9E0/" />
-		<Image id="houseHUD_Info_Enkhal_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513057086/59329817FBCE19EC8FB5B6A4C3320E7457A83000/" />
-		<Image id="houseHUD_Info_Gamam_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529673/5E3BFB336798FFF07069CF4AB2AFD4A9ED98495E/" />
-		<Image id="houseHUD_Info_Kauppias_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056464/BB85A87669DA9D38969F73101DB849FFF1A15285/" />
-		<Image id="houseHUD_Info_Lybra_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056573/74C36C69A8DEADF695B5772F50F6A287AA157472/" />
-		<Image id="houseHUD_Info_Mhuir_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529858/58FD4931BADC86F2B25EF3EC55ABE53BC86C2A89/" />
-		<Image id="houseHUD_Info_Natar_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529913/4B5BEC945AB88128024B7CC9285BD88C531CE6A1/" />
-		<Image id="houseHUD_Info_Olwyn_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529997/B5FB49C06C015FFD3F9ECA3048BD0B203F4994EE/" />
-		<Image id="houseHUD_Info_Solad_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530064/7A5E0C911AEA27BA90B013301647A40C7D96B4CD/" />
-		<Image id="houseHUD_Info_Tiryll_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530137/3BB8DFEE3E5EBEDD53F14965CD4A6BFA0D61389F/" />
-		<Image id="houseHUD_Info_Tork_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530203/22E5132F738B552444E369C3F0B39F8CDFD8CFDE/" />
-		<Image id="houseHUD_Info_Wylio_Orange" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530276/49AFEF1B2882A076D7C75D57D893833814EF2A92/" />
-	</Panel>
-
-	<Panel id="houseHUD_Yellow" class="house-hud" visibility="Yellow">
-		<Image id="houseHUD_Bright_Allwed_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-		<Image id="houseHUD_Bright_Aontas_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-		<Image id="houseHUD_Bright_Blodyn_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_Cidlada_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-		<Image id="houseHUD_Bright_Coden_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-		<Image id="houseHUD_Bright_Crann_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-		<Image id="houseHUD_Bright_Dualak_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-		<Image id="houseHUD_Bright_Gamam_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-		<Image id="houseHUD_Bright_Kauppias_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-		<Image id="houseHUD_Bright_Lybra_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-		<Image id="houseHUD_Bright_Mhuir_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-		<Image id="houseHUD_Bright_Natar_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-		<Image id="houseHUD_Bright_Olwyn_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-		<Image id="houseHUD_Bright_Solad_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-		<Image id="houseHUD_Bright_Tiryll_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-		<Image id="houseHUD_Bright_Tork_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-		<Image id="houseHUD_Bright_Wylio_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
-
-		<Image id="houseHUD_Info_Allwed_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529016/EBFCFBDAC7C5DA0B0080EF36CBC28801B2072807/" />
-		<Image id="houseHUD_Info_Aontas_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056696/E46973FC387104CB7884EDD2C120B830BB0E5D13/" />
-		<Image id="houseHUD_Info_Blodyn_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529156/6EBF5316A8E57A03BBC4696D0CD3112029D66116/" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056946/70A991E4A1D113AE83E8F7791DC2F3C063F3E70A/" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056820/20FA0525DF059928ADFA47C6F3C2D590E4928E56/" />
-		<Image id="houseHUD_Info_Cidlada_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529341/A30F6C1B8F4E1E98DF6388A7FCC418C1BA37C95D/" />
-		<Image id="houseHUD_Info_Coden_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529404/6FBE7E0D2ED54EEFA9662C068232B4D25F2C6E21/" />
-		<Image id="houseHUD_Info_Crann_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529477/1507BF0EB0D05E63677BCB0CDF12C51BB92EBE73/" />
-		<Image id="houseHUD_Info_Dualak_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529538/BA3531EDECF2AAFDEB02DA2BE12780DF550FB9E0/" />
-		<Image id="houseHUD_Info_Enkhal_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513057086/59329817FBCE19EC8FB5B6A4C3320E7457A83000/" />
-		<Image id="houseHUD_Info_Gamam_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529673/5E3BFB336798FFF07069CF4AB2AFD4A9ED98495E/" />
-		<Image id="houseHUD_Info_Kauppias_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056464/BB85A87669DA9D38969F73101DB849FFF1A15285/" />
-		<Image id="houseHUD_Info_Lybra_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056573/74C36C69A8DEADF695B5772F50F6A287AA157472/" />
-		<Image id="houseHUD_Info_Mhuir_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529858/58FD4931BADC86F2B25EF3EC55ABE53BC86C2A89/" />
-		<Image id="houseHUD_Info_Natar_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529913/4B5BEC945AB88128024B7CC9285BD88C531CE6A1/" />
-		<Image id="houseHUD_Info_Olwyn_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529997/B5FB49C06C015FFD3F9ECA3048BD0B203F4994EE/" />
-		<Image id="houseHUD_Info_Solad_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530064/7A5E0C911AEA27BA90B013301647A40C7D96B4CD/" />
-		<Image id="houseHUD_Info_Tiryll_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530137/3BB8DFEE3E5EBEDD53F14965CD4A6BFA0D61389F/" />
-		<Image id="houseHUD_Info_Tork_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530203/22E5132F738B552444E369C3F0B39F8CDFD8CFDE/" />
-		<Image id="houseHUD_Info_Wylio_Yellow" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530276/49AFEF1B2882A076D7C75D57D893833814EF2A92/" />
-	</Panel>
-
-	<Panel id="houseHUD_Green" class="house-hud" visibility="Green">
-		<Image id="houseHUD_Bright_Allwed_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056215/CF3450936872C905D01C627A2E5CA2E7F3F800E7/" />
-		<Image id="houseHUD_Bright_Aontas_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054897/A3F18D71691B06CE64C8F0888FEDB94370E73813/" />
-		<Image id="houseHUD_Bright_Blodyn_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056358/6088B4AA0A7CEBEC6C9E8C27BA83169E51E5145D/" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054618/B2CF87047E9550FA668C7CD460A3A9D6F05E994D/" />
-		<Image id="houseHUD_Bright_Cidlada_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054976/F7043CEBF5FF4B78CB28DC85185777252D786FAD/" />
-		<Image id="houseHUD_Bright_Coden_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056008/BA002A2091D1BB87868A78778D55BC2C9E574CA6/" />
-		<Image id="houseHUD_Bright_Crann_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055929/56B27127F9F9AE7B97BF7882D22C912D00B3A1CC/" />
-		<Image id="houseHUD_Bright_Dualak_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055836/E4FA3965E3AA67CEA230C36A26BAF5729D6E7BB2/" />
-		<Image id="houseHUD_Bright_Gamam_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055754/296816AE8FDD6F771FE57FB65D90AF43D6CD42D6/" />
-		<Image id="houseHUD_Bright_Kauppias_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055057/54572F5CE8CF746A246653EEB460686AA1F39B4B/" />
-		<Image id="houseHUD_Bright_Lybra_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513054759/CEBC2077DF8AFA27A26FA62D725C572692F26193/" />
-		<Image id="houseHUD_Bright_Mhuir_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055133/7C92F6C67768882CA031D48AB8C4D0AAD545791D/" />
-		<Image id="houseHUD_Bright_Natar_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055657/77A1A90763879B5C9053225C07F2E182BF37206A/" />
-		<Image id="houseHUD_Bright_Olwyn_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055577/42BEA707FC31D68E182B62E450491CA479763D9F/" />
-		<Image id="houseHUD_Bright_Solad_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055475/877FEA5C97D12341CB83CB77384BF623D2189563/" />
-		<Image id="houseHUD_Bright_Tiryll_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055395/A57458719CE66768BA92A010B98C03925C2DE8AC/" />
-		<Image id="houseHUD_Bright_Tork_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055304/43097B182F67CA08C78729D15F357E59F0721523/" />
-		<Image id="houseHUD_Bright_Wylio_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513055233/A2CFBE7987AD6A9F55669BF95AF84C340F6B1DC9/" />
-
-		<Image id="houseHUD_Info_Allwed_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529016/EBFCFBDAC7C5DA0B0080EF36CBC28801B2072807/" />
-		<Image id="houseHUD_Info_Aontas_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056696/E46973FC387104CB7884EDD2C120B830BB0E5D13/" />
-		<Image id="houseHUD_Info_Blodyn_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529156/6EBF5316A8E57A03BBC4696D0CD3112029D66116/" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056946/70A991E4A1D113AE83E8F7791DC2F3C063F3E70A/" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056820/20FA0525DF059928ADFA47C6F3C2D590E4928E56/" />
-		<Image id="houseHUD_Info_Cidlada_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529341/A30F6C1B8F4E1E98DF6388A7FCC418C1BA37C95D/" />
-		<Image id="houseHUD_Info_Coden_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529404/6FBE7E0D2ED54EEFA9662C068232B4D25F2C6E21/" />
-		<Image id="houseHUD_Info_Crann_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529477/1507BF0EB0D05E63677BCB0CDF12C51BB92EBE73/" />
-		<Image id="houseHUD_Info_Dualak_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529538/BA3531EDECF2AAFDEB02DA2BE12780DF550FB9E0/" />
-		<Image id="houseHUD_Info_Enkhal_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513057086/59329817FBCE19EC8FB5B6A4C3320E7457A83000/" />
-		<Image id="houseHUD_Info_Gamam_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529673/5E3BFB336798FFF07069CF4AB2AFD4A9ED98495E/" />
-		<Image id="houseHUD_Info_Kauppias_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056464/BB85A87669DA9D38969F73101DB849FFF1A15285/" />
-		<Image id="houseHUD_Info_Lybra_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065506396513056573/74C36C69A8DEADF695B5772F50F6A287AA157472/" />
-		<Image id="houseHUD_Info_Mhuir_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529858/58FD4931BADC86F2B25EF3EC55ABE53BC86C2A89/" />
-		<Image id="houseHUD_Info_Natar_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529913/4B5BEC945AB88128024B7CC9285BD88C531CE6A1/" />
-		<Image id="houseHUD_Info_Olwyn_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672529997/B5FB49C06C015FFD3F9ECA3048BD0B203F4994EE/" />
-		<Image id="houseHUD_Info_Solad_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530064/7A5E0C911AEA27BA90B013301647A40C7D96B4CD/" />
-		<Image id="houseHUD_Info_Tiryll_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530137/3BB8DFEE3E5EBEDD53F14965CD4A6BFA0D61389F/" />
-		<Image id="houseHUD_Info_Tork_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530203/22E5132F738B552444E369C3F0B39F8CDFD8CFDE/" />
-		<Image id="houseHUD_Info_Wylio_Green" class="house-hud house-hud-fade" image="http://cloud-3.steamusercontent.com/ugc/2065505853672530276/49AFEF1B2882A076D7C75D57D893833814EF2A92/" />
-	</Panel>
 	<Panel class="house-hud">
 		<Button id="houseHUD_Button_Allwed" class="house-hud-button" position="17 -425" />
 		<Button id="houseHUD_Button_Blodyn" class="house-hud-button" position="-350 -380" />
