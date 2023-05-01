@@ -182,6 +182,12 @@ C.CameraAngles = {
 		yaw = 0,
 		distance = 35
 	},
+	Resources = { -- lua Player.Brown.lookAt({position = Vector({0,-14.25,3.5}), pitch = 60, yaw = 0, distance = 40})
+		position = Vector({0,-14.25,3.5}),
+		pitch = 60,
+		yaw = 0,
+		distance = 40
+	},
 	MainBoard = { -- lua Player.Brown.lookAt({position = Vector({0,-14.25,7.7}), pitch = 50.67, yaw = 0, distance = 60})
 		position = Vector({0,-14.25,7.7}),
 		pitch = 50.67,

@@ -220,12 +220,18 @@ INITFUNCS = {
 				end)
 			end,
 			function() return 2 end,
-			function() return L.LoadLights({"lightBehind"}, "ambient", 1.5) end,
+			function()
+				L.LoadLights({"lightBehind"}, "ambient", 1.5)
+				return 0.75
+			end,
 			function()
 				P.ActivatePlayerScreenHUD()
 				return L.LoadLights({ "lightFront" }, "ambient")
 			end,
-			function() return U.AlertGM("All Done!") end
+			function()
+				UI.show("refHUDControls")
+				return U.AlertGM("All Done!")
+			end
 		} end
 	},
 	CHRONSETUP = function()
@@ -590,10 +596,8 @@ INITFUNCS = {
 					local passPowerPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVoteStatus(player) == "Pass" end)
 					local balanceZone = getObjectsWithTag("zoneBalance")[1]
 					local balancePower = OU.GetTotalValue(balanceZone, "PowerToken")
-					log({passPowerPlayers = passPowerPlayers, balanceZone = balanceZone, balancePower = balancePower})
-					if #passPowerPlayers > 0 and balancePower >= #passPowerPlayers then
+					if #passPowerPlayers > 0 then
 						local powerPerPlayer = math.floor(balancePower / #passPowerPlayers)
-						log({powerPerPlayer = powerPerPlayer})
 						if powerPerPlayer > 0 then
 							MSG.Splash("Gathering Power")
 							OU.TransferValue(
@@ -604,7 +608,7 @@ INITFUNCS = {
 							)
 							return U.RunSequence(U.iMap(passPowerPlayers, function(player) return function()
 								L.PulseLight("lightFront", player)
-								return 1
+								return 0.75
 							end end))
 						end
 					end
@@ -613,30 +617,18 @@ INITFUNCS = {
 				function()
 					local losingPlayers = U.filter(S.getPlayers(), function(player) return U.isIn(S.getPlayerVoteStatus(player), {"Aye", "Nay"}) and S.getPlayerVoteStatus(player) ~= S.getStateVal("roundState", "voteResult") end)
 					if #losingPlayers > 0 then
-						return U.RunSequence({
-							function()
-								U.forEach(losingPlayers, function(player) L.SetLightMode("lightFront", "ambient", player, 1) end)
-								MSG.Splash("Returning Power to Losing Players")
-								return 0.5
-							end,
-							unpack(U.iMap(losingPlayers, function(player) return
-								U.RunSequence({
-									function()
-										OU.TransferValue(
-											P.GetPlayerZone(player, "Public"),
-											P.GetPlayerZone(player, "Power"),
-											OU.GetTotalValue(P.GetPlayerZone(player, "Public"), "PowerToken"),
-											"PowerToken")
-										Wait.time(function() V.LowerRiser(player) end, 2)
-										return L.SetLightMode("lightFront", "bright", player, 0.5)
-									end,
-									function()
-										L.SetLightMode("lightFront", "dim", player, 0.5)
-										return 0
-									end
-								})
-							end))
-						})
+						MSG.Splash("Returning Power to Losing Players")
+						return U.RunSequence(U.iMap(losingPlayers, function(player) return function()
+							OU.TransferValue(
+								P.GetPlayerZone(player, "Public"),
+								P.GetPlayerZone(player, "Power"),
+								OU.GetTotalValue(P.GetPlayerZone(player, "Public"), "PowerToken"),
+								"PowerToken"
+							)
+							Wait.time(function() V.LowerRiser(player) end, 2)
+							L.PulseLight("lightFront", player)
+							return 0.75
+						end end))
 					end
 					return 0
 				end,
@@ -652,8 +644,9 @@ INITFUNCS = {
 								OU.GetTotalValue(P.GetPlayerZone(player, "Public"), "PowerToken"),
 								"PowerToken"
 							)
+							Wait.time(function() V.LowerRiser(player) end, 2)
 							L.PulseLight("lightFront", player)
-							return 1
+							return 0.75
 						end end))
 					end
 					return 0
@@ -991,10 +984,10 @@ function DIR.InitSession(isNotShuffling)
 	return U.RunSequence({
 		function()
 			UI.hide("splashScreen")
+			MSG.Splash("Seating Players", nil, 3)
 			return P.AssignPlayerColors(isNotShuffling)
 		end,
 		function()
-			MSG.Splash("Seating Players", nil, 2)
 			P.InitializeSeatHandZones()
 			local players = S.getPlayers()
 			return {
@@ -1062,6 +1055,9 @@ function DIR.JumpToStatePhase(mode, phase)
 
 	if S.isInPhase({C.Phases.PLAY.DrawDilemma, C.Phases.PLAY.Discussion, C.Phases.PLAY.Vote}) then
 		DIR.InitConsequencesQuery()
+	end
+	if S.isInMode({C.Modes.CHRONSETUP, C.Modes.GAMESETUP, C.Modes.PLAY, C.Modes.END}) then
+		UI.show("refHUDControls")
 	end
 
 	-- ... further logic to resync game environment to whatever point in the game we're at.
@@ -2000,7 +1996,7 @@ end
 function DIR.GetFinalStandings()
 	local scoring = C.FinalScoring[S.getStateVal("gameState", "endState")]
 	local scores = U.getValues(DIR.GetFinalScores())
-	log({scores = scores})
+	-- log({scores = scores})
 	table.sort(scores, function(a, b) return a.total > b.total end)
 	local lastPlace = scores[#scores].total
 	for i = #scores, 1, -1 do

@@ -407,6 +407,93 @@ function FetcherHUD_Envelope(player, value)
 	DIR.ConfirmFetchEnvelope(player, value)
 end
 
+local howTo = [[
+	circular icon element
+	- onMouseEnter = hides other submenu nav panels, shows submenu nav panel
+submenu nav panel
+	- onMouseExit = hides submenu nav panel
+button bg
+	- onMouseEnter = sets alpha to 1; shows pop-up if there is one UNLESS any pop-up is locked visible via click
+	- onMouseExit = sets alpha to 0; hides pop-up UNLESS locked via click
+	- onClick = either activates function or locks pop-up, then sets alpha to 0 and hides submenu nav panel
+
+]]
+
+local lockedPopupImage = {}
+
+
+local function hideActiveSubmenus(color, activeMenu)
+	U.forEach({"Help", "View", "Map", "Lore"}, function(param)
+		if param == activeMenu then return end
+		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
+		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
+			UI.hide(targetMenuID)
+		end
+	end)
+end
+
+function Ref_HUD_Click(player, _, id)
+	local _, mode, param, color = unpack(U.split(id, "_"))
+	log({mode = mode, param = param, color = color, pColor = player.color})
+	if mode == "Popup" then
+		hideActiveSubmenus(player.color)
+		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
+		if lockedPopupImage[player.color] == popupID then
+			lockedPopupImage[player.color] = nil
+			UI.hide(popupID)
+			return
+		elseif lockedPopupImage[player.color] ~= nil then
+			UI.hide(lockedPopupImage[player.color])
+		end
+		UI.setAttribute(popupID, "active", "false")
+		UI.show(popupID)
+		lockedPopupImage[player.color] = popupID
+	elseif mode == "Camera" then
+		if param == "Screen" then
+			P.SetCamera("BehindScreen", player)
+		elseif param == "Board" then
+			P.SetCamera("MainBoard", player)
+		elseif param == "Resources" then
+			P.SetCamera("Resources", player)
+		elseif param == "Stickers" then
+			P.SetCamera("Stickers", player)
+		end
+	end
+end
+
+
+function Ref_HUD_HoverOn(player, _, id)
+	local _, mode, param, color = unpack(U.split(id, "_"))
+
+	if mode == "Submenu" then
+		hideActiveSubmenus(player.color, param)
+		UI.setAttribute(id .. "_" .. player.color, "active", "false")
+		UI.show(id .. "_" .. player.color)
+		UI.setAttribute("refHUD_SubmenuContents_" .. param .. "_" .. player.color, "active", "false")
+		UI.show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
+	elseif mode == "Popup" then
+		if lockedPopupImage[player.color] ~= nil then return end
+		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
+		UI.setAttribute(popupID, "active", "false")
+		UI.show(popupID)
+	end
+
+end
+
+function Ref_HUD_HoverOff(player, _, id)
+	local _, mode, param, color = unpack(U.split(id, "_"))
+	if mode == "Submenu" then
+		UI.hide(id .. "_" .. player.color)
+	elseif mode == "SubmenuContents" then
+		UI.hide(id)
+		UI.hide(string.gsub(id, "Contents", ""))
+	elseif mode == "Popup" then
+		if lockedPopupImage[player.color] ~= nil then return end
+		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
+		UI.hide(popupID)
+	end
+end
+
 function UpdatePhaseDisplay()
 	local mode, phase = S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
 	UI.setValue("currentGameModeDisplay", mode)

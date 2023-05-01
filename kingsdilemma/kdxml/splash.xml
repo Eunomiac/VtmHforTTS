@@ -5,7 +5,10 @@
 		animationDuration = "0.5"
 		childForceExpandHeight = "false"
 		childForceExpandWidth = "false"
-		childAlignment = "MiddleCenter"
+		childAlignment = "UpperCenter"
+		offsetXY = "0 0"
+		height = "100%"
+		width = "100%"
 		padding = "5 5 5 5" />
 
 	<VerticalLayout class="splash-root"
@@ -62,6 +65,7 @@
 <Defaults> <!-- Splash Screen Defaults -->
 	<Panel class="splash-screen"
 		offsetXY = "0 100"
+		childAlignment = "MiddleCenter"
 		color = "rgba(0, 0, 0, 0.95)"
 		scale = "1.75 1.75 1.75" />
 
@@ -93,7 +97,7 @@
 </Panel>
 
 <Defaults> <!-- Splash HUD Defaults -->
-	<Panel class="splash-hud" offsetXY = "0 325" />
+	<Panel class="splash-hud" offsetXY = "0 -10" />
 </Defaults>
 <Panel id="splashHUD" class="splash-panel splash-hud">
 	<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
@@ -165,6 +169,7 @@
 
 <Defaults> <!-- Splash Query Defaults -->
 	<Panel class="splash-query"
+		childAlignment = "MiddleCenter"
 		offsetXY = "-400 350"
 		scale = "0.6 0.6 0.6" />
 

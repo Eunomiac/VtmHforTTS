@@ -118,12 +118,10 @@ function P.AssignPlayerColors(isNotShuffling)
 		end
 		return U.RunSequence({
 			function()
-				U.forEach(Player.getPlayers(), function(player) player.changeColor("Grey") end)
-				return function() return U.find(Player.getPlayers(), function(player) return player.color ~= "Grey" end) == nil end
+				return U.sequence(U.map(Player.getPlayers(), function(player) return function() player.changeColor("Grey") end end), 0.5)
 			end,
 			function()
-				U.forEach(players, function(player) player.changeColor(U.shift(seatColors)) end)
-				return function() return U.find(players, function(player) return player.color == "Grey" end) == nil end
+				return U.sequence(U.map(players, function(player) return function() player.changeColor(U.shift(seatColors)) end end), 0.75)
 			end
 		})
 	else

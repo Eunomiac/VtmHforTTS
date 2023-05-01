@@ -29,7 +29,7 @@ local INITGAMESTATE = {
 		[C.AdminID] = {
 			crave = 0,
 			house = "Olwyn",
-			houseName = "Hightower",
+			houseName = "Silverlight",
 			id = C.AdminID,
 			prestige = 0.05
 		}

@@ -1,0 +1,809 @@
+<Defaults>
+	<HorizontalLayout class="ref-hud-controls"
+		rectAlignment = "LowerRight"
+		childAlignment = "LowerRight"
+		childForceExpandHeight = "false"
+		childForceExpandWidth = "false"
+		spacing = "0" />
+
+	<Panel class="ref-hud-button-base"
+		preferredHeight = "50" flexibleHeight = "0"
+		preferredWidth = "50" flexibleWidth = "0" />
+
+	<Image class="ref-hud-button" color="rgba(1, 1, 1, 0.2)" />
+	<Image class="ref-hud-control" raycastTarget="true" onMouseEnter="Ref_HUD_HoverOn" onMouseExit = "Ref_HUD_HoverOff" />
+	<Image class="ref-hud-button-bg" color="rgba(1, 1, 1, 0.01)" />
+	<Image class="ref-hud-fade" color="rgba(1, 1, 1, 1)" active="false" />
+
+	<Panel class="ref-hud-submenu"
+		active = "false"
+		width = "200" height = "150"
+		onMouseExit = "Ref_HUD_HoverOff"
+		position = "30 27"
+		pivot = "1 0"  />
+
+	<VerticalLayout class="ref-hud-submenu"
+		preferredWidth = "200" flexibleWidth = "0" minWidth = "200"
+		rectAlignment = "LowerRight"
+		childAlignment="LowerRight"
+		childForceExpandHeight="false"
+		childForceExpandWidth="false"
+		spacing="2" />
+
+	<Panel class="submenu-option-container"
+		preferredHeight = "30" flexibleHeight = "0"
+		preferredWidth = "200" flexibleWidth = "0" minWidth = "200"
+		onMouseEnter = "Ref_HUD_HoverOn"
+		onMouseExit = "Ref_HUD_HoverOff"
+		onMouseDown = "Ref_HUD_Click" />
+	<Panel class="submenu-option-disabled"
+		onMouseEnter = ""
+		onMouseExit = ""
+		onMouseDown = ""
+		color = "rgba(0, 0, 0, 0.2)" />
+
+
+	<Image class="submenu-option-bg" image="ref-floating-bg" height="100%" width="100%" preserveAspect="false" />
+	<Text class="submenu-option" font="Fonts/Friz"  alignment="MiddleCenter" fontSize="16" />
+	<Image class="ref-hud-image" height="90%" active="false" />
+
+
+
+</Defaults>
+
+<Panel class="ref-hud-images" visibility="Brown">
+	<Image id="refHUD_PopupImage_LawGovernance_Brown" class="ref-hud-image" image="ref-lawGovernance" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Brown" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_TheCultOfTheMother_Brown" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
+	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Brown" height="40%" class="ref-hud-image" image="ref-history" />
+	<Image id="refHUD_PopupImage_MapAnkist_Brown" class="ref-hud-image" image="ref-mapAnkist" />
+	<Image id="refHUD_PopupImage_MapDutchies_Brown" class="ref-hud-image" image="ref-mapDutchies" />
+	<Image id="refHUD_PopupImage_MapMarks_Brown" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapKnownLands_Brown" class="ref-hud-image" image="ref-mapKnownLands" />
+	<Image id="refHUD_PopupImage_MapForeignPowers_Brown" class="ref-hud-image" image="ref-mapForeignPowers" />
+	<Image id="refHUD_PopupImage_Resources_Brown" class="ref-hud-image" image="ref-resources" />
+	<Image id="refHUD_PopupImage_SecretAgendas_Brown" class="ref-hud-image" image="ref-secretAgendas" />
+	<Image id="refHUD_PopupImage_EndGameRewards_Brown" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
+	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Brown" class="ref-hud-image" image="ref-specialAbilityIcons" />
+</Panel>
+<Panel class="ref-hud-images" visibility="Red">
+	<Image id="refHUD_PopupImage_LawGovernance_Red" class="ref-hud-image" image="ref-lawGovernance" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Red" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_TheCultOfTheMother_Red" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
+	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Red" height="40%" class="ref-hud-image" image="ref-history" />
+	<Image id="refHUD_PopupImage_MapAnkist_Red" class="ref-hud-image" image="ref-mapAnkist" />
+	<Image id="refHUD_PopupImage_MapDutchies_Red" class="ref-hud-image" image="ref-mapDutchies" />
+	<Image id="refHUD_PopupImage_MapMarks_Red" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapKnownLands_Red" class="ref-hud-image" image="ref-mapKnownLands" />
+	<Image id="refHUD_PopupImage_MapForeignPowers_Red" class="ref-hud-image" image="ref-mapForeignPowers" />
+	<Image id="refHUD_PopupImage_Resources_Red" class="ref-hud-image" image="ref-resources" />
+	<Image id="refHUD_PopupImage_SecretAgendas_Red" class="ref-hud-image" image="ref-secretAgendas" />
+	<Image id="refHUD_PopupImage_EndGameRewards_Red" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
+	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Red" class="ref-hud-image" image="ref-specialAbilityIcons" />
+</Panel>
+<Panel class="ref-hud-images" visibility="Orange">
+	<Image id="refHUD_PopupImage_LawGovernance_Orange" class="ref-hud-image" image="ref-lawGovernance" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Orange" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_TheCultOfTheMother_Orange" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
+	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Orange" height="40%" class="ref-hud-image" image="ref-history" />
+	<Image id="refHUD_PopupImage_MapAnkist_Orange" class="ref-hud-image" image="ref-mapAnkist" />
+	<Image id="refHUD_PopupImage_MapDutchies_Orange" class="ref-hud-image" image="ref-mapDutchies" />
+	<Image id="refHUD_PopupImage_MapMarks_Orange" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapKnownLands_Orange" class="ref-hud-image" image="ref-mapKnownLands" />
+	<Image id="refHUD_PopupImage_MapForeignPowers_Orange" class="ref-hud-image" image="ref-mapForeignPowers" />
+	<Image id="refHUD_PopupImage_Resources_Orange" class="ref-hud-image" image="ref-resources" />
+	<Image id="refHUD_PopupImage_SecretAgendas_Orange" class="ref-hud-image" image="ref-secretAgendas" />
+	<Image id="refHUD_PopupImage_EndGameRewards_Orange" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
+	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Orange" class="ref-hud-image" image="ref-specialAbilityIcons" />
+</Panel>
+<Panel class="ref-hud-images" visibility="Yellow">
+	<Image id="refHUD_PopupImage_LawGovernance_Yellow" class="ref-hud-image" image="ref-lawGovernance" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Yellow" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_TheCultOfTheMother_Yellow" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
+	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Yellow" height="40%" class="ref-hud-image" image="ref-history" />
+	<Image id="refHUD_PopupImage_MapAnkist_Yellow" class="ref-hud-image" image="ref-mapAnkist" />
+	<Image id="refHUD_PopupImage_MapDutchies_Yellow" class="ref-hud-image" image="ref-mapDutchies" />
+	<Image id="refHUD_PopupImage_MapMarks_Yellow" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapKnownLands_Yellow" class="ref-hud-image" image="ref-mapKnownLands" />
+	<Image id="refHUD_PopupImage_MapForeignPowers_Yellow" class="ref-hud-image" image="ref-mapForeignPowers" />
+	<Image id="refHUD_PopupImage_Resources_Yellow" class="ref-hud-image" image="ref-resources" />
+	<Image id="refHUD_PopupImage_SecretAgendas_Yellow" class="ref-hud-image" image="ref-secretAgendas" />
+	<Image id="refHUD_PopupImage_EndGameRewards_Yellow" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
+	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Yellow" class="ref-hud-image" image="ref-specialAbilityIcons" />
+</Panel>
+<Panel class="ref-hud-images" visibility="Green">
+	<Image id="refHUD_PopupImage_LawGovernance_Green" class="ref-hud-image" image="ref-lawGovernance" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Green" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_TheCultOfTheMother_Green" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
+	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Green" height="40%" class="ref-hud-image" image="ref-history" />
+	<Image id="refHUD_PopupImage_MapAnkist_Green" class="ref-hud-image" image="ref-mapAnkist" />
+	<Image id="refHUD_PopupImage_MapDutchies_Green" class="ref-hud-image" image="ref-mapDutchies" />
+	<Image id="refHUD_PopupImage_MapMarks_Green" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapKnownLands_Green" class="ref-hud-image" image="ref-mapKnownLands" />
+	<Image id="refHUD_PopupImage_MapForeignPowers_Green" class="ref-hud-image" image="ref-mapForeignPowers" />
+	<Image id="refHUD_PopupImage_Resources_Green" class="ref-hud-image" image="ref-resources" />
+	<Image id="refHUD_PopupImage_SecretAgendas_Green" class="ref-hud-image" image="ref-secretAgendas" />
+	<Image id="refHUD_PopupImage_EndGameRewards_Green" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
+	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Green" class="ref-hud-image" image="ref-specialAbilityIcons" />
+</Panel>
+
+<Panel id="refHUDControls" class="ref-hud-controls" active="false">
+	<HorizontalLayout class="ref-hud-controls">
+		<Panel class="ref-hud-button-base">
+			<Image class="ref-hud-button ref-hud-button-bg" image="ref-icon-bg" />
+			<Image id="refHUD_Submenu_Lore" class="ref-hud-button ref-hud-control" image="ref-iconLore-fg" />
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image class="ref-hud-button ref-hud-button-bg" image="ref-icon-bg" />
+			<Image id="refHUD_Submenu_Map" class="ref-hud-button ref-hud-control" image="ref-iconMap-fg" />
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image class="ref-hud-button ref-hud-button-bg" image="ref-icon-bg" />
+			<Image id="refHUD_Submenu_View" class="ref-hud-button ref-hud-control" image="ref-iconView-fg" />
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image class="ref-hud-button ref-hud-button-bg" image="ref-icon-bg" />
+			<Image id="refHUD_Submenu_Help" class="ref-hud-button ref-hud-control" image="ref-iconHelp-fg" />
+		</Panel>
+	</HorizontalLayout>
+	<HorizontalLayout class="ref-hud-controls" visibility="Brown">
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Lore_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
+			<Panel id="refHUD_SubmenuContents_Lore_Brown" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_LawGovernance_Brown" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Law and Governance
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheFiveClasses_Brown" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Five Classes
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheCultOfTheMother_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Cult of the Mother
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_HistoryOfTheWorld_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							History of the World
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Map_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconMap-fg" />
+			<Panel id="refHUD_SubmenuContents_Map_Brown" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_MapAnkist_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapDutchies_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dutchies of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapMarks_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Marks of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapKnownLands_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Known Lands
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapForeignPowers_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Foreign Powers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_View_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconView-fg" />
+			<Panel id="refHUD_SubmenuContents_View_Brown" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Camera_Screen_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Screen
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Board_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Board
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Resources_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Stickers_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Stickers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Help_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconHelp-fg" />
+			<Panel id="refHUD_SubmenuContents_Help_Brown" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_Resources_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Kingdom Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SecretAgendas_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Secret Agendas
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_EndGameRewards_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							End Game Rewards
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SpecialAbilityIcons_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Special Ability Icons
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+	</HorizontalLayout>
+	<HorizontalLayout class="ref-hud-controls" visibility="Red">
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Lore_Red" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
+			<Panel id="refHUD_SubmenuContents_Lore_Red" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_LawGovernance_Red" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Law and Governance
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheFiveClasses_Red" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Five Classes
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheCultOfTheMother_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Cult of the Mother
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_HistoryOfTheWorld_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							History of the World
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Map_Red" class="ref-hud-button ref-hud-fade" image="ref-iconMap-fg" />
+			<Panel id="refHUD_SubmenuContents_Map_Red" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_MapAnkist_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapDutchies_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dutchies of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapMarks_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Marks of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapKnownLands_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Known Lands
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapForeignPowers_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Foreign Powers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_View_Red" class="ref-hud-button ref-hud-fade" image="ref-iconView-fg" />
+			<Panel id="refHUD_SubmenuContents_View_Red" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Camera_Screen_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Screen
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Board_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Board
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Resources_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Stickers_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Stickers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Help_Red" class="ref-hud-button ref-hud-fade" image="ref-iconHelp-fg" />
+			<Panel id="refHUD_SubmenuContents_Help_Red" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_Resources_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Kingdom Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SecretAgendas_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Secret Agendas
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_EndGameRewards_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							End Game Rewards
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SpecialAbilityIcons_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Special Ability Icons
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+	</HorizontalLayout>
+	<HorizontalLayout class="ref-hud-controls" visibility="Orange">
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Lore_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
+			<Panel id="refHUD_SubmenuContents_Lore_Orange" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_LawGovernance_Orange" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Law and Governance
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheFiveClasses_Orange" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Five Classes
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheCultOfTheMother_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Cult of the Mother
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_HistoryOfTheWorld_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							History of the World
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Map_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconMap-fg" />
+			<Panel id="refHUD_SubmenuContents_Map_Orange" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_MapAnkist_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapDutchies_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dutchies of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapMarks_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Marks of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapKnownLands_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Known Lands
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapForeignPowers_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Foreign Powers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_View_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconView-fg" />
+			<Panel id="refHUD_SubmenuContents_View_Orange" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Camera_Screen_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Screen
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Board_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Board
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Resources_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Stickers_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Stickers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Help_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconHelp-fg" />
+			<Panel id="refHUD_SubmenuContents_Help_Orange" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_Resources_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Kingdom Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SecretAgendas_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Secret Agendas
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_EndGameRewards_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							End Game Rewards
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SpecialAbilityIcons_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Special Ability Icons
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+	</HorizontalLayout>
+	<HorizontalLayout class="ref-hud-controls" visibility="Yellow">
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Lore_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
+			<Panel id="refHUD_SubmenuContents_Lore_Yellow" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_LawGovernance_Yellow" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Law and Governance
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheFiveClasses_Yellow" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Five Classes
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheCultOfTheMother_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Cult of the Mother
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_HistoryOfTheWorld_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							History of the World
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Map_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconMap-fg" />
+			<Panel id="refHUD_SubmenuContents_Map_Yellow" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_MapAnkist_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapDutchies_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dutchies of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapMarks_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Marks of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapKnownLands_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Known Lands
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapForeignPowers_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Foreign Powers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_View_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconView-fg" />
+			<Panel id="refHUD_SubmenuContents_View_Yellow" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Camera_Screen_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Screen
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Board_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Board
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Resources_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Stickers_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Stickers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Help_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconHelp-fg" />
+			<Panel id="refHUD_SubmenuContents_Help_Yellow" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_Resources_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Kingdom Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SecretAgendas_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Secret Agendas
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_EndGameRewards_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							End Game Rewards
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SpecialAbilityIcons_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Special Ability Icons
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+	</HorizontalLayout>
+	<HorizontalLayout class="ref-hud-controls" visibility="Green">
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Lore_Green" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
+			<Panel id="refHUD_SubmenuContents_Lore_Green" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_LawGovernance_Green" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Law and Governance
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheFiveClasses_Green" class="submenu-option-container submenu-option-disabled">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Five Classes
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_TheCultOfTheMother_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Cult of the Mother
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_HistoryOfTheWorld_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							History of the World
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Map_Green" class="ref-hud-button ref-hud-fade" image="ref-iconMap-fg" />
+			<Panel id="refHUD_SubmenuContents_Map_Green" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_MapAnkist_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapDutchies_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dutchies of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapMarks_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Marks of Ankist
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapKnownLands_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							The Known Lands
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_MapForeignPowers_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Foreign Powers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_View_Green" class="ref-hud-button ref-hud-fade" image="ref-iconView-fg" />
+			<Panel id="refHUD_SubmenuContents_View_Green" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Camera_Screen_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Screen
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Board_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Board
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Resources_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Stickers_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							View Stickers
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+		<Panel class="ref-hud-button-base">
+			<Image id="refHUD_Submenu_Help_Green" class="ref-hud-button ref-hud-fade" image="ref-iconHelp-fg" />
+			<Panel id="refHUD_SubmenuContents_Help_Green" class="ref-hud-submenu">
+				<VerticalLayout class="ref-hud-submenu">
+					<Panel id="refHUD_Popup_Resources_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Kingdom Resources
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SecretAgendas_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Secret Agendas
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_EndGameRewards_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							End Game Rewards
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Popup_SpecialAbilityIcons_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Special Ability Icons
+						</Text>
+					</Panel>
+				</VerticalLayout>
+			</Panel>
+		</Panel>
+	</HorizontalLayout>
+</Panel>
