@@ -53,7 +53,10 @@ local TESTFUNCS = {
 	end,
 	Scores = function(button)
 		DIR.EndGame()
-		log(JSON.encode_pretty(DIR.GetFinalStandings()))
+		-- log(JSON.encode_pretty(DIR.GetFinalStandings()))
+		-- UI.show("scoringSplashScreen")
+		-- Wait.time(DIR.InitScoringHUD, 2)
+		-- DIR.InitScoringHUD()
 	end,
 	OpAgendas = function(button)
 		local isNegative = button == "-2"

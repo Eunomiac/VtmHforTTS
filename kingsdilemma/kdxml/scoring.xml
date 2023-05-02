@@ -1,0 +1,255 @@
+<Defaults>
+	<Panel class="scoring-splash"
+		color = "rgba(0, 0, 0, 0.85)"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "0.5" />
+
+	<VerticalLayout class="scoring-splash-root"
+		spacing = "0"
+		childAlignment = "UpperCenter"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		childForceExpandHeight = "false"
+		childForceExpandWidth = "false"
+		height = "250" width = "650"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
+		padding = "0 0 65 65"
+		animationDuration = "0.5" />
+	<VerticalLayout class="scoring-splash"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
+		childAlignment = "UpperCenter" />
+
+
+	<VerticalLayout class="scoring-splash-image"
+		ignoreLayout = "true"
+		childAlignment = "UpperCenter"
+		position = "MiddleCenter"
+		spacing = "-1"
+		height = "100%"
+		width = "100%" />
+	<Image class="scoring-top"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
+		preferredHeight = "65" flexibleHeight = "0" minHeight = "65"
+		image = "splash-border-above" />
+	<Image class="scoring-bottom"
+		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
+		preferredHeight = "65" flexibleHeight = "0" minHeight = "65"
+		image = "splash-border-under" />
+	<Image class="scoring-splash-bg"
+		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
+		preserveAspect = "false"
+		image = "splash-bg" />
+
+	<Text class="scoring-splash"
+		alignment = "MiddleCenter"
+		font = "Fonts/Friz"
+		resizeTextForBestFit = "false"
+		showAnimation = ""
+		hideAnimation = ""
+		animationDuration = "0"
+		color = "rgba(1,1,1,1)"
+		verticalOverflow = "Overflow"
+		horizontalOverflow = "Wrap"
+		fontSize = "50"
+		preferredHeight = "50" minHeight = "50" flexibleHeight = "0"
+		preferredWidth = "5000" minWidth = "5000" flexibleWidth = "0"
+		scale = "1 1 1" />
+</Defaults>
+
+<Panel id="scoringSplashScreen" color = "rgba(0, 0, 0, 1)" animationDuration = "5" showAnimation = "FadeIn" hideAnimation = "FadeOut" class="scoring-splash" active="false">
+	<VerticalLayout class="scoring-splash-root" offsetXY = "0 100">
+		<VerticalLayout class="scoring-splash-image">
+			<Image class="scoring-top" />
+			<Image class="scoring-splash-bg" />
+			<Image class="scoring-bottom" />
+		</VerticalLayout>
+		<VerticalLayout class="scoring-splash">
+			<Text class="scoring-splash">Scoring</Text>
+		</VerticalLayout>
+	</VerticalLayout>
+</Panel>
+
+<Defaults>
+	<Panel class="scoring-scope" color = "rgba(0, 0, 0, 0.95)" height = "100%" width = "100%" pivot = "0.8 0.2" />
+
+	<Panel class="scoring-root" width = "1220" height = "600" rectAlignment = "MiddleCenter" />
+
+	<Panel class="scoring-row" outline = "Yellow" width = "1220" height = "100" rectAlignment = "UpperLeft" />
+	<Panel class="scoring-header" height = "50" outline = "Blue" />
+	<Panel class="scoring-footer" rectAlignment="LowerLeft" outline = "Blue" />
+
+	<Text class="scoring-text" rectAlignment = "UpperLeft" height = "100"
+		fontSize = "50"
+		color = "rgba(1, 1, 1, 1)" />
+	<Text class="scoring-header" height = "50" width = "100" alignment = "LowerCenter"
+		font = "Fonts/FrizB" fontSize = "20"
+		horizontalOverflow = "Wrap" verticalOverflow = "Overflow" />
+	<Text class="scoring-footer" alignment = "UpperCenter" />
+	<Text class="scoring-header-total" offsetXY = "920 0" fontSize = "30" alignment = "MiddleCenter" />
+
+	<Text class="scoring-placement" width = "120" alignment = "MiddleRight"
+		font = "Fonts/FrizB" />
+	<Text class="scoring-name" width = "400" alignment = "MiddleCenter" offsetXY = "120 0"
+		font = "Fonts/CinzelBB" />
+	<Text class="scoring-subTotal" alignment = "MiddleCenter" width = "100"
+		font = "Fonts/Script2"
+		fontSize = "35" />
+	<Text class="scoring-subTotal-1" offsetXY = "520 0" />
+	<Text class="scoring-subTotal-2" offsetXY = "620 0" />
+	<Text class="scoring-subTotal-3" offsetXY = "720 0" />
+	<Text class="scoring-subTotal-4" offsetXY = "820 0" />
+	<Text class="scoring-total" offsetXY = "920 0" alignment = "MiddleCenter" width = "100"
+		font = "Fonts/Script2"
+		fontSize = "75" />
+
+	<Image class="scoring-image" rectAlignment = "UpperLeft" raycastTarget = "false" />
+	<Image class="scoring-bg" image="splash-bg" preserveAspect = "false" height = "100" width = "1320" />
+	<Image class="scoring-reward" active="false" height="100" preserveAspect="true" offsetXY = "1020 0" />
+
+	<Panel class="scoring-scope" animationDuration = "5" showAnimation = "FadeIn" hideAnimation = "FadeOut" />
+	<Text class="scoring-text" animationDuration = "1.5" />
+	<Image class="scoring-image" animationDuration = "1.5" showAnimation = "FadeIn" />
+	<Image class="scoring-bg" animationDuration = "1.5" showAnimationDelay = "0" showAnimation = "FadeIn" />
+	<Panel class="scoring-row" animationDuration = "1.5" />
+	<Panel class="scoring-header" showAnimation = "FadeIn" animationDuration = "1.5" showAnimationDelay = "1" />
+
+	<Text class="scoring-placement" showAnimation = "FadeIn" animationDuration = "3" showAnimationDelay = "3" />
+	<Text class="scoring-name" showAnimation = "SlideIn_Left" showAnimationDelay = "0" />
+	<Text class="scoring-total" showAnimation = "FadeIn" animationDuration = "3" showAnimationDelay = "0" />
+
+	<Text class="scoring-subTotal" showAnimation = "FadeIn" />
+	<Text class="scoring-subTotal-1" showAnimationDelay = "1.25" />
+	<Text class="scoring-subTotal-2" showAnimationDelay = "1.5" />
+	<Text class="scoring-subTotal-3" showAnimationDelay = "1.75" />
+	<Text class="scoring-subTotal-4" showAnimationDelay = "2" />
+</Defaults>
+
+<Panel id="scoringHUD" class="scoring-scope" active="false">
+	<Panel class="scoring-root">
+		<Panel class="scoring-row scoring-header">
+			<Text class="scoring-text scoring-subTotal-1 scoring-header">Secret Agenda</Text>
+			<Text class="scoring-text scoring-subTotal-2 scoring-header">Open Agendas</Text>
+			<Text class="scoring-text scoring-subTotal-3 scoring-header">Saved Coin</Text>
+			<Text class="scoring-text scoring-subTotal-4 scoring-header">Held Power</Text>
+			<Text class="scoring-text scoring-header scoring-header-total">Total</Text>
+		</Panel>
+		<Panel id="scoringHUD_1" class="scoring-row" active="false">
+			<Image class="scoring-image scoring-bg" />
+			<Text id="scoringHUD_1_Placement" class="scoring-text scoring-placement">1st</Text>
+			<Text id="scoringHUD_1_Name" class="scoring-text scoring-name">Valeryon</Text>
+			<Text id="scoringHUD_1_SecretAgenda" class="scoring-text scoring-subTotal scoring-subTotal-1">+5</Text>
+			<Text id="scoringHUD_1_OpenAgendas" class="scoring-text scoring-subTotal scoring-subTotal-2">+5</Text>
+			<Text id="scoringHUD_1_Coin" class="scoring-text scoring-subTotal scoring-subTotal-3">+5</Text>
+			<Text id="scoringHUD_1_Power" class="scoring-text scoring-subTotal scoring-subTotal-4">+5</Text>
+			<Text id="scoringHUD_1_Total" class="scoring-text scoring-total">11</Text>
+			<Image id="scoringHUD_1_Reward_1c" image="1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_1p" image="1p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_1p1c" image="1p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_2c" image="2c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_2p" image="2p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_2p1c" image="2p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_3c" image="3c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_3p" image="3p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_3p1c" image="3p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_4c" image="4c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_4p" image="4p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_1_Reward_5p" image="5p" class="scoring-image scoring-reward" />
+		</Panel>
+		<Panel id="scoringHUD_2" class="scoring-row" active="false">
+			<Image class="scoring-image scoring-bg" />
+			<Text id="scoringHUD_2_Placement" class="scoring-text scoring-placement">1st</Text>
+			<Text id="scoringHUD_2_Name" class="scoring-text scoring-name">Frey</Text>
+			<Text id="scoringHUD_2_SecretAgenda" class="scoring-text scoring-subTotal scoring-subTotal-1">+5</Text>
+			<Text id="scoringHUD_2_OpenAgendas" class="scoring-text scoring-subTotal scoring-subTotal-2">+5</Text>
+			<Text id="scoringHUD_2_Coin" class="scoring-text scoring-subTotal scoring-subTotal-3">+5</Text>
+			<Text id="scoringHUD_2_Power" class="scoring-text scoring-subTotal scoring-subTotal-4">+5</Text>
+			<Text id="scoringHUD_2_Total" class="scoring-text scoring-total">11</Text>
+			<Image id="scoringHUD_2_Reward_1c" image="1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_1p" image="1p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_1p1c" image="1p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_2c" image="2c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_2p" image="2p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_2p1c" image="2p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_3c" image="3c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_3p" image="3p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_3p1c" image="3p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_4c" image="4c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_4p" image="4p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_2_Reward_5p" image="5p" class="scoring-image scoring-reward" />
+		</Panel>
+		<Panel id="scoringHUD_3" class="scoring-row" active="false">
+			<Image class="scoring-image scoring-bg" />
+			<Text id="scoringHUD_3_Placement" class="scoring-text scoring-placement">1st</Text>
+			<Text id="scoringHUD_3_Name" class="scoring-text scoring-name">Tiryll</Text>
+			<Text id="scoringHUD_3_SecretAgenda" class="scoring-text scoring-subTotal scoring-subTotal-1">+5</Text>
+			<Text id="scoringHUD_3_OpenAgendas" class="scoring-text scoring-subTotal scoring-subTotal-2">+5</Text>
+			<Text id="scoringHUD_3_Coin" class="scoring-text scoring-subTotal scoring-subTotal-3">+5</Text>
+			<Text id="scoringHUD_3_Power" class="scoring-text scoring-subTotal scoring-subTotal-4">+5</Text>
+			<Text id="scoringHUD_3_Total" class="scoring-text scoring-total">12</Text>
+			<Image id="scoringHUD_3_Reward_1c" image="1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_1p" image="1p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_1p1c" image="1p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_2c" image="2c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_2p" image="2p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_2p1c" image="2p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_3c" image="3c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_3p" image="3p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_3p1c" image="3p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_4c" image="4c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_4p" image="4p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_3_Reward_5p" image="5p" class="scoring-image scoring-reward" />
+		</Panel>
+		<Panel id="scoringHUD_4" class="scoring-row" active="false">
+			<Image class="scoring-image scoring-bg" />
+			<Text id="scoringHUD_4_Placement" class="scoring-text scoring-placement">1st</Text>
+			<Text id="scoringHUD_4_Name" class="scoring-text scoring-name">Manderly</Text>
+			<Text id="scoringHUD_4_SecretAgenda" class="scoring-text scoring-subTotal scoring-subTotal-1">+5</Text>
+			<Text id="scoringHUD_4_OpenAgendas" class="scoring-text scoring-subTotal scoring-subTotal-2">+5</Text>
+			<Text id="scoringHUD_4_Coin" class="scoring-text scoring-subTotal scoring-subTotal-3">+5</Text>
+			<Text id="scoringHUD_4_Power" class="scoring-text scoring-subTotal scoring-subTotal-4">+5</Text>
+			<Text id="scoringHUD_4_Total" class="scoring-text scoring-total">11</Text>
+			<Image id="scoringHUD_4_Reward_1c" image="1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_1p" image="1p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_1p1c" image="1p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_2c" image="2c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_2p" image="2p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_2p1c" image="2p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_3c" image="3c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_3p" image="3p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_3p1c" image="3p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_4c" image="4c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_4p" image="4p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_4_Reward_5p" image="5p" class="scoring-image scoring-reward" />
+		</Panel>
+		<Panel id="scoringHUD_5" class="scoring-row" active="false">
+			<Image class="scoring-image scoring-bg" />
+			<Text id="scoringHUD_5_Placement" class="scoring-text scoring-placement">1st</Text>
+			<Text id="scoringHUD_5_Name" class="scoring-text scoring-name">Hummingbird</Text>
+			<Text id="scoringHUD_5_SecretAgenda" class="scoring-text scoring-subTotal scoring-subTotal-1">+5</Text>
+			<Text id="scoringHUD_5_OpenAgendas" class="scoring-text scoring-subTotal scoring-subTotal-2">+5</Text>
+			<Text id="scoringHUD_5_Coin" class="scoring-text scoring-subTotal scoring-subTotal-3">+5</Text>
+			<Text id="scoringHUD_5_Power" class="scoring-text scoring-subTotal scoring-subTotal-4">+5</Text>
+			<Text id="scoringHUD_5_Total" class="scoring-text scoring-total">11</Text>
+			<Image id="scoringHUD_5_Reward_1c" image="1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_1p" image="1p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_1p1c" image="1p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_2c" image="2c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_2p" image="2p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_2p1c" image="2p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_3c" image="3c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_3p" image="3p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_3p1c" image="3p1c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_4c" image="4c" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_4p" image="4p" class="scoring-image scoring-reward" />
+			<Image id="scoringHUD_5_Reward_5p" image="5p" class="scoring-image scoring-reward" />
+		</Panel>
+		<Panel class="scoring-row scoring-header scoring-footer">
+			<Text class="scoring-text scoring-subTotal-1 scoring-header">Secret Agenda</Text>
+			<Text class="scoring-text scoring-subTotal-2 scoring-header">Open Agendas</Text>
+			<Text class="scoring-text scoring-subTotal-3 scoring-header">Saved Coin</Text>
+			<Text class="scoring-text scoring-subTotal-4 scoring-header">Held Power</Text>
+			<Text class="scoring-text scoring-header scoring-header-total">Total</Text>
+		</Panel>
+	</Panel>
+</Panel>

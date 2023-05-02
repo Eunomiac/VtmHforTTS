@@ -21,6 +21,9 @@
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		padding = "0 0 65 65"
 		animationDuration = "0.5" />
+	<VerticalLayout class="splash-root-mid" childAlignment = "MiddleCenter" />
+	<VerticalLayout class="splash-root-low" childAlignment = "LowerCenter" />
+
 	<VerticalLayout class="splash"
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		childAlignment = "UpperCenter" />
@@ -102,16 +105,42 @@
 </Defaults>
 <Panel id="splashHUD" class="splash-panel splash-hud">
 	<Panel class="splash-visibility">
-	<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+		<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_All" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_All" class="splash">A Line Of Text</Text>
+	</Panel>
+
+	<Panel class="splash-visibility">
+		<VerticalLayout id="splashPanel_AllMid" class="splash-root splash-root-mid" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_AllMid" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
+
+	<Panel class="splash-visibility">
+		<VerticalLayout id="splashPanel_AllLow" class="splash-root splash-root-low" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_AllLow" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
 	</Panel>
 
 	<Panel visibility="Brown" class="splash-visibility">

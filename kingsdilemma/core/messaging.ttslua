@@ -29,9 +29,11 @@ function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 		dTime, dBuffer = displayTime.displayTime or DefaultDisplayTime, displayTime.displayBuffer or DefaultDisplayBuffer
 	end
 	if type(messageLines) ~= "table" then messageLines = {messageLines} end
-	local panelRef
-	if playerRef == nil then panelRef = "All"
-	else panelRef = S.getPlayer(playerRef).color end
+	local panelRef = playerRef
+	if panelRef == nil then panelRef = "All" end
+	if not string.match(panelRef, "^All") then
+		panelRef = S.getPlayer(playerRef).color
+	end
 	local panelID, textID = "splashPanel_" .. panelRef, "splashText_" .. panelRef
 
 	return U.RunSequence({

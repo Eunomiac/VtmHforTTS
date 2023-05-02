@@ -932,8 +932,26 @@ INITFUNCS = {
 	END = {
 		Score = function()
 			return {
+				function()
+					local stabilityPos = getTokenPositionsFromBoard().Stability
 
+					if stabilityPos == 19 then
+						S.setStateVal("AbdicatedTop", "gameState", "endState")
+						return MSG.Splash("A Treasonous Plot Forces the King to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
+					elseif stabilityPos == 1 then
+						S.setStateVal("AbdicatedBottom", "gameState", "endState")
+						return MSG.Splash("Popular Unrest Forces the King to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
+					else
+						S.setStateVal("Death", "gameState", "endState")
+						return MSG.Splash("The King Is Dead!", "AllMid", 3, {offsetXY = "0 -200"})
+					end
 
+				end,
+				function()
+					UI.show("scoringSplashScreen")
+					return 5
+				end,
+				DIR.InitScoringHUD
 			}
 		end,
 		Realm = function()
@@ -1733,17 +1751,10 @@ end
 
 -- #region End of Game~
 function DIR.EndGame()
-	local stabilityPos = getTokenPositionsFromBoard().Stability
-
-	if stabilityPos == 19 then
-		S.setStateVal("AbdicatedTop", "gameState", "endState")
-	elseif stabilityPos == 1 then
-		S.setStateVal("AbdicatedBottom", "gameState", "endState")
-	else
-		S.setStateVal("Death", "gameState", "endState")
-		return MSG.Splash("The King Is Dead!")
-	end
-	return MSG.Splash("The King has Abdicated the Throne")
+	return U.RunSequence({
+		function() return DIR.JumpToStatePhase(C.Modes.END, C.Phases.END.Score) end,
+		DIR.InitializePhase
+	})
 end
 
 function DIR.GetSecretAgenda(playerRef)
@@ -1850,19 +1861,23 @@ function DIR.GetOpenAgendaScore(playerRef, tokenPositions)
 
 	-- log({topResources = topResources, secondResources = secondResources, botResources = botResources, secBotResources = secBotResources})
 
-
+	scoreReport.openAgendaTotal = 0
 	U.iForEach(posOpenAgendas, function(res)
 		if U.find(topResources, function(rData) return rData.resource == res end) then
+			scoreReport.openAgendaTotal = scoreReport.openAgendaTotal + 3
 			scoreReport.positive[res] = 3
 		elseif U.find(secondResources, function(rData) return rData.resource == res end) then
+			scoreReport.openAgendaTotal = scoreReport.openAgendaTotal + 1
 			scoreReport.positive[res] = 1
 		end
 	end)
 
 	U.iForEach(negOpenAgendas, function(res)
 		if U.find(botResources, function(rData) return rData.resource == res end) then
+			scoreReport.openAgendaTotal = scoreReport.openAgendaTotal - 3
 			scoreReport.negative[res] = -3
 		elseif U.find(secBotResources, function(rData) return rData.resource == res end) then
+			scoreReport.openAgendaTotal = scoreReport.openAgendaTotal - 1
 			scoreReport.negative[res] = -1
 		end
 	end)
@@ -1923,10 +1938,12 @@ function DIR.GetFinalScores()
 	local byPlayer = {}
 	U.forEach(S.getPlayers(), function(player)
 		byPlayer[player.color] = {
+			name = S.getPlayerHouseName(player),
 			color = player.color,
 			secretAgenda = DIR.GetSecretAgenda(player),
 			resources = results.SecretAgenda[player.color].resources,
 			openAgendas = results.OpenAgenda[player.color],
+			openAgendasTotal = results.OpenAgenda[player.color].openAgendaTotal,
 			coin = results.SecretAgenda[player.color].coin,
 			power = results.PowerBonus[player.color].points
 		}
@@ -1944,15 +1961,15 @@ function DIR.GetFinalStandings()
 	local scores = U.getValues(DIR.GetFinalScores())
 	-- log({scores = scores})
 	table.sort(scores, function(a, b) return a.total > b.total end)
+	for i = 1, #scores do
+		scores[i].row = i
+	end
 	local lastPlace = scores[#scores].total
 	for i = #scores, 1, -1 do
 		if scores[i].total == lastPlace then
 			scores[i].placement = "LAST"
 			scores[i].prestige = scoring[5].prestige
 			scores[i].crave = scoring[5].crave
-			if scores[i].secretAgenda == "Rebel" and S.getStateVal("gameState", "endState") ~= "Death" then
-				scores[i].crave = scores[i].crave + 1
-			end
 		else
 			break
 		end
@@ -1974,7 +1991,12 @@ function DIR.GetFinalStandings()
 			end
 			scores[i].prestige = scoring[placement].prestige
 			scores[i].crave = scoring[placement].crave
-			if scores[i].secretAgenda == "Rebel" and S.getStateVal("gameState", "endState") ~= "Death" then
+		end
+	end
+
+	if S.getStateVal("gameState", "endState") ~= "Death" then
+		for i = 1, #scores do
+			if scores[i].secretAgenda == "Rebel" then
 				scores[i].crave = scores[i].crave + 1
 			end
 		end
@@ -1982,8 +2004,97 @@ function DIR.GetFinalStandings()
 	return scores
 end
 
--- function DIR.
+function DIR.InitScoringHUD()
+	local scores = DIR.GetFinalStandings()
 
+	local function signNum(num)
+		if num == 0 then return "-" end
+		if num > 0 then return "+" .. tostring(num) end
+		return tostring(num)
+	end
+	-- initialize all scoring elements with data from scoresData
+
+	local lastPlacement
+	local imageRefs = {}
+	U.iForEach(scores, function(sData, index)
+		local prefix = "scoringHUD_" .. index .. "_"
+		if lastPlacement ~= sData.placement then
+			lastPlacement = sData.placement
+			UI.setValue(prefix .. "Placement", ({
+				[1] = "1st", [2] = "2nd", [3] = "3rd", [4] = "4th", LAST = "LAST"
+			})[sData.placement])
+		else
+			UI.setValue(prefix .. "Placement", "")
+		end
+		UI.setAttribute("scoringHUD_" .. index, "offsetXY", "0 -" .. tostring(50 + (index - 1) * (100 + 5)))
+		U.forEach({"Name", "SecretAgenda", "OpenAgendas", "Coin", "Power", "Total"}, function(ref)
+			UI.setAttribute(prefix .. ref, "color", U.GetHex(Color[sData.color]))
+		end)
+		UI.setValue(prefix .. "Name", sData.name)
+		UI.setValue(prefix .. "SecretAgenda", signNum(sData.resources))
+		UI.setValue(prefix .. "OpenAgendas", signNum(sData.openAgendasTotal))
+		UI.setValue(prefix .. "Coin", signNum(sData.coin))
+		UI.setValue(prefix .. "Power", signNum(sData.power))
+		UI.setValue(prefix .. "Total", tostring(sData.total))
+
+		local imageRef = ""
+		if sData.prestige > 0 then
+			imageRef = imageRef .. tostring(sData.prestige) .. "p"
+		end
+		if sData.crave > 0 then
+			imageRef = imageRef .. tostring(sData.crave) .. "c"
+		end
+		table.insert(imageRefs, imageRef)
+	end)
+
+	local validPlacements = U.filter({"LAST", 4, 3}, function(p) return U.find(scores, function(sData) return sData.placement == p end) end)
+
+	local seqFuncs = {
+		function()
+			UI.hide("scoringSplashScreen")
+			UI.show("scoringHUD")
+			return 3
+		end
+	}
+
+	U.iForEach(validPlacements, function(placement)
+		table.insert(seqFuncs, function()
+			U.forEach(
+				U.filter(scores, function(sData) return sData.placement == placement end),
+				function(sData) UI.show("scoringHUD_" .. sData.row) end
+			)
+			return 4
+		end)
+	end)
+
+	table.insert(seqFuncs, function()
+		U.forEach(
+			U.filter(scores, function(sData) return sData.placement == 1 end),
+			function(sData) UI.show("scoringHUD_" .. sData.row) end
+		)
+		return 1
+	end)
+
+	table.insert(seqFuncs, function()
+		U.forEach(
+			U.filter(scores, function(sData) return sData.placement == 2 end),
+			function(sData) UI.show("scoringHUD_" .. sData.row) end
+		)
+		return 3
+	end)
+
+	table.insert(seqFuncs, function()
+		return U.sequence(U.iMap({1, 2, 3, 4, 5}, function(row) return function()
+			local id = "scoringHUD_" .. row .. "_Reward_" .. imageRefs[row]
+			UI.show(id)
+			-- log("Showing '" .. id .. '". = 1_Reward_)
+			-- log("Setting 'scoringHUD_" .. row .. "_Reward' to '" .. imageRefs[row] .. "'")
+			-- Wait.time(function() UI.setAttribute("scoringHUD_" .. row .. "_Reward", "image", imageRefs[row]) end, 1)
+		end end), 0.5)
+	end)
+
+	return U.RunSequence(seqFuncs)
+end
 
 local function getUpdatedChronicleCardState(cScriptState)
 	local scriptState = JSON.decode(cScriptState)
