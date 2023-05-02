@@ -246,6 +246,16 @@ INITFUNCS = {
 					S.getPlayer("Host")
 				)
 			end,
+			function()
+				MSG.Splash(P.GetLeaderName() .. " Is Most Prestigious")
+				return L.SetLightMode("lightLeader", "on", nil, 0.5)
+			end,
+			P.AssignLeader,
+			function()
+				MSG.Splash(P.GetModeratorName() .. " Is Least Prestigious")
+				return L.SetLightMode("lightModerator", "on", nil, 0.5)
+			end,
+			P.AssignModerator,
 			function() return P.SetCamera("Lectern") end,
 			function()
 				L.LoadLights({ "lightLectern" }, "default")
@@ -291,19 +301,25 @@ INITFUNCS = {
 			end,
 			DIR.ADVANCE
 		} end,
-		LeaderModerator = function() return {
-			function()
-				MSG.Splash(P.GetLeaderName() .. " Is Most Prestigious")
-				return L.SetLightMode("lightLeader", "on", nil, 0.5)
-			end,
-			P.AssignLeader,
-			function()
-				MSG.Splash(P.GetModeratorName() .. " Is Least Prestigious")
-				return L.SetLightMode("lightModerator", "on", nil, 0.5)
-			end,
-			P.AssignModerator,
-			DIR.ADVANCE
-		} end,
+		LeaderModerator = function()
+			if S.getStateVal("gameState", "leader") ~= nil then
+				return {DIR.ADVANCE}
+			else
+				return {
+					function()
+						MSG.Splash(P.GetLeaderName() .. " Is Most Prestigious")
+						return L.SetLightMode("lightLeader", "on", nil, 0.5)
+					end,
+					P.AssignLeader,
+					function()
+						MSG.Splash(P.GetModeratorName() .. " Is Least Prestigious")
+						return L.SetLightMode("lightModerator", "on", nil, 0.5)
+					end,
+					P.AssignModerator,
+					DIR.ADVANCE
+				}
+			end
+		end,
 		LegacySetup = function() return {
 			function()
 				P.SetCamera("MainBoard")
@@ -424,6 +440,7 @@ INITFUNCS = {
 					}
 				end,
 				function()
+					MSG.Splash(P.GetLeaderName() .. ", the Dilemma Card is Yours", P.GetLeader())
 					return {
 						L.SetLightMode("lightDilemmaAye", "on", nil, 1),
 						L.SetLightMode("lightDilemmaNay", "on", nil, 1)
@@ -1215,7 +1232,10 @@ end
 function DIR.SpawnStartingPlayerPower()
 	return U.RunSequence(U.map(S.getPlayers(), function(player)
 		local numPower = 8 + (S.getPlayerVal(player, "startingPowerBonus") or 0)
-		return function() return { 1, P.SpawnPower(player, numPower) } end
+		return function()
+			L.PulseLight("lightFront", player)
+			return { 1, P.SpawnPower(player, numPower) }
+		end
 	end))
 end
 
@@ -1428,6 +1448,7 @@ function DIR.FetchEnvelope(envKey)
 					storyCard = obj
 					storyCard.setTags({ "StoryCard" })
 					storyCard.setLock(true)
+					storyCard.use_hands = false
 					Wait.frames(function() storyCard.addForce(Vector(0, -1, 0), 3) end)
 				end
 			})
@@ -1453,6 +1474,7 @@ function DIR.FetchEnvelope(envKey)
 			}
 		end,
 		function()
+			MSG.Splash(P.GetLeaderName() .. ", the Story Card is Yours", P.GetLeader())
 			return P.SetCamera("Stickers")
 		end,
 		function()
@@ -1473,86 +1495,6 @@ function DIR.FetchEnvelope(envKey)
 			return L.SetLightMode({ "lightLectern" }, "ambient", nil, 0.5)
 		end
 	})
-
-	-- table.insert(seqFuncs, function() return DIR.PresentStoryCard(storyCard, envDeck) end)
-
-	-- return U.RunSequence(seqFuncs)
-
-
--- function DIR.PresentStoryCard(storyCard, envDeck)
--- 	U.Assert("DIR.PresentStoryCard", storyCard, "Object")
--- 	return U.RunSequence({
--- 		function()
--- 			storyCard.setPositionSmooth(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0)))
--- 			storyCard.setRotationSmooth(Vector(C.Spots.Staging.StoryCard.Display.rotation))
--- 			return {
--- 				storyCard,
--- 				L.SetLightMode("lightLectern", "storyCard")
--- 			}
--- 		end,
--- 		function()
--- 			storyCard.setLock(false)
--- 			Wait.frames(function() storyCard.addForce(Vector(0, -1, 0), 3) end)
--- 			return {
--- 				storyCard,
--- 				1.5
--- 			}
--- 		end,
--- 		function()
--- 			return P.SetCamera("MainBoard")
--- 		end,
--- 		function()
--- 			L.SetLightMode({ "lightMainTop", "lightMainBottom" }, "ambient", nil, 2)
--- 			return function()
--- 				return not Vector.equals(storyCard.getPosition(),
--- 					Vector(C.Spots.Staging.StoryCard.Display.position), 1)
--- 			end
--- 		end,
--- 		function()
--- 			U.setPositionSlow(envDeck, C.Spots.Main.Dilemma.aboveDeck.position)
--- 			U.setRotationSlow(envDeck, C.Spots.Main.Dilemma.aboveDeck.rotation)
--- 			-- DIR.PromptLeaderToHandleEnvelope(envDeck)
--- 			return L.SetLightMode({ "lightLectern" }, "ambient", nil, 0.5)
--- 		end
--- 	})
--- end
-
--- function DIR.PromptLeaderToHandleEnvelope(envDeck)
--- 	local queryResponse = {Yes = "true", No = "false"}
--- 	return U.RunSequence({
--- 		function()
--- 			MSG.SplashQuery(
--- 				"Does this Envelope's Story Card\ncontain special instructions?",
--- 				"Leader",
--- 				queryResponse,
--- 				P.GetLeader()
--- 			)
--- 			return function() return queryResponse.response ~= nil end
--- 		end,
--- 		function()
--- 			if queryResponse.response == "true" then
--- 				return U.RunSequence({
--- 					function()
--- 						return {
--- 							U.setPositionSlow(envDeck, C.Spots.Main.Dilemma.aboveDeck.position),
--- 							U.setRotationSlow(envDeck, C.Spots.Main.Dilemma.aboveDeck.rotation)
--- 						}
--- 					end,
--- 					function()
--- 						envDeck.setLock(false)
--- 						MSG.Splash({
--- 							"Carry out instructions, then place",
--- 							"new Dilemmas above Dilemma Deck."
--- 						}, P.GetLeader().color, 4)
--- 						return {0.5, envDeck}
--- 					end
--- 				})
--- 			else
--- 				return DIR.AddToDilemmaDeck(envDeck)
--- 			end
--- 		end
--- 	})
--- end
 end
 -- #endregion
 
@@ -1574,6 +1516,7 @@ function DIR.StageDilemmaCard()
 			rotation = C.Spots.Staging.DilemmaDraw.rotation,
 			top = false,
 			callback_function = function(obj)
+				obj.use_hands = false
 				obj.addTag("OnDisplay")
 				obj.setLock(true)
 				dilemmaCard = obj
@@ -1582,6 +1525,7 @@ function DIR.StageDilemmaCard()
 		return function() return dilemmaCard ~= nil end
 	elseif dilemmaSource.type == "Card" then
 		dilemmaCard = dilemmaSource
+		dilemmaCard.use_hands = false
 		dilemmaCard.setLock(true)
 		dilemmaCard.addTag("OnDisplay")
 		return {
@@ -1643,6 +1587,7 @@ function DIR.AddToDilemmaDeck(dilemmas)
 				position = dilemmaCardDestPos,
 				rotation = dilemmaCardDestRot,
 				callback_function = function(obj)
+					obj.use_hands = false
 					obj.setTags({ "Dilemma" })
 					obj.setLock(false)
 				end
@@ -1652,6 +1597,7 @@ function DIR.AddToDilemmaDeck(dilemmas)
 			end
 			return 0.3
 		elseif dilemmas.type == "Card" then
+			dilemmas.use_hands = false
 			dilemmas.setTags({ "Dilemma" })
 			dilemmas.setLock(false)
 			dilemmas.setPositionSmooth(dilemmaCardDestPos)

@@ -96,8 +96,8 @@
 
 </Defaults>
 
-<Panel id="turnHUD_Brown" class="turn-HUD-container" visibility="Brown" active="false">
-	<VerticalLayout class="turn-HUD">
+<Panel class="turn-HUD-container" visibility="Brown">
+	<VerticalLayout id="turnHUD_Brown" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Brown" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye_Brown" class="turn-HUD-button button-vote-aye" image="button-bg" />
@@ -127,8 +127,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="turnHUD_Red" class="turn-HUD-container" visibility="Red" active="false">
-	<VerticalLayout class="turn-HUD">
+<Panel class="turn-HUD-container" visibility="Red">
+	<VerticalLayout id="turnHUD_Red" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Red" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye_Red" class="turn-HUD-button button-vote-aye" image="button-bg" />
@@ -158,8 +158,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="turnHUD_Orange" class="turn-HUD-container" visibility="Orange" active="false">
-	<VerticalLayout class="turn-HUD">
+<Panel class="turn-HUD-container" visibility="Orange">
+	<VerticalLayout id="turnHUD_Orange" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Orange" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye_Orange" class="turn-HUD-button button-vote-aye" image="button-bg" />
@@ -189,8 +189,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="turnHUD_Yellow" class="turn-HUD-container" visibility="Yellow" active="false">
-	<VerticalLayout class="turn-HUD">
+<Panel class="turn-HUD-container" visibility="Yellow">
+	<VerticalLayout id="turnHUD_Yellow" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Yellow" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye_Yellow" class="turn-HUD-button button-vote-aye" image="button-bg" />
@@ -220,8 +220,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="turnHUD_Green" class="turn-HUD-container" visibility="Green" active="false">
-	<VerticalLayout class="turn-HUD">
+<Panel class="turn-HUD-container" visibility="Green">
+	<VerticalLayout id="turnHUD_Green" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Green" class="turn-HUD" active="false">
 				<Image id="turnHUD_voteAye_Green" class="turn-HUD-button button-vote-aye" image="button-bg" />

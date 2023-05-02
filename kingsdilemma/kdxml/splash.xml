@@ -57,7 +57,7 @@
 		verticalOverflow = "Overflow"
 		horizontalOverflow = "Wrap"
 		fontSize = "50"
-		preferredHeight = "80" minHeight = "80" flexibleHeight = "0"
+		preferredHeight = "50" minHeight = "50" flexibleHeight = "0"
 		preferredWidth = "5000" minWidth = "5000" flexibleWidth = "0"
 		scale = "1 1 1" />
 </Defaults>
@@ -97,9 +97,11 @@
 </Panel>
 
 <Defaults> <!-- Splash HUD Defaults -->
-	<Panel class="splash-hud" offsetXY = "0 -10" />
+	<Panel class="splash-hud" offsetXY = "-50 -10" />
+	<Panel class="splash-visibility" minHeight="185" />
 </Defaults>
 <Panel id="splashHUD" class="splash-panel splash-hud">
+	<Panel class="splash-visibility">
 	<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -110,61 +112,72 @@
 			<Text id="splashText_All" class="splash">A Line Of Text</Text>
 		</VerticalLayout>
 	</VerticalLayout>
+	</Panel>
 
-	<VerticalLayout id="splashPanel_Brown" class="splash-root" visibility="Brown" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+	<Panel visibility="Brown" class="splash-visibility">
+		<VerticalLayout id="splashPanel_Brown" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_Brown" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_Brown" class="splash">A Line Of Text</Text>
-		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
 
-	<VerticalLayout id="splashPanel_Red" class="splash-root" visibility="Red" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+	<Panel visibility="Red" class="splash-visibility">
+		<VerticalLayout id="splashPanel_Red" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_Red" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_Red" class="splash">A Line Of Text</Text>
-		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
 
-	<VerticalLayout id="splashPanel_Orange" class="splash-root" visibility="Orange" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+	<Panel visibility="Orange" class="splash-visibility">
+		<VerticalLayout id="splashPanel_Orange" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_Orange" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_Orange" class="splash">A Line Of Text</Text>
-		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
 
-	<VerticalLayout id="splashPanel_Yellow" class="splash-root" visibility="Yellow" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+	<Panel visibility="Yellow" class="splash-visibility">
+		<VerticalLayout id="splashPanel_Yellow" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_Yellow" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_Yellow" class="splash">A Line Of Text</Text>
-		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
 
-	<VerticalLayout id="splashPanel_Green" class="splash-root" visibility="Green" active="false">
-		<VerticalLayout class="splash-image-container">
-			<Image class="splash-top" />
-			<Image class="splash-bg" />
-			<Image class="splash-bottom" />
+	<Panel visibility="Green" class="splash-visibility">
+		<VerticalLayout id="splashPanel_Green" class="splash-root" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_Green" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
 		</VerticalLayout>
-		<VerticalLayout class="splash">
-			<Text id="splashText_Green" class="splash">A Line Of Text</Text>
-		</VerticalLayout>
-	</VerticalLayout>
+	</Panel>
 </Panel>
 
 <Defaults> <!-- Splash Query Defaults -->
@@ -207,6 +220,7 @@
 		font = "Fonts/CinzelBB"
 		fontSize = "25" />
 	<Text class="splash-query-prompt"
+		minHeight = "120"
 		fontSize = "40" />
 
 	<Panel class="splash-query-container"
@@ -215,8 +229,8 @@
 		scale = "0.6 0.6 0.6" />
 </Defaults>
 
-<Panel id="splashQuery_Brown" class="splash-panel splash-query" visibility="Brown" active="false">
-	<VerticalLayout class="splash-root">
+<Panel class="splash-panel splash-query" visibility="Brown">
+	<VerticalLayout id="splashQuery_Brown" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
 			<Image class="splash-bg" />
@@ -251,8 +265,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="splashQuery_Red" class="splash-panel splash-query" visibility="Red" active="false">
-	<VerticalLayout class="splash-root">
+<Panel class="splash-panel splash-query" visibility="Red">
+	<VerticalLayout id="splashQuery_Red" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
 			<Image class="splash-bg" />
@@ -287,8 +301,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="splashQuery_Orange" class="splash-panel splash-query" visibility="Orange" active="false">
-	<VerticalLayout class="splash-root">
+<Panel class="splash-panel splash-query" visibility="Orange">
+	<VerticalLayout id="splashQuery_Orange" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
 			<Image class="splash-bg" />
@@ -323,8 +337,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="splashQuery_Yellow" class="splash-panel splash-query" visibility="Yellow" active="false">
-	<VerticalLayout class="splash-root">
+<Panel class="splash-panel splash-query" visibility="Yellow">
+	<VerticalLayout id="splashQuery_Yellow" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
 			<Image class="splash-bg" />
@@ -359,8 +373,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="splashQuery_Green" class="splash-panel splash-query" visibility="Green" active="false">
-	<VerticalLayout class="splash-root">
+<Panel class="splash-panel splash-query" visibility="Green">
+	<VerticalLayout id="splashQuery_Green" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
 			<Image class="splash-bg" />

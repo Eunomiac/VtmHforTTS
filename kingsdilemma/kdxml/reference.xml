@@ -37,6 +37,7 @@
 		onMouseExit = "Ref_HUD_HoverOff"
 		onMouseDown = "Ref_HUD_Click" />
 	<Panel class="submenu-option-disabled"
+		active = "false"
 		onMouseEnter = ""
 		onMouseExit = ""
 		onMouseDown = ""
@@ -46,8 +47,6 @@
 	<Image class="submenu-option-bg" image="ref-floating-bg" height="100%" width="100%" preserveAspect="false" />
 	<Text class="submenu-option" font="Fonts/Friz"  alignment="MiddleCenter" fontSize="16" />
 	<Image class="ref-hud-image" height="90%" active="false" />
-
-
 
 </Defaults>
 
@@ -157,7 +156,7 @@
 							Law and Governance
 						</Text>
 					</Panel>
-					<Panel id="refHUD_Popup_TheFiveClasses_Brown" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_TheFiveClasses_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
 							The Five Classes
@@ -289,7 +288,7 @@
 							Law and Governance
 						</Text>
 					</Panel>
-					<Panel id="refHUD_Popup_TheFiveClasses_Red" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_TheFiveClasses_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
 							The Five Classes
@@ -421,7 +420,7 @@
 							Law and Governance
 						</Text>
 					</Panel>
-					<Panel id="refHUD_Popup_TheFiveClasses_Orange" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_TheFiveClasses_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
 							The Five Classes
@@ -553,7 +552,7 @@
 							Law and Governance
 						</Text>
 					</Panel>
-					<Panel id="refHUD_Popup_TheFiveClasses_Yellow" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_TheFiveClasses_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
 							The Five Classes
@@ -685,7 +684,7 @@
 							Law and Governance
 						</Text>
 					</Panel>
-					<Panel id="refHUD_Popup_TheFiveClasses_Green" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_TheFiveClasses_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
 							The Five Classes

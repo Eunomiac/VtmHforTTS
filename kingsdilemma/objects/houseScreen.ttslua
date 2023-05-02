@@ -142,6 +142,7 @@ local function getNamePanelXML()
 			attributes = {
 				ignoreLayout = "True",
 				rectAlignment = "UpperCenter",
+				horizontalOverflow = "Overflow",
 				height = "1500",
 				width = "3000",
 				color = U.GetHex(GetHouseName() and Color[GetColor()] or Color.Grey, alphas.global * alphas.name * (GetHouseName() and 1 or 0.5)),

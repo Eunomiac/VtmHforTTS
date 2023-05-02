@@ -79,8 +79,8 @@
 		preferredWidth = "120" flexibleWidth = "0" />
 </Defaults>
 
-<Panel id="consequencesQuery_Brown" class="conseqs-query" visibility="Brown" active="false">
-	<VerticalLayout class="conseqs-query">
+<Panel class="conseqs-query" visibility="Brown">
+	<VerticalLayout id="consequencesQuery_Brown" class="conseqs-query" active="false">
 		<Image class="conseqs-top" />
 		<Text id="splashConsequencesPlayerPrompt_Brown" class="conseqs conseqs-player-prompt"></Text>
 		<VerticalLayout class="conseqs-query">
@@ -162,8 +162,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="consequencesQuery_Red" class="conseqs-query" visibility="Red" active="false">
-	<VerticalLayout class="conseqs-query">
+<Panel class="conseqs-query" visibility="Red">
+	<VerticalLayout id="consequencesQuery_Red" class="conseqs-query" active="false">
 		<Image class="conseqs-top" />
 		<Text id="splashConsequencesPlayerPrompt_Red" class="conseqs conseqs-player-prompt"></Text>
 		<VerticalLayout class="conseqs-query">
@@ -245,8 +245,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="consequencesQuery_Orange" class="conseqs-query" visibility="Orange" active="false">
-	<VerticalLayout class="conseqs-query">
+<Panel class="conseqs-query" visibility="Orange">
+	<VerticalLayout id="consequencesQuery_Orange" class="conseqs-query" active="false">
 		<Image class="conseqs-top" />
 		<Text id="splashConsequencesPlayerPrompt_Orange" class="conseqs conseqs-player-prompt"></Text>
 		<VerticalLayout class="conseqs-query">
@@ -328,8 +328,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="consequencesQuery_Yellow" class="conseqs-query" visibility="Yellow" active="false">
-	<VerticalLayout class="conseqs-query">
+<Panel class="conseqs-query" visibility="Yellow">
+	<VerticalLayout id="consequencesQuery_Yellow" class="conseqs-query" active="false">
 		<Image class="conseqs-top" />
 		<Text id="splashConsequencesPlayerPrompt_Yellow" class="conseqs conseqs-player-prompt"></Text>
 		<VerticalLayout class="conseqs-query">
@@ -411,8 +411,8 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel id="consequencesQuery_Green" class="conseqs-query" visibility="Green" active="false">
-	<VerticalLayout class="conseqs-query">
+<Panel class="conseqs-query" visibility="Green">
+	<VerticalLayout id="consequencesQuery_Green" class="conseqs-query" active="false">
 		<Image class="conseqs-top" />
 		<Text id="splashConsequencesPlayerPrompt_Green" class="conseqs conseqs-player-prompt"></Text>
 		<VerticalLayout class="conseqs-query">
