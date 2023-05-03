@@ -2,8 +2,6 @@ local C = require("kingsdilemma.lib.constants")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
 
-local ISDEBUGGING = false
-
 local alphas = {
 	global = 1,
 	name = 1,
@@ -109,7 +107,7 @@ local function getRootPanelXML(children)
 				animationDuration = "5",
 				height = "400",
 				width = "600",
-				color = ISDEBUGGING and U.GetHex(Color.White, 0.1) or "Clear",
+				color = "Clear",
 				rotation = "12 0 180",
 				position = "0 -100 -100"
 			},
@@ -183,7 +181,7 @@ local function getNamePanelXML()
 				visibility = U.join(S.getOtherColors(GetPlayer()), "|"),
 				height = "200",
 				width = "600",
-				color = ISDEBUGGING and U.GetHex(Color(1, 0, 1, 0.1)) or "Clear",
+				color = "Clear",
 				position = "0 -10 0",
 				pivot = "0.5 0",
 				scale = parseScale(scales.global * scales.name * (GetHouseName() and 1 or 0.5))
@@ -203,7 +201,7 @@ local function getPrestigeCravePanelXML()
 			rectAlignment = "LowerCenter",
 			-- offsetXY = "150 0",
 			-- scale = "0.75 0.75 0.75",
-			color = ISDEBUGGING and U.GetHex(Color(1, 0, 1, 0.2)) or "Clear"
+			color = "Clear"
 		},
 		children = {
 			{
@@ -215,7 +213,7 @@ local function getPrestigeCravePanelXML()
 					pivot = "0 0",
 					offsetXY = "0 -25",
 					scale = parseScale(scales.global * scales.prestige),
-					color = ISDEBUGGING and U.GetHex(Color(1, 1, 0, 0.1)) or "Clear"
+					color = "Clear"
 				},
 				children = {
 					{
@@ -269,7 +267,7 @@ local function getPrestigeCravePanelXML()
 					pivot = "1 0",
 					offsetXY = "0 -25",
 					scale = parseScale(scales.global * scales.crave),
-					color = ISDEBUGGING and U.GetHex(Color(0, 1, 1, 0.1)) or "Clear"
+					color = "Clear"
 				},
 				children = {
 					{
@@ -318,93 +316,12 @@ local function getPrestigeCravePanelXML()
 	}
 end
 
-local function getVotePanelXML()
-	local voteStatus
-	if not (ISDEBUGGING or S.isInMode("VOTE")) then return {} end
-	local voteStatus = S.getPlayerVoteStatus(playerRef)
-	if ISDEBUGGING then
-		voteStatus = ({"Aye", "Nay", "Pass", "PassMod"})[U.randBetween(1, 4, true)]
-	end
-	if not voteStatus then return {} end
-
-	local children = {}
-
-	if voteStatus == "Aye" or voteStatus == "Nay" then
-		table.insert(children, {
-			tag = "Image",
-			attributes = {
-				height = "500",
-				width = "500",
-				color = U.GetHex(voteStatus == "Aye" and Color.Blue or Color.Red, 0.1 * alphas.global * alphas.vote),
-				outline = U.GetHex(C.RootColors.PureBlack, alphas.global * alphas.vote),
-				outlineSize = "5",
-				scale = "0.2 0.2 0.2",
-				image = "powerIcon"
-			}
-		})
-	end
-
-	local textXML = {
-		tag = "Text",
-		value = voteStatus,
-		attributes = {
-			height = "500",
-			width = "1000",
-			font = "Fonts/Script",
-			outline = U.GetHex(C.RootColors.PureBlack, alphas.global * alphas.vote),
-			outlineSize = "5",
-			scale = "0.2 0.2 0.2"
-		}
-	}
-
-	if voteStatus == "Aye" then
-		textXML.value = "Aye"
-		textXML.attributes.color = U.GetHex(Color.Blue, alphas.global * alphas.vote)
-		textXML.attributes.fontSize = "500"
-	elseif voteStatus == "Nay" then
-		textXML.value = "Nay"
-		textXML.attributes.color = U.GetHex(Color.Red, alphas.global * alphas.vote)
-		textXML.attributes.fontSize = "500"
-	elseif voteStatus == "Pass" then
-		textXML.value = "Gathering Power"
-		textXML.attributes.color = U.GetHex(C.RootColors.Amber, alphas.global * alphas.vote)
-		textXML.attributes.font = "Fonts/FrizI"
-		textXML.attributes.fontSize = "100"
-	elseif voteStatus == "PassMod" then
-		textXML.value = ""
-	end
-
-	table.insert(children, textXML)
-
-	return {
-		tag = "Panel",
-		attributes = {
-			id = "votePanel",
-			height = "100",
-			width = "100",
-			color = ISDEBUGGING and U.GetHex(Color.Blue, 0.2) or "Clear",
-			rectAlignment = "MiddleCenter",
-			offsetXY = "0 -75",
-			scale = parseScale(scales.global * scales.vote)
-		},
-		children = children
-	}
-end
-
-local function getScorePanelXML()
-	if not S.isInMode(C.Modes.END) then return {} end
-	U.AlertGM("Gotta code score panels!", Color.Purple)
-end
-
-
 function UpdateXMLTable()
 	if GetPlayer() == nil then return end
 	self.UI.setXmlTable({
 		getRootPanelXML({
 			getNamePanelXML(),
-			getPrestigeCravePanelXML(),
-			getVotePanelXML(),
-			getScorePanelXML()
+			getPrestigeCravePanelXML()
 		})
 	})
 end

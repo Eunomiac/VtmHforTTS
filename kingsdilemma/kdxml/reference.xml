@@ -51,13 +51,13 @@
 </Defaults>
 
 <Panel class="ref-hud-images" visibility="Brown">
-	<Image id="refHUD_PopupImage_LawGovernance_Brown" class="ref-hud-image" image="ref-lawGovernance" />
-	<Image id="refHUD_PopupImage_TheFiveClasses_Brown" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_CouncilAndJustice_Brown" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Brown" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Brown" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
 	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Brown" height="40%" class="ref-hud-image" image="ref-history" />
 	<Image id="refHUD_PopupImage_MapAnkist_Brown" class="ref-hud-image" image="ref-mapAnkist" />
 	<Image id="refHUD_PopupImage_MapDutchies_Brown" class="ref-hud-image" image="ref-mapDutchies" />
-	<Image id="refHUD_PopupImage_MapMarks_Brown" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapMarks_Brown" offsetXY = "-100 0" class="ref-hud-image" image="ref-mapMarks" />
 	<Image id="refHUD_PopupImage_MapKnownLands_Brown" class="ref-hud-image" image="ref-mapKnownLands" />
 	<Image id="refHUD_PopupImage_MapForeignPowers_Brown" class="ref-hud-image" image="ref-mapForeignPowers" />
 	<Image id="refHUD_PopupImage_Resources_Brown" class="ref-hud-image" image="ref-resources" />
@@ -66,13 +66,13 @@
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Brown" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
 <Panel class="ref-hud-images" visibility="Red">
-	<Image id="refHUD_PopupImage_LawGovernance_Red" class="ref-hud-image" image="ref-lawGovernance" />
-	<Image id="refHUD_PopupImage_TheFiveClasses_Red" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_CouncilAndJustice_Red" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Red" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Red" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
 	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Red" height="40%" class="ref-hud-image" image="ref-history" />
 	<Image id="refHUD_PopupImage_MapAnkist_Red" class="ref-hud-image" image="ref-mapAnkist" />
 	<Image id="refHUD_PopupImage_MapDutchies_Red" class="ref-hud-image" image="ref-mapDutchies" />
-	<Image id="refHUD_PopupImage_MapMarks_Red" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapMarks_Red" offsetXY = "-100 0" class="ref-hud-image" image="ref-mapMarks" />
 	<Image id="refHUD_PopupImage_MapKnownLands_Red" class="ref-hud-image" image="ref-mapKnownLands" />
 	<Image id="refHUD_PopupImage_MapForeignPowers_Red" class="ref-hud-image" image="ref-mapForeignPowers" />
 	<Image id="refHUD_PopupImage_Resources_Red" class="ref-hud-image" image="ref-resources" />
@@ -81,13 +81,13 @@
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Red" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
 <Panel class="ref-hud-images" visibility="Orange">
-	<Image id="refHUD_PopupImage_LawGovernance_Orange" class="ref-hud-image" image="ref-lawGovernance" />
-	<Image id="refHUD_PopupImage_TheFiveClasses_Orange" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_CouncilAndJustice_Orange" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Orange" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Orange" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
 	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Orange" height="40%" class="ref-hud-image" image="ref-history" />
 	<Image id="refHUD_PopupImage_MapAnkist_Orange" class="ref-hud-image" image="ref-mapAnkist" />
 	<Image id="refHUD_PopupImage_MapDutchies_Orange" class="ref-hud-image" image="ref-mapDutchies" />
-	<Image id="refHUD_PopupImage_MapMarks_Orange" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapMarks_Orange" offsetXY = "-100 0" class="ref-hud-image" image="ref-mapMarks" />
 	<Image id="refHUD_PopupImage_MapKnownLands_Orange" class="ref-hud-image" image="ref-mapKnownLands" />
 	<Image id="refHUD_PopupImage_MapForeignPowers_Orange" class="ref-hud-image" image="ref-mapForeignPowers" />
 	<Image id="refHUD_PopupImage_Resources_Orange" class="ref-hud-image" image="ref-resources" />
@@ -96,13 +96,13 @@
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Orange" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
 <Panel class="ref-hud-images" visibility="Yellow">
-	<Image id="refHUD_PopupImage_LawGovernance_Yellow" class="ref-hud-image" image="ref-lawGovernance" />
-	<Image id="refHUD_PopupImage_TheFiveClasses_Yellow" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_CouncilAndJustice_Yellow" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Yellow" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Yellow" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
 	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Yellow" height="40%" class="ref-hud-image" image="ref-history" />
 	<Image id="refHUD_PopupImage_MapAnkist_Yellow" class="ref-hud-image" image="ref-mapAnkist" />
 	<Image id="refHUD_PopupImage_MapDutchies_Yellow" class="ref-hud-image" image="ref-mapDutchies" />
-	<Image id="refHUD_PopupImage_MapMarks_Yellow" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapMarks_Yellow" offsetXY = "-100 0" class="ref-hud-image" image="ref-mapMarks" />
 	<Image id="refHUD_PopupImage_MapKnownLands_Yellow" class="ref-hud-image" image="ref-mapKnownLands" />
 	<Image id="refHUD_PopupImage_MapForeignPowers_Yellow" class="ref-hud-image" image="ref-mapForeignPowers" />
 	<Image id="refHUD_PopupImage_Resources_Yellow" class="ref-hud-image" image="ref-resources" />
@@ -111,13 +111,13 @@
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Yellow" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
 <Panel class="ref-hud-images" visibility="Green">
-	<Image id="refHUD_PopupImage_LawGovernance_Green" class="ref-hud-image" image="ref-lawGovernance" />
-	<Image id="refHUD_PopupImage_TheFiveClasses_Green" class="ref-hud-image" image="ref-fiveClasses" />
+	<Image id="refHUD_PopupImage_CouncilAndJustice_Green" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
+	<Image id="refHUD_PopupImage_TheFiveClasses_Green" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Green" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
 	<Image id="refHUD_PopupImage_HistoryOfTheWorld_Green" height="40%" class="ref-hud-image" image="ref-history" />
 	<Image id="refHUD_PopupImage_MapAnkist_Green" class="ref-hud-image" image="ref-mapAnkist" />
 	<Image id="refHUD_PopupImage_MapDutchies_Green" class="ref-hud-image" image="ref-mapDutchies" />
-	<Image id="refHUD_PopupImage_MapMarks_Green" class="ref-hud-image" image="ref-mapMarks" />
+	<Image id="refHUD_PopupImage_MapMarks_Green" offsetXY = "-100 0" class="ref-hud-image" image="ref-mapMarks" />
 	<Image id="refHUD_PopupImage_MapKnownLands_Green" class="ref-hud-image" image="ref-mapKnownLands" />
 	<Image id="refHUD_PopupImage_MapForeignPowers_Green" class="ref-hud-image" image="ref-mapForeignPowers" />
 	<Image id="refHUD_PopupImage_Resources_Green" class="ref-hud-image" image="ref-resources" />
@@ -150,16 +150,16 @@
 			<Image id="refHUD_Submenu_Lore_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Brown" class="ref-hud-submenu">
 				<VerticalLayout class="ref-hud-submenu">
-					<Panel id="refHUD_Popup_LawGovernance_Brown" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_CouncilAndJustice_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Law and Governance
+							The King's Council
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheFiveClasses_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							The Five Classes
+							People of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheCultOfTheMother_Brown" class="submenu-option-container">
@@ -282,16 +282,16 @@
 			<Image id="refHUD_Submenu_Lore_Red" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Red" class="ref-hud-submenu">
 				<VerticalLayout class="ref-hud-submenu">
-					<Panel id="refHUD_Popup_LawGovernance_Red" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_CouncilAndJustice_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Law and Governance
+							The King's Council
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheFiveClasses_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							The Five Classes
+							People of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheCultOfTheMother_Red" class="submenu-option-container">
@@ -414,16 +414,16 @@
 			<Image id="refHUD_Submenu_Lore_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Orange" class="ref-hud-submenu">
 				<VerticalLayout class="ref-hud-submenu">
-					<Panel id="refHUD_Popup_LawGovernance_Orange" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_CouncilAndJustice_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Law and Governance
+							The King's Council
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheFiveClasses_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							The Five Classes
+							People of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheCultOfTheMother_Orange" class="submenu-option-container">
@@ -546,16 +546,16 @@
 			<Image id="refHUD_Submenu_Lore_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Yellow" class="ref-hud-submenu">
 				<VerticalLayout class="ref-hud-submenu">
-					<Panel id="refHUD_Popup_LawGovernance_Yellow" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_CouncilAndJustice_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Law and Governance
+							The King's Council
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheFiveClasses_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							The Five Classes
+							People of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheCultOfTheMother_Yellow" class="submenu-option-container">
@@ -678,16 +678,16 @@
 			<Image id="refHUD_Submenu_Lore_Green" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Green" class="ref-hud-submenu">
 				<VerticalLayout class="ref-hud-submenu">
-					<Panel id="refHUD_Popup_LawGovernance_Green" class="submenu-option-container submenu-option-disabled">
+					<Panel id="refHUD_Popup_CouncilAndJustice_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Law and Governance
+							The King's Council
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheFiveClasses_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							The Five Classes
+							People of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_TheCultOfTheMother_Green" class="submenu-option-container">

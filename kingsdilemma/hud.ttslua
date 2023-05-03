@@ -1,85 +1,68 @@
 -- #region IMPORTS ~
 local DIR = require("kingsdilemma.core.director")
 local P = require("kingsdilemma.core.players")
-local O = require("kingsdilemma.lib.objects")
+-- local O = require("kingsdilemma.lib.objects")
 local C = require("kingsdilemma.lib.constants")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
-local HouseScreen = require("kingsdilemma.objs.p3screen")
+-- local HouseScreen = require("kingsdilemma.objs.p3screen")
 local L = require("kingsdilemma.core.lighting")
-local V = require("kingsdilemma.core.voting")
-local OU = require("kingsdilemma.objects.objUtilities")
+-- local V = require("kingsdilemma.core.voting")
+-- local OU = require("kingsdilemma.objects.objUtilities")
 local MSG = require("kingsdilemma.core.messaging")
 -- #endregion
 
 MessageQueue, QueueStatus = {}, {}
 
-local lineCount = 0
-local tokenCount = 1
-local testTable = {
-	playerData = {
-		Orange = {
-			prestige = 10
-		}
-	},
-	turnData = {
-		current = "Orange",
-		Orange = {
-			vote = false,
-			committedPower = 0
-		}
-	},
-	roundData = {}
-}
 local TESTFUNCS = {
-	Camera = function(button)
-		if button == "-2" then
-			P.SetCamera("BehindScreen", Turns.turn_color, "Brown")
-		else
-			local player = U.getHost()
-			local playerOptions = U.getKeys(C.CameraAngles)
-			player.showOptionsDialog("Which Camera Mode?", playerOptions, 1, function(_, i)
-				local cameraAngle = playerOptions[i]
-				if C.CameraAngles[cameraAngle].isPlayerAngle then
-					player.showOptionsDialog("Of which player?", Player.getAvailableColors(), 1, function(_, i)
-						local camRef = Player.getAvailableColors()[i]
-						P.SetCamera(cameraAngle, camRef, player)
-					end)
-				else
-					P.SetCamera(cameraAngle, player)
-				end
-			end)
-		end
-	end,
-	Scores = function(button)
-		DIR.EndGame()
-		-- log(JSON.encode_pretty(DIR.GetFinalStandings()))
-		-- UI.show("scoringSplashScreen")
-		-- Wait.time(DIR.InitScoringHUD, 2)
-		-- DIR.InitScoringHUD()
-	end,
-	OpAgendas = function(button)
-		local isNegative = button == "-2"
-		local player = U.getHost()
-		local playerOptions = U.iMap(S.getPlayers(), function(player) return player.color end)
-		local resOptions = C.Resources
-		player.showOptionsDialog("Which Player?", playerOptions, 1, function(_, i)
-			local targetPlayer = S.getPlayer(playerOptions[i])
-			player.showOptionsDialog(isNegative and "Which Negative Agenda?" or "Which Positive Agenda?", resOptions, 1, function(_, i)
-				local targetRes = resOptions[i]
-				local openAgendas = S.getPlayerVal(targetPlayer, "openAgendas")
-				if openAgendas == nil then openAgendas = {positive = {}, negative = {}} end
-				if openAgendas[isNegative and "negative" or "positive"] == nil then
-					openAgendas[isNegative and "negative" or "positive"] = {}
-				end
-				table.insert(openAgendas[isNegative and "negative" or "positive"], targetRes)
-				S.setPlayerVal(openAgendas, targetPlayer, "openAgendas")
-			end)
-		end)
-	end,
-	Transfer = function(button)
-		V.EndTurn(button ~= "-2")
-	end,
+	-- Camera = function(button)
+	-- 	if button == "-2" then
+	-- 		P.SetCamera("BehindScreen", Turns.turn_color, "Brown")
+	-- 	else
+	-- 		local player = U.getHost()
+	-- 		local playerOptions = U.getKeys(C.CameraAngles)
+	-- 		player.showOptionsDialog("Which Camera Mode?", playerOptions, 1, function(_, i)
+	-- 			local cameraAngle = playerOptions[i]
+	-- 			if C.CameraAngles[cameraAngle].isPlayerAngle then
+	-- 				player.showOptionsDialog("Of which player?", Player.getAvailableColors(), 1, function(_, i)
+	-- 					local camRef = Player.getAvailableColors()[i]
+	-- 					P.SetCamera(cameraAngle, camRef, player)
+	-- 				end)
+	-- 			else
+	-- 				P.SetCamera(cameraAngle, player)
+	-- 			end
+	-- 		end)
+	-- 	end
+	-- end,
+	-- Scores = function(button)
+	-- 	DIR.EndGame()
+	-- 	-- log(JSON.encode_pretty(DIR.GetFinalStandings()))
+	-- 	-- UI.show("scoringSplashScreen")
+	-- 	-- Wait.time(DIR.InitScoringHUD, 2)
+	-- 	-- DIR.InitScoringHUD()
+	-- end,
+	-- OpAgendas = function(button)
+	-- 	local isNegative = button == "-2"
+	-- 	local player = U.getHost()
+	-- 	local playerOptions = U.iMap(S.getPlayers(), function(player) return player.color end)
+	-- 	local resOptions = C.Resources
+	-- 	player.showOptionsDialog("Which Player?", playerOptions, 1, function(_, i)
+	-- 		local targetPlayer = S.getPlayer(playerOptions[i])
+	-- 		player.showOptionsDialog(isNegative and "Which Negative Agenda?" or "Which Positive Agenda?", resOptions, 1, function(_, i)
+	-- 			local targetRes = resOptions[i]
+	-- 			local openAgendas = S.getPlayerVal(targetPlayer, "openAgendas")
+	-- 			if openAgendas == nil then openAgendas = {positive = {}, negative = {}} end
+	-- 			if openAgendas[isNegative and "negative" or "positive"] == nil then
+	-- 				openAgendas[isNegative and "negative" or "positive"] = {}
+	-- 			end
+	-- 			table.insert(openAgendas[isNegative and "negative" or "positive"], targetRes)
+	-- 			S.setPlayerVal(openAgendas, targetPlayer, "openAgendas")
+	-- 		end)
+	-- 	end)
+	-- end,
+	-- Transfer = function(button)
+	-- 	V.EndTurn(button ~= "-2")
+	-- end,
 	Fetcher = function(button)
 		if button == "-2" then
 			U.RunSequence({
@@ -301,7 +284,7 @@ function HUD_HoverOn(player, returnString, id)
 end
 
 function HUD_HoverOff(player, returnString, id)
-	log({player = player, returnString = returnString, id = id})
+	-- log({player = player, returnString = returnString, id = id})
 	if string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOff(player, houseName)
@@ -437,7 +420,7 @@ end
 
 function Ref_HUD_Click(player, _, id)
 	local _, mode, param, color = unpack(U.split(id, "_"))
-	log({mode = mode, param = param, color = color, pColor = player.color})
+	-- log({mode = mode, param = param, color = color, pColor = player.color})
 	if mode == "Popup" then
 		hideActiveSubmenus(player.color)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color

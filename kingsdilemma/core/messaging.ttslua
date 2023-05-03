@@ -1,6 +1,6 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
-local C = require("kingsdilemma.lib.constants")
+-- local C = require("kingsdilemma.lib.constants")
 
 local MSG = {}
 
@@ -31,7 +31,7 @@ function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 	if type(messageLines) ~= "table" then messageLines = {messageLines} end
 	local panelRef = playerRef
 	if panelRef == nil then panelRef = "All" end
-	if not string.match(panelRef, "^All") then
+	if U.Type(panelRef) ~= "string" or not string.match(panelRef, "^All") then
 		panelRef = S.getPlayer(playerRef).color
 	end
 	local panelID, textID = "splashPanel_" .. panelRef, "splashText_" .. panelRef

@@ -10,8 +10,6 @@ local total = 0
 local value, subValue, icon, iconColor = "", "", "", Color.White
 local textScaleFactor = 0.2
 
-local ISDEBUGGING = false
-
 local function getPublicTotal() return publicZone and publicZone.call("GetCount") or 0 end
 
 local function isLinkedOpp() return oppZone ~= nil end
@@ -21,7 +19,6 @@ local function updateLinkedOpp() if oppZone then oppZone.call("UpdateCount") end
 local function isShowingX() return oppZone and total > 0 and getOppTotal() > 0 end
 
 local function updateValue()
-	if ISDEBUGGING then value, subValue = "+VV", "(SV)"; return UpdateXMLTable() end
 
 	local oldValue, oldSubValue = value, subValue
 	value = ""

@@ -71,7 +71,7 @@ C.SecretAgendaData = {
 		coinPoints = {6, 4, 2}
 	},
 	Rebel = { -- *** WILL HAVE TO HANDLE THE CHECK FOR EXTRA CRAVE MANUALLY
-		resFunc = function(resSpot) return resSpot >= 13 or resSpot >= 5 end,
+		resFunc = function(resSpot) return resSpot >= 13 or resSpot <= 5 end,
 		resPoints = {0, 9, 13, 17, 19, 20},
 		coinPoints = {3, 2, 1}
 	}

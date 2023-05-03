@@ -12,6 +12,7 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 local DIR = {}
 local HOUSE_SELECTION, newPlayerColors = {}, {}
 
+local ISDEBUGGING = false
 
 local function getBoardTokens()
 	local tokens = {
@@ -934,16 +935,17 @@ INITFUNCS = {
 			return {
 				function()
 					local stabilityPos = getTokenPositionsFromBoard().Stability
+					local kingName = S.getStateVal("gameState", "kingName")
 
 					if stabilityPos == 19 then
 						S.setStateVal("AbdicatedTop", "gameState", "endState")
-						return MSG.Splash("A Treasonous Plot Forces the King to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
+						return MSG.Splash("A Treasonous Plot Forces King " .. kingName .. " to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
 					elseif stabilityPos == 1 then
 						S.setStateVal("AbdicatedBottom", "gameState", "endState")
-						return MSG.Splash("Popular Unrest Forces the King to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
+						return MSG.Splash("Popular Unrest Forces the King " .. kingName .. " to Abdicate!", "AllMid", 3, {offsetXY = "0 -200"})
 					else
 						S.setStateVal("Death", "gameState", "endState")
-						return MSG.Splash("The King Is Dead!", "AllMid", 3, {offsetXY = "0 -200"})
+						return MSG.Splash("King " .. kingName .. "  Is Dead!", "AllMid", 3, {offsetXY = "0 -200"})
 					end
 
 				end,
@@ -956,26 +958,68 @@ INITFUNCS = {
 		end,
 		Realm = function()
 			return {
-
-
+				function()
+					UI.hide("scoringHUD")
+					return 4
+				end,
+				function()
+					UI.setAttributes("scoringHUD", {
+						active = "false",
+						scale = "0.4 0.4 0.4",
+						color = "Clear",
+						offsetXY = "300 450"
+					})
+					UI.show("scoringHUD")
+					return 1
+				end,
+				function()
+					MSG.Splash("Record Earned Prestige & Crave on Your House Card", nil, 5)
+					local query = {Yes = "true"}
+					return MSG.SplashQuery(
+						"Proceed to Achievements?",
+						"Host",
+						query,
+						S.getPlayer("Host")
+					)
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		Achievements = function()
 			return {
-
-
+				function()
+					local query = {Yes = "true"}
+					MSG.Splash("Tick Boxes for Any Earned Achievements", nil, 5)
+					return MSG.SplashQuery(
+						"Proceed to Alignment?",
+						"Host",
+						query,
+						S.getPlayer("Host")
+					)
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		Alignments = function()
 			return {
-
-
+				function()
+					local query = {Yes = "true"}
+					MSG.Splash("Tick the Box for the Secret Agenda You Played", nil, 5)
+					return MSG.SplashQuery(
+						"Proceed to Cleanup?",
+						"Host",
+						query,
+						S.getPlayer("Host")
+					)
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		Cleanup = function()
 			return {
-
-
+				function()
+					return MSG.Splash("WINNER: What is the Name of Ankist's Next King?", nil, 5)
+				end
 			}
 		end
 	}
@@ -1001,15 +1045,19 @@ function DIR.InitPreflight()
 	end)
 
 	-- #region DEBUG
-	console.load()
 	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
+	if ISDEBUGGING then
+		console.load()
+	end
 	-- #endregion
 
-	if S.isInMode(C.Modes.NONE) then
-		UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount") + 1)
-	else
-		UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount"))
-	end
+	UI.setValue("gameNumText", "~ the Reign of King " .. S.getStateVal("gameState", "kingName") .. " ~")
+
+	-- if S.isInMode(C.Modes.NONE) then
+	-- 	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount") + 1)
+	-- else
+	-- 	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount"))
+	-- end
 end
 
 

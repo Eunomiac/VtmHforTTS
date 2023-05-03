@@ -74,13 +74,13 @@
 
 	<Text class="splash-intro"
 		fontSize = "87"
-		preferredHeight = "40" minHeight = "40" flexibleHeight = "0"
+		preferredHeight = "43" minHeight = "43" flexibleHeight = "0"
 		scale = "0.57 0.57 0.57"
 	  font = "Fonts/FrizSC" />
 	<Text class="splash-intro-sub"
 		fontSize = "30"
 		scale = "0.57 0.57 0.57"
-		preferredHeight = "20" minHeight = "20" flexibleHeight = "0" />
+		preferredHeight = "20" minHeight = "20" alignment = "LowerCenter" flexibleHeight = "0" />
 
 
 

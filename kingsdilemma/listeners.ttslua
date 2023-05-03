@@ -1,5 +1,4 @@
-require("vscode/console")
-local O = require("kingsdilemma.lib.objects")
+-- require("vscode/console")
 local U = require("lib.utilities")
 local OU = require("kingsdilemma.objects.objUtilities")
 local S = require("kingsdilemma.core.state")

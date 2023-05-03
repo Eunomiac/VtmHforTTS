@@ -11,7 +11,8 @@ local INITGAMESTATE = {
 		chronicleType = "",
 		gameCount = 0,
 		gameMode = C.Modes.NONE,
-		gamePhase = C.Phases.NONE
+		gamePhase = C.Phases.NONE,
+		kingName = "Harald V"
 	},
 	roundState = {
     roundNum = 0,
@@ -48,7 +49,7 @@ function S.ArePlayersSeated()
 		local thisPlayer = U.pluck(players, function(player) return player.color == C.SeatColors[i] end)
 		if thisPlayer == nil then return false end
 	end
-	log("All Players Confirmed Seated.")
+	-- log("All Players Confirmed Seated.")
 	return true
 end
 
