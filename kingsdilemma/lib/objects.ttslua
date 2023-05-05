@@ -30,7 +30,7 @@ O.UninteractableObjs = {
 	StagingPlinth = generateGetterFunction("fed994")
 }
 
-O.MainStorage = generateGetterFunction("390beb")
+O.MainStorage = generateGetterFunction("138cbd")
 
 O.SpawnSources = {
 	chronicleCard = generateGetterFunction("10939d"),
@@ -96,6 +96,10 @@ O.Pieces = {
 	WelfareToken = generateGetterFunction("1ce1ca"),
 	KnowledgeToken = generateGetterFunction("2071f2"),
 	BalancePlinth = generateGetterFunction("555cdb")
+}
+
+O.Zones = {
+	TriggerCards = generateGetterFunction("79c7ed")
 }
 
 O.Get = memoGetFromGUID

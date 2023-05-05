@@ -91,10 +91,7 @@ function V.SpawnBalanceTokens(numTokens)
 		spawnData.Tags = {"PowerToken", "Value" .. tokenSize}
 		spawnObjectData({
 			data = spawnData,
-			callback_function = function(obj)
-				obj.setLock(false)
-				Wait.frames(function() obj.addForce(Vector(0, -1, 0), 3) end)
-			end
+			callback_function = function(obj) obj.setLock(false) end
 		})
 		return 0.1
 	end

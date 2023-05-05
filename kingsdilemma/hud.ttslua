@@ -15,32 +15,6 @@ local MSG = require("kingsdilemma.core.messaging")
 MessageQueue, QueueStatus = {}, {}
 
 local TESTFUNCS = {
-	-- Camera = function(button)
-	-- 	if button == "-2" then
-	-- 		P.SetCamera("BehindScreen", Turns.turn_color, "Brown")
-	-- 	else
-	-- 		local player = U.getHost()
-	-- 		local playerOptions = U.getKeys(C.CameraAngles)
-	-- 		player.showOptionsDialog("Which Camera Mode?", playerOptions, 1, function(_, i)
-	-- 			local cameraAngle = playerOptions[i]
-	-- 			if C.CameraAngles[cameraAngle].isPlayerAngle then
-	-- 				player.showOptionsDialog("Of which player?", Player.getAvailableColors(), 1, function(_, i)
-	-- 					local camRef = Player.getAvailableColors()[i]
-	-- 					P.SetCamera(cameraAngle, camRef, player)
-	-- 				end)
-	-- 			else
-	-- 				P.SetCamera(cameraAngle, player)
-	-- 			end
-	-- 		end)
-	-- 	end
-	-- end,
-	-- Scores = function(button)
-	-- 	DIR.EndGame()
-	-- 	-- log(JSON.encode_pretty(DIR.GetFinalStandings()))
-	-- 	-- UI.show("scoringSplashScreen")
-	-- 	-- Wait.time(DIR.InitScoringHUD, 2)
-	-- 	-- DIR.InitScoringHUD()
-	-- end,
 	-- OpAgendas = function(button)
 	-- 	local isNegative = button == "-2"
 	-- 	local player = U.getHost()
@@ -60,55 +34,8 @@ local TESTFUNCS = {
 	-- 		end)
 	-- 	end)
 	-- end,
-	-- Transfer = function(button)
-	-- 	V.EndTurn(button ~= "-2")
-	-- end,
 	Fetcher = function(button)
-		if button == "-2" then
-			U.RunSequence({
-				function()
-					MSG.Splash("Checking for Chronicle Stickers")
-					local queryResponse = {Yes = "true", No = "false"}
-					return U.RunSequence({
-						function()
-							return MSG.SplashQuery(
-								"Does the Dilemma unlock a Chronicle Sticker?",
-								P.GetLeaderName(),
-								queryResponse,
-								P.GetLeader()
-							)
-						end,
-						function()
-							if queryResponse.response == "true" then
-								return DIR.PromptForSticker(P.GetLeader())
-							end
-						end
-					})
-				end
-			})
-		else
-			U.RunSequence({
-				function()
-					MSG.Splash("Checking for Chronicle Envelopes")
-					local queryResponse = {Yes = "true", No = "false"}
-					return U.RunSequence({
-						function()
-							return MSG.SplashQuery(
-								"Does the Dilemma unlock a Chronicle Envelope?",
-								P.GetLeaderName(),
-								queryResponse,
-								P.GetLeader()
-							)
-						end,
-						function()
-							if queryResponse.response == "true" then
-								return DIR.PromptForEnvelope(P.GetLeader())
-							end
-						end
-					})
-				end
-			})
-		end
+
 	end
 }
 
@@ -133,6 +60,7 @@ end
 local function toggleXmlElement(elemID, button)
 	-- log("Toggling " .. elemID)
 	if elemID == "stateDisplayPanel" then
+		S.refreshStateDebug()
 		toggleXmlElement("stateDisplayPanel_1", button)
 		toggleXmlElement("stateDisplayPanel_2", button)
 		toggleXmlElement("stateDisplayPanel_3", button)
@@ -196,17 +124,9 @@ local function promptAssignHouseName(player)
 			"What is their House Name?",
 			S.getPlayerVal(targetPlayer, "house"),
 			function (houseName)
-				U.sequence({
-					function()
-						S.setPlayerVal(houseName, targetPlayer, "houseName")
-						P.GetPlayerScreen(targetPlayer).call("UpdateXMLTable")
-						P.GetPlayerScreen(targetPlayer).call("Activate")
-					end,
-					3,
-					function()
-						DIR.UpdateChronicleCardNames()
-					end
-				})
+				S.setPlayerVal(houseName, targetPlayer, "houseName")
+				P.GetPlayerScreen(targetPlayer).call("UpdateXMLTable")
+				P.GetPlayerScreen(targetPlayer).call("Activate")
 			end)
 	end)
 end
@@ -231,8 +151,53 @@ function HUD_Click(player, button, id)
 		promptAssignHouseName(player)
 	elseif id == "clearPlayers" then
 		P.ClearSeats()
+	elseif id == "transferToTestPlayers" then
+		local players = Player.getPlayers()
+		local storedData = U.filter(U.getValues(S.getStateVal("playerStorage")), function(sData) return not string.match(sData.id, "^Player") and sData.curColor ~= nil end)
+		U.RunSequence({
+			function()
+				U.forEach(getObjectsWithTag("HouseCard"), function(obj) obj.setRotation(obj.getRotation():setAt("z", 180)) end)
+				return U.sequence(U.map(players, function(player) return function() player.changeColor("Grey") end end), 0.5)
+			end,
+			function()
+				local hostPlayer = U.pluck(players, function(player) return player.steam_name == "Eunomiac" end)
+				if hostPlayer == nil then
+					hostPlayer = U.pluck(players, function(player) return player.steam_name == "Player 0" end)
+				end
+				if hostPlayer == nil then
+					hostPlayer = U.pluck(players, function(player) return player.steam_name == "Player 1" end)
+				end
+				if hostPlayer == nil then
+					error("No player named 'Eunomiac', 'Player 0', or 'Player 1' found to be Host.")
+				end
+				hostPlayer.changeColor(S.getStateVal("playerStorage", C.AdminID, "curColor"))
+				U.pluck(storedData, function(sData) return sData.curColor == S.getStateVal("playerStorage", C.AdminID, "curColor") end)
+				if hostPlayer.steam_name ~= "Eunomiac" then
+					local sData = S.getStateVal("playerStorage", C.AdminID)
+					sData.id = hostPlayer.steam_name
+					S.setStateVal(sData, "playerStorage", hostPlayer.steam_name)
+				end
+				return 0.5
+			end,
+			function()
+				return U.sequence(U.iMap(players, function(player) return function()
+					local sData = U.shift(storedData)
+					sData.id = player.steam_name
+					player.changeColor(sData.curColor)
+					S.setStateVal(sData, "playerStorage", player.steam_name)
+				end end), 0.5)
+			end
+		})
 	elseif id == "resetTable" then
 		DIR.RESET()
+	elseif id == "hideHouseCards" then
+		U.forEach(getObjectsWithTag("HouseCard"), function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
+	elseif id == "fetchSticker" then
+		DIR.PromptForSticker(U.getHost())
+	elseif id == "fetchEnvelope" then
+		DIR.PromptForEnvelope(U.getHost())
+	elseif id == "setNextKing" then
+		DIR.PromptForKingName(P.GetWinners())
 	elseif id == "setChronicleType" then
 		DIR.SetChronicleType(true)
 	elseif string.match(id, "^debug_testFunc") then
@@ -240,11 +205,38 @@ function HUD_Click(player, button, id)
 		TESTFUNCS[id](button, player)
 	elseif id == "debug_logState" then
 		log(JSON.encode_pretty(S.getGameState()))
+	elseif id == "logGameToStorage" then
+		local tokenData = DIR.GetTokenPositionsFromBoard()
+		local scoreData = DIR.GetFinalStandings()
+		-- log({tokenData = tokenData, scoreData = scoreData})
+		local storedData = S.RecordFinishedGame(scoreData, tokenData)
+		log(JSON.encode_pretty(storedData))
+	elseif id == "debug_logScores" then
+		log(JSON.encode_pretty(DIR.GetFinalStandings()))
 	elseif id == "debug_resetState" then
 		S.resetGameState()
 		Global.call("UpdatePhaseDisplay")
 	elseif id == "debug_primeLights" then
 		L.ResetLights()
+		L.HideArrows()
+	elseif id == "debug_setCamera" then
+		if button == "-2" then
+			P.SetCamera("BehindScreen", Turns.turn_color, "Brown")
+		else
+			local player = U.getHost()
+			local playerOptions = U.getKeys(C.CameraAngles)
+			player.showOptionsDialog("Which Camera Mode?", playerOptions, 1, function(_, i)
+				local cameraAngle = playerOptions[i]
+				if C.CameraAngles[cameraAngle].isPlayerAngle then
+					player.showOptionsDialog("Of which player?", Player.getAvailableColors(), 1, function(_, i)
+						local camRef = Player.getAvailableColors()[i]
+						P.SetCamera(cameraAngle, camRef, player)
+					end)
+				else
+					P.SetCamera(cameraAngle, player)
+				end
+			end)
+		end
 	elseif id == "debug_setLight" then
 		player.showInputDialog("Which light?",
 			"lightName, lightMode, playerColor",
@@ -262,10 +254,6 @@ function HUD_Click(player, button, id)
 		else
 			L.HideArrows()
 		end
-	-- elseif string.match(id, "^extract_") then
-	-- 	local target = string.gsub(id, "^extract_", "")
-	-- 	U.AlertGM("Analyzing " .. target)
-	-- 	AE.Analyze(target)
 	elseif string.match(id, "^houseHover_") then
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDClick(player, houseName)

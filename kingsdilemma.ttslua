@@ -1,13 +1,13 @@
 -- DEVELOPMENT
--- require("vscode/console")
+-- require("vscode/console") -- *DEBUGLINE*
 
 -- MODULES
-U = require("lib.utilities")
-C = require("kingsdilemma.lib.constants")
-O = require("kingsdilemma.lib.objects")
-S = require("kingsdilemma.core.state")
-L = require("kingsdilemma.core.lighting")
-V = require("kingsdilemma.core.voting")
+-- U = require("lib.utilities")
+-- C = require("kingsdilemma.lib.constants")
+-- O = require("kingsdilemma.lib.objects")
+-- S = require("kingsdilemma.core.state")
+-- L = require("kingsdilemma.core.lighting")
+-- V = require("kingsdilemma.core.voting")
 
 -- gameState Variable Initialization
 gameState = {}

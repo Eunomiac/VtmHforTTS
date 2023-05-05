@@ -397,10 +397,6 @@ function editTextField(_, houseName)
 		end,
 		function()
 			GetScreen().call("Activate")
-		end,
-		3,
-		function()
-			DIR.UpdateChronicleCardNames()
 		end
 	})
 end

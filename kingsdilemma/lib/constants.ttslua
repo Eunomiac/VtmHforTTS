@@ -1,3 +1,5 @@
+local U = require("lib.utilities")
+
 local C = {}
 
 C.SeatAngleSpan = 240
@@ -116,16 +118,15 @@ C.Phases = {
 	},
 	CHRONSETUP = "CHRONSETUP",
 	GAMESETUP = {
+		InitializeState = "InitializeState",
 		MainBoard = "MainBoard",
 		LeaderModerator = "LeaderModerator",
 		LegacySetup = "LegacySetup",
-		SecretAgendas = "SecretAgendas",
-		PrepareFirstRound = "PrepareFirstRound"
+		SecretAgendas = "SecretAgendas"
 	},
 	PLAY = {
 		StartRound = "StartRound",
 		DrawDilemma = "DrawDilemma",
-		Discussion = "Discussion",
 		Vote = "Vote",
 		VoteResolution = "VoteResolution",
 		DisplayOutcome = "DisplayOutcome",
@@ -140,7 +141,10 @@ C.Phases = {
 		Realm = "Realm",
 		Achievements = "Achievements",
 		Alignments = "Alignments",
-		Cleanup = "Cleanup"
+		Cleanup = "Cleanup",
+		NextKing = "NextKing",
+		SecretAgendas = "SecretAgendas",
+		SignOff = "SignOff"
 	}
 }
 
@@ -193,6 +197,229 @@ C.CameraAngles = {
 		pitch = 50.67,
 		yaw = 0,
 		distance = 60
+	},
+	StorySign = {
+
+	},
+	StickerSign = { -- lua Player.Brown.lookAt({position = Vector({0,-6.2,26}), pitch = 90, yaw = 0, distance = 15})
+		position = Vector({0, -6.2, 26}),
+		pitch = 90,
+		yaw = 0,
+		distance = 15
+	},
+	ScreenCapture = { -- lua Player.Orange.lookAt({pitch=90, yaw=0, distance=15.5, position = Vector({70,0,0})}); Player.Orange.setCameraMode("TopDown")
+		cameraMode = "TopDown",
+		position = Vector({70, 0, 0}),
+		pitch = 90,
+		yaw = 0,
+		distance = 15.5
+	},
+	ScreenCaptureZoom = { -- lua Player.Orange.lookAt({pitch=90, yaw=0, distance=15.5, position = Vector({70,0,0})}); Player.Orange.setCameraMode("TopDown")
+		cameraMode = "TopDown",
+		position = Vector({70, 0, 0}),
+		pitch = 90,
+		yaw = 0,
+		distance = 5.2
+	}
+	-- STORY CARD SCREENSHOT POSITIONS FOR ENDGAME
+	-- spread story cards out with x-values: 9.16, 12.66, 16.16, 19.66
+	-- STORY 1 - lua Player.Brown.lookAt({position = Vector({13.75, -7, 19}), pitch = 90, yaw = 0, distance = 17})
+	-- STORY 2 - lua Player.Brown.lookAt({position = Vector({13.75, -7, 12.81}), pitch = 90, yaw = 0, distance = 17})
+	-- STORY 3 - lua Player.Brown.lookAt({position = Vector({13.75, -7, 6.61}), pitch = 90, yaw = 0, distance = 17})
+	-- STORY 4 - lua Player.Brown.lookAt({position = Vector({13.75, -7, 0.41}), pitch = 90, yaw = 0, distance = 17})
+	-- STORY 5 - lua Player.Brown.lookAt({position = Vector({13.75, -7, -5.78}), pitch = 90, yaw = 0, distance = 17})
+	-- STORY 6 - lua Player.Brown.lookAt({position = Vector({13.75, -7, -11.98}), pitch = 90, yaw = 0, distance = 17})
+	-- STIKCKERS - lua Player.Brown.lookAt({position = Vector({-2.5,-6.2,16.5}), pitch = 90, yaw = 0, distance = 19})
+}
+
+C.CaptureCoords = {
+	cameraPos = Vector(C.CameraAngles.ScreenCapture.position),
+	columnXShift = 3.55,
+	stackYShift = 0.05,
+	rowZShift = -4.9,
+	Dilemma = {
+		numColumns = 6,
+		startXDelta = -8.67,
+		startZDelta = 4.43,
+		fullZShift = -4.92,
+		halfZShift = -2.42,
+		backRotation = Vector(0, 180, 0),
+		frontRotationAye = Vector(0, 180, 180),
+		frontRotationNay = Vector(0, 0, 180),
+		scale = Vector(1.59, 1, 1.59)
+	},
+	Story = {
+		startXDelta = -5.005,
+		startZDelta = 2.14,
+		backRotation = Vector(0, 180, 0),
+		frontRotation = Vector(0, 180, 180),
+		scale = Vector(1.59, 1, 1.59)
+	},
+	Zoom = {
+		startXDelta = -1.41,
+		startZDelta = -0.1,
+		scale = Vector(1.59, 1, 1.59)
+	}
+}
+
+C.SnapPoints = {
+	Global = {
+		{
+			position = Vector({9.15, 1.46, 19.00}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 12.81}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 6.61}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, 0.41}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, -5.78}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		},
+		{
+			position = Vector({9.15, 1.46, -11.98}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = true,
+			tags = {"StoryCard"}
+		}, -- 9.16, 12.66, 16.16, 19.66
+		{
+			position = Vector({9.15, 1.46, -18.17}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({12.65, 1.46, -18.17}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({16.15, 1.46, -18.17}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({19.66, 1.46, -18.17}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({9.95, 1.46, -23.19}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({13.45, 1.46, -23.19}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({16.95, 1.46, -23.19}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({10.46, 1.46, -23.19}),
+			rotation = Vector({0, 180, 0}),
+			rotation_snap = false,
+			tags = {"EventCard", "StoryCard", "TriggerCard"}
+		},
+		{
+			position = Vector({-7.4, 1.46, 8.05}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, 3.63}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -0.80}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -5.23}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -9.65}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -14.08}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -14.08}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -18.50}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -18.74}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -18.99}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -19.23}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		},
+		{
+			position = Vector({-7.4, 1.46, -19.47}),
+			rotation = Vector({0, 270, 0}),
+			rotation_snap = false,
+			tags = {"Dilemma"}
+		}
 	}
 }
 
@@ -327,6 +554,30 @@ C.Spots = {
 			rotation = Vector({78.09, 180.00, 0.00}),
 			scale = Vector({2.60, 1.00, 2.60})
 		},
+		Event = {
+			board = U.iMap(
+				U.filter(C.SnapPoints.Global, function(sPt) return U.isIn("EventCard", sPt.tags) end),
+				function(sPt) return {
+					position = Vector(sPt.position):setAt("y", 4),
+					rotation = Vector({0, 180, 0}),
+					scale = Vector(1.59, 1, 1.59)
+				}
+			end)
+		},
+		Trigger = {
+			aboveDeck = {}, -- = Dilemma.aboveDeck
+			faceDown = {}, -- = Dilemma.faceDown
+			faceUp = {
+				position = Vector({0.00, 28.51, 43.94}),
+				rotation = Vector(90, 0, 0),
+				scale = Vector(10, 1, 10)
+			},
+			faceUpShrink = {
+				position = Vector({0.00, 0.00, 39.30}),
+				rotation = Vector({270, 180, 0}),
+				scale = Vector({5, 1, 5})
+			}
+		},
 		Dilemma = {
 			deck = {
 				position = Vector({0.00, 6, 26.00}),
@@ -373,7 +624,23 @@ C.Spots = {
 				rotation = Vector({270, 180, 0}),
 				scale = Vector({5, 1.00, 5})
 			},
-			boardAye = {
+			boardAye = U.iMap(
+				U.filter(C.SnapPoints.Global, function(sPt) return U.isIn("Dilemma", sPt.tags) end),
+				function(sPt) return {
+					position = Vector(sPt.position):setAt("y", 4),
+					rotation = Vector({0, 90, 180}),
+					scale = Vector(1.59, 1, 1.59)
+				}
+			end),
+			boardNay = U.iMap(
+				U.filter(C.SnapPoints.Global, function(sPt) return U.isIn("Dilemma", sPt.tags) end),
+				function(sPt) return {
+					position = Vector(sPt.position):setAt("y", 4),
+					rotation = Vector({0, 270, 180}),
+					scale = Vector(1.59, 1, 1.59)
+				}
+			end),
+			oldBoardAye = {
 				{
 					position = Vector({-7.4, 4, 8.05}),
 					rotation = Vector({0, 90, 180}),
@@ -430,7 +697,7 @@ C.Spots = {
 					scale = Vector({1.59, 1, 1.59})
 				}
 			},
-			boardNay = {
+			oldBoardNay = {
 				{
 					position = Vector({-7.4, 4, 8.05}),
 					rotation = Vector({0, 270, 180}),
@@ -643,6 +910,11 @@ C.Spots = {
 		}
 	}
 }
+
+
+
+C.Spots.Main.Trigger.aboveDeck = C.Spots.Main.Dilemma.aboveDeck
+C.Spots.Main.Trigger.faceDown =  C.Spots.Main.Dilemma.faceDown
 
 C.RootColors = {
 	Amber = Color(1, 0.67, 0, 1),

@@ -47,6 +47,26 @@ local DIR = require("kingsdilemma.core.director")
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
 	S.InitializeGameState(save_data)
+
+	local pStorageData = S.getStateVal("playerStorage")
+
+	for _, key in pairs(U.getKeys(pStorageData)) do
+		if not string.match(key, "^Player") then
+			local color
+			if pStorageData[key].house == "Blodyn" then
+				color = "Green"
+			elseif pStorageData[key].house == "Crann" then
+				color = "Red"
+			elseif pStorageData[key].house == "Olwyn" then
+				color = "Orange"
+			elseif pStorageData[key].house == "Solad" then
+				color = "Yellow"
+			elseif pStorageData[key].house == "Gamam" then
+				color = "Brown"
+			end
+			S.setStateVal(color, "playerStorage", key, "curColor")
+		end
+	end
 	-- UI.show("sessionPreflightDisplay")
 	DIR.InitPreflight()
 end
@@ -110,6 +130,27 @@ function tryObjectEnterContainer(container, object)
 	if container.hasTag("StoryCard") and object.hasTag("StoryCard") then return false end
 	if container.hasTag("Played") and object.hasTag("Played") then return false end
 	return true
+end
+
+function onObjectEnterZone(zone, obj)
+	if zone.hasTag("EventCard") and obj.type == "Card" and U.hasAnyTag(obj, {"EventCard", "StoryCard"}) then
+		obj.drop()
+		U.waitUntil(
+			function()
+				if obj.hasTag("NotPlayed") then
+					obj.setTags({"EventCard", "NotPlayed"})
+				else
+					obj.setTags({"EventCard", "Played"})
+				end
+				local playedEventCards = U.filter(getObjectsWithAllTags({"EventCard", "Played"}), function(o) return not o.hasTag("NotPlayed") end)
+				local snapSpot = U.filter(C.SnapPoints.Global, function(sPoint) return U.isIn("EventCard", sPoint.tags) end)[#playedEventCards]
+
+				U.setPositionSlow(obj, snapSpot.position, 1, nil, false)
+				U.setRotationSlow(obj, Vector(snapSpot.rotation):setAt("z", U.pAngle(obj.getRotation().z, 90)), 1, nil, false)
+			end,
+			{0.3, obj}
+		)
+	end
 end
 
 local function getBoundedPos(obj, xMin, xMax, zMin, zMax)

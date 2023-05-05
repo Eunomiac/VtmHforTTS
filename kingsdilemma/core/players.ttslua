@@ -59,6 +59,12 @@ function P.ClearSeat(color)
 	local playerObjects = getObjectsWithTag(color)
 	local playerZones = U.filter(getObjects(), function(obj) return obj.getGMNotes() == "ZonePlayer" .. color end)
 
+	-- destroy POWER
+	-- destroy COIN
+	-- recover SECRET AGENDA
+	-- unassign LEADER or MODERATOR
+
+
 	U.forEach(U.concat(playerObjects, playerZones), function(obj)
 		if obj.hasTag("HouseCard") then
 			obj.setTags({"HouseCard"})
@@ -111,6 +117,7 @@ function P.AssignOpenSeat(player) player.changeColor(S.getOpenColors()[1]) end
 
 function P.AssignPlayerColors(isNotShuffling)
 	if S.isInMode(C.Modes.NONE) then
+		U.forEach(U.getKeys(S.getStateVal("playerStorage")), function(pID) S.setStateVal(nil, "playerStorage", pID, "curColor") end)
 		local players = U.slice(Player.getPlayers(), 1, 5)
 		local seatColors = U.slice(Player.getColors(), 2, #players + 1)
 		if isNotShuffling ~= true then
@@ -121,12 +128,35 @@ function P.AssignPlayerColors(isNotShuffling)
 				return U.sequence(U.map(Player.getPlayers(), function(player) return function() player.changeColor("Grey") end end), 0.5)
 			end,
 			function()
-				return U.sequence(U.map(players, function(player) return function() player.changeColor(U.shift(seatColors)) end end), 0.75)
+				return U.sequence(U.map(players, function(player) return function()
+					local pColor = U.shift(seatColors)
+					S.setPlayerVal(pColor, player, "curColor")
+					player.changeColor(pColor)
+				end
+			end), 0.75)
+		end})
+	else
+		local players = Player.getPlayers()
+		return U.RunSequence({
+			function()
+				return U.sequence(U.map(players, function(player) return function() player.changeColor("Grey") end end), 0.5)
+			end,
+			function()
+				return U.sequence(U.map(players, function(player)
+					local pID
+					if string.match(player.steam_name, "^Player ") then
+						pID = player.steam_name
+						local storedColor = S.getStateVal("playerStorage", pID, "curColor")
+						if storedColor == nil then
+							error("Must first transfer player data before you can assign colors to test players.")
+						end
+					else
+						pID = player.steam_id
+					end
+					return function() player.changeColor(S.getStateVal("playerStorage", pID, "curColor")) end
+				end), 0.75)
 			end
 		})
-	else
-		U.AlertGM("Players should seat themselves manually.")
-		return 0
 	end
 end
 
@@ -260,6 +290,7 @@ function P.GetLeader() return S.getPlayer(S.getStateVal("gameState", "leader")) 
 function P.GetModerator() return S.getPlayer(S.getStateVal("gameState", "moderator")) or P.GetLeastPrestigious() end
 function P.GetLeaderName() return P.GetPlayerName(P.GetLeader()) end
 function P.GetModeratorName() return P.GetPlayerName(P.GetModerator()) end
+
 
 function P.GetPlayerZone(playerRef, zoneRef)
 	local playerColor = S.getPlayer(playerRef).color

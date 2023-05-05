@@ -50,7 +50,7 @@
 			<Button id="clearPlayers">Clear Players</Button>
 			<Button id="resetTable">Reset Table</Button>
 			<Text class="spacer_10"></Text>
-			<Button id="setChronicleType">Set Chronicle</Button>
+			<Button id="logGameToStorage">Record Game Results</Button>
 		</VerticalLayout>
 	</HorizontalLayout>
 </VerticalLayout>

@@ -12,7 +12,13 @@ local INITGAMESTATE = {
 		gameCount = 0,
 		gameMode = C.Modes.NONE,
 		gamePhase = C.Phases.NONE,
-		kingName = "Harald V"
+		kingName = "Harald V",
+		endState = nil,
+		startTime = nil,
+		endTime = nil,
+		gameDuration = nil,
+		leader = nil,
+		moderator = nil
 	},
 	roundState = {
     roundNum = 0,
@@ -35,6 +41,7 @@ local INITGAMESTATE = {
 			prestige = 0.05
 		}
 	},
+	gameStorage = {},
 	lights = {}
 }
 
@@ -75,16 +82,17 @@ function S.UpdatedSeatedPlayerData()
 		}
 	end)
 	S.setStateVal(playerData, "playerData")
+	S.setPlayerVal(playerData.color, "curColor")
 end
 
 function S.InitializeGameState(save_data)
-	OU.SetGlobalSnapPoints()
+	Global.setSnapPoints(C.SnapPoints.Global)
 	OU.SetBoardSnapPoints()
 	if U.Type(save_data) == "string" then
 		save_data = JSON.decode(save_data)
 	end
 	if save_data then
-		save_data.arePlayersSeated = nil
+		save_data.gameState.kingName = "Cyrus I of House Silverlight"
 		save_data = U.merge(INITGAMESTATE, save_data)
 		S.setGameState(save_data)
 	else
@@ -124,8 +132,8 @@ function S.refreshStateDebug(stateData)
 	end
 
 	if (stateData == nil) then stateData = Global.getTable("gameState") end
-	UI.setValue("stateDisplay_1", parseCode(stateData, {"lights", "playerData", "playerStorage", "roundState", "turnState"}))
-	UI.setValue("stateDisplay_2", parseCode({roundState = stateData.roundState, turnState = stateData.turnState}))
+	UI.setValue("stateDisplay_1", parseCode(stateData, {"lights", "playerData", "playerStorage", "gameState", "roundState", "turnState"}))
+	UI.setValue("stateDisplay_2", parseCode({gameState = stateData.gameState, roundState = stateData.roundState, turnState = stateData.turnState}))
 	UI.setValue("stateDisplay_3", parseCode({playerData = stateData.playerData, lights = stateData.lights}))
 	UI.setValue("stateDisplay_4", parseCode({playerStorage = stateData.playerStorage}))
 end
@@ -332,9 +340,17 @@ function S.getPlayerColor(playerRef) return S.getPlayer(playerRef).color end
 function S.getOpenColors() return U.filter(Player.getAvailableColors(), function(color) return not U.isPlayer(Player[color]) end) end
 
 function S.getOtherColors(playerRef)
-	local player = S.getPlayer(playerRef)
-	if player == nil then return error("S.getOtherColors - Player returned nil") end
-	return U.filter(Player.getAvailableColors(), function(color) return color ~= player.color end)
+	local pColor
+	if U.isIn(playerRef, C.SeatColors) then
+		pColor = playerRef
+	elseif U.isPlayer(playerRef) then
+		pColor = playerRef.color
+	else
+		local player = S.getPlayer(playerRef)
+		if player == nil then return error("No player found for ref'" .. tostring(playerRef) .. "'") end
+		pColor = player.color
+	end
+	return U.filter(Player.getAvailableColors(), function(color) return color ~= pColor end)
 end
 
 function S.getNextPlayer(playerRef)
@@ -473,5 +489,30 @@ function S.getNextPhase(curMode, curPhase) --+
 	return nextMode, nextPhase
 end
 -- #endregion
+
+function S.LogGameStartTime() S.setStateVal(os.time(), "gameState", "startTime") end
+function S.LogGameEndTime() S.setStateVal(os.time(), "gameState", "endTime") end
+
+function S.RecordFinishedGame(scores, tokenPositions)
+	if scores == nil then return end
+
+
+
+
+	local gData = {
+		gameNum = S.getStateVal("gameState", "gameCount"),
+		kingName = S.getStateVal("gameState", "kingName"),
+		endTrigger = S.getStateVal("gameState", "endState"),
+		boardPositions = tokenPositions,
+		playerResults = scores,
+		gameStart = S.getStateVal("gameState", "startTime"),
+		gameEnd = S.getStateVal("gameState", "endTime"),
+		gameDuration = S.getStateVal("gameState", "gameDuration")
+	}
+	local gameStorage = S.getStateVal("gameStorage")
+	table.insert(gameStorage, gData)
+	S.setStateVal(gameStorage, "gameStorage")
+	return gData
+end
 
 return S

@@ -223,6 +223,21 @@ L.LIGHTMODES = {
 			intensity = 1.5
 		}
 	},
+	lightFeature = {
+		loadRotation = Vector(0, 0, 0),
+		default = "off",
+		off = {
+			enabled = false,
+			angle = 0
+		},
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 1.7
+		}
+	},
 	lightLeader = {
 		default = "off",
 		off = {
@@ -230,7 +245,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = Color(1, 1, 1),
+			color = Color.White,
 			range = 66,
 			angle = 30,
 			intensity = 4
@@ -243,7 +258,7 @@ L.LIGHTMODES = {
 		},
 		on = {
 			enabled = true,
-			color = Color(1, 1, 1),
+			color = Color.White,
 			range = 66,
 			angle = 30,
 			intensity = 4
@@ -253,7 +268,7 @@ L.LIGHTMODES = {
 		loadRotation = Vector(0, 0, 0),
 		off = {
 			enabled = false,
-			color = Color(1, 1, 1),
+			color = Color.White,
 			range = 12,
 			angle = 20,
 			intensity = 1

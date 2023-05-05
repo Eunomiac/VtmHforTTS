@@ -1,0 +1,133 @@
+{
+	"boardPositions": {
+		"Influence": 12,
+		"Knowledge": 11,
+		"Morale": 10,
+		"Stability": 8,
+		"Wealth": 1,
+		"Welfare": 12
+	},
+	"endTrigger": "Death",
+	"gameDuration": 3.05,
+	"gameEnd": 1683134040,
+	"gameNum": 1,
+	"gameStart": 1683123060,
+	"kingName": "Harald V",
+	"playerResults": [
+		{
+			"coin": 4,
+			"coinPlacement": 2,
+			"coinTotal": 19,
+			"color": "Orange",
+			"crave": 0,
+			"name": "Silverlight",
+			"openAgendas": {
+				"negative": [],
+				"openAgendaTotal": 0,
+				"positive": []
+			},
+			"openAgendasTotal": 0,
+			"placement": 1,
+			"power": 1,
+			"powerPlacement": 2,
+			"powerTotal": 8,
+			"prestige": 5,
+			"resources": 14,
+			"row": 1,
+			"secretAgenda": "Opulent",
+			"total": 19
+		},
+		{
+			"coin": 4,
+			"coinPlacement": 1,
+			"coinTotal": 24,
+			"color": "Yellow",
+			"crave": 0,
+			"name": "Protosia",
+			"openAgendas": {
+				"negative": [],
+				"openAgendaTotal": 0,
+				"positive": []
+			},
+			"openAgendasTotal": 0,
+			"placement": 2,
+			"power": 0,
+			"powerPlacement": 3,
+			"powerTotal": 5,
+			"prestige": 4,
+			"resources": 11,
+			"row": 2,
+			"secretAgenda": "Extremist",
+			"total": 15
+		},
+		{
+			"coin": 4,
+			"coinPlacement": 3,
+			"coinTotal": 17,
+			"color": "Brown",
+			"crave": 1,
+			"name": "Lunargent",
+			"openAgendas": {
+				"negative": [],
+				"openAgendaTotal": 0,
+				"positive": []
+			},
+			"openAgendasTotal": 0,
+			"placement": 3,
+			"power": 2,
+			"powerPlacement": 1,
+			"powerTotal": 12,
+			"prestige": 2,
+			"resources": 7,
+			"row": 3,
+			"secretAgenda": "Greedy",
+			"total": 13
+		},
+		{
+			"coin": 0,
+			"coinPlacement": 4,
+			"coinTotal": 11,
+			"color": "Green",
+			"crave": 1,
+			"name": "Concordia",
+			"openAgendas": {
+				"negative": [],
+				"openAgendaTotal": 0,
+				"positive": []
+			},
+			"openAgendasTotal": 0,
+			"placement": 3,
+			"power": 0,
+			"powerPlacement": 3,
+			"powerTotal": 5,
+			"prestige": 2,
+			"resources": 13,
+			"row": 4,
+			"secretAgenda": "Moderate",
+			"total": 13
+		},
+		{
+			"coin": 0,
+			"coinPlacement": 5,
+			"coinTotal": 2,
+			"color": "Red",
+			"crave": 2,
+			"name": "Hedwyn",
+			"openAgendas": {
+				"negative": [],
+				"openAgendaTotal": 0,
+				"positive": []
+			},
+			"openAgendasTotal": 0,
+			"placement": "LAST",
+			"power": 1,
+			"powerPlacement": 2,
+			"powerTotal": 8,
+			"prestige": 0,
+			"resources": 9,
+			"row": 5,
+			"secretAgenda": "Rebel",
+			"total": 10
+		}
+	]
+}
