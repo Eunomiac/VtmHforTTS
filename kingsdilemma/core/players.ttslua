@@ -76,7 +76,7 @@ function P.ClearSeat(color)
 		end
 	end)
 end
-function P.ClearSeats() return U.forEach(Player.getAvailableColors(), P.ClearSeat) end
+function P.ClearSeats() U.forEach(Player.getAvailableColors(), P.ClearSeat); return 2 end
 
 function P.getRotatedPlayerTransform(objOrTransform, player, fromAngle)
 	objOrTransform = U.clone(objOrTransform, true)
@@ -179,7 +179,9 @@ function P.SetCamera(cameraMode, playerRef, playerCamRef)
 	end
 
 	-- log(cameraData)
+	playerCam.setCameraMode("ThirdPerson")
 	playerCam.lookAt(cameraData)
+	playerCam.setCameraMode("ThirdPerson")
 	return 0.5
 end
 
@@ -190,7 +192,8 @@ function P.DealAll(cards, playerRef)
 	local function dealNextCard()
 		if U.Type(cards) == "table" then
 			if #cards > 0 then
-				U.shift(cards).deal(1, player.color)
+				local card = U.shift(cards)
+				card.deal(1, player.color)
 			end
 		elseif cards.type == "Deck" then
 			cards.deal(1, player.color)
@@ -198,10 +201,8 @@ function P.DealAll(cards, playerRef)
 				cards = {cards.remainder}
 			end
 		end
-		return 0.25
+		return 0.5
 	end
-
-
 
 	local numCards
 	if U.Type(cards) == "table" then numCards = #cards

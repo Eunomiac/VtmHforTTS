@@ -73,15 +73,18 @@ local queryResponse
 INITFUNCS = {
 	NONE = function() return {
 		function()
-			S.setStateVal({}, "playerData")
 			P.ClearSeats()
-
-			S.UpdatedSeatedPlayerData()
-			return MSG.Splash("Resetting Table")
+			S.resetGameState()
+			return 1
+		end,
+		function()
+			DIR.InitPreflight()
+			return 1
 		end
 	} end,
 	SESSIONINIT = {
 		SeatPlayers = function() return {
+			S.UpdatedSeatedPlayerData,
 			DIR.ADVANCE
 		} end,
 		HouseSelection = function() return {
@@ -244,55 +247,15 @@ INITFUNCS = {
 		SecretAgendas = function()
 			return {
 				function()
-					agendaDeck = getObjectsWithTag("SecretAgenda")[1]
-					U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
-					P.SetCamera("Lectern")
-					return MSG.Splash("Secret Agendas")
-				end,
-				function()
-					agendaDeck.setLock(true)
-					L.SetLightMode("lightLectern", "spotlightDilemmaDeck", nil, 1)
-					return {
-						U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1),
-						U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
-					}
-				end,
-				function()
-					U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
-					U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
-					return 0.25
-				end,
-				function()
-					agendaDeck.shuffle()
-					return 0.5
-				end,
-				function()
-					local isSpawned = false
-					agendaCard = agendaDeck.takeObject({
-						position = Vector({ -0.01, 6.95, 24.41 }),
-						rotation = Vector({ 0, 0, 180 }),
-						callback_function = function(obj)
-							obj.setLock(true)
-							isSpawned = true
-						end
-					})
-					return function() return isSpawned == true end
-				end,
-				function()
-					return {
-						U.setRotationSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.rotation), 2),
-						U.setPositionSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.position), 2, "speedUp")
-					}
-				end,
-				function()
-					P.SetCamera("BehindScreen")
-					return P.DealAll(agendaDeck, P.GetLeastPrestigious())
-				end,
-				function()
-					L.SetLightMode("lightLectern", "off")
-					L.SetLightMode("lightPlayerSpotlight", "player" .. S.getPlayerNum(P.GetLeastPrestigious()))
-					L.SetLightMode("lightFront", "dim")
-					return MSG.Splash("Choose Your Secret Agenda", P.GetLeastPrestigious())
+					local assignedSAs = U.map(S.getPlayers(), function(player) return {
+						color = player.color,
+						secretAgenda = S.getPlayerVal(player, "PreAssignedSecretAgenda")
+					} end)
+					if #U.filter(assignedSAs, function(pData) return pData.secretAgenda ~= nil end) == #S.getPlayers() then
+						return DIR.DealPreassignedSecretAgendas(assignedSAs)
+					else
+						return DIR.InitSecretAgendas()
+					end
 				end
 			}
 		end,
@@ -992,157 +955,84 @@ INITFUNCS = {
 			}
 		end,
 		Cleanup = function() return {
-			S.LogGameEndTime,
 			function()
-				local tokenData = DIR.GetTokenPositionsFromBoard()
-				local scoreData = DIR.GetFinalStandings()
-				S.RecordFinishedGame(scoreData, tokenData)
+				return {
+					U.RunSequence({
+						function()
+							S.LogGameEndTime()
+							local tokenData = DIR.GetTokenPositionsFromBoard()
+							local scoreData = DIR.GetFinalStandings()
+							S.RecordFinishedGame(scoreData, tokenData)
+							return 0.5
+						end,
+						function()
+							local playedDilemmaCards = getObjectsWithAllTags({"Dilemma", "Played"})
+							local numPlayedDilemmas = #playedDilemmaCards
+							table.sort(playedDilemmaCards, function(a, b) return a.getPosition().z < b.getPosition().z end)
+							local tempStagingPos = Vector(C.Spots.Main.CoverCard.Closed.position):add(Vector(-10, -3, 0))
+
+							return {
+								U.sequence(U.iMap(playedDilemmaCards, function(card, i) return function()
+									DIR.SpawnDilemmaForCapture(card, numPlayedDilemmas + 1 - i)
+									tempStagingPos:add(Vector(0, 0.2, 0))
+									if Vector(card.alt_view_angle).y > 90 then
+										card.setDescription("Vote: NAY")
+									else
+										card.setDescription("Vote: AYE")
+									end
+									card.setPosition(tempStagingPos)
+									card.setRotation(Vector(0, 180, 180))
+									card.setTags({"DilemmaOld"})
+									card.setLock(false)
+								end end), 0.15),
+								function() return #getObjectsWithTag("DilemmaOld") == 1 end
+								-- unpack(playedDilemmaCards)
+							}
+						end,
+						function()
+							local oldDilemmaDeck = getObjectsWithTag("DilemmaOld")[1]
+							oldDilemmaDeck.setName("Game " .. S.getStateVal("gameState", "gameCount") .. " Dilemmas")
+							O.MainStorage().putObject(oldDilemmaDeck)
+							local tokens = getBoardTokens()
+							tokens.Stability.destruct()
+							U.forEach(tokens.resource, function(token) token.destruct() end)
+							U.forEach(U.filter(getObjects(), function(obj)
+								return U.hasAnyTag(obj, {"PowerToken", "CoinToken", "ResourceMarker", "StabilityMarker"}) and not obj.hasTag("SourceObj")
+							end), function(token) token.destruct() end)
+							U.forEach({"Stability", unpack(C.Resources)}, function(lightRef) L.SetLightMode("light" .. lightRef, "off", nil, 0.5) end)
+							V.LowerBalance()
+							U.setPositionSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.position, 1)
+							U.setRotationSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.rotation, 1)
+							U.setPositionSlow(O.Moderator.Figure(), C.Spots.Storage.ModeratorFigure.position, 1)
+							U.setRotationSlow(O.Moderator.Figure(), C.Spots.Storage.ModeratorFigure.rotation, 1)
+							U.setPositionSlow(O.Leader.Light(), C.Spots.Storage.LeaderLight.position, 1)
+							U.setRotationSlow(O.Leader.Light(), C.Spots.Storage.LeaderLight.rotation, 1)
+							U.setPositionSlow(O.Moderator.Light(), C.Spots.Storage.ModeratorLight.position, 1)
+							U.setRotationSlow(O.Moderator.Light(), C.Spots.Storage.ModeratorLight.rotation, 1)
+							L.SetLightMode({"lightLeader", "lightModerator"}, "off", nil, 1)
+							S.setStateVal(nil, "gameState", "leader")
+							S.setStateVal(nil, "gameState", "moderator")
+						end,
+						DIR.RecallSecretAgendas
+					}),
+					DIR.PromptForKingName()
+				}
+			end,
+			DIR.ADVANCE
+		} end,
+		SecretAgendas = function() return {
+			DIR.InitSecretAgendas
+		} end,
+		SignOff = function() return {
+			function()
+				P.ClearSeats()
 				return 1
 			end,
 			function()
-				local playedDilemmaCards = getObjectsWithAllTags({"Dilemma", "Played"})
-				local numPlayedDilemmas = #playedDilemmaCards
-				table.sort(playedDilemmaCards, function(a, b) return a.getPosition().z < b.getPosition().z end)
-				local tempStagingPos = Vector(C.Spots.Main.CoverCard.Closed.position):add(Vector(-10, -3, 0))
-
-				return {
-					U.sequence(U.iMap(playedDilemmaCards, function(card, i) return function()
-						DIR.SpawnDilemmaForCapture(card, numPlayedDilemmas + 1 - i)
-						tempStagingPos:add(Vector(0, 0.2, 0))
-						if Vector(card.alt_view_angle).y > 90 then
-							card.setDescription("Vote: NAY")
-						else
-							card.setDescription("Vote: AYE")
-						end
-						card.setPosition(tempStagingPos)
-						card.setRotation(Vector(0, 180, 180))
-						card.setTags({"DilemmaOld"})
-						card.setLock(false)
-					end end), 0.15),
-					function() return #getObjectsWithTag("DilemmaOld") == 1 end
-					-- unpack(playedDilemmaCards)
-				}
+				return MSG.Splash("See You Next Week!", nil, 4)
 			end,
-			function()
-				local oldDilemmaDeck = getObjectsWithTag("DilemmaOld")[1]
-				oldDilemmaDeck.setName("Game " .. S.getStateVal("gameState", "gameCount") .. " Dilemmas")
-				O.MainStorage().putObject(oldDilemmaDeck)
-				local tokens = getBoardTokens()
-				tokens.Stability.destruct()
-				U.forEach(tokens.resource, function(token) token.destruct() end)
-				U.forEach(U.filter(getObjects(), function(obj)
-					return U.hasAnyTag(obj, {"PowerToken", "CoinToken", "ResourceMarker", "StabilityMarker"}) and not obj.hasTag("SourceObj")
-				end), function(token) token.destruct() end)
-				U.forEach({"Stability", unpack(C.Resources)}, function(lightRef) L.SetLightMode("light" .. lightRef, "off", nil, 0.5) end)
-				V.LowerBalance()
-				U.setPositionSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.position, 1)
-				U.setRotationSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.rotation, 1)
-				U.setPositionSlow(O.Moderator.Figure(), C.Spots.Storage.ModeratorFigure.position, 1)
-				U.setRotationSlow(O.Moderator.Figure(), C.Spots.Storage.ModeratorFigure.rotation, 1)
-				U.setPositionSlow(O.Leader.Light(), C.Spots.Storage.LeaderLight.position, 1)
-				U.setRotationSlow(O.Leader.Light(), C.Spots.Storage.LeaderLight.rotation, 1)
-				U.setPositionSlow(O.Moderator.Light(), C.Spots.Storage.ModeratorLight.position, 1)
-				U.setRotationSlow(O.Moderator.Light(), C.Spots.Storage.ModeratorLight.rotation, 1)
-				L.SetLightMode({"lightLeader", "lightModerator"}, "off", nil, 1)
-				S.setStateVal(nil, "gameState", "leader")
-				S.setStateVal(nil, "gameState", "moderator")
-			end,
-			function()
-				local secretAgendas = getObjectsWithTag("SecretAgenda")
-				U.Assert("Six secret agendas found?", #secretAgendas == 6)
-				local stagingPos = Vector(C.Spots.Storage.SecretAgenda.position)
-				return U.sequence(U.map(secretAgendas, function(sA)
-					return function()
-						local sATag = U.findTag(sA, {"SA_Opportunist", "SA_Opulent", "SA_Rebel", "SA_Extremist", "SA_Moderate", "SA_Greedy"})
-						sA.setTags({"SecretAgenda", sATag})
-						stagingPos:add(Vector(0, 0.2, 0))
-						sA.setPositionSmooth(stagingPos)
-						sA.setRotationSmooth(C.Spots.Storage.SecretAgenda.rotation)
-						sA.setInvisibleTo()
-						sA.setLock(false)
-						sA.use_hands = true
-					end
-				end))
-			end
-		} end,
-		NextKing = function() return {
-			DIR.PromptForKingName
-		} end,
-		SecretAgendas = function() return {
-			function()
-				-- NOTE: Need to RECORD this stuff in state, so they can be dealt out during next game's first SA phase
-				-- because want to be able to clear board fully, including any Secret AGendas you might staple onto their screens
-				local secretAgendas = getObjectsWithAllTags("SecretAgenda")
-				U.Assert("END.SecretAgendas: 6 Secret Agendas found?", #secretAgendas == 6)
-				U.iForEach(secretAgendas, function(sAg, i) U.RunSequence({
-					function()
-						sAg.use_hands = true
-						sAg.setInvisibleTo({})
-						sAg.setTags({"SecretAgenda", U.findTag(sAg, U.map(C.SecretAgendas, function(sa) return "SA_" .. sa end))})
-						return {
-							U.setPositionSlow(sAg, Vector(C.Spots.Storage.SecretAgenda.position):setAt("y", 5 + i * 0.5)),
-							U.setRotationSlow(sAg, C.Spots.Storage.SecretAgenda.rotation)
-						}
-					end,
-					function()
-						sAg.setLock(false)
-					end
-				}) end)
-				return function() return #getObjectsWithTag("SecretAgenda") == 1 end
-			end,
-			function()
-				agendaDeck = getObjectsWithTag("SecretAgenda")[1]
-				U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
-				P.SetCamera("Lectern")
-				return MSG.Splash("Secret Agendas")
-			end,
-			function()
-				agendaDeck.setLock(true)
-				L.SetLightMode("lightLectern", "spotlightDilemmaDeck", nil, 1)
-			return {
-					U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1),
-					U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
-				}
-			end,
-			function()
-				U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
-				U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
-				return 0.25
-			end,
-				function()
-				agendaDeck.shuffle()
-				return 0.5
-			end,
-				function()
-				local isSpawned = false
-				agendaCard = agendaDeck.takeObject({
-					position = Vector({ -0.01, 6.95, 24.41 }),
-					rotation = Vector({ 0, 0, 180 }),
-					callback_function = function(obj)
-						obj.setLock(true)
-						isSpawned = true
-				end
-				})
-				return function() return isSpawned == true end
-			end,
-			function()
-				return {
-					U.setRotationSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.rotation), 2),
-					U.setPositionSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.position), 2, "speedUp")
-			}
-			end,
-			function()
-				P.SetCamera("BehindScreen")
-				return P.DealAll(agendaDeck, P.GetLeastPrestigious())
-			end,
-			function()
-				L.SetLightMode("lightLectern", "off")
-				L.SetLightMode("lightPlayerSpotlight", "player" .. S.getPlayerNum(P.GetLeastPrestigious()))
-				L.SetLightMode("lightFront", "dim")
-				return MSG.Splash("Choose Your Secret Agenda", P.GetLeastPrestigious())
-			end
-		} end,
-		SignOff = function() return {
+			DIR.ADVANCE
+				-- record each player's Secret Agenda in their storage settings
 				-- clear player screens and all their stuff
 				-- reset state for next game
 				-- move to NONE
@@ -1176,7 +1066,11 @@ function DIR.InitPreflight()
 	end
 	-- #endregion
 
-	UI.setValue("gameNumText", "~ the Reign of King " .. S.getStateVal("gameState", "kingName") .. " ~")
+	U.forEach(U.getKeys(O.SpawnSources), function(spawnSourceRef)
+		O.SpawnSources[spawnSourceRef]().addTag("SourceObj")
+	end)
+
+	UI.setValue("gameNumText", "~ the Reign of " .. S.getStateVal("gameState", "kingTitle") .. " " .. S.getStateVal("gameState", "kingName") .. " ~")
 
 	-- if S.isInMode(C.Modes.NONE) then
 	-- 	UI.setValue("gameNumText", "Game " .. S.getStateVal("gameState", "gameCount") + 1)
@@ -1425,6 +1319,151 @@ function DIR.SpawnBoardTokens()
 	return U.RunSequence(seqFuncs, 1000, 1)
 end
 
+-- #region Secret Agendas~
+function DIR.InitSecretAgendas()
+	return U.RunSequence({
+		function()
+			agendaDeck = getObjectsWithTag("SecretAgenda")[1]
+			U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
+			P.SetCamera("Lectern")
+			return MSG.Splash("Secret Agendas")
+		end,
+		function()
+			agendaDeck.setLock(true)
+			L.SetLightMode("lightLectern", "spotlightDilemmaDeck", nil, 1)
+			return {
+				U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1),
+				U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
+			}
+		end,
+		function()
+			U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
+			U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
+			return 0.25
+		end,
+		function()
+			agendaDeck.shuffle()
+			return 0.5
+		end,
+		function() return DIR.BurnTopAgenda(agendaDeck) end,
+		function()
+			P.SetCamera("BehindScreen")
+			L.SetLightMode("lightLectern", "off")
+			L.SetLightMode("lightFront", "dim")
+			return 1
+		end,
+		function() return DIR.DealSecretAgendas(P.GetLeastPrestigious(), agendaDeck) end
+	})
+end
+
+function DIR.BurnTopAgenda(agendaDeck)
+	local agendaCard
+	return U.RunSequence({
+		function()
+			local isSpawned = false
+			agendaCard = agendaDeck.takeObject({
+				position = Vector({ -0.01, 6.95, 24.41 }),
+				rotation = Vector({ 0, 0, 180 }),
+				callback_function = function(obj)
+					obj.setLock(true)
+					obj.addTag("Burnt")
+					isSpawned = true
+				end
+			})
+			return function() return isSpawned == true end
+		end,
+		function()
+			agendaCard.addTag("Burnt")
+			return {
+				U.setRotationSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.rotation), 2),
+				U.setPositionSlow(agendaCard, Vector(C.Spots.Staging.SecretAgenda.Burnt.position), 2, "speedUp")
+			}
+		end
+	})
+end
+
+function DIR.GetUnassignedSecretAgendas()
+	local unassignedAgendas = U.filter(
+		getObjectsWithTag("SecretAgenda"),
+		function(agenda) return not U.hasAnyTag(agenda, {"Private", "Burnt"}) end
+	)
+	U.forEach(S.getPlayers(), function(player)
+		U.forEach(player.getHandObjects(), function(obj)
+			if obj.hasTag("SecretAgenda") then
+				table.insert(unassignedAgendas, obj)
+			end
+		end)
+	end)
+	return unassignedAgendas
+end
+
+function DIR.DealSecretAgendas(playerRef, agendaSource)
+	if agendaSource == nil then
+		agendaSource = DIR.GetUnassignedSecretAgendas()
+	end
+	return U.RunSequence({
+		function() return P.DealAll(agendaSource, playerRef) end,
+		function()
+			L.SetLightMode("lightPlayerSpotlight", "player" .. S.getPlayerNum(playerRef))
+			return MSG.Splash("Choose Your Secret Agenda", playerRef)
+		end
+	})
+end
+
+function DIR.AssignSecretAgenda(playerRef, agendaCard, isDealingToNext)
+	if isDealingToNext == nil then isDealingToNext = true end
+	local player = S.getPlayer(playerRef)
+	agendaCard.setLock(true)
+	S.setPlayerVal(nil, player, "PreAssignedSecretAgenda")
+	local agendaPos = P.getRotatedPlayerTransform(C.Spots.Player.SecretAgenda, player, 0)
+	agendaCard.setInvisibleTo(S.getOtherColors(player))
+	agendaCard.setTags({"SecretAgenda", player.color, "Private", U.findTag(agendaCard, U.map(C.SecretAgendas, function(sa) return "SA_" .. sa end))})
+	U.setPositionSlow(agendaCard, agendaPos.position, 1)
+	U.setRotationSlow(agendaCard, agendaPos.rotation, 1)
+
+	if isDealingToNext then
+		local nextPlayer = P.GetNextLeastPrestigious(player.color)
+		if not nextPlayer then return DIR.EndSecretAgendas() end
+		return DIR.DealSecretAgendas(nextPlayer)
+	else
+		return 1
+	end
+end
+
+function DIR.GetAssignedAgendas()
+	local assignedAgendas = {}
+	U.forEach(S.getPlayers(), function(player)
+		local agenda = getObjectsWithAllTags({"SecretAgenda", "Private", player.color})[1]
+		if agenda == nil then U.error("DIR.GetAssignedAgendas", "Unable to find agenda for player " .. player.color) end
+		local agendaTag = U.findTag(agenda, U.map(C.SecretAgendas, function(sa) return "SA_" .. sa end))
+		assignedAgendas[player.color] = string.gsub(agendaTag, "^SA_", "")
+	end)
+	return assignedAgendas
+end
+
+function DIR.DealPreassignedSecretAgendas(agendaData)
+	local seqFuncs = {}
+	local agendaDeck = getObjectsWithTag("SecretAgenda")[1]
+	U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
+	U.forEach(agendaData, function(aData)
+		local agendaObj = U.find(agendaDeck.getObjects(), function (cData)
+			return U.isIn("SA_" .. aData.secretAgenda, cData.tags)
+		end)
+		if agendaObj then
+			table.insert(seqFuncs, function()
+				agendaDeck.takeObject({
+					position = Vector({ -0.01, 6.95, 24.41 }),
+					rotation = Vector({ 0, 0, 180 }),
+					guid = agendaObj.guid,
+					callback_function = function(obj)
+						DIR.AssignSecretAgenda(aData.color, obj, false)
+					end
+				})
+			end)
+		end
+	end)
+end
+
 function DIR.EndSecretAgendas()
 	L.SetLightMode("lightLectern", "ambient")
 	L.SetLightMode("lightFront", "ambient")
@@ -1439,13 +1478,43 @@ function DIR.EndSecretAgendas()
 	U.forEach(heldAgendas, function(obj)
 		obj.use_hands = false
 		obj.setLock(true)
+		obj.addTag("Burnt")
 		obj.setPositionSmooth(C.Spots.Staging.SecretAgenda.Burnt.position)
 		obj.setRotationSmooth(C.Spots.Staging.SecretAgenda.Burnt.rotation)
 		Wait.time(function() obj.use_hands = true end, 0.5)
 	end)
-	U.AlertGM("Secret Agendas Dealt!")
+
+	if S.isInMode(C.Modes.END) then
+		U.forEach(DIR.GetAssignedAgendas(), function(agenda, pColor)
+			S.setPlayerVal(agenda, pColor, "PreAssignedSecretAgenda")
+		end)
+		Wait.time(DIR.RecallSecretAgendas, 1)
+		Wait.time(DIR.ADVANCE, 4)
+	end
 end
 
+function DIR.RecallSecretAgendas()
+	local secretAgendas = getObjectsWithTag("SecretAgenda")
+	U.Assert("Six secret agendas found?", #secretAgendas == 6)
+	local stagingPos = Vector(C.Spots.Storage.SecretAgenda.position)
+	return {
+		U.sequence(U.map(secretAgendas, function(sA)
+			return function()
+				local sATag = U.findTag(sA, {"SA_Opportunist", "SA_Opulent", "SA_Rebel", "SA_Extremist", "SA_Moderate", "SA_Greedy"})
+				sA.setTags({"SecretAgenda", sATag})
+				stagingPos:add(Vector(0, 0.2, 0))
+				sA.setPositionSmooth(stagingPos)
+				sA.setRotationSmooth(C.Spots.Storage.SecretAgenda.rotation)
+				sA.setInvisibleTo()
+				sA.setLock(false)
+				sA.use_hands = true
+			end
+		end)),
+		function() return #getObjectsWithTag("SecretAgenda") == 1 end
+	}
+end
+
+-- #endregion
 function DIR.SpawnStartingPlayerPower()
 	return U.RunSequence(U.map(S.getPlayers(), function(player)
 		local numPower = 8 + (S.getPlayerVal(player, "startingPowerBonus") or 0)
@@ -1524,39 +1593,20 @@ function DIR.ConfirmFetchEnvelope(player, envKey)
 end
 
 function DIR.PromptForKingName()
-	local otherPlayers = DIR.GetWinners()
-	local player = U.shift(otherPlayers)
-	U.forEach(otherPlayers, function(ply)
-		MSG.Splash("Consult with " .. P.GetPlayerName(player) .. " on the Name of the Next King", ply, 4)
-	end)
-
+	local player = S.getPlayer(U.sample(S.getStateVal("gameState", "winners")))
+	S.setStateVal(nil, "gameState", "kingName")
 	UI.setAttribute("kingQuery_" .. player.color, "active", "false")
 	UI.show("kingQuery_" .. player.color)
-	UI.setAttribute("kingQuery_" .. player.color, "text", " ")
+	UI.setValue("kingQuery_kingTitle_" .. player.color, S.getStateVal("gameState", "kingTitle"))
+	UI.setValue("kingQuery_kingHouse_" .. player.color, "of House " .. S.getPlayerHouseName(player))
+	UI.setAttributes("kingQuery_input_" .. player.color, {
+		text = " ",
+		interactable = "true"
+	})
+	UI.setAttribute("kingQuery_inputImage_" .. player.color, "color", "#FFDD0011")
+	return function() return S.getStateVal("gameState", "kingName") ~= nil end
 end
 
-function DIR.ConfirmKingName(player, kingName)
-	U.forEach(S.getPlayers(), function(ply) UI.hide("kingQuery_" .. ply.color) end)
-	local query = {Yes = "true", No = "false"}
-	return U.RunSequence({
-		function()
-			return MSG.SplashQuery(
-				"Confirm Name 'King " .. kingName .. "'",
-				P.GetPlayerName(player),
-				query,
-				player
-			)
-		end,
-		function()
-			if query.response == "true" then
-				S.setStateVal(kingName, "gameState", "kingName")
-				return MSG.Splash(S.getStateVal("gameState", "kingName") .. "Inherits the Throne")
-			else
-				return DIR.PromptForKingName(player)
-			end
-		end
-	})
-end
 -- #endregion
 
 
@@ -2277,8 +2327,10 @@ end
 function DIR.GetFinalStandings()
 	local scoring = C.FinalScoring[S.getStateVal("gameState", "endState")]
 	local scores = U.getValues(DIR.GetFinalScores())
-	-- log({scores = scores})
 	table.sort(scores, function(a, b) return a.total > b.total end)
+	local winnerScore = scores[1].total
+	local winners = U.map(U.filter(scores, function(sData) return sData.total == winnerScore end), function(sData) return sData.color end)
+	S.setStateVal(winners, "gameState", "winners")
 	for i = 1, #scores do
 		scores[i].row = i
 	end

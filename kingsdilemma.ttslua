@@ -1,5 +1,5 @@
 -- DEVELOPMENT
--- require("vscode/console") -- *DEBUGLINE*
+require("vscode/console") -- *DEBUGLINE*
 
 -- MODULES
 -- U = require("lib.utilities")

@@ -436,6 +436,12 @@ function OU.GetStepsBetween(startVector, endVector, numSteps)
 end
 
 function OU.FindNearestSnapPoint(objOrTransform, obj, includeAll)
+	-- log({
+	-- 	objOrTransform = objOrTransform,
+	-- 	obj = obj,
+	-- 	includeAll = includeAll,
+	-- 	traceback = debug.traceback()
+	-- })
 	local position = OU.foldTransform(objOrTransform).position
 
 	local snapPoints, unfilteredSnaps

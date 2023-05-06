@@ -373,12 +373,64 @@ function Consequence_HUD_HoverOff(_, _, id)
 
 end
 
-function FetcherHUD_Sticker(player, value)
+function InputHUD_Sticker(player, value)
 	DIR.ConfirmFetchSticker(player, value)
 end
 
-function FetcherHUD_Envelope(player, value)
+function InputHUD_Envelope(player, value)
 	DIR.ConfirmFetchEnvelope(player, value)
+end
+
+function InputHUD_ToggleKingTitle(player)
+	if S.getStateVal("gameState", "kingTitle") == "Queen" then
+		S.setStateVal("King", "gameState", "kingTitle")
+	else
+		S.setStateVal("Queen", "gameState", "kingTitle")
+	end
+	UI.setValue("kingQuery_kingTitle_" .. player.color, S.getStateVal("gameState", "kingTitle"))
+end
+
+function InputHUD_King(player, value)
+	if not value or value == "" then return end
+	local house = S.getPlayerHouse(player)
+	local houseName = S.getPlayerHouseName(player)
+	local parsedValue = U.join(U.map(U.filter(
+		U.split(U.trim(value), " "),
+		function(word) return
+			not string.match(string.lower(word), "^king$")
+			and not string.match(string.lower(word), "^queen$")
+			and not string.match(string.lower(word), "^house$")
+			and not string.match(string.lower(word), "^" .. U.lCase(house) .. "$")
+			and not string.match(string.lower(word), "^" .. U.lCase(houseName) .. "$")
+		end
+		),
+		function (word, i)
+			if string.match(string.lower(word), "^of$")
+				or string.match(string.lower(word), "^the$")
+				or string.match(string.lower(word), "^and$") then
+					if i == 1 then return U.tCase(word) end
+					return U.lCase(word)
+			end
+			if string.match(string.upper(word), "^[IVXL]+$") then return U.uCase(word) end
+			return U.tCase(word)
+		end), " ")
+	if not (string.match(parsedValue, " [IVXL]+$") or string.match(parsedValue, " [IVXL]+ ")) then
+		parsedValue = parsedValue .. " I"
+	end
+
+	-- U.AlertGM(P.GetPlayerName(player) .. " names the next " .. U.lCase(S.getStateVal("gameState", "kingTitle")) .. " '" .. S.getStateVal("gameState", "kingTitle") .. " " .. parsedValue .. " of House " .. S.getPlayerHouseName(player) .. "' from '" .. value .. "'")
+	UI.setAttributes("kingQuery_input_" .. player.color, {
+		text = parsedValue,
+		interactable = "false"
+	})
+	UI.setAttribute("kingQuery_inputImage_" .. player.color, "color", "#000000")
+	Wait.time(function()
+		UI.hide("kingQuery_" .. player.color)
+		MSG.Splash(parsedValue .. " of House " .. S.getPlayerHouseName(player) .. " Inherits the Throne!", nil, 4, {color = "#FFDD00"})
+	end, 4)
+	Wait.time(function()
+		S.setStateVal(parsedValue .. " of House " .. S.getPlayerHouseName(player), "gameState", "kingName")
+	end, 8)
 end
 
 local howTo = [[

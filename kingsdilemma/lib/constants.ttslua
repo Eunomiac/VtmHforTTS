@@ -142,7 +142,6 @@ C.Phases = {
 		Achievements = "Achievements",
 		Alignments = "Alignments",
 		Cleanup = "Cleanup",
-		NextKing = "NextKing",
 		SecretAgendas = "SecretAgendas",
 		SignOff = "SignOff"
 	}
@@ -197,15 +196,18 @@ C.CameraAngles = {
 		pitch = 50.67,
 		yaw = 0,
 		distance = 60
-	},
-	StorySign = {
-
-	},
-	StickerSign = { -- lua Player.Brown.lookAt({position = Vector({0,-6.2,26}), pitch = 90, yaw = 0, distance = 15})
-		position = Vector({0, -6.2, 26}),
+	}, --
+	StorySign = { -- lua Player.Orange.lookAt({position = Vector({0, -7.2, 14.52}), pitch = 90, yaw = 0, distance = 11.5})
+		position = Vector({0, -7.2, 14.52}),
 		pitch = 90,
 		yaw = 0,
-		distance = 15
+		distance = 11.5
+	},
+	StickerSign = { -- lua Player.Orange.lookAt({position = Vector({0,-6.2,25}), pitch = 90, yaw = 0, distance = 13})
+		position = Vector({0, -6.2, 25}),
+		pitch = 90,
+		yaw = 0,
+		distance = 13
 	},
 	ScreenCapture = { -- lua Player.Orange.lookAt({pitch=90, yaw=0, distance=15.5, position = Vector({70,0,0})}); Player.Orange.setCameraMode("TopDown")
 		cameraMode = "TopDown",
@@ -910,8 +912,6 @@ C.Spots = {
 		}
 	}
 }
-
-
 
 C.Spots.Main.Trigger.aboveDeck = C.Spots.Main.Dilemma.aboveDeck
 C.Spots.Main.Trigger.faceDown =  C.Spots.Main.Dilemma.faceDown

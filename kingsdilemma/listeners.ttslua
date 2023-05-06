@@ -164,41 +164,11 @@ end
 
 function onObjectDrop(pColor, obj)
 	if obj.hasTag("DebugObj") then return end
-	if S.isInPhase(C.Phases.GAMESETUP.SecretAgendas) and obj.hasTag("SecretAgenda") then
+	if S.isInPhase({C.Phases.GAMESETUP.SecretAgendas, C.Phases.END.SecretAgendas}) and obj.hasTag("SecretAgenda") then
 		local player = S.getPlayer(pColor)
 		local handObjs = player.getHandObjects()
-		if U.find(handObjs, function(o) return o.guid == obj.guid end) then
-			return
-		end
-
-		obj.setLock(true)
-		local agendaPos = P.getRotatedPlayerTransform(C.Spots.Player.SecretAgenda, player, 0)
-		obj.setInvisibleTo(S.getOtherColors(player))
-		obj.setTags({"SecretAgenda", player.color, "Private", U.findTag(obj, U.map(C.SecretAgendas, function(sa) return "SA_" .. sa end))})
-		U.setPositionSlow(obj, agendaPos.position, 1)
-		U.setRotationSlow(obj, agendaPos.rotation, 1)
-		local nextPlayer = P.GetNextLeastPrestigious(pColor)
-		if not nextPlayer then
-			DIR.EndSecretAgendas()
-		else
-			-- U.Alert("Dealing To " .. nextPlayer.color)
-			local pNum = S.getPlayerNum(nextPlayer)
-			L.SetLightMode("lightPlayerSpotlight", "player" .. pNum)
-			-- L.SetLightMode("lightFront", "dim")
-			U.sequence(U.concat(
-				U.map(player.getHandObjects(), function(obj)
-					return function()
-						if obj.hasTag("SecretAgenda") then
-							obj.deal(1, nextPlayer.color)
-						end
-					end
-				end),
-				{
-					function()
-						MSG.Splash("Choose Your Secret Agenda", nextPlayer.color)
-					end
-				}))
-		end
+		if U.find(handObjs, function(o) return o.guid == obj.guid end) then return end
+		DIR.AssignSecretAgenda(player, obj)
 	elseif obj.hasTag("StabilityMarker") then
 		U.RunSequence({
 			function()

@@ -13,6 +13,7 @@ local INITGAMESTATE = {
 		gameMode = C.Modes.NONE,
 		gamePhase = C.Phases.NONE,
 		kingName = "Harald V",
+		kingTitle = "King",
 		endState = nil,
 		startTime = nil,
 		endTime = nil,
@@ -109,9 +110,27 @@ function S.resetGameState(isWipingPlayerData)
 		newState.playerStorage = state.playerStorage
 	end
 
+	U.forEach(U.getKeys(newState.playerStorage), function(id)
+		newState.playerStorage[id].curColor = nil
+	end)
+
+	newState.gameState.chronicleType = state.gameState.chronicleType
+	newState.gameState.gameCount = state.gameState.gameCount
+	newState.gameState.gameMode = C.Modes.NONE
+	newState.gameState.gamePhase = C.Modes.NONE
+	newState.gameState.kingName = state.gameState.kingName or newState.gameState.kingName
+	newState.gameState.kingTitle = state.gameState.kingTitle or newState.gameState.kingTitle
+	newState.gameStorage = state.gameStorage
+
 	Global.setTable("gameState", newState)
 	S.UpdatedSeatedPlayerData()
 	S.refreshStateDebug()
+	Global.call("UpdatePhaseDisplay")
+	UI.hide("gameStatusDisplay")
+	UI.hide("sessionInitDisplay")
+	UI.show("sessionPreflightDisplay")
+	UI.show("splashScreen")
+	UI.setValue("gameNumText", "")
 end
 
 function S.resetRoundState()
@@ -434,59 +453,39 @@ function S.isInPhase(phases)
 	return U.isIn(S.getStateVal("gameState", "gamePhase"), phases)
 end
 
-function S.getNextPhase(curMode, curPhase) --+
+function S.flattenModesAndPhases()
+	local modePhases = {}
+	local modes = U.getKeys(C.Modes)
+	U.iForEach(modes, function(mode)
+		if mode == "CHRONSETUP" and S.getStateVal("gameState", "gameCount") ~= 0 then return end
+		if U.Type(C.Phases[mode]) == "string" then
+			table.insert(modePhases, {mode = mode, phase = C.Phases[mode]})
+		else
+			local phases = U.getKeys(C.Phases[mode])
+			U.iForEach(phases, function(phase)
+				table.insert(modePhases, {mode = mode, phase = phase})
+			end)
+		end
+	end)
+	return modePhases
+end
+
+function S.getNextPhase(curMode, curPhase)
 	if curMode == nil then curMode = S.getStateVal("gameState", "gameMode") end
 	if curPhase == nil then curPhase = S.getStateVal("gameState", "gamePhase") end
 
-	local modePhases = C.Phases[curMode]
-	local nextMode, nextPhase
-
-	local function getNextMode(curMode)
-		local modes = U.getValues(C.Modes)
-		local index = U.findIndex(modes, function(mode) return mode == curMode end)
-		if index == #modes then
-			return modes[1]
-		else
-			return modes[index + 1]
-		end
-	end
-	local function getNextPhase(curMode, curPhase)
-		local modePhases = C.Phases[curMode]
-		if U.Type(modePhases) == "table" then
-			local phases = U.getValues(modePhases)
-			local index = U.findIndex(phases, function(phase) return phase == curPhase end)
-			if index == nil then
-				return phases[1]
-			end
-			if index < #phases then
-				return phases[index + 1]
-			end
-		end
-		return false
-	end
-	local function getFirstPhaseOfMode(mode)
-		local modePhases = C.Phases[mode]
-		if U.Type(modePhases) == "string" then return modePhases end
-		return U.getValues(modePhases)[1]
-	end
-
-	if U.Type(modePhases) == "string" then
-		nextMode = getNextMode(curMode)
-		nextPhase = getFirstPhaseOfMode(nextMode)
+	local modePhases = S.flattenModesAndPhases()
+	local modePhaseIndex = U.findIndex(modePhases, function(mData) return mData.mode == curMode and mData.phase == curPhase end)
+	local nextPhaseIndex
+	if modePhaseIndex == #modePhases then
+		nextPhaseIndex = 1
 	else
-		nextMode = curMode
-		nextPhase = getNextPhase(curMode, curPhase)
-		if nextPhase == false then
-			nextMode = getNextMode(curMode)
-			nextPhase = getFirstPhaseOfMode(nextMode)
-		end
+		nextPhaseIndex = modePhaseIndex + 1
 	end
 
-	if nextMode == C.Modes.CHRONSETUP and S.getStateVal("gameState", "gameCount") > 0 then
-		return getFirstPhaseOfMode(getNextMode(C.Modes.CHRONSETUP))
-	end
+	local nextModePhase = modePhases[nextPhaseIndex]
 
-	return nextMode, nextPhase
+	return nextModePhase.mode, nextModePhase.phase
 end
 -- #endregion
 

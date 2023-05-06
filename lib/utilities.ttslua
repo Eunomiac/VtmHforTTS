@@ -228,6 +228,24 @@ function U.split(inputstr, sep)
     return t
 end
 
+function U.trim(inputStr, skipInternalWhitepace)
+	inputStr = U.ToString(inputStr)
+	if skipInternalWhitepace == nil then skipInternalWhitepace = false end
+
+	inputStr = string.gsub(inputStr, "^%s+|%s+$", "")
+	if skipInternalWhitepace then return inputStr end
+
+	return string.gsub(inputStr, "%s+", " ")
+end
+
+function U.lCase(inputStr) return string.lower(U.ToString(inputStr)) end
+function U.uCase(inputStr) return string.upper(U.ToString(inputStr)) end
+function U.sCase(inputStr)
+	inputStr = U.ToString(inputStr)
+	return string.upper(string.sub(inputStr, 1, 1)) .. string.lower(string.sub(inputStr, 2))
+end
+function U.tCase(inputStr) return U.join(U.iMap(U.split(U.ToString(inputStr), " "), U.sCase), " ") end
+
 function U.error(source, message, val)
 	local errString = "[" .. source .. "] " .. message
 	local valString
@@ -500,6 +518,8 @@ function U.shuffle(arr)
 	end
 	return arr
 end
+
+function U.sample(arr) return U.shuffle(U.clone(arr))[1] end
 
 function U.concat(...)
 	local args = {...}

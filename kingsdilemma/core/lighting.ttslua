@@ -287,14 +287,19 @@ L.LIGHTMODES = {
 				lerpColor = C.Colors.StabilityToken.half:lerp(C.Colors.StabilityToken.ends, 2 * (distRatio - 0.5))
 			end
 
-			stabilityPos.x = C.Spots.Board.StabilityToken.center.position.x
-			stabilityPos.z = math.min(
-				math.max(
-					stabilityPos.z,
-					C.Spots.Board.StabilityToken.bottom.position.z
-				),
-				C.Spots.Board.StabilityToken.top.position.z
-			)
+			stabilityPos:setAt("x", C.Spots.Board.StabilityToken.center.position.x):setAt("y", C.BoardHeight + 4)
+
+			if S.isInMode(C.Modes.END) then
+				stabilityPos:setAt("z", C.Spots.Board.StabilityToken.center.position.z)
+			else
+				stabilityPos:setAt("z", math.min(
+					math.max(
+						stabilityPos.z,
+						C.Spots.Board.StabilityToken.bottom.position.z
+					),
+					C.Spots.Board.StabilityToken.top.position.z
+				))
+			end
 			-- log({distRatio = distRatio})
 			local lData = {
 				enabled = true,
@@ -302,7 +307,7 @@ L.LIGHTMODES = {
 				range = lerpRange,
 				angle = lerpAngle,
 				intensity = lerpIntensity,
-				position = stabilityPos:add(Vector(0, 4, 0))
+				position = stabilityPos:setAt("y", C.BoardHeight + 4)
 			}
 			-- log(lData)
 			return lData
