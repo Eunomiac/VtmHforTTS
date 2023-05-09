@@ -14,6 +14,20 @@ local HOUSE_SELECTION, newPlayerColors = {}, {}
 
 local ISDEBUGGING = false
 
+function DIR.ShowAutoAdvance() UI.show("autoAdvanceGamePhase"); UI.hide("advanceGamePhase") end
+function DIR.ShowManualAdvance() UI.hide("autoAdvanceGamePhase"); UI.show("advanceGamePhase") end
+
+function DIR.ToggleAdvanceControls()
+	local mode, phase = S.getCurrentPhase()
+	-- modes/phases that definitely require manual-advancing:
+	if U.isIn(phase, {C.Phases.NONE, C.Phases.CHRONSETUP, C.Phases.PLAY.DrawDilemma, C.Phases.PLAY.DisplayOutcome, C.Phases.PLAY.ApplyChanges, C.Phases.END.Score, C.Phases.END.Realm, C.Phases.END.Achievements, C.Phases.END.Alignments}) then
+		return DIR.ShowManualAdvance()
+	elseif mode == C.Modes.GAMESETUP and phase == C.Phases.GAMESETUP.SecretAgendas then
+		return DIR.ShowManualAdvance()
+	end
+	return DIR.ShowAutoAdvance()
+end
+
 -- #region Token Object Getters~
 local function getBoardTokens()
 	local tokens = {
@@ -231,6 +245,7 @@ INITFUNCS = {
 				function()
 					P.SetCamera("MainBoard")
 					DIR.AddToDilemmaDeck()
+					DIR.GetDilemmaDeck().shuffle()
 					L.SetLightMode({ "lightMainTop", "lightMainBottom" }, "ambient")
 					L.SetLightMode("lightFeature", "on")
 					return MSG.Splash("Board Setup")
@@ -299,12 +314,10 @@ INITFUNCS = {
 							decalData.position = Vector(C.ObjectSpots.ChronicleSticker[curAge])
 						end
 
-						stickerObj.highlightOn(C.RootColors.Amber, 1)
+						stickerObj.highlightOn(C.RootColors.Amber, 0.5)
 						if decalData ~= nil then
 							stickerObj.addDecal(decalData)
 						end
-
-						return 0.25
 					end
 					return U.sequence(U.iMap(stickerData, function(sData)
 						return function() ageChronicleSticker(sData) end
@@ -312,7 +325,7 @@ INITFUNCS = {
 				end,
 				function()
 					P.SetCamera("MainBoard")
-					MSG.Splash("Resource Legacy")
+					MSG.Splash("Resource Legacy", "AllLow")
 					return 1
 				end,
 				function()
@@ -379,7 +392,6 @@ INITFUNCS = {
 					end))
 				end,
 				function()
-					P.SetCamera("Stickers")
 					MSG.Splash("Open Agendas")
 					return 1
 				end,
@@ -402,12 +414,14 @@ INITFUNCS = {
 								return 0.5
 							end,
 							function()
-								L.PulseLight("lightFront", S.getPlayerOfHouse(topSticker.house), statusColor)
+								L.PulseLight("lightFront", player, statusColor)
+								P.RefreshPlayerScreenHUD(player)
 								if topSticker.status == "Pos" then
 									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Positive Open Agenda for " .. resource)
 								else
 									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Negative Open Agenda for " .. resource)
 								end
+
 							end,
 							function()
 								stickerObj.highlightOff()
@@ -501,11 +515,12 @@ INITFUNCS = {
 					displayCard = getObjectsWithTag("OnDisplay")[1]
 					if displayCard.hasTag("Dilemma") then
 						DIR.InitConsequencesQuery()
+						DIR.SpawnReferenceDilemmas(displayCard)
 					end
 					L.SetLightMode("lightLectern", "off", nil, 0.5)
 					L.SetLightMode("lightDilemmaMain", "on", nil, 2)
 					L.SetLightMode("lightDilemmaRef", "on")
-					DIR.SpawnReferenceDilemmas(displayCard)
+
 					return {
 						U.setPositionSlow(displayCard, C.Spots.Main.Dilemma.faceDown.position, 2, "speedUp"),
 						U.setRotationSlow(displayCard, C.Spots.Main.Dilemma.faceDown.rotation, 2, "speedUp"),
@@ -514,6 +529,7 @@ INITFUNCS = {
 				end,
 				function()
 					if displayCard.hasTag("TriggerCard") then
+						queryResponse = {Yes = "true"}
 						U.RunSequence({
 							function()
 								return MSG.SplashQuery(
@@ -819,6 +835,7 @@ INITFUNCS = {
 
 						DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.ApplyMomentum, false)
 
+
 						return {
 							U.setPositionSlow(displayCard, C.Spots.Main.Trigger.faceUp.position, 0.5),
 							U.setRotationSlow(displayCard, C.Spots.Main.Trigger.faceUp.rotation, 0.5),
@@ -844,18 +861,6 @@ INITFUNCS = {
 			local unboundPosAfterMomentum
 			local stabilityBumps
 
-			-- unboundPositionsAfterApplyingMomentum,
-
-			-- local function getTokenPositionsFromState()
-			-- 	return {
-			-- 		Influence = S.getStateVal("roundState", "boardTokens", "positions", "Influence"),
-			-- 		Wealth = S.getStateVal("roundState", "boardTokens", "positions", "Wealth"),
-			-- 		Morale = S.getStateVal("roundState", "boardTokens", "positions", "Morale"),
-			-- 		Welfare = S.getStateVal("roundState", "boardTokens", "positions", "Welfare"),
-			-- 		Knowledge = S.getStateVal("roundState", "boardTokens", "positions", "Knowledge"),
-			-- 	}
-			-- end
-
 			local function getTokenPositionDeltas(startPositions, endPositions)
 				return {
 					Influence = endPositions.Influence - startPositions.Influence,
@@ -866,27 +871,6 @@ INITFUNCS = {
 				}
 			end
 
-			-- local function getUnboundTokenPositionsAfterApplyingMomentum()
-			-- 	local tokenMomentums = getTokenMomentums()
-			-- 	local curTokenPositions = getTokenPositionsFromBoard()
-
-			-- 	local positionDeltas = getTokenPositionDeltas(getTokenPositionsFromState(), curTokenPositions)
-			-- 	local newTokenPositions = U.clone(curTokenPositions)
-
-			-- 	U.iForEach(C.Resources, function(resource)
-			-- 		if tokenMomentums[resource] * positionDeltas[resource] > 0 then
-			-- 			-- moving in same direction: apply momentum
-			-- 			newTokenPositions[resource] = newTokenPositions[resource] + tokenMomentums[resource]
-			-- 		end
-			-- 	end)
-
-			-- 	return newTokenPositions
-			-- end
-
-			-- local resourceTokens = getBoardTokens().resource
-			-- local resourceDeltas = getTokenPositionDeltas(getTokenPositionsFromState(), getTokenPositionsFromBoard())
-			-- local resourceBumps = getTokenPositionDeltas(getTokenPositionsFromBoard(), getUnboundTokenPositionsAfterApplyingMomentum())
-			-- local stabilityBumps = getTokenPositionDeltas(getTokenPositionsFromBoard(), getUnboundTokenPositionsAfterApplyingMomentum())
 			return {
 				function()
 					tokenPositionsFromState = {
@@ -1347,15 +1331,14 @@ function DIR.InitPreflight()
 		"~ During the Reign of " ..
 		S.getStateVal("gameState", "kingTitle") .. " " .. S.getStateVal("gameState", "kingName") .. " ~")
 	storyArcs = S.getStateVal("storyArcs")
+	-- NOTE: Story Arc numbers correspond to display order, not necessarily to board slot.
 	storyArcs = {
-		storyHUD_Arc3 = [[Add "story summary" to very beginning, using custom multiline splash element. Use the same element to summarize Chronicle Stickers during Legacy Effect phase. Ankist remembers House Lunargent for securing a controlling interest in the Merchant's great central bank, the Coin. Ankist remembers House Concordia for spreading rumors of lost desert treasures, luring many to their deaths.
+		storyHUD_Arc1 = [[The crowning of King Harald V was a dramatic one, attracting diplomats from all over the world. Underscoring this however was the King's own doubt in himself, which he only expressed to us, behind closed doors.
 
-Ankist remembers House Silverlight for recovering secrets of the cult of the Sand Priestesses from the ruined temple at Chalice Peak.]],
-		storyHUD_Arc5 = [[Ankist remembers House Lunargent for securing a controlling interest in the Merchant's great central bank, the Coin. Ankist remembers House Concordia for spreading rumors of lost desert treasures, luring many to their deaths.
+		However, to the common people of Ankist, they saw an additional grand display involving their King as he accepted a sword made from red iron as a gift from "merchants" of another kingdom. This blade, known as the Scarlet Tide, became a symbol for our nation's military might, with only the most elite soldiers being allowed to wield equipment forged from the miraculously strong metal.]],
+		storyHUD_Arc2 = [[Merchants from distant Konfurtah brought rumors of the hiding place of the fabled Golden Map, prompting us to send an expedition into the Ivory Desert to retrieve it. We discovered it within the ancient temple of Chalice Peak, amidst the dessicated corpses of Sand Priestesses—an opulent version of the Cult of the Mother—along with references to the ancient "Sun Empire", known only from legends dating back to the ages before Ommad, the First King.
 
-Add "story summary" to very beginning, using custom multiline splash element. Use the same element to summarize Chronicle Stickers during Legacy Effect phase.
-
-Ankist remembers House Silverlight for recovering secrets of the cult of the Sand Priestesses from the ruined temple at Chalice Peak.]]
+		Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]]
 }
 	storyKeys = U.getKeys(storyArcs)
 end
@@ -1382,13 +1365,13 @@ function DIR.InitSession(isNotShuffling)
 					return U.RunSequence({
 						function()
 							local id = storyKeys[keyIndex - 1]
-							log("Hiding " .. id)
+							-- log("Hiding " .. id)
 							UI.hide(id)
-							return 4
+							return 2
 						end,
 						function()
 							local id = storyKeys[keyIndex]
-							log("Showing " .. id)
+							-- log("Showing " .. id)
 							UI.show(id)
 							UI.setValue(id .. "_Text", storyArcs[id])
 							keyIndex = keyIndex + 1
@@ -1397,7 +1380,7 @@ function DIR.InitSession(isNotShuffling)
 					})
 				else
 					local id = storyKeys[keyIndex]
-					log("Showing " .. id)
+					-- log("Showing " .. id)
 					UI.show(id)
 						UI.setValue(id .. "_Text", storyArcs[id])
 					keyIndex = keyIndex + 1
@@ -1506,7 +1489,17 @@ function DIR.InitCountZones()
 	end
 end
 
-function DIR.ADVANCE(waitFunc)
+local advanceThrottle = false
+function DIR.ADVANCE(waitFunc, isThrottling)
+	if isThrottling == nil then isThrottling = false end
+	if isThrottling == true then
+		if advanceThrottle == true then return end
+		advanceThrottle = true
+		Wait.time(function() advanceThrottle = false end, 2)
+	else
+		isThrottling = false
+	end
+	UI.hide("autoAdvanceGamePhase"); UI.hide("advanceGamePhase")
 	local mode, phase = S.getNextPhase()
 	local function startPhase()
 		S.setStateVal(mode, "gameState", "gameMode")
@@ -1523,6 +1516,7 @@ end
 
 function DIR.InitializePhase()
 	Global.call("UpdatePhaseDisplay")
+	DIR.ToggleAdvanceControls()
 	local mode = S.getStateVal("gameState", "gameMode")
 	local phase = S.getStateVal("gameState", "gamePhase")
 	local seqFuncs = INITFUNCS[mode]
@@ -1546,6 +1540,7 @@ function DIR.JumpToStatePhase(mode, phase, isInitializing)
 	if phase ~= nil then
 		S.setStateVal(phase, "gameState", "gamePhase")
 	end
+	Global.call("UpdatePhaseDisplay")
 
 	return U.waitUntil(function()
 		if isInitializing == true then return DIR.InitializePhase() end

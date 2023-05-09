@@ -324,12 +324,40 @@ function P.ActivatePlayerScreenHUD(playerRef)
 	return 0.5
 end
 
+function P.RefreshPlayerScreenHUD(playerRef)
+	if playerRef == nil then return U.map(S.getPlayers(), P.RefreshPlayerScreenHUD) end
+	local houseScreen = P.GetPlayerScreen(playerRef)
+	if houseScreen == nil then return 0 end
+	return U.RunSequence({
+		function()
+			houseScreen.call("Update")
+			return 1
+		end,
+		function()
+			houseScreen.call("Activate")
+			return 0.5
+		end
+	})
+end
+
 function P.InitPlayerHouseCards(playerRef)
 	if playerRef == nil then return U.map(S.getPlayers(), P.InitPlayerHouseCards) end
 	local houseCard = P.GetPlayerCard(playerRef)
 	if houseCard == nil then return 0 end
 	houseCard.call("Initialize")
 	return 0.5
+end
+
+function P.GetOpenAgendas(playerRef)
+	local openAgendas = S.getPlayerVal(playerRef, "openAgendas")
+	local oData = {}
+	U.forEach(openAgendas.positive, function(resource)
+		table.insert(oData, {resource = resource, status = "Pos"})
+	end)
+	U.forEach(openAgendas.negative, function(resource)
+		table.insert(oData, {resource = resource, status = "Neg"})
+	end)
+	return oData
 end
 
 function P.SpawnPower(playerRef, numPower) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Power"), numPower, "PowerToken") end

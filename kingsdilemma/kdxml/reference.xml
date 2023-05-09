@@ -221,25 +221,43 @@
 					<Panel id="refHUD_Camera_Screen_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Screen
+							Behind Screen
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Board_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Board
+							Main Board
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Resources_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Resources
+							Resource Tokens
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Stickers_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Stickers
+							Chronicle Stickers
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Dilemma_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dilemma and Maps
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignStory_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Story Card
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignSticker_Brown" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Sticker
 						</Text>
 					</Panel>
 				</VerticalLayout>
@@ -277,6 +295,7 @@
 			</Panel>
 		</Panel>
 	</HorizontalLayout>
+
 	<HorizontalLayout class="ref-hud-controls" visibility="Red">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Red" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
@@ -353,25 +372,43 @@
 					<Panel id="refHUD_Camera_Screen_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Screen
+							Behind Screen
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Board_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Board
+							Main Board
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Resources_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Resources
+							Resource Tokens
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Stickers_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Stickers
+							Chronicle Stickers
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Dilemma_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dilemma and Maps
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignStory_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Story Card
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignSticker_Red" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Sticker
 						</Text>
 					</Panel>
 				</VerticalLayout>
@@ -409,6 +446,7 @@
 			</Panel>
 		</Panel>
 	</HorizontalLayout>
+
 	<HorizontalLayout class="ref-hud-controls" visibility="Orange">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
@@ -485,25 +523,43 @@
 					<Panel id="refHUD_Camera_Screen_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Screen
+							Behind Screen
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Board_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Board
+							Main Board
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Resources_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Resources
+							Resource Tokens
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Stickers_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Stickers
+							Chronicle Stickers
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Dilemma_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dilemma and Maps
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignStory_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Story Card
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignSticker_Orange" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Sticker
 						</Text>
 					</Panel>
 				</VerticalLayout>
@@ -541,6 +597,7 @@
 			</Panel>
 		</Panel>
 	</HorizontalLayout>
+
 	<HorizontalLayout class="ref-hud-controls" visibility="Yellow">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
@@ -617,25 +674,43 @@
 					<Panel id="refHUD_Camera_Screen_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Screen
+							Behind Screen
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Board_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Board
+							Main Board
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Resources_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Resources
+							Resource Tokens
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Stickers_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Stickers
+							Chronicle Stickers
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Dilemma_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dilemma and Maps
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignStory_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Story Card
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignSticker_Yellow" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Sticker
 						</Text>
 					</Panel>
 				</VerticalLayout>
@@ -673,6 +748,7 @@
 			</Panel>
 		</Panel>
 	</HorizontalLayout>
+
 	<HorizontalLayout class="ref-hud-controls" visibility="Green">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Green" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
@@ -749,25 +825,43 @@
 					<Panel id="refHUD_Camera_Screen_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Screen
+							Behind Screen
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Board_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Board
+							Main Board
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Resources_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Resources
+							Resource Tokens
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Camera_Stickers_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							View Stickers
+							Chronicle Stickers
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_Dilemma_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Dilemma and Maps
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignStory_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Story Card
+						</Text>
+					</Panel>
+					<Panel id="refHUD_Camera_SignSticker_Green" class="submenu-option-container">
+						<Image class="submenu-option-bg" />
+						<Text class="submenu-option">
+							Sign Sticker
 						</Text>
 					</Panel>
 				</VerticalLayout>

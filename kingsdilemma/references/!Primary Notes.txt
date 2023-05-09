@@ -6,15 +6,8 @@ Make a panel for
 		... all the possible controls they could click
 	dialog option: change state value
 		... enter, e.g. "turnState,Orange,powerCommitted = 5" and it'll parse it properly
-Have a map of state in the other Notepad view
+
 make Reference hud use 'normal' UI hiding commands
-
-Add "story summary" to very beginning, using custom multiline splash element
-Use the same element to summarize Chronicle Stickers during Legacy Effect phase
-
-"Ankist remembers House Lunargent for securing a controlling interest in the Merchant's great central bank, the Coin."
-"Ankist remembers House Concordia for spreading rumors of lost desert treasures, luring many to their deaths."
-"Ankist remembers House Silverlight for recovering secrets of the cult of the Sand Priestesses from the ruined temple at Chalice Peak."
 
 
 Make sure consequences display disappears
@@ -23,7 +16,7 @@ Make buttons for spawning coin and power
 fix tie notification to moderator's tiebreaking vote
 if I can't fix turn hud, make all buttons visible
 is aye button showing up underneath?
-check why crave isn't updating - check to make sure it's accurate in state, and that it remains on their screens
+
 code up open agendas
 add buttons for controlling appearance of UI elements in case they fuck up again
 - consider coding a general light config for each player, highlighting territory with one light and focusing on capital with another
@@ -41,6 +34,7 @@ DONE
 * configure map focus lights (instructions under LIGHTMODES)
 * code in the ability to name the next king
 * did the game end one card too early?
+* check why crave isn't updating - check to make sure it's accurate in state, and that it remains on their screens
 
 
 

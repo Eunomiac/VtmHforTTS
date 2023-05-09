@@ -1,6 +1,7 @@
 local C = require("kingsdilemma.lib.constants")
 local S = require("kingsdilemma.core.state")
 local U = require("lib.utilities")
+local P = require("kingsdilemma.core.players")
 
 local alphas = {
 	global = 1,
@@ -136,7 +137,7 @@ local function getNamePanelXML()
 		},
 		{
 			tag = "Text",
-			value = string.lower(GetHouseName() or GetHouse()),
+			value = string.lower(GetHouseName() or GetHouse() or ""),
 			attributes = {
 				ignoreLayout = "True",
 				rectAlignment = "UpperCenter",
@@ -316,12 +317,93 @@ local function getPrestigeCravePanelXML()
 	}
 end
 
+local function getOpenAgendaPanelXML()
+	local panelAttributes = {
+		id = "openAgendaPanel",
+		visibility = "",
+		height = "200",
+		width = "400",
+		rectAlignment = "LowerCenter"
+	}
+
+	local panelChildren = {
+		{
+			tag = "Image",
+			attributes = {
+				width = "700",
+				preserveAspect = "true",
+				rectAlignment = "MiddleLeft",
+				offsetXY = "50 0",
+				scale = "0.5 0.5 0.5"
+			},
+			children = {}
+		},
+		{
+			tag = "Image",
+			attributes = {
+				width = "700",
+				preserveAspect = "true",
+				rectAlignment = "MiddleRight",
+				offsetXY = "-50 0",
+				scale = "0.5 0.5 0.5"
+			},
+			children = {}
+		},
+		{
+			tag = "Image",
+			attributes = {
+				width = "700",
+				preserveAspect = "true",
+				rectAlignment = "UpperCenter",
+				offsetXY = "0 0",
+				scale = "0.5 0.5 0.5"
+			},
+			children = {}
+		}
+	}
+
+	local openAgendas = S.getPlayerVal(GetPlayer(), "openAgendas") or {}
+
+	-- openAgendas = {
+	-- 	negative = {"Welfare", "Influence"},
+	-- 	positive = {"Morale"}
+	-- }
+
+	local oData = {}
+	if openAgendas.positive ~= nil then
+		U.forEach(openAgendas.positive, function(resource)
+			table.insert(oData, {resource = resource, status = "Pos"})
+		end)
+	end
+	if openAgendas.negative ~= nil then
+		U.forEach(openAgendas.negative, function(resource)
+			table.insert(oData, {resource = resource, status = "Neg"})
+		end)
+	end
+
+	if #oData == 0 then return {} end
+	if #oData == 1 then panelChildren = U.slice(panelChildren, 3) end
+	if #oData == 2 then panelChildren = U.slice(panelChildren, 1, 2) end
+
+	for i = 1, #oData do
+		local thisAgenda = oData[i]
+		panelChildren[i].attributes.image = "openAgenda-" .. thisAgenda.status .. "-" .. thisAgenda.resource
+	end
+
+	return {
+		tag = "Panel",
+		attributes = panelAttributes,
+		children = panelChildren
+	}
+end
+
 function UpdateXMLTable()
 	if GetPlayer() == nil then return end
 	self.UI.setXmlTable({
 		getRootPanelXML({
 			getNamePanelXML(),
-			getPrestigeCravePanelXML()
+			getPrestigeCravePanelXML(),
+			getOpenAgendaPanelXML()
 		})
 	})
 end

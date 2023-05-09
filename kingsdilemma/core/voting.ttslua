@@ -39,7 +39,7 @@ local function elevateRiser(playerRef, powerValue)
 	local powerTokens = U.filter(publicZone.getObjects(), function(obj) return obj.hasTag("PowerToken") end)
 	return {
 		U.Lerp(function(pos) riser.setPositionSmooth(pos) end, riser.getPosition(), riserPos, 3 * (deltaElevation / 3)),
-		unpack(U.map(powerTokens, function(token)
+		table.unpack(U.map(powerTokens, function(token)
 			token.setLock(true)
 			Wait.time(function() token.setLock(false) end, 3 * (deltaElevation / 3) + 1)
 			return U.Lerp(function(pos) token.setPositionSmooth(pos) end, token.getPosition(), Vector(token.getPosition()):add(Vector(0, deltaElevation, 0)), 3 * (deltaElevation / 3))

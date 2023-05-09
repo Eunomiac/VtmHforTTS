@@ -71,20 +71,20 @@
 
 <Defaults> <!-- Splash Screen Defaults -->
 	<Panel class="splash-screen"
-		offsetXY = "0 100"
+		offsetXY = "0 0"
 		raycastTarget = "true"
 		childAlignment = "MiddleCenter"
-		color = "rgba(0, 0, 0, 0.95)"
-		scale = "1.75 1.75 1.75" />
+		color = "rgba(0, 0, 0, 0.99)"
+		scale = "2.75 2.75 2.75" />
 
 	<Text class="splash-intro"
-		fontSize = "87"
-		preferredHeight = "43" minHeight = "43" flexibleHeight = "0"
-		scale = "0.57 0.57 0.57"
+		fontSize = "225"
+		preferredHeight = "50" minHeight = "50" flexibleHeight = "0"
+		scale = "0.2 0.2 0.2"
 	  font = "Fonts/FrizSC" />
 	<Text class="splash-intro-sub"
-		fontSize = "30"
-		scale = "0.57 0.57 0.57"
+		fontSize = "85"
+		scale = "0.2 0.2 0.2"
 		preferredHeight = "20" minHeight = "20" alignment = "LowerCenter" flexibleHeight = "0" />
 
 
@@ -137,7 +137,7 @@
 
 	<Panel class="splash-visibility">
 		<VerticalLayout id="splashPanel_AllLow" class="splash-root splash-root-low" active="false">
-			<VerticalLayout class="splash-image-container">
+			<VerticalLayout class="splash-image-container splash-low">
 				<Image class="splash-top" />
 				<Image class="splash-bg" />
 				<Image class="splash-bottom" />
@@ -446,7 +446,7 @@
 		animationDuration = "2" />
 	<Panel class="story-arcs"
 		height = "100%" width = "100%"
-		color = "rgba(0, 0, 0, 0.95"
+		color = "rgba(0, 0, 0, 1)"
 		rectAlignment = "MiddleCenter" />
 	<VerticalLayout class="story-arcs"
 		height = "800"
@@ -458,16 +458,17 @@
 	<Panel class="story-stickers"
 		height = "400"
 		width = "700"
-		rectAlignment = "UpperRight"
-		offsetXY = "-100 -100" />
+		rectAlignment = "MiddleCenter"
+		offsetXY = "0 350" />
 
 	<Image class="story-arc-image"
 		preserveAspect = "true"
 		raycastTarget = "false"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
-		animationDuration = "3"
+		animationDuration = "2"
 		preferredHeight = "300" />
+	<Image class="story-stickers" width = "900" animationDuration = "2" />
 
 	<Text class="story-arc-text"
 		alignment = "UpperLeft"
@@ -479,8 +480,7 @@
 		verticalOverflow = "Overflow"
 		showAnimation = "FadeIn"
 		hideAnimation = "FadeOut"
-		animationDuration = "2"
-		showAnimationDelay = "3" />
+		animationDuration = "2" />
 
 	<Text class="story-sticker-text"
 		alignment = "MiddleLeft"
@@ -491,6 +491,7 @@
 		horizontalOverflow = "Wrap"
 		verticalOverflow = "Overflow"
 		showAnimation = "FadeIn"
+		showAnimationDelay = "0"
 		hideAnimation = "FadeOut"
 		animationDuration = "2" />
 
@@ -507,7 +508,7 @@
 		<Text id="storyHUD_Arc2_Text" class="story-arc-text"></Text>
 	</VerticalLayout>
 	<VerticalLayout id="storyHUD_Arc3" class="story-panel story-arcs" active="false">
-		<Image id="debugSymbol" class="story-arc-image story-banner" image="story-banner-3" />
+		<Image class="story-arc-image story-banner" image="story-banner-3" />
 		<Text id="storyHUD_Arc3_Text" class="story-arc-text"></Text>
 	</VerticalLayout>
 	<VerticalLayout id="storyHUD_Arc4" class="story-panel story-arcs" active="false">
@@ -525,5 +526,6 @@
 </Panel>
 
 <Panel id="storyHUD_Sticker" class="story-panel story-stickers" active="false">
+	<Image id="debugImage" class="story-arc-image story-stickers" image="story-banner-black" />
 	<Text id="storyHUD_Sticker_Text" class="story-sticker-text"></Text>
 </Panel>

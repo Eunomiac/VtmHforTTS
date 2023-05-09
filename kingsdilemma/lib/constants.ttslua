@@ -111,39 +111,39 @@ C.Modes = {
 }
 
 C.Phases = {
-	NONE = "NONE",
+	NONE = "NONE", -- MANUAL ADVANCE
 	SESSIONINIT = {
-		SeatPlayers = "SeatPlayers",
-		HouseSelection = "HouseSelection"
+		SeatPlayers = "SeatPlayers", -- Auto
+		HouseSelection = "HouseSelection" -- Auto
 	},
-	CHRONSETUP = "CHRONSETUP",
+	CHRONSETUP = "CHRONSETUP", -- MANUAL ADVANCE
 	GAMESETUP = {
-		InitializeState = "InitializeState",
-		MainBoard = "MainBoard",
-		LeaderModerator = "LeaderModerator",
-		LegacySetup = "LegacySetup",
-		SecretAgendas = "SecretAgendas"
+		InitializeState = "InitializeState", -- Auto
+		MainBoard = "MainBoard", -- Auto
+		LeaderModerator = "LeaderModerator", -- Auto
+		LegacySetup = "LegacySetup", -- Auto
+		SecretAgendas = "SecretAgendas" -- MANUAL ADVANCE (but auto in END phase)
 	},
 	PLAY = {
-		StartRound = "StartRound",
-		DrawDilemma = "DrawDilemma",
-		Vote = "Vote",
-		VoteResolution = "VoteResolution",
-		DisplayOutcome = "DisplayOutcome",
-		ApplyChanges = "ApplyChanges",
-		ApplyMomentum = "ApplyMomentum",
-		StickerCheck = "StickerCheck",
-		EnvelopeCheck = "EnvelopeCheck",
-		EndRound = "EndRound"
+		StartRound = "StartRound", -- Auto
+		DrawDilemma = "DrawDilemma", -- MANUAL
+		Vote = "Vote", -- Auto
+		VoteResolution = "VoteResolution", -- Auto
+		DisplayOutcome = "DisplayOutcome", -- Manual
+		ApplyChanges = "ApplyChanges", -- Manual
+		ApplyMomentum = "ApplyMomentum", -- Auto
+		StickerCheck = "StickerCheck", -- Manual IF STICKER
+		EnvelopeCheck = "EnvelopeCheck", -- Manual IF ENVELOPE
+		EndRound = "EndRound" -- Auto
 	},
 	END = {
-		Score = "Score",
-		Realm = "Realm",
-		Achievements = "Achievements",
-		Alignments = "Alignments",
-		Cleanup = "Cleanup",
-		SecretAgendas = "SecretAgendas",
-		SignOff = "SignOff"
+		Score = "Score", -- Manual
+		Realm = "Realm", -- Manual
+		Achievements = "Achievements", -- Manual
+		Alignments = "Alignments", -- Manual
+		Cleanup = "Cleanup", -- Auto
+		SecretAgendas = "SecretAgendas", -- Auto
+		SignOff = "SignOff" -- Auto
 	}
 }
 

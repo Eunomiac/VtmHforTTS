@@ -78,6 +78,7 @@
 			<Text class="gameStatusDisplay" color="White"> ♦ </Text>
 			<Text id="currentGamePhaseDisplay" class="gameStatusDisplay"></Text>
 		</HorizontalLayout>
+		<Text id="autoAdvanceGamePhase" class="gameStatusDisplay" color="White" active="false">Advancing To...</Text>
 		<Button id="advanceGamePhase">Advance To ►</Button>
 		<Text id="nextGameModeDisplay" class="gameStatusDisplay"></Text>
 		<HorizontalLayout id="nextGamePhaseContainer" class="gameStatusDisplay" active="False">
@@ -91,8 +92,11 @@
 		<VerticalLayout id="lightControls" class="map-light-control-container" visibility="Host" active="false">
 			<InputField id="mapHUD_LightCoords_A" class="map-light-input" />
 			<InputField id="mapHUD_LightCoords_B" class="map-light-input" />
-		<Text class="spacer_10"></Text>
-		<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Button id="forceAdvanceGamePhase">Advance</Button>
+			<Text class="spacer_10"></Text>
 			<Button id="captureNext" scale="2 2 2">Capture</Button>
 			<Image id="debugLightImage" class="map-light-confirm" />
 			<Text id="debugLightText" class="map-light-confirm">OK</Text>

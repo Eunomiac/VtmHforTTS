@@ -152,7 +152,7 @@ end
 function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^splashQuery_Option") then
-		local _, optionRef, color = unpack(U.split(id, "_"))
+		local _, optionRef, color = table.unpack(U.split(id, "_"))
 		local stringIndex = string.gsub(optionRef, "Option", "")
 		MSG.QueryResponse(tonumber(stringIndex))
 	elseif string.match(id, "^toggleElem_") then
@@ -161,8 +161,8 @@ function HUD_Click(player, button, id)
 		DIR.InitPreflight()
 	elseif id == "initSession" then
 		DIR.InitSession(button == "-2")
-	elseif id == "advanceGamePhase" then
-		DIR.ADVANCE()
+	elseif id == "advanceGamePhase" or id == "forceAdvanceGamePhase" then
+		DIR.ADVANCE(nil, true)
 	elseif id == "prompt_simClick" then
 		promptSimClick(player, button)
 	elseif id == "prompt_assignHouseName" then
@@ -299,7 +299,7 @@ function HUD_HoverOn(player, returnString, id)
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOn(player, houseName)
 	elseif string.match(id, "^splashQuery_") then
-		local _, optionRef, color = unpack(U.split(id, "_"))
+		local _, optionRef, color = table.unpack(U.split(id, "_"))
 		UI.setAttribute(id, "color", "#FFD700FF")
 		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFFFF")
 	end
@@ -311,7 +311,7 @@ function HUD_HoverOff(player, returnString, id)
 		local houseName = string.match(id, "^houseHover_(.-)_.-$")
 		DIR.HouseHUDHoverOff(player, houseName)
 	elseif string.match(id, "^splashQuery_") then
-		local _, optionRef, color = unpack(U.split(id, "_"))
+		local _, optionRef, color = table.unpack(U.split(id, "_"))
 		UI.setAttribute(id, "color", "#FFD70011")
 		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFF44")
 	end
@@ -320,29 +320,29 @@ end
 
 -- #region House HUD~
 function House_HUD_Click(player, _, id)
-	local _, _, houseName = unpack(U.split(id, "_"))
+	local _, _, houseName = table.unpack(U.split(id, "_"))
 	DIR.HouseHUDClick(player, houseName)
 end
 
 function House_HUD_HoverOn(player, _, id)
-	local _, _, buttonRef = unpack(U.split(id, "_"))
+	local _, _, buttonRef = table.unpack(U.split(id, "_"))
 	DIR.HouseHUDHoverOn(player, buttonRef)
 end
 
 function House_HUD_HoverOff(player, _, id)
-	local _, _, buttonRef = unpack(U.split(id, "_"))
+	local _, _, buttonRef = table.unpack(U.split(id, "_"))
 	DIR.HouseHUDHoverOff(player, buttonRef)
 end
 -- #endregion
 
 -- #region Turn HUD~
 function Turn_HUD_Click(_, _, id)
-	local _, action, color = unpack(U.split(id, "_"))
+	local _, action, color = table.unpack(U.split(id, "_"))
 	DIR.TurnHUDClick(action, color)
 end
 
 function Turn_HUD_HoverOn(_, _, id)
-	local _, action, color = unpack(U.split(id, "_"))
+	local _, action, color = table.unpack(U.split(id, "_"))
 	UI.setAttribute("turnHUD_" .. action .. "_Text_" .. color, "color", "rgba(1,1,1,1)")
 	if action == "voteAye" then
 		UI.setAttribute(id, "color", "rgba(0,1,1,1)")
@@ -356,7 +356,7 @@ function Turn_HUD_HoverOn(_, _, id)
 end
 
 function Turn_HUD_HoverOff(_, _, id)
-	local _, action, color = unpack(U.split(id, "_"))
+	local _, action, color = table.unpack(U.split(id, "_"))
 	UI.setAttribute("turnHUD_" .. action .. "_Text_" .. color, "color", "rgba(1,1,1,0.5)")
 	if id == "voteAye" then
 		UI.setAttribute(id, "color", "rgba(0,1,1,0.5)")
@@ -372,7 +372,7 @@ end
 
 -- #region Consequence HUD~
 function Consequence_HUD_Click(_, button, id)
-	local _, outcome, conType, resource, color = unpack(U.split(id, "_"))
+	local _, outcome, conType, resource, color = table.unpack(U.split(id, "_"))
 	MSG.Hide(id)
 	if conType ~= "O" then
 		MSG.Hide(string.gsub(string.gsub(id, "consequence", "conDisplay"), "_" .. color, ""))
@@ -390,7 +390,7 @@ function Consequence_HUD_Click(_, button, id)
 end
 
 function Consequence_HUD_HoverOn(_, _, id)
-	local _, outcome, conType, _ = unpack(U.split(id, "_"))
+	local _, outcome, conType, _ = table.unpack(U.split(id, "_"))
 	if conType == "O" then
 		UI.setAttribute(id, "color", "#7F7F7FFF")
 	elseif outcome == "P" then
@@ -401,7 +401,7 @@ function Consequence_HUD_HoverOn(_, _, id)
 end
 
 function Consequence_HUD_HoverOff(_, _, id)
-	local _, outcome, conType, _ = unpack(U.split(id, "_"))
+	local _, outcome, conType, _ = table.unpack(U.split(id, "_"))
 	if conType == "O" then
 		UI.setAttribute(id, "color", "#7F7F7F7F")
 	elseif outcome == "P" then
@@ -503,26 +503,26 @@ local function hideActiveSubmenus(color, activeMenu)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
-			MSG.Hide(targetMenuID)
+			UI.hide(targetMenuID)
 		end
 	end)
 end
 
 function Ref_HUD_Click(player, _, id)
-	local _, mode, param, color = unpack(U.split(id, "_"))
+	local _, mode, param, color = table.unpack(U.split(id, "_"))
 	-- log({mode = mode, param = param, color = color, pColor = player.color})
 	if mode == "Popup" then
 		hideActiveSubmenus(player.color)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		if lockedPopupImage[player.color] == popupID then
 			lockedPopupImage[player.color] = nil
-			MSG.Hide(popupID)
+			UI.hide(popupID)
 			return
 		elseif lockedPopupImage[player.color] ~= nil then
-			MSG.Hide(lockedPopupImage[player.color])
+			UI.hide(lockedPopupImage[player.color])
 		end
 		UI.setAttribute(popupID, "active", "false")
-		MSG.Show(popupID)
+		UI.show(popupID)
 		lockedPopupImage[player.color] = popupID
 	elseif mode == "Camera" then
 		if param == "Screen" then
@@ -533,45 +533,51 @@ function Ref_HUD_Click(player, _, id)
 			P.SetCamera("Resources", player)
 		elseif param == "Stickers" then
 			P.SetCamera("Stickers", player)
+		elseif param == "Dilemma" then
+			P.SetCamera("DilemmaDraw", player)
+		elseif param == "SignSticker" then
+			P.SetCamera("StickerSign", player)
+		elseif param == "SignStory" then
+			P.SetCamera("StorySign", player)
 		end
 	end
 end
 
 function Ref_HUD_HoverOn(player, _, id)
-	local _, mode, param, color = unpack(U.split(id, "_"))
+	local _, mode, param, color = table.unpack(U.split(id, "_"))
 
 	if mode == "Submenu" then
 		hideActiveSubmenus(player.color, param)
 		UI.setAttribute(id .. "_" .. player.color, "active", "false")
-		MSG.Show(id .. "_" .. player.color)
+		UI.show(id .. "_" .. player.color)
 		UI.setAttribute("refHUD_SubmenuContents_" .. param .. "_" .. player.color, "active", "false")
-		MSG.Show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
+		UI.show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		UI.setAttribute(popupID, "active", "false")
-		MSG.Show(popupID)
+		UI.show(popupID)
 	end
 end
 
 function Ref_HUD_HoverOff(player, _, id)
-	local _, mode, param, color = unpack(U.split(id, "_"))
+	local _, mode, param, color = table.unpack(U.split(id, "_"))
 	if mode == "Submenu" then
-		MSG.Hide(id .. "_" .. player.color)
+		UI.hide(id .. "_" .. player.color)
 	elseif mode == "SubmenuContents" then
-		MSG.Hide(id)
-		MSG.Hide(string.gsub(id, "Contents", ""))
+		UI.hide(id)
+		UI.hide(string.gsub(id, "Contents", ""))
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
-		MSG.Hide(popupID)
+		UI.hide(popupID)
 	end
 end
 -- #endregion
 
 -- #region Map Light HUD~
 function MapHUD_Update(_, value, id)
-	local _, _, index = unpack(U.split(id, "_"))
+	local _, _, index = table.unpack(U.split(id, "_"))
 	local x, z, rc = string.match(value, "(%d+)x, (%d+)y,? ?(%w?%w?)")
 	if x == nil or z == nil then
 		S.setStateVal({}, "gameState", "mapLights", "mapInputs", index)
@@ -584,8 +590,8 @@ function MapHUD_Update(_, value, id)
 end
 
 function MapHUD_Confirm()
-	local coordsA, rcA = unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "A") or {})
-	local coordsB, rcB = unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "B") or {})
+	local coordsA, rcA = table.unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "A") or {})
+	local coordsB, rcB = table.unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "B") or {})
 
 	-- don't need to separate lights between maps, just have one be for first coord and second for second
 	-- only one coord AND it's on AnkistMap?  show same location on WorldMap, scaling light properly

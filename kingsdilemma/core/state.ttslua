@@ -585,6 +585,10 @@ function S.flattenModesAndPhases()
 	return modePhases
 end
 
+function S.getCurrentPhase()
+	return S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
+end
+
 function S.getNextPhase(curMode, curPhase)
 	if curMode == nil then
 		curMode = S.getStateVal("gameState", "gameMode")

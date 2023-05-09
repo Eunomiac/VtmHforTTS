@@ -16,264 +16,264 @@
 </Defaults>
 
 <Panel id="houseSelectionHUD" class="hud-container" active="false">
-	<Image class="house-hud" image="0-base-greyscale" />
+	<Image class="house-hud" image="zz 0-base-greyscale" />
 
-	<Image id="houseHUD_BannerBW_Allwed" class="house-hud" image="3-bannerBW-Allwed" />
-	<Image id="houseHUD_BannerBW_Aontas" class="house-hud" image="3-bannerBW-Aontas" />
-	<Image id="houseHUD_BannerBW_Blodyn" class="house-hud" image="3-bannerBW-Blodyn" />
-	<Image id="houseHUD_BannerBW_Coden" class="house-hud" image="3-bannerBW-Coden" />
-	<Image id="houseHUD_BannerBW_Crann" class="house-hud" image="3-bannerBW-Crann" />
-	<Image id="houseHUD_BannerBW_Dualak" class="house-hud" image="3-bannerBW-Dualak" />
-	<Image id="houseHUD_BannerBW_Gamam" class="house-hud" image="3-bannerBW-Gamam" />
-	<Image id="houseHUD_BannerBW_Natar" class="house-hud" image="3-bannerBW-Natar" />
-	<Image id="houseHUD_BannerBW_Olwyn" class="house-hud" image="3-bannerBW-Olwyn" />
-	<Image id="houseHUD_BannerBW_Solad" class="house-hud" image="3-bannerBW-Solad" />
-	<Image id="houseHUD_BannerBW_Tiryll" class="house-hud" image="3-bannerBW-Tiryll" />
-	<Image id="houseHUD_BannerBW_Tork" class="house-hud" image="3-bannerBW-Tork" />
-	<Image id="houseHUD_BannerBW_Wylio" class="house-hud" image="3-bannerBW-Wylio" />
+	<Image id="houseHUD_BannerBW_Allwed" class="house-hud" image="zz 3-bannerBW-Allwed" />
+	<Image id="houseHUD_BannerBW_Aontas" class="house-hud" image="zz 3-bannerBW-Aontas" />
+	<Image id="houseHUD_BannerBW_Blodyn" class="house-hud" image="zz 3-bannerBW-Blodyn" />
+	<Image id="houseHUD_BannerBW_Coden" class="house-hud" image="zz 3-bannerBW-Coden" />
+	<Image id="houseHUD_BannerBW_Crann" class="house-hud" image="zz 3-bannerBW-Crann" />
+	<Image id="houseHUD_BannerBW_Dualak" class="house-hud" image="zz 3-bannerBW-Dualak" />
+	<Image id="houseHUD_BannerBW_Gamam" class="house-hud" image="zz 3-bannerBW-Gamam" />
+	<Image id="houseHUD_BannerBW_Natar" class="house-hud" image="zz 3-bannerBW-Natar" />
+	<Image id="houseHUD_BannerBW_Olwyn" class="house-hud" image="zz 3-bannerBW-Olwyn" />
+	<Image id="houseHUD_BannerBW_Solad" class="house-hud" image="zz 3-bannerBW-Solad" />
+	<Image id="houseHUD_BannerBW_Tiryll" class="house-hud" image="zz 3-bannerBW-Tiryll" />
+	<Image id="houseHUD_BannerBW_Tork" class="house-hud" image="zz 3-bannerBW-Tork" />
+	<Image id="houseHUD_BannerBW_Wylio" class="house-hud" image="zz 3-bannerBW-Wylio" />
 
-	<Image id="houseHUD_Dark_Allwed" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-	<Image id="houseHUD_Dark_Aontas" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-	<Image id="houseHUD_Dark_Blodyn" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-	<Image id="houseHUD_Dark_BorderlandsNorth" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-	<Image id="houseHUD_Dark_BorderlandsSouth" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-	<Image id="houseHUD_Dark_Cidlada" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-	<Image id="houseHUD_Dark_Coden" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-	<Image id="houseHUD_Dark_Crann" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-	<Image id="houseHUD_Dark_Dualak" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-	<Image id="houseHUD_Dark_Gamam" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-	<Image id="houseHUD_Dark_Kauppias" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-	<Image id="houseHUD_Dark_Lybra" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-	<Image id="houseHUD_Dark_Mhuir" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-	<Image id="houseHUD_Dark_Natar" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-	<Image id="houseHUD_Dark_Olwyn" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-	<Image id="houseHUD_Dark_Solad" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-	<Image id="houseHUD_Dark_Tiryll" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-	<Image id="houseHUD_Dark_Tork" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-	<Image id="houseHUD_Dark_Wylio" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+	<Image id="houseHUD_Dark_Allwed" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+	<Image id="houseHUD_Dark_Aontas" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+	<Image id="houseHUD_Dark_Blodyn" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+	<Image id="houseHUD_Dark_BorderlandsNorth" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+	<Image id="houseHUD_Dark_BorderlandsSouth" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+	<Image id="houseHUD_Dark_Cidlada" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+	<Image id="houseHUD_Dark_Coden" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+	<Image id="houseHUD_Dark_Crann" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+	<Image id="houseHUD_Dark_Dualak" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+	<Image id="houseHUD_Dark_Gamam" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+	<Image id="houseHUD_Dark_Kauppias" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+	<Image id="houseHUD_Dark_Lybra" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+	<Image id="houseHUD_Dark_Mhuir" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+	<Image id="houseHUD_Dark_Natar" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+	<Image id="houseHUD_Dark_Olwyn" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+	<Image id="houseHUD_Dark_Solad" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+	<Image id="houseHUD_Dark_Tiryll" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+	<Image id="houseHUD_Dark_Tork" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+	<Image id="houseHUD_Dark_Wylio" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-	<Image id="houseHUD_Overlay_Allwed" class="house-hud house-hud-fade" image="2-colorizer-Allwed" />
-	<Image id="houseHUD_Overlay_Blodyn" class="house-hud house-hud-fade" image="2-colorizer-Blodyn" />
-	<Image id="houseHUD_Overlay_Coden" class="house-hud house-hud-fade" image="2-colorizer-Coden" />
-	<Image id="houseHUD_Overlay_Crann" class="house-hud house-hud-fade" image="2-colorizer-Crann" />
-	<Image id="houseHUD_Overlay_Dualak" class="house-hud house-hud-fade" image="2-colorizer-Dualak" />
-	<Image id="houseHUD_Overlay_Gamam" class="house-hud house-hud-fade" image="2-colorizer-Gamam" />
-	<Image id="houseHUD_Overlay_Natar" class="house-hud house-hud-fade" image="2-colorizer-Natar" />
-	<Image id="houseHUD_Overlay_Olwyn" class="house-hud house-hud-fade" image="2-colorizer-Olwyn" />
-	<Image id="houseHUD_Overlay_Solad" class="house-hud house-hud-fade" image="2-colorizer-Solad" />
-	<Image id="houseHUD_Overlay_Tiryll" class="house-hud house-hud-fade" image="2-colorizer-Tiryll" />
-	<Image id="houseHUD_Overlay_Tork" class="house-hud house-hud-fade" image="2-colorizer-Tork" />
-	<Image id="houseHUD_Overlay_Wylio" class="house-hud house-hud-fade" image="2-colorizer-Wylio" />
+	<Image id="houseHUD_Overlay_Allwed" class="house-hud house-hud-fade" image="zz 2-colorizer-Allwed" />
+	<Image id="houseHUD_Overlay_Blodyn" class="house-hud house-hud-fade" image="zz 2-colorizer-Blodyn" />
+	<Image id="houseHUD_Overlay_Coden" class="house-hud house-hud-fade" image="zz 2-colorizer-Coden" />
+	<Image id="houseHUD_Overlay_Crann" class="house-hud house-hud-fade" image="zz 2-colorizer-Crann" />
+	<Image id="houseHUD_Overlay_Dualak" class="house-hud house-hud-fade" image="zz 2-colorizer-Dualak" />
+	<Image id="houseHUD_Overlay_Gamam" class="house-hud house-hud-fade" image="zz 2-colorizer-Gamam" />
+	<Image id="houseHUD_Overlay_Natar" class="house-hud house-hud-fade" image="zz 2-colorizer-Natar" />
+	<Image id="houseHUD_Overlay_Olwyn" class="house-hud house-hud-fade" image="zz 2-colorizer-Olwyn" />
+	<Image id="houseHUD_Overlay_Solad" class="house-hud house-hud-fade" image="zz 2-colorizer-Solad" />
+	<Image id="houseHUD_Overlay_Tiryll" class="house-hud house-hud-fade" image="zz 2-colorizer-Tiryll" />
+	<Image id="houseHUD_Overlay_Tork" class="house-hud house-hud-fade" image="zz 2-colorizer-Tork" />
+	<Image id="houseHUD_Overlay_Wylio" class="house-hud house-hud-fade" image="zz 2-colorizer-Wylio" />
 
 	<Panel id="houseHUD_Brown" class="house-hud" visibility="Brown">
-		<Image id="houseHUD_Bright_Allwed_Brown" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-		<Image id="houseHUD_Bright_Aontas_Brown" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-		<Image id="houseHUD_Bright_Blodyn_Brown" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_Cidlada_Brown" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-		<Image id="houseHUD_Bright_Coden_Brown" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-		<Image id="houseHUD_Bright_Crann_Brown" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-		<Image id="houseHUD_Bright_Dualak_Brown" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-		<Image id="houseHUD_Bright_Gamam_Brown" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-		<Image id="houseHUD_Bright_Kauppias_Brown" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-		<Image id="houseHUD_Bright_Lybra_Brown" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-		<Image id="houseHUD_Bright_Mhuir_Brown" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-		<Image id="houseHUD_Bright_Natar_Brown" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-		<Image id="houseHUD_Bright_Olwyn_Brown" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-		<Image id="houseHUD_Bright_Solad_Brown" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-		<Image id="houseHUD_Bright_Tiryll_Brown" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-		<Image id="houseHUD_Bright_Tork_Brown" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-		<Image id="houseHUD_Bright_Wylio_Brown" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+		<Image id="houseHUD_Bright_Allwed_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
-		<Image id="houseHUD_Info_Aontas_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
-		<Image id="houseHUD_Info_Blodyn_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
-		<Image id="houseHUD_Info_Cidlada_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
-		<Image id="houseHUD_Info_Coden_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
-		<Image id="houseHUD_Info_Crann_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
-		<Image id="houseHUD_Info_Dualak_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
-		<Image id="houseHUD_Info_Enkhal_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
-		<Image id="houseHUD_Info_Gamam_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
-		<Image id="houseHUD_Info_Kauppias_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
-		<Image id="houseHUD_Info_Lybra_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
-		<Image id="houseHUD_Info_Mhuir_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
-		<Image id="houseHUD_Info_Natar_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
-		<Image id="houseHUD_Info_Olwyn_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
-		<Image id="houseHUD_Info_Solad_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
-		<Image id="houseHUD_Info_Tiryll_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
-		<Image id="houseHUD_Info_Tork_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
-		<Image id="houseHUD_Info_Wylio_Brown" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
+		<Image id="houseHUD_Info_Allwed_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
 	<Panel id="houseHUD_Red" class="house-hud" visibility="Red">
-		<Image id="houseHUD_Bright_Allwed_Red" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-		<Image id="houseHUD_Bright_Aontas_Red" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-		<Image id="houseHUD_Bright_Blodyn_Red" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_Cidlada_Red" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-		<Image id="houseHUD_Bright_Coden_Red" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-		<Image id="houseHUD_Bright_Crann_Red" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-		<Image id="houseHUD_Bright_Dualak_Red" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-		<Image id="houseHUD_Bright_Gamam_Red" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-		<Image id="houseHUD_Bright_Kauppias_Red" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-		<Image id="houseHUD_Bright_Lybra_Red" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-		<Image id="houseHUD_Bright_Mhuir_Red" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-		<Image id="houseHUD_Bright_Natar_Red" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-		<Image id="houseHUD_Bright_Olwyn_Red" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-		<Image id="houseHUD_Bright_Solad_Red" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-		<Image id="houseHUD_Bright_Tiryll_Red" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-		<Image id="houseHUD_Bright_Tork_Red" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-		<Image id="houseHUD_Bright_Wylio_Red" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+		<Image id="houseHUD_Bright_Allwed_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Red" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
-		<Image id="houseHUD_Info_Aontas_Red" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
-		<Image id="houseHUD_Info_Blodyn_Red" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
-		<Image id="houseHUD_Info_Cidlada_Red" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
-		<Image id="houseHUD_Info_Coden_Red" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
-		<Image id="houseHUD_Info_Crann_Red" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
-		<Image id="houseHUD_Info_Dualak_Red" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
-		<Image id="houseHUD_Info_Enkhal_Red" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
-		<Image id="houseHUD_Info_Gamam_Red" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
-		<Image id="houseHUD_Info_Kauppias_Red" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
-		<Image id="houseHUD_Info_Lybra_Red" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
-		<Image id="houseHUD_Info_Mhuir_Red" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
-		<Image id="houseHUD_Info_Natar_Red" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
-		<Image id="houseHUD_Info_Olwyn_Red" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
-		<Image id="houseHUD_Info_Solad_Red" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
-		<Image id="houseHUD_Info_Tiryll_Red" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
-		<Image id="houseHUD_Info_Tork_Red" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
-		<Image id="houseHUD_Info_Wylio_Red" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
+		<Image id="houseHUD_Info_Allwed_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
 	<Panel id="houseHUD_Orange" class="house-hud" visibility="Orange">
-		<Image id="houseHUD_Bright_Allwed_Orange" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-		<Image id="houseHUD_Bright_Aontas_Orange" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-		<Image id="houseHUD_Bright_Blodyn_Orange" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_Cidlada_Orange" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-		<Image id="houseHUD_Bright_Coden_Orange" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-		<Image id="houseHUD_Bright_Crann_Orange" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-		<Image id="houseHUD_Bright_Dualak_Orange" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-		<Image id="houseHUD_Bright_Gamam_Orange" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-		<Image id="houseHUD_Bright_Kauppias_Orange" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-		<Image id="houseHUD_Bright_Lybra_Orange" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-		<Image id="houseHUD_Bright_Mhuir_Orange" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-		<Image id="houseHUD_Bright_Natar_Orange" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-		<Image id="houseHUD_Bright_Olwyn_Orange" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-		<Image id="houseHUD_Bright_Solad_Orange" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-		<Image id="houseHUD_Bright_Tiryll_Orange" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-		<Image id="houseHUD_Bright_Tork_Orange" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-		<Image id="houseHUD_Bright_Wylio_Orange" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+		<Image id="houseHUD_Bright_Allwed_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
-		<Image id="houseHUD_Info_Aontas_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
-		<Image id="houseHUD_Info_Blodyn_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
-		<Image id="houseHUD_Info_Cidlada_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
-		<Image id="houseHUD_Info_Coden_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
-		<Image id="houseHUD_Info_Crann_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
-		<Image id="houseHUD_Info_Dualak_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
-		<Image id="houseHUD_Info_Enkhal_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
-		<Image id="houseHUD_Info_Gamam_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
-		<Image id="houseHUD_Info_Kauppias_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
-		<Image id="houseHUD_Info_Lybra_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
-		<Image id="houseHUD_Info_Mhuir_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
-		<Image id="houseHUD_Info_Natar_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
-		<Image id="houseHUD_Info_Olwyn_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
-		<Image id="houseHUD_Info_Solad_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
-		<Image id="houseHUD_Info_Tiryll_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
-		<Image id="houseHUD_Info_Tork_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
-		<Image id="houseHUD_Info_Wylio_Orange" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
+		<Image id="houseHUD_Info_Allwed_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
 	<Panel id="houseHUD_Yellow" class="house-hud" visibility="Yellow">
-		<Image id="houseHUD_Bright_Allwed_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-		<Image id="houseHUD_Bright_Aontas_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-		<Image id="houseHUD_Bright_Blodyn_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_Cidlada_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-		<Image id="houseHUD_Bright_Coden_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-		<Image id="houseHUD_Bright_Crann_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-		<Image id="houseHUD_Bright_Dualak_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-		<Image id="houseHUD_Bright_Gamam_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-		<Image id="houseHUD_Bright_Kauppias_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-		<Image id="houseHUD_Bright_Lybra_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-		<Image id="houseHUD_Bright_Mhuir_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-		<Image id="houseHUD_Bright_Natar_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-		<Image id="houseHUD_Bright_Olwyn_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-		<Image id="houseHUD_Bright_Solad_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-		<Image id="houseHUD_Bright_Tiryll_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-		<Image id="houseHUD_Bright_Tork_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-		<Image id="houseHUD_Bright_Wylio_Yellow" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+		<Image id="houseHUD_Bright_Allwed_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
-		<Image id="houseHUD_Info_Aontas_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
-		<Image id="houseHUD_Info_Blodyn_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
-		<Image id="houseHUD_Info_Cidlada_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
-		<Image id="houseHUD_Info_Coden_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
-		<Image id="houseHUD_Info_Crann_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
-		<Image id="houseHUD_Info_Dualak_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
-		<Image id="houseHUD_Info_Enkhal_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
-		<Image id="houseHUD_Info_Gamam_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
-		<Image id="houseHUD_Info_Kauppias_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
-		<Image id="houseHUD_Info_Lybra_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
-		<Image id="houseHUD_Info_Mhuir_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
-		<Image id="houseHUD_Info_Natar_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
-		<Image id="houseHUD_Info_Olwyn_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
-		<Image id="houseHUD_Info_Solad_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
-		<Image id="houseHUD_Info_Tiryll_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
-		<Image id="houseHUD_Info_Tork_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
-		<Image id="houseHUD_Info_Wylio_Yellow" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
+		<Image id="houseHUD_Info_Allwed_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
 	<Panel id="houseHUD_Green" class="house-hud" visibility="Green">
-		<Image id="houseHUD_Bright_Allwed_Green" class="house-hud house-hud-fade" image="1-brightColor-Allwed" />
-		<Image id="houseHUD_Bright_Aontas_Green" class="house-hud house-hud-fade" image="1-brightColor-Aontas" />
-		<Image id="houseHUD_Bright_Blodyn_Green" class="house-hud house-hud-fade" image="1-brightColor-Blodyn" />
-		<Image id="houseHUD_Bright_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="1-brightColor-Borderlands" />
-		<Image id="houseHUD_Bright_Cidlada_Green" class="house-hud house-hud-fade" image="1-brightColor-Cidlada" />
-		<Image id="houseHUD_Bright_Coden_Green" class="house-hud house-hud-fade" image="1-brightColor-Coden" />
-		<Image id="houseHUD_Bright_Crann_Green" class="house-hud house-hud-fade" image="1-brightColor-Crann" />
-		<Image id="houseHUD_Bright_Dualak_Green" class="house-hud house-hud-fade" image="1-brightColor-Dualak" />
-		<Image id="houseHUD_Bright_Gamam_Green" class="house-hud house-hud-fade" image="1-brightColor-Gamam" />
-		<Image id="houseHUD_Bright_Kauppias_Green" class="house-hud house-hud-fade" image="1-brightColor-Kauppias" />
-		<Image id="houseHUD_Bright_Lybra_Green" class="house-hud house-hud-fade" image="1-brightColor-Lybra" />
-		<Image id="houseHUD_Bright_Mhuir_Green" class="house-hud house-hud-fade" image="1-brightColor-Mhuir" />
-		<Image id="houseHUD_Bright_Natar_Green" class="house-hud house-hud-fade" image="1-brightColor-Natar" />
-		<Image id="houseHUD_Bright_Olwyn_Green" class="house-hud house-hud-fade" image="1-brightColor-Olwyn" />
-		<Image id="houseHUD_Bright_Solad_Green" class="house-hud house-hud-fade" image="1-brightColor-Solad" />
-		<Image id="houseHUD_Bright_Tiryll_Green" class="house-hud house-hud-fade" image="1-brightColor-Tiryll" />
-		<Image id="houseHUD_Bright_Tork_Green" class="house-hud house-hud-fade" image="1-brightColor-Tork" />
-		<Image id="houseHUD_Bright_Wylio_Green" class="house-hud house-hud-fade" image="1-brightColor-Wylio" />
+		<Image id="houseHUD_Bright_Allwed_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
+		<Image id="houseHUD_Bright_Aontas_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
+		<Image id="houseHUD_Bright_Blodyn_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
+		<Image id="houseHUD_Bright_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Borderlands" />
+		<Image id="houseHUD_Bright_Cidlada_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Cidlada" />
+		<Image id="houseHUD_Bright_Coden_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Coden" />
+		<Image id="houseHUD_Bright_Crann_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Crann" />
+		<Image id="houseHUD_Bright_Dualak_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Dualak" />
+		<Image id="houseHUD_Bright_Gamam_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Gamam" />
+		<Image id="houseHUD_Bright_Kauppias_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Kauppias" />
+		<Image id="houseHUD_Bright_Lybra_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Lybra" />
+		<Image id="houseHUD_Bright_Mhuir_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Mhuir" />
+		<Image id="houseHUD_Bright_Natar_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Natar" />
+		<Image id="houseHUD_Bright_Olwyn_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Olwyn" />
+		<Image id="houseHUD_Bright_Solad_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Solad" />
+		<Image id="houseHUD_Bright_Tiryll_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Tiryll" />
+		<Image id="houseHUD_Bright_Tork_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Tork" />
+		<Image id="houseHUD_Bright_Wylio_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Wylio" />
 
-		<Image id="houseHUD_Info_Allwed_Green" class="house-hud house-hud-fade" image="4-infoScreen-Allwed" />
-		<Image id="houseHUD_Info_Aontas_Green" class="house-hud house-hud-fade" image="4-infoScreen-Aontas" />
-		<Image id="houseHUD_Info_Blodyn_Green" class="house-hud house-hud-fade" image="4-infoScreen-Blodyn" />
-		<Image id="houseHUD_Info_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsNorth" />
-		<Image id="houseHUD_Info_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="4-infoScreen-BorderlandsSouth" />
-		<Image id="houseHUD_Info_Cidlada_Green" class="house-hud house-hud-fade" image="4-infoScreen-Cidlada" />
-		<Image id="houseHUD_Info_Coden_Green" class="house-hud house-hud-fade" image="4-infoScreen-Coden" />
-		<Image id="houseHUD_Info_Crann_Green" class="house-hud house-hud-fade" image="4-infoScreen-Crann" />
-		<Image id="houseHUD_Info_Dualak_Green" class="house-hud house-hud-fade" image="4-infoScreen-Dualak" />
-		<Image id="houseHUD_Info_Enkhal_Green" class="house-hud house-hud-fade" image="4-infoScreen-Enkhal" />
-		<Image id="houseHUD_Info_Gamam_Green" class="house-hud house-hud-fade" image="4-infoScreen-Gamam" />
-		<Image id="houseHUD_Info_Kauppias_Green" class="house-hud house-hud-fade" image="4-infoScreen-Kauppias" />
-		<Image id="houseHUD_Info_Lybra_Green" class="house-hud house-hud-fade" image="4-infoScreen-Lybra" />
-		<Image id="houseHUD_Info_Mhuir_Green" class="house-hud house-hud-fade" image="4-infoScreen-Mhuir" />
-		<Image id="houseHUD_Info_Natar_Green" class="house-hud house-hud-fade" image="4-infoScreen-Natar" />
-		<Image id="houseHUD_Info_Olwyn_Green" class="house-hud house-hud-fade" image="4-infoScreen-Olwyn" />
-		<Image id="houseHUD_Info_Solad_Green" class="house-hud house-hud-fade" image="4-infoScreen-Solad" />
-		<Image id="houseHUD_Info_Tiryll_Green" class="house-hud house-hud-fade" image="4-infoScreen-Tiryll" />
-		<Image id="houseHUD_Info_Tork_Green" class="house-hud house-hud-fade" image="4-infoScreen-Tork" />
-		<Image id="houseHUD_Info_Wylio_Green" class="house-hud house-hud-fade" image="4-infoScreen-Wylio" />
+		<Image id="houseHUD_Info_Allwed_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Allwed" />
+		<Image id="houseHUD_Info_Aontas_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Aontas" />
+		<Image id="houseHUD_Info_Blodyn_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Blodyn" />
+		<Image id="houseHUD_Info_BorderlandsNorth_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsNorth" />
+		<Image id="houseHUD_Info_BorderlandsSouth_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-BorderlandsSouth" />
+		<Image id="houseHUD_Info_Cidlada_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Cidlada" />
+		<Image id="houseHUD_Info_Coden_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Coden" />
+		<Image id="houseHUD_Info_Crann_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Crann" />
+		<Image id="houseHUD_Info_Dualak_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Dualak" />
+		<Image id="houseHUD_Info_Enkhal_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Enkhal" />
+		<Image id="houseHUD_Info_Gamam_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Gamam" />
+		<Image id="houseHUD_Info_Kauppias_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Kauppias" />
+		<Image id="houseHUD_Info_Lybra_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Lybra" />
+		<Image id="houseHUD_Info_Mhuir_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Mhuir" />
+		<Image id="houseHUD_Info_Natar_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Natar" />
+		<Image id="houseHUD_Info_Olwyn_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Olwyn" />
+		<Image id="houseHUD_Info_Solad_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Solad" />
+		<Image id="houseHUD_Info_Tiryll_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tiryll" />
+		<Image id="houseHUD_Info_Tork_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
+		<Image id="houseHUD_Info_Wylio_Green" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
 
 	<Panel class="house-hud">

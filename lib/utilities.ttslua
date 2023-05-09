@@ -823,7 +823,7 @@ end
 --   local arg = {...}
 --   return xpcall(
 --     -- function wrapper to pass function arguments
---     function(...) return fn(unpack(arg)) end,
+--     function(...) return fn(table.unpack(arg)) end,
 --     -- error function
 --     function(msg) return error(msg, 3) end
 --   )
