@@ -1,0 +1,286 @@
+{
+	"FULL": { // *** MINIMIZE ***
+		"gameState": {
+			"chronicleType": "0",
+			"endState": "Death",
+			"endTime": 1683134040,
+			"gameCount": 1,
+			"gameDuration": 3.05,
+			"gameMode": "END",
+			"gamePhase": "Alignments",
+			"kingName": "Harald V",
+			"kingTitle": "King",
+			"leader": "Brown",
+			"moderator": "Red",
+			"startTime": 1683123060
+		},
+		"gameStorage": [],
+		"lights": {
+			"lightBalance": "on",
+			"lightBehind": {
+				"Brown": "ambient",
+				"Green": "ambient",
+				"Orange": "ambient",
+				"Red": "ambient",
+				"Yellow": "ambient"
+			},
+			"lightDilemmaAye": "off",
+			"lightDilemmaMain": "off",
+			"lightDilemmaNay": "off",
+			"lightDilemmaRef": {
+				"Brown": "off",
+				"Green": "off",
+				"Orange": "off",
+				"Red": "off",
+				"Yellow": "off"
+			},
+			"lightFeature": "on",
+			"lightFront": {
+				"Brown": "dim",
+				"Green": "dim",
+				"Orange": "dim",
+				"Red": "dim",
+				"Yellow": "dim"
+			},
+			"lightInfluence": "momentumUp2",
+			"lightKnowledge": "momentumUp2",
+			"lightLeader": "on",
+			"lightLectern": "ambient",
+			"lightMainBottom": "ambient",
+			"lightMainTop": "ambient",
+			"lightMapAnkist": "ambient",
+			"lightMapWorld": "ambient",
+			"lightModerator": "on",
+			"lightMorale": "momentumUp1",
+			"lightPlayerSpotlight": "off",
+			"lightStability": "on",
+			"lightVote": {
+				"Brown": "off",
+				"Green": "off",
+				"Orange": "off",
+				"Red": "off",
+				"Yellow": "off"
+			},
+			"lightWealth": "momentumDown2",
+			"lightWelfare": "momentumUp1"
+		},
+		"playerData": {
+			"Brown": {
+				"angle": 60,
+				"color": "Brown",
+				"id": "Player 2",
+				"num": 1
+			},
+			"Green": {
+				"angle": 300,
+				"color": "Green",
+				"id": "Player 3",
+				"num": 5
+			},
+			"Orange": {
+				"angle": 180,
+				"color": "Orange",
+				"id": "Player 1",
+				"num": 3
+			},
+			"Red": {
+				"angle": 120,
+				"color": "Red",
+				"id": "Player 5",
+				"num": 2
+			},
+			"Yellow": {
+				"angle": 240,
+				"color": "Yellow",
+				"id": "Player 4",
+				"num": 4
+			}
+		},
+		"playerStorage": {
+			"76561198002132577": {
+				"crave": 0,
+				"curColor": "Orange",
+				"house": "Olwyn",
+				"houseName": "Silverlight",
+				"id": "76561198002132577",
+				"prestige": 5.05
+			},
+			"76561198071469619": {
+				"crave": 1,
+				"curColor": "Brown",
+				"house": "Gamam",
+				"houseName": "Lunargent",
+				"id": "76561198071469619",
+				"prestige": 2.07
+			},
+			"76561198074782853": {
+				"crave": 1,
+				"curColor": "Green",
+				"house": "Blodyn",
+				"houseName": "Concordia",
+				"id": "76561198074782853",
+				"prestige": 2.01
+			},
+			"76561198847347865": {
+				"crave": 0,
+				"curColor": "Yellow",
+				"house": "Solad",
+				"houseName": "Protosia",
+				"id": "76561198847347865",
+				"prestige": 4.02
+			},
+			"76561199015564654": {
+				"crave": 2,
+				"curColor": "Red",
+				"house": "Crann",
+				"houseName": "Hedwyn",
+				"id": "76561199015564654",
+				"prestige": 1.11
+			},
+			"Player 1": {
+				"crave": 0,
+				"curColor": "Orange",
+				"house": "Olwyn",
+				"houseName": "Silverlight",
+				"id": "Player 1",
+				"prestige": 5.05
+			},
+			"Player 2": {
+				"crave": 1,
+				"curColor": "Brown",
+				"house": "Gamam",
+				"houseName": "Lunargent",
+				"id": "Player 2",
+				"prestige": 2.07
+			},
+			"Player 3": {
+				"crave": 1,
+				"curColor": "Green",
+				"house": "Blodyn",
+				"houseName": "Concordia",
+				"id": "Player 3",
+				"prestige": 2.01
+			},
+			"Player 4": {
+				"crave": 0,
+				"curColor": "Yellow",
+				"house": "Solad",
+				"houseName": "Protosia",
+				"id": "Player 4",
+				"prestige": 4.02
+			},
+			"Player 5": {
+				"crave": 2,
+				"curColor": "Red",
+				"house": "Crann",
+				"houseName": "Hedwyn",
+				"id": "Player 5",
+				"prestige": 1.11
+			}
+		},
+		"roundState": {
+			"ayeTotal": 3,
+			"boardTokens": {
+				"momentum": {
+					"Influence": 2,
+					"Knowledge": 2,
+					"Morale": 1,
+					"Wealth": -2,
+					"Welfare": 1
+				},
+				"positions": {
+					"Influence": 12,
+					"Knowledge": 11,
+					"Morale": 10,
+					"Stability": 8,
+					"Wealth": 1,
+					"Welfare": 12
+				}
+			},
+			"consequences": {
+				"N": [],
+				"P": []
+			},
+			"currentTurn": "Yellow",
+			"nayTotal": 0,
+			"passModClaimed": false,
+			"roundNum": 10,
+			"voteResult": "Aye"
+		},
+		"turnState": {
+			"Brown": {
+				"powerCommitted": 2,
+				"vote": "Aye"
+			},
+			"Green": {
+				"powerCommitted": 0,
+				"vote": "Pass"
+			},
+			"Orange": {
+				"powerCommitted": 0,
+				"vote": "Pass"
+			},
+			"Red": {
+				"powerCommitted": 0,
+				"vote": "Pass"
+			},
+			"Yellow": {
+				"powerCommitted": 1,
+				"vote": "Aye"
+			}
+		}
+	},
+	"IMPORTANT": {
+		"gameState": {
+			"gameMode": "END", "gamePhase": "Alignments",
+			"leader": "Brown", "moderator": "Red",
+			"gameCount": 1,
+			"kingTitle": "King", "kingName": "Harald V",
+			"endState": "Death"
+		},
+		"roundState": {
+			"currentTurn": "Yellow",
+			"passModClaimed": false,
+			"roundNum": 10,
+			"ayeTotal": 3, "nayTotal": 0,
+			"voteResult": "Aye",
+			"boardTokens": {
+				"momentum": {
+					"Influence...": 2 // -2, -1, 1, 2
+				},
+				"positions": {
+					"Stability": 8, // 1 - 19; 10 = center
+					"Influence...": 12 // 1 - 17; 9 = center
+				}
+			}
+		},
+		"turnState": {
+			"Brown": {
+				"powerCommitted": 2,
+				"vote": "Aye" // "Aye", "Nay", false, "Pass" or "PassMod"
+			}
+		},
+		"playerData": {
+			"Brown": {
+				"id": "76561198071469619",
+				"angle": 60,
+				"color": "Brown",
+				"num": 1
+			}
+		},
+		"playerStorage": {
+			"76561198002132577": { // Eunomiac
+				"id": "76561198002132577",
+				"house": "Olwyn",
+				"houseName": "Silverlight",
+				"crave": 0,
+				"prestige": 5.05,
+				"curColor": "Orange"
+			},
+			"76561198071469619": { }, // Brett
+			"76561198074782853": { }, // Cory
+			"76561198847347865": { }, // Callie
+			"76561199015564654": { } // Roarshack
+		}
+	}
+}

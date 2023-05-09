@@ -47,27 +47,6 @@ local DIR = require("kingsdilemma.core.director")
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
 	S.InitializeGameState(save_data)
-
-	local pStorageData = S.getStateVal("playerStorage")
-
-	for _, key in pairs(U.getKeys(pStorageData)) do
-		if not string.match(key, "^Player") then
-			local color
-			if pStorageData[key].house == "Blodyn" then
-				color = "Green"
-			elseif pStorageData[key].house == "Crann" then
-				color = "Red"
-			elseif pStorageData[key].house == "Olwyn" then
-				color = "Orange"
-			elseif pStorageData[key].house == "Solad" then
-				color = "Yellow"
-			elseif pStorageData[key].house == "Gamam" then
-				color = "Brown"
-			end
-			S.setStateVal(color, "playerStorage", key, "curColor")
-		end
-	end
-	-- UI.show("sessionPreflightDisplay")
 	DIR.InitPreflight()
 end
 
@@ -107,22 +86,6 @@ function onPlayerAction(player, action, targets)
 		end)
 		return false
 	end
-	-- 	local coinOrPower = U.filter(
-	-- 		targets,
-	-- 		function(obj) return U.hasAnyTag(obj, {"PowerToken", "CoinToken"}) end
-	-- 	)
-
-	-- 	if #coinOrPower == 0 then return false end
-
-	-- 	if #coinOrPower == 1 then
-	-- 		OU.SplitObjByValue(coinOrPower[1])
-	-- 	else
-	-- 		OU.CombineObjsByValue(coinOrPower)
-	-- 	end
-
-	-- 	return false
-	-- end
-
 	return true
 end
 

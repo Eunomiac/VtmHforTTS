@@ -106,19 +106,17 @@
 
 	<InputField class="input-sticker" onEndEdit="InputHUD_Sticker" />
 	<InputField class="input-envelope" onEndEdit="InputHUD_Envelope" />
-	<InputField class="input-king" onEndEdit="InputHUD_King"
-		textColor = "#FFDD00FF"
+	<InputField class="input-king"
+		textColor = "#FFF2CC"
 		characterValidation = "None"
 		color = "#FFDD0011|#FFDD0033|#111111|#333333"
-		caretColor = "#FFDD00AA"
+		caretColor = "#FFF2CC"
 		placeholder = " "
 		characterLimit = "25"
 		fontSize = "60"
 		alignment = "MiddleCenter"
-		shadow = "#000000"
-		shadowDistance = "2 -2"
 		preferredHeight = "150"
-		preferredWidth = "500"
+		preferredWidth = "400"
 		caretWidth = "2" />
 
 	<Panel class="input-prefix-container"
@@ -130,13 +128,14 @@
 	<Panel class="input-suffix-container"
 		width = "300" offsetXY = "-250 -20" rectAlignment = "LowerRight" />
 	<Text class="input-prefix"
-		color = "#FFDD00FF"
-		font = "Fonts/FrizI"
-		fontSize="40"
+		color = "#FFF2CC"
+		font = "Fonts/FrizB"
+		fontSize="60"
 		horizontalOverflow = "Overflow"
 		alignment="UpperRight"
+		offsetXY = "0 9"
 		/>
-	<Text class="input-suffix" alignment = "UpperLeft" offsetXY = "0 -5" />
+	<Text class="input-suffix" font = "Fonts/FrizI" fontSize = "40" alignment = "UpperLeft" offsetXY = "0 -5" />
 
 	<Image class="input-input"
 		ignoreLayout = "true"
@@ -154,7 +153,7 @@
 	<Image class="input-king-bg" height="95%" offsetXY = "0 10" />
 	<Image class="input-king-border" image=""
 		ignoreLayout = "true"
-		color = "#FFDD0011"
+		color = "#FFFFFF11"
 		offsetXY = "0 8"
 		rectAlignment = "MiddleCenter"
 		preserveAspect = "false"
@@ -303,9 +302,80 @@
 	</VerticalLayout>
 </Panel>
 
+<Defaults>
+	<Image class="king-confirm"
+		ignoreLayout = "true"
+		preserveAspect = "false"
+		rectAlignment = "LowerRight"
+		raycastTarget = "true"
+		onMouseDown = "InputHUD_KingConfirm"
+		height = "50"
+		width = "50"
+		offsetXY = "-290 -40" />
+	<Image class="king-confirm-bg" image="fetch-sticker-bg" color = "#FFF2CC" />
+	<Image class="king-confirm-border" image="fetch-sticker-border" color = "#FFF2CC" />
+	<Text class="king-confirm"
+		font = "Fonts/FrizB"
+		fontSize = "30"
+		height = "50"
+		width = "50"
+		color = "#000000"
+		outline = ""
+		shadow = ""
+		ignoreLayout = "true"
+		pivot = "0.5 0.5"
+		alignment = "MiddleCenter"
+		rectAlignment = "LowerRight"
+		offsetXY = "-315 -14" />
+	<InputField class="input-king"
+		scale = "1 1 1"
+		onValueChanged = "InputHUD_KingUpdate"
+		preferredWidth = "400" />
 
+	</Defaults>
 
-
+<Panel class="input-query king-query" visibility="Brown">
+	<VerticalLayout id="kingQuery_Brown" class="input-query" active="false">
+		<Image class="input-top" />
+		<VerticalLayout class="input-query">
+			<Image class="input-bg input-king-bg" />
+			<Text class="input">Who Inherits the Throne?</Text>
+			<Panel class="input-prefix-container">
+				<Text id="kingQuery_kingTitle_Brown" class="input-prefix">King </Text>
+			</Panel>
+			<Image id="kingQuery_inputImage_Brown" class="input-input input-king-border" />
+			<InputField id="kingQuery_input_Brown" class="input input-king"></InputField>
+			<Panel class="input-prefix-container input-suffix-container">
+				<Text id="kingQuery_kingHouse_Brown" class="input input-prefix input-suffix">of House Silverlight</Text>
+			</Panel>
+			<Image id="debugBG" class="king-confirm king-input king-confirm-bg" />
+			<Image id="debugBorder" class="king-confirm king-input king-confirm-border" />
+			<Text id="debugText" class="king-confirm king">OK</Text>
+		</VerticalLayout>
+		<Image class="input-bottom" />
+	</VerticalLayout>
+</Panel>
+<Panel class="input-query king-query" visibility="Red">
+	<VerticalLayout id="kingQuery_Red" class="input-query" active="false">
+		<Image class="input-top" />
+		<VerticalLayout class="input-query">
+			<Image class="input-bg input-king-bg" />
+			<Text class="input">Who Inherits the Throne?</Text>
+			<Panel class="input-prefix-container">
+				<Text id="kingQuery_kingTitle_Red" class="input-prefix">King </Text>
+			</Panel>
+			<Image id="kingQuery_inputImage_Red" class="input-input input-king-border" />
+			<InputField id="kingQuery_input_Red" class="input input-king"></InputField>
+			<Panel class="input-prefix-container input-suffix-container">
+				<Text id="kingQuery_kingHouse_Red" class="input input-prefix input-suffix">of House Silverlight</Text>
+			</Panel>
+			<Image id="debugBG" class="king-confirm king-input king-confirm-bg" />
+			<Image id="debugBorder" class="king-confirm king-input king-confirm-border" />
+			<Text id="debugText" class="king-confirm king">OK</Text>
+		</VerticalLayout>
+		<Image class="input-bottom" />
+	</VerticalLayout>
+</Panel>
 <Panel class="input-query king-query" visibility="Orange">
 	<VerticalLayout id="kingQuery_Orange" class="input-query" active="false">
 		<Image class="input-top" />
@@ -320,6 +390,51 @@
 			<Panel class="input-prefix-container input-suffix-container">
 				<Text id="kingQuery_kingHouse_Orange" class="input input-prefix input-suffix">of House Silverlight</Text>
 			</Panel>
+			<Image id="debugBG" class="king-confirm king-input king-confirm-bg" />
+			<Image id="debugBorder" class="king-confirm king-input king-confirm-border" />
+			<Text id="debugText" class="king-confirm king">OK</Text>
+		</VerticalLayout>
+		<Image class="input-bottom" />
+	</VerticalLayout>
+</Panel>
+<Panel class="input-query king-query" visibility="Yellow">
+	<VerticalLayout id="kingQuery_Yellow" class="input-query" active="false">
+		<Image class="input-top" />
+		<VerticalLayout class="input-query">
+			<Image class="input-bg input-king-bg" />
+			<Text class="input">Who Inherits the Throne?</Text>
+			<Panel class="input-prefix-container">
+				<Text id="kingQuery_kingTitle_Yellow" class="input-prefix">King </Text>
+			</Panel>
+			<Image id="kingQuery_inputImage_Yellow" class="input-input input-king-border" />
+			<InputField id="kingQuery_input_Yellow" class="input input-king"></InputField>
+			<Panel class="input-prefix-container input-suffix-container">
+				<Text id="kingQuery_kingHouse_Yellow" class="input input-prefix input-suffix">of House Silverlight</Text>
+			</Panel>
+			<Image id="debugBG" class="king-confirm king-input king-confirm-bg" />
+			<Image id="debugBorder" class="king-confirm king-input king-confirm-border" />
+			<Text id="debugText" class="king-confirm king">OK</Text>
+		</VerticalLayout>
+		<Image class="input-bottom" />
+	</VerticalLayout>
+</Panel>
+<Panel class="input-query king-query" visibility="Green">
+	<VerticalLayout id="kingQuery_Green" class="input-query" active="false">
+		<Image class="input-top" />
+		<VerticalLayout class="input-query">
+			<Image class="input-bg input-king-bg" />
+			<Text class="input">Who Inherits the Throne?</Text>
+			<Panel class="input-prefix-container">
+				<Text id="kingQuery_kingTitle_Green" class="input-prefix">King </Text>
+			</Panel>
+			<Image id="kingQuery_inputImage_Green" class="input-input input-king-border" />
+			<InputField id="kingQuery_input_Green" class="input input-king"></InputField>
+			<Panel class="input-prefix-container input-suffix-container">
+				<Text id="kingQuery_kingHouse_Green" class="input input-prefix input-suffix">of House Silverlight</Text>
+			</Panel>
+			<Image id="debugBG" class="king-confirm king-input king-confirm-bg" />
+			<Image id="debugBorder" class="king-confirm king-input king-confirm-border" />
+			<Text id="debugText" class="king-confirm king">OK</Text>
 		</VerticalLayout>
 		<Image class="input-bottom" />
 	</VerticalLayout>

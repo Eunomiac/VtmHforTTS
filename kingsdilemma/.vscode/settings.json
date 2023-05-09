@@ -18,5 +18,11 @@
 		"onLoad",
 		"Vector",
 		"spawnObjectData"
+	],
+	"Lua.diagnostics.ignoredFiles": "Disable",
+	"Lua.workspace.ignoreDir": [
+		".vscode",
+		"**/console++.lua",
+		"Console/**"
 	]
 }

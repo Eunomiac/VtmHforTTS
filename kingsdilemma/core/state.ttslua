@@ -22,14 +22,20 @@ local INITGAMESTATE = {
 		moderator = nil
 	},
 	roundState = {
-    roundNum = 0,
-    currentTurn = nil,
-    ayeTotal = 0,
-    nayTotal = 0,
-    passModClaimed = false,
+		roundNum = 0,
+		currentTurn = nil,
+		ayeTotal = 0,
+		nayTotal = 0,
+		passModClaimed = false,
 		voteResult = nil,
-    boardTokens = { momentum = {}, positions = {} },
-    consequences = { N = {}, P = {} }
+		boardTokens = {
+			momentum = {},
+			positions = {}
+		},
+		consequences = {
+			N = {},
+			P = {}
+		}
 	},
 	turnState = {},
 	playerData = {},
@@ -47,15 +53,25 @@ local INITGAMESTATE = {
 }
 
 -- #region Initializing, Refreshing, Resetting Game State ~
-function S.GetSeatCount() return #Player.getAvailableColors() end
+function S.GetSeatCount()
+	return #Player.getAvailableColors()
+end
 
 function S.ArePlayersSeated()
 	local players = Player.getPlayers()
-	if #players < 3 then return false end
+	if #players < 3 then
+		return false
+	end
 	for i = 1, 5 do
-		if i > #players then return true end
-		local thisPlayer = U.pluck(players, function(player) return player.color == C.SeatColors[i] end)
-		if thisPlayer == nil then return false end
+		if i > #players then
+			return true
+		end
+		local thisPlayer = U.pluck(players, function(player)
+			return player.color == C.SeatColors[i]
+		end)
+		if thisPlayer == nil then
+			return false
+		end
 	end
 	-- log("All Players Confirmed Seated.")
 	return true
@@ -71,7 +87,9 @@ function S.getSeatAngles()
 end
 
 function S.UpdatedSeatedPlayerData()
-	if not S.ArePlayersSeated() then return nil end
+	if not S.ArePlayersSeated() then
+		return nil
+	end
 	local angles = S.getSeatAngles()
 	local playerData = {}
 	U.iForEach(S.getPlayers(), function(player, i)
@@ -93,7 +111,6 @@ function S.InitializeGameState(save_data)
 		save_data = JSON.decode(save_data)
 	end
 	if save_data then
-		save_data.gameState.kingName = "Cyrus I of House Silverlight"
 		save_data = U.merge(INITGAMESTATE, save_data)
 		S.setGameState(save_data)
 	else
@@ -102,11 +119,11 @@ function S.InitializeGameState(save_data)
 	S.UpdatedSeatedPlayerData()
 end
 
-function S.resetGameState(isWipingPlayerData)
+function S.resetGameState()
 	local newState = U.clone(INITGAMESTATE, true)
 	local state = Global.getTable("gameState")
 
-	if not isWipingPlayerData and state.playerStorage ~= nil then
+	if state.playerStorage ~= nil then
 		newState.playerStorage = state.playerStorage
 	end
 
@@ -127,8 +144,7 @@ function S.resetGameState(isWipingPlayerData)
 	S.refreshStateDebug()
 	Global.call("UpdatePhaseDisplay")
 	UI.hide("gameStatusDisplay")
-	UI.hide("sessionInitDisplay")
-	UI.show("sessionPreflightDisplay")
+	UI.show("sessionInitDisplay")
 	UI.show("splashScreen")
 	UI.setValue("gameNumText", "")
 end
@@ -141,39 +157,57 @@ end
 function S.refreshStateDebug(stateData)
 	local function parseCode(val, excludeKeys)
 		local encodeString
-		if val == nil then return "nil" end
+		if val == nil then
+			return "nil"
+		end
 		if excludeKeys == nil then
 			encodeString = JSON.encode_pretty(val)
 		else
-			encodeString = JSON.encode_pretty(U.filter(val, function(_, key) return not U.isIn(key, excludeKeys) end))
+			encodeString = JSON.encode_pretty(U.filter(val, function(_, key)
+				return not U.isIn(key, excludeKeys)
+			end))
 		end
 		return string.gsub(encodeString, "% % ", "..")
 	end
 
-	if (stateData == nil) then stateData = Global.getTable("gameState") end
-	UI.setValue("stateDisplay_1", parseCode(stateData, {"lights", "playerData", "playerStorage", "gameState", "roundState", "turnState"}))
-	UI.setValue("stateDisplay_2", parseCode({gameState = stateData.gameState, roundState = stateData.roundState, turnState = stateData.turnState}))
-	UI.setValue("stateDisplay_3", parseCode({playerData = stateData.playerData, lights = stateData.lights}))
-	UI.setValue("stateDisplay_4", parseCode({playerStorage = stateData.playerStorage}))
+	if (stateData == nil) then
+		stateData = Global.getTable("gameState")
+	end
+	UI.setValue("stateDisplay_1",
+		parseCode(stateData, { "lights", "playerData", "playerStorage", "gameState", "roundState", "turnState" }))
+	UI.setValue("stateDisplay_2", parseCode({
+		gameState = stateData.gameState,
+		roundState = stateData.roundState,
+		turnState = stateData.turnState
+	}))
+	UI.setValue("stateDisplay_3", parseCode({
+		playerData = stateData.playerData,
+		lights = stateData.lights
+	}))
+	UI.setValue("stateDisplay_4", parseCode({
+		playerStorage = stateData.playerStorage
+	}))
 end
 
 -- #endregion
 
 local function getFromTable(tableData, ...)
-	local keys = {...}
+	local keys = { ... }
 
 	while #keys > 0 do
 		U.Val("getFromTable()", tableData, tableData and U.Type(tableData) == "table", "Cannot navigate past non-table.")
 		local thisKey = U.shift(keys)
 		tableData = tableData[thisKey]
-		if tableData == nil then return nil end
+		if tableData == nil then
+			return nil
+		end
 	end
 
 	return tableData
 end
 
 local function setInTable(value, tableData, ...)
-	local keys = {...}
+	local keys = { ... }
 	local finalKey = U.pop(keys)
 	local tableRef = tableData
 	local subTableKey, subTableData, subTableRef
@@ -208,10 +242,19 @@ end
 S.GetFromTable = getFromTable
 S.SetInTable = setInTable
 
+S.HotseatNameLinks = {
+	["Player 0"] = "76561198002132577",   -- Silverlight (Euno)
+	["Player 1"] = "76561198002132577",   -- Silverlight (Euno)
+	["Player 2"] = "76561198071469619",   -- Lunargent (Brett)
+	["Player 3"] = "76561198074782853",   -- Concordia (Cory)
+	["Player 4"] = "76561198847347865",   -- Protosia (Callie)
+	["Player 5"] = "76561199015564654"    -- Hedwyn (Roarshack)
+}
 
 -- #region Basic Getters & Setters ~
 function S.getGameState()
 	S.refreshStateDebug()
+
 	return Global.getTable("gameState")
 end
 
@@ -264,21 +307,26 @@ end
 function S.getRoundState()
 
 end
+
 -- #endregion
 
 -- #region Basic PlayerData Getters & Setters ~
 function S.getStorageID(playerRef)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return nil end
-	if string.match(player.steam_name or " ", "^Player ") then
-		return player.steam_name
+	if player == nil then
+		return nil
+	end
+	if U.isIn(player.steam_name or " ", S.HotseatNameLinks) then
+		return S.HotseatNameLinks[player.steam_name]
 	end
 	return U.ToString(player.steam_id)
 end
 
 function S.getPlayerData(playerRef)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return S.getStateVal("playerStorage") end
+	if player == nil then
+		return S.getStateVal("playerStorage")
+	end
 	return S.getStateVal("playerStorage", S.getStorageID(player))
 end
 
@@ -289,7 +337,9 @@ end
 
 function S.getPlayerVal(playerRef, ...)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return end
+	if player == nil then
+		return
+	end
 
 	local response = S.getStateVal("playerData", player.color, ...)
 
@@ -302,7 +352,9 @@ end
 
 function S.setPlayerVal(value, playerRef, ...)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return end
+	if player == nil then
+		return
+	end
 	local pState = S.getStateVal("playerStorage", S.getStorageID(player))
 	if pState == nil then
 		pState = {};
@@ -314,23 +366,34 @@ end
 
 function S.getPlayerTurnVal(playerRef, ...)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return end
+	if player == nil then
+		return
+	end
 	return S.getStateVal("turnState", player.color, ...)
 end
 
 function S.setPlayerTurnVal(value, playerRef, ...)
 	local player = S.getPlayer(playerRef)
-	if player == nil then return end
+	if player == nil then
+		return
+	end
 	return S.setStateVal(value, "turnState", player.color, ...)
 end
+
 -- #endregion
 
 -- #region Player Instance Getters ~
 function S.getPlayer(playerRef)
-	if playerRef == nil then return end
+	if playerRef == nil then
+		return
+	end
 	if U.Type(playerRef) == "userdata" then
-		if U.isPlayer(playerRef) then return playerRef end
-		if U.isGameObject(playerRef) then return S.getPlayerOf(playerRef) end
+		if U.isPlayer(playerRef) then
+			return playerRef
+		end
+		if U.isGameObject(playerRef) then
+			return S.getPlayerOf(playerRef)
+		end
 	elseif U.Type(playerRef) == "string" then
 		if playerRef == "Host" or playerRef == "Admin" then
 			return U.find(S.getPlayers(), function(player)
@@ -339,8 +402,8 @@ function S.getPlayer(playerRef)
 		end
 		return U.find(S.getPlayers(), function(player)
 			return player.color == playerRef
-					or U.ToString(player.steam_id) == playerRef
-					or U.ToString(player.steam_name) == playerRef
+				or U.ToString(player.steam_name) == playerRef
+				or S.getStateVal("playerData", player.color, "id") == playerRef
 		end)
 	elseif U.Type(playerRef) == "number" then
 		return S.getPlayers()[playerRef]
@@ -348,15 +411,23 @@ function S.getPlayer(playerRef)
 end
 
 function S.getPlayers()
-	return U.filter(U.iMap(Player.getAvailableColors(), function(color) return Player[color] end), U.isPlayer)
+	return U.filter(U.iMap(Player.getAvailableColors(), function(color)
+		return Player[color]
+	end), U.isPlayer)
 end
 
 -- #endregion
 
 -- #region PLAYER DATA
-function S.getPlayerColor(playerRef) return S.getPlayer(playerRef).color end
+function S.getPlayerColor(playerRef)
+	return S.getPlayer(playerRef).color
+end
 
-function S.getOpenColors() return U.filter(Player.getAvailableColors(), function(color) return not U.isPlayer(Player[color]) end) end
+function S.getOpenColors()
+	return U.filter(Player.getAvailableColors(), function(color)
+		return not U.isPlayer(Player[color])
+	end)
+end
 
 function S.getOtherColors(playerRef)
 	local pColor
@@ -366,16 +437,25 @@ function S.getOtherColors(playerRef)
 		pColor = playerRef.color
 	else
 		local player = S.getPlayer(playerRef)
-		if player == nil then return error("No player found for ref'" .. tostring(playerRef) .. "'") end
+		if player == nil then
+			return error("No player found for ref'" .. tostring(playerRef) .. "'")
+		end
 		pColor = player.color
 	end
-	return U.filter(Player.getAvailableColors(), function(color) return color ~= pColor end)
+	return U.filter(Player.getAvailableColors(), function(color)
+		return color ~= pColor
+	end)
 end
 
 function S.getNextPlayer(playerRef)
 	local player = S.getPlayer(playerRef)
+	if player == nil then
+		return
+	end
 	local playerColors = Player.getAvailableColors()
-	local playerIndex = U.findIndex(playerColors, function(color) return color == player.color end)
+	local playerIndex = U.findIndex(playerColors, function(color)
+		return color == player.color
+	end)
 	if playerIndex == #playerColors then
 		return S.getPlayer(playerColors[1])
 	else
@@ -384,17 +464,23 @@ function S.getNextPlayer(playerRef)
 end
 
 function S.getPlayerNum(playerRef)
-	if playerRef == 0 or playerRef == nil then return 0 end
+	if playerRef == 0 or playerRef == nil then
+		return 0
+	end
 	return S.getPlayerVal(playerRef, "num")
 end
 
 function S.getPlayerAngle(playerRef)
-	if playerRef == 0 or playerRef == nil then return 0 end
+	if playerRef == 0 or playerRef == nil then
+		return 0
+	end
 	return S.getPlayerVal(playerRef, "angle")
 end
 
 function S.getPlayerOf(obj)
-	if obj == nil then return nil end
+	if obj == nil then
+		return nil
+	end
 	local playerColor = U.findColorTag(obj)
 	if playerColor ~= nil then
 		return Player[playerColor]
@@ -402,54 +488,75 @@ function S.getPlayerOf(obj)
 		return nil
 	else
 		local playerAngle = OU.GetNearestAngle(obj, S.getSeatAngles())
-		if playerAngle == 0 then return 0 end
-		local playerData = U.find(S.getStateVal("playerData"), function(pData) return pData.angle == playerAngle end)
-		if playerData == nil then return U.AlertGM("Error finding player of object '" .. U.ToString(obj) .. "'") end
+		if playerAngle == 0 then
+			return 0
+		end
+		local playerData = U.find(S.getStateVal("playerData"), function(pData)
+			return pData.angle == playerAngle
+		end)
+		if playerData == nil then
+			return U.AlertGM("Error finding player of object '" .. U.ToString(obj) .. "'")
+		end
 		return S.getPlayer(playerData.num)
 	end
 end
 
 function S.getPlayerOfHouse(houseName) -- returns COLOR is player is present, ID if player is not present, and false if house is unclaimed
 	-- check if any present players have claimed that house
-	for _, pData in pairs(S.getStateVal("playerData")) do
+	for _, pData in pairs(S.getStateVal("playerData") or {}) do
 		if S.getPlayerHouse(pData.id) == houseName then
 			return pData.color
-end
-end
+		end
+	end
 
 	-- check if any stored players have claimed that house
-	for _, sData in pairs(S.getStateVal("playerStorage")) do
+	for _, sData in pairs(S.getStateVal("playerStorage") or {}) do
 		if sData.house == houseName then
 			return sData.id
-end
-end
+		end
+	end
 
 	return false
 end
 
-function S.getPlayerHouse(playerRef) return S.getPlayerVal(playerRef, "house") end
+function S.getPlayerHouse(playerRef)
+	return S.getPlayerVal(playerRef, "house")
+end
 
-function S.getPlayerHouseName(playerRef) return S.getPlayerVal(playerRef, "houseName") end
+function S.getPlayerHouseName(playerRef)
+	return S.getPlayerVal(playerRef, "houseName")
+end
 
-function S.getPlayerPrestige(playerRef) return S.getPlayerVal(playerRef, "prestige") end
+function S.getPlayerPrestige(playerRef)
+	return S.getPlayerVal(playerRef, "prestige")
+end
 
-function S.getPlayerCrave(playerRef) return S.getPlayerVal(playerRef, "crave") end
+function S.getPlayerCrave(playerRef)
+	return S.getPlayerVal(playerRef, "crave")
+end
 
-function S.getPlayerVoteStatus(playerRef) return S.getPlayerTurnVal(playerRef, "vote") end
+function S.getPlayerVoteStatus(playerRef)
+	return S.getPlayerTurnVal(playerRef, "vote")
+end
 
-function S.getPlayerPowerCommitted(playerRef) return S.getPlayerTurnVal(playerRef, "powerCommitted") end
+function S.getPlayerPowerCommitted(playerRef)
+	return S.getPlayerTurnVal(playerRef, "powerCommitted")
+end
 
 -- #endregion
 
-
 -- #region Game Phase Tracking
 function S.isInMode(modes)
-	if U.Type(modes) == "string" then modes = { modes } end
+	if U.Type(modes) == "string" then
+		modes = { modes }
+	end
 	return U.isIn(S.getStateVal("gameState", "gameMode"), modes)
 end
 
 function S.isInPhase(phases)
-	if U.Type(phases) == "string" then phases = { phases } end
+	if U.Type(phases) == "string" then
+		phases = { phases }
+	end
 	return U.isIn(S.getStateVal("gameState", "gamePhase"), phases)
 end
 
@@ -457,13 +564,21 @@ function S.flattenModesAndPhases()
 	local modePhases = {}
 	local modes = U.getKeys(C.Modes)
 	U.iForEach(modes, function(mode)
-		if mode == "CHRONSETUP" and S.getStateVal("gameState", "gameCount") ~= 0 then return end
+		if mode == "CHRONSETUP" and S.getStateVal("gameState", "gameCount") ~= 0 then
+			return
+		end
 		if U.Type(C.Phases[mode]) == "string" then
-			table.insert(modePhases, {mode = mode, phase = C.Phases[mode]})
+			table.insert(modePhases, {
+				mode = mode,
+				phase = C.Phases[mode]
+			})
 		else
 			local phases = U.getKeys(C.Phases[mode])
 			U.iForEach(phases, function(phase)
-				table.insert(modePhases, {mode = mode, phase = phase})
+				table.insert(modePhases, {
+					mode = mode,
+					phase = phase
+				})
 			end)
 		end
 	end)
@@ -471,11 +586,17 @@ function S.flattenModesAndPhases()
 end
 
 function S.getNextPhase(curMode, curPhase)
-	if curMode == nil then curMode = S.getStateVal("gameState", "gameMode") end
-	if curPhase == nil then curPhase = S.getStateVal("gameState", "gamePhase") end
+	if curMode == nil then
+		curMode = S.getStateVal("gameState", "gameMode")
+	end
+	if curPhase == nil then
+		curPhase = S.getStateVal("gameState", "gamePhase")
+	end
 
 	local modePhases = S.flattenModesAndPhases()
-	local modePhaseIndex = U.findIndex(modePhases, function(mData) return mData.mode == curMode and mData.phase == curPhase end)
+	local modePhaseIndex = U.findIndex(modePhases, function(mData)
+		return mData.mode == curMode and mData.phase == curPhase
+	end)
 	local nextPhaseIndex
 	if modePhaseIndex == #modePhases then
 		nextPhaseIndex = 1
@@ -487,20 +608,27 @@ function S.getNextPhase(curMode, curPhase)
 
 	return nextModePhase.mode, nextModePhase.phase
 end
+
 -- #endregion
 
-function S.LogGameStartTime() S.setStateVal(os.time(), "gameState", "startTime") end
-function S.LogGameEndTime() S.setStateVal(os.time(), "gameState", "endTime") end
+function S.LogGameStartTime()
+	S.setStateVal(os.time(), "gameState", "startTime")
+end
+
+function S.LogGameEndTime()
+	S.setStateVal(os.time(), "gameState", "endTime")
+	S.setStateVal(U.round((S.getStateVal("gameState", "endTime") - S.getStateVal("gameState", "startTime")) / 3600, 1),
+		"gameState", "gameDuration")
+end
 
 function S.RecordFinishedGame(scores, tokenPositions)
-	if scores == nil then return end
-
-
-
-
+	if scores == nil then
+		return
+	end
 	local gData = {
 		gameNum = S.getStateVal("gameState", "gameCount"),
 		kingName = S.getStateVal("gameState", "kingName"),
+		kingTitle = S.getStateVal("gameState", "kingTitle"),
 		endTrigger = S.getStateVal("gameState", "endState"),
 		boardPositions = tokenPositions,
 		playerResults = scores,
@@ -509,9 +637,17 @@ function S.RecordFinishedGame(scores, tokenPositions)
 		gameDuration = S.getStateVal("gameState", "gameDuration")
 	}
 	local gameStorage = S.getStateVal("gameStorage")
-	table.insert(gameStorage, gData)
+	gData.gameStorage = gameStorage or {}
 	S.setStateVal(gameStorage, "gameStorage")
-	return gData
+	log([[
+
+======== GAME ]] .. gData.gameNum .. [[ RECORD ========
+
+]] .. JSON.encode_pretty(gData) .. [[
+
+=========================================================
+
+]])
 end
 
 return S

@@ -117,7 +117,145 @@ local function generateLightModes(lightTag)
 	end
 end
 
+local focusLightColorKey = {
+	x = Color.Grey,
+	w = Color.White,
+	a = C.RootColors.Amber,
+	b = Color.Blue,
+	r = Color.Red,
+	g = Color.Green
+}
+local focusLightRangeKey = {
+	{range = 50, angle = 15, intensity = 3},
+	{range = 50, angle = 30, intensity = 2},
+	{range = 50, angle = 60, intensity = 1.5},
+	{range = 50, angle = 90, intensity = 1},
+	{range = 50, angle = 120, intensity = 1}
+}
+
 L.LIGHTMODES = {
+	lightMapAnkist = {
+		default = "ambient",
+		off = {
+			enabled = false
+		},
+		bright = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 130,
+			intensity = 3,
+			rotation = Vector(90, 180, 0)
+		},
+		ambient = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 110,
+			intensity = 1.75,
+			rotation = Vector(90, 180, 0)
+		},
+		dim = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 110,
+			intensity = 1,
+			rotation = Vector(90, 180, 0)
+		}
+	},
+	lightMapWorld = {
+		default = "ambient",
+		off = {
+			enabled = false
+		},
+		bright = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 130,
+			intensity = 3,
+			rotation = Vector(90, 180, 0)
+		},
+		ambient = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 110,
+			intensity = 1.75,
+			rotation = Vector(90, 180, 0)
+		},
+		dim = {
+			enabled = true,
+			color = Color.Grey,
+			range = 80,
+			angle = 110,
+			intensity = 1,
+			rotation = Vector(90, 180, 0)
+		}
+	},
+	lightMapFocusA = {
+		-- lua light = getObjectFromGUID("4d3248"); lComp = light.getChildren()[1].getChildren()[2].getComponents()[2]
+		default = "off",
+		off = {
+			enabled = false
+		},
+		on = function() local lightRef = "A"
+			local lightData = S.getStateVal("gameState", "mapLights", "lightData", lightRef)
+			if lightData == nil then return { enabled = false } end
+
+			local lData = {
+				enabled = true,
+				position = Vector(lightData.worldPos),
+				rotation = Vector(90, 180, 0),
+				color = focusLightColorKey[lightData.colorRef or "x"]
+			}
+
+			-- get range settings
+			local rangeData = focusLightRangeKey[lightData.rangeRef + 1]
+
+			if lightData.isWorldDerived then
+				rangeData.angle = 0.415 * rangeData.angle
+				rangeData.intensity = 0.415 * rangeData.intensity
+			end
+
+			local finalLData = U.merge(lData, rangeData)
+			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+
+			return U.merge(lData, rangeData)
+		end
+	},
+	lightMapFocusB = {
+		-- lua light = getObjectFromGUID("4d3248"); lComp = light.getChildren()[1].getChildren()[2].getComponents()[2]
+		default = "off",
+		off = {
+			enabled = false
+		},
+		on = function() local lightRef = "B"
+			local lightData = S.getStateVal("gameState", "mapLights", "lightData", lightRef)
+			if lightData == nil then return { enabled = false } end
+
+			local lData = {
+				enabled = true,
+				position = Vector(lightData.worldPos),
+				rotation = Vector(90, 180, 0),
+				color = focusLightColorKey[lightData.colorRef or "x"]
+			}
+
+			-- get range settings
+			local rangeData = focusLightRangeKey[lightData.rangeRef + 1]
+
+			if lightData.isWorldDerived then
+				rangeData.angle = 0.5 * rangeData.angle
+				rangeData.intensity = 0.5 * rangeData.intensity
+			end
+
+			local finalLData = U.merge(lData, rangeData)
+			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+
+			return U.merge(lData, rangeData)
+		end
+	},
 	lightLectern = {
 		default = "ambient",
 		off = {
@@ -127,7 +265,7 @@ L.LIGHTMODES = {
 			enabled = true,
 			color = Color.Grey,
 			range = 200,
-			angle = 70,
+			angle = 55,
 			intensity = 2,
 			rotation = Vector(300, 0, 0)
 		},
@@ -527,8 +665,6 @@ L.LIGHTMODES = {
 	}
 }
 
-
-
 local function getComp(light, isSilent)
 	local lComp
 	if pcall(function() lComp = light.getChildren()[1].getChildren()[2].getComponents()[2] end) then
@@ -552,6 +688,10 @@ local function getLight(lightName, playerRef, isSilent)
 	local tags = { lightName }
 	if playerRef ~= nil then
 		player = S.getPlayer(playerRef)
+		if player == nil then
+			log(debug.traceback())
+			return error("No player found with ref '" .. U.ToString(playerRef) .. "'")
+		end
 		table.insert(tags, player.color)
 	end
 	local lights = getObjectsWithAllTags(tags)

@@ -1,6 +1,6 @@
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
--- local C = require("kingsdilemma.lib.constants")
+local C = require("kingsdilemma.lib.constants")
 
 local MSG = {}
 
@@ -88,6 +88,35 @@ function MSG.SplashQuery(query, displayName, responseObj, playerRef)
 	currentQuery.player = player
 
 	return function() return currentQuery.response ~= nil end
+end
+
+function MSG.Show(id)
+	UI.setAttribute(id, "active", "false")
+	UI.show(id)
+	-- Wait.time(function() UI.setAttribute(id, "active", "true") end, 1)
+end
+
+function MSG.Hide(id)
+	UI.hide(id)
+	Wait.time(function() UI.setAttribute(id, "active", "false") end, 1)
+	Wait.time(function() UI.setAttribute(id, "active", "false") end, 2)
+end
+
+function MSG.HideAll()
+	local elemIDs = {}
+	U.forEach({
+		"splashPanel_",
+		"consequencesQuery_",
+		"turnHUD_"
+	}, function(prefix)
+		U.forEach(C.SeatColors, function(color)
+			table.insert(elemIDs, prefix .. color)
+		end)
+	end)
+
+	U.forEach(elemIDs, function(id) MSG.Hide(id) end)
+
+	return 2.5
 end
 
 return MSG

@@ -190,7 +190,7 @@
 					<Panel id="refHUD_Popup_MapDutchies_Brown" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Dutchies of Ankist
+							Duchies of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_MapMarks_Brown" class="submenu-option-container">
@@ -322,7 +322,7 @@
 					<Panel id="refHUD_Popup_MapDutchies_Red" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Dutchies of Ankist
+							Duchies of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_MapMarks_Red" class="submenu-option-container">
@@ -454,7 +454,7 @@
 					<Panel id="refHUD_Popup_MapDutchies_Orange" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Dutchies of Ankist
+							Duchies of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_MapMarks_Orange" class="submenu-option-container">
@@ -586,7 +586,7 @@
 					<Panel id="refHUD_Popup_MapDutchies_Yellow" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Dutchies of Ankist
+							Duchies of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_MapMarks_Yellow" class="submenu-option-container">
@@ -718,7 +718,7 @@
 					<Panel id="refHUD_Popup_MapDutchies_Green" class="submenu-option-container">
 						<Image class="submenu-option-bg" />
 						<Text class="submenu-option">
-							Dutchies of Ankist
+							Duchies of Ankist
 						</Text>
 					</Panel>
 					<Panel id="refHUD_Popup_MapMarks_Green" class="submenu-option-container">

@@ -21,8 +21,10 @@
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		padding = "0 0 65 65"
 		animationDuration = "0.5" />
-	<VerticalLayout class="splash-root-mid" childAlignment = "MiddleCenter" />
-	<VerticalLayout class="splash-root-low" childAlignment = "LowerCenter" />
+	<VerticalLayout class="splash-root-mid"
+		padding = "0 0 165 65"
+		scale = "1.4 1.4 1.4" />
+	<VerticalLayout class="splash-root-low" padding = "0 0 565 65" />
 
 	<VerticalLayout class="splash"
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
@@ -36,6 +38,8 @@
 		spacing = "-1"
 		height = "100%"
 		width = "100%" />
+	<VerticalLayout class="splash-mid" offsetXY = "0 -100" />
+	<VerticalLayout class="splash-low" offsetXY = "0 -500" />
 	<Image class="splash-top"
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		preferredHeight = "65" flexibleHeight = "0" minHeight = "65"
@@ -68,6 +72,7 @@
 <Defaults> <!-- Splash Screen Defaults -->
 	<Panel class="splash-screen"
 		offsetXY = "0 100"
+		raycastTarget = "true"
 		childAlignment = "MiddleCenter"
 		color = "rgba(0, 0, 0, 0.95)"
 		scale = "1.75 1.75 1.75" />
@@ -100,7 +105,7 @@
 </Panel>
 
 <Defaults> <!-- Splash HUD Defaults -->
-	<Panel class="splash-hud" offsetXY = "-50 -10" />
+	<Panel class="splash-hud" offsetXY = "-50 -50" />
 	<Panel class="splash-visibility" minHeight="185" />
 </Defaults>
 <Panel id="splashHUD" class="splash-panel splash-hud">
@@ -119,7 +124,7 @@
 
 	<Panel class="splash-visibility">
 		<VerticalLayout id="splashPanel_AllMid" class="splash-root splash-root-mid" active="false">
-			<VerticalLayout class="splash-image-container">
+			<VerticalLayout id="debugMid" class="splash-image-container splash-mid">
 				<Image class="splash-top" />
 				<Image class="splash-bg" />
 				<Image class="splash-bottom" />
@@ -293,7 +298,6 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="splash-panel splash-query" visibility="Red">
 	<VerticalLayout id="splashQuery_Red" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
@@ -329,7 +333,6 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="splash-panel splash-query" visibility="Orange">
 	<VerticalLayout id="splashQuery_Orange" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
@@ -365,7 +368,6 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="splash-panel splash-query" visibility="Yellow">
 	<VerticalLayout id="splashQuery_Yellow" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
@@ -401,7 +403,6 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="splash-panel splash-query" visibility="Green">
 	<VerticalLayout id="splashQuery_Green" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
@@ -436,4 +437,93 @@
 			</HorizontalLayout>
 		</VerticalLayout>
 	</VerticalLayout>
+</Panel>
+
+<Defaults> <!-- Story Splash Defaults -->
+	<Panel class="story-panel"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "2" />
+	<Panel class="story-arcs"
+		height = "100%" width = "100%"
+		color = "rgba(0, 0, 0, 0.95"
+		rectAlignment = "MiddleCenter" />
+	<VerticalLayout class="story-arcs"
+		height = "800"
+		width = "1200"
+		childAlignment = "UpperCenter"
+		childForceExpandHeight = "false"
+		childForceExpandWidth = "false"
+		rectAlignment = "MiddleCenter" />
+	<Panel class="story-stickers"
+		height = "400"
+		width = "700"
+		rectAlignment = "UpperRight"
+		offsetXY = "-100 -100" />
+
+	<Image class="story-arc-image"
+		preserveAspect = "true"
+		raycastTarget = "false"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "3"
+		preferredHeight = "300" />
+
+	<Text class="story-arc-text"
+		alignment = "UpperLeft"
+		fontSize = "35"
+		preferredWidth = "1200"
+		color = "#FFFFFF"
+		font = "Fonts/FrizBI"
+		horizontalOverflow = "Wrap"
+		verticalOverflow = "Overflow"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "2"
+		showAnimationDelay = "3" />
+
+	<Text class="story-sticker-text"
+		alignment = "MiddleLeft"
+		fontSize = "30"
+		width = "100%"
+		color = "#FFFFFF"
+		font = "Fonts/FrizBI"
+		horizontalOverflow = "Wrap"
+		verticalOverflow = "Overflow"
+		showAnimation = "FadeIn"
+		hideAnimation = "FadeOut"
+		animationDuration = "2" />
+
+</Defaults>
+
+
+<Panel id="storyHUD" class="story-panel story-arcs" active = "false">
+	<VerticalLayout id="storyHUD_Arc1" class="story-panel story-arcs" active="false">
+		<Image class="story-arc-image story-banner" image="story-banner-1" />
+		<Text id="storyHUD_Arc1_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+	<VerticalLayout id="storyHUD_Arc2" class="story-panel story-arcs" active="false">
+		<Image class="story-arc-image story-banner" image="story-banner-2" />
+		<Text id="storyHUD_Arc2_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+	<VerticalLayout id="storyHUD_Arc3" class="story-panel story-arcs" active="false">
+		<Image id="debugSymbol" class="story-arc-image story-banner" image="story-banner-3" />
+		<Text id="storyHUD_Arc3_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+	<VerticalLayout id="storyHUD_Arc4" class="story-panel story-arcs" active="false">
+		<Image class="story-arc-image story-banner" image="story-banner-4" />
+		<Text id="storyHUD_Arc4_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+	<VerticalLayout id="storyHUD_Arc5" class="story-panel story-arcs" active="false">
+		<Image class="story-arc-image story-banner" image="story-banner-5" />
+		<Text id="storyHUD_Arc5_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+	<VerticalLayout id="storyHUD_Arc6" class="story-panel story-arcs" active="false">
+		<Image class="story-arc-image story-banner" image="story-banner-6" />
+		<Text id="storyHUD_Arc6_Text" class="story-arc-text"></Text>
+	</VerticalLayout>
+</Panel>
+
+<Panel id="storyHUD_Sticker" class="story-panel story-stickers" active="false">
+	<Text id="storyHUD_Sticker_Text" class="story-sticker-text"></Text>
 </Panel>

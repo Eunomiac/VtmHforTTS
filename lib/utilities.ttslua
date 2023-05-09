@@ -322,8 +322,10 @@ function U.Assert(source, val, typeOrTest, tableType, isSilent)
 		if val ~= true then
 			errorMessage = "Failed boolean check"
 		end
-	elseif U.Type(typeOrTest) == "function" then
-		local result = typeOrTest(val)
+	elseif U.Type(typeOrTest) == "function" or U.Type(typeOrTest) == "boolean" then
+		local result
+		if U.Type(typeOrTest) == "boolean" then result = typeOrTest
+		else result = typeOrTest(val) end
 		if result ~= true then
 			if result == false or result == nil then
 				errorMessage = "Test Failed for param '" .. U.ToString(val) .. "'"
@@ -645,7 +647,7 @@ function U.reverse(tb)
 end
 
 function U.isIn(elem, tb)
-	U.Assert("U.isIn", U.Type(tb) == "table" or U.Type(tb) == "userdata")
+	U.Assert("U.isIn", tb, U.Type(tb) == "table" or U.Type(tb) == "userdata")
 
 	if U.Type(tb) == "table" then
 		-- check values first, before checking keys
@@ -699,6 +701,7 @@ function U.isArray(val)
 end
 
 function U.isFlipped(obj)
+	if obj == nil then return end
   local zRot = U.pAngle(obj.getRotation().z, 90)
   return zRot == 180
 end

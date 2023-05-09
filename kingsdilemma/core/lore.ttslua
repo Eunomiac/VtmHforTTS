@@ -17,27 +17,27 @@ LORE.REF = {
 	},
 	["Flur"] = {
 		-- some don't need bodies; just put the subtitle over the image in a different way
-		subtitle = "Capital of the Dutchy of Blodyn",
+		subtitle = "Capital of the Duchy of Blodyn",
 		image = "map of Blodyn"
 	},
 	["Duin"] = {
-		subtitle = "Capital of the Dutchy of Coden",
+		subtitle = "Capital of the Duchy of Coden",
 		image = "map of Coden"
 	},
 	["Golden Harbor"] = {
-		subtitle = "Capital of the Dutchy of Gamam",
+		subtitle = "Capital of the Duchy of Gamam",
 		image = "map of Gamam"
 	},
 	["Natar"] = {
-		subtitle = "Capital of the Dutchy of Natar",
+		subtitle = "Capital of the Duchy of Natar",
 		image = "map of Natar"
 	},
 	["Ferris"] = {
-		subtitle = "Capital of the Dutchy of Olwyn",
+		subtitle = "Capital of the Duchy of Olwyn",
 		image = "map of Olwyn"
 	},
 	["Roinn"] = {
-		subtitle = "Capital of the Dutchy of Solad",
+		subtitle = "Capital of the Duchy of Solad",
 		image = "map of Solad"
 	},
 	["Cleddyf"] = {
@@ -122,7 +122,7 @@ LORE.REF = {
 
 		]]
 	},
-	["The Dutchies & the Heartland"] = {
+	["The Duchies & the Heartland"] = {
 
 	},
 	["The Marks & The Borderlands"] = {

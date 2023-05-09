@@ -30,6 +30,11 @@ O.UninteractableObjs = {
 	StagingPlinth = generateGetterFunction("fed994")
 }
 
+O.Maps = {
+	MapAnkist = generateGetterFunction("ec2fcc"),
+	MapWorld = generateGetterFunction("378389")
+}
+
 O.MainStorage = generateGetterFunction("138cbd")
 
 O.SpawnSources = {

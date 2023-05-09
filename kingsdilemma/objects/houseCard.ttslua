@@ -89,39 +89,51 @@ local buttonsData = {
 }
 local buttons = U.clone(buttonsData, true)
 
-function UpdatePrestige()
+function UpdatePrestige(val)
 	local scr = GetScreen()
-	if scr then
-		scr.UI.setValue("prestigeElem", tostring(math.floor(GetPrestige())))
+	if scr and scr.UI then
+		if val == nil then val = GetPrestige() end
+		scr.UI.setValue("prestigeElem", tostring(math.floor(val)))
 	end
 end
-function UpdateCrave()
+function UpdateCrave(val)
 	local scr = GetScreen()
-	if scr then
-		scr.UI.setValue("craveElem", tostring(math.floor(GetPrestige())))
+	if scr and scr.UI then
+		if val == nil then val = GetCrave() end
+		scr.UI.setValue("craveElem", tostring(math.floor(val)))
 	end
 end
 
 function GetPrestige()
 	if GetHouseNum() == nil then return nil end
+	if GetPlayer() == nil then return nil end
+
 	local prestigeCount = #U.filter(self.getButtons(), function(bData)
-		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_prestige")
+		return bData.label
+			and bData.click_function
+			and bData.label ~= ""
+			and string.match(bData.click_function, "^toggleClick_prestige")
 	end) + GetHouseNum() / 100
+
 	if prestigeCount ~= S.getPlayerVal(GetPlayer(), "prestige") then
 		S.setPlayerVal(prestigeCount, GetPlayer(), "prestige")
-		UpdatePrestige()
+		-- if GetScreen() ~= nil then
+			-- log({SCREENFOUND = GetScreen()})
+			UpdatePrestige(prestigeCount)
+		-- end
 	end
 	return prestigeCount
 end
 
 function GetCrave()
 	if GetHouseNum() == nil then return nil end
+	if GetPlayer() == nil then return nil end
 	local craveCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label and bData.click_function and bData.label ~= "" and string.match(bData.click_function, "^toggleClick_crave")
 	end)
 	if craveCount ~= S.getPlayerVal(GetPlayer(), "crave") then
 		S.setPlayerVal(craveCount, GetPlayer(), "crave")
-		UpdateCrave()
+		UpdateCrave(craveCount)
 	end
 	return craveCount
 end
@@ -286,6 +298,9 @@ local function setupButton(name, type, x, z)
 end
 
 local function initCustomButtons()
+	if GetPlayer() == nil then
+		return Wait.time(initCustomButtons, 2)
+	end
 	-- local player = S.getPlayer(U.findColorTag(self))
 	-- log({player = player, colorTag = U.findColorTag(self)})
 	local houseName = S.getPlayerVal(GetPlayer(), "houseName") or ""
@@ -345,42 +360,40 @@ local function initCustomButtons()
 end
 
 function onLoad(saved_data)
-
 	if self.hasTag("SourceObj") then return end
 
-	U.waitUntil(function()
-		if GetColor() == nil then return end
-		if GetPlayer() == nil then return end
-		if GetHouse() == nil then return end
+	if GetColor() == nil then return end
+	if GetPlayer() == nil then return end
+	if GetHouse() == nil then return end
 
-		scanData = C.scanData[GetHouse()]
+	scanData = C.scanData[GetHouse()]
 
-		if scanData == nil then
-			return error("[House Card] Error: '" .. GetHouse() .. "' is not a recognized House.")
-		end
+	if scanData == nil then
+		return error("[House Card] Error: '" .. GetHouse() .. "' is not a recognized House.")
+	end
 
-		gx = scanData.globalOffsets.gx
-		gy = scanData.globalOffsets.gy
+	gx = scanData.globalOffsets.gx
+	gy = scanData.globalOffsets.gy
 
-		initButtonsTable()
+	initButtonsTable()
 
-		if saved_data ~= nil then
-			local loaded_data = JSON.decode(saved_data)
-			if loaded_data ~= nil then
-				for i, v in pairs(loaded_data.buttons) do
-					buttons[i] = { label = v }
-				end
+	if saved_data ~= nil then
+		local loaded_data = JSON.decode(saved_data)
+		if loaded_data ~= nil then
+			for i, v in pairs(loaded_data.buttons) do
+				buttons[i] = { label = v }
 			end
 		end
-		initCustomButtons()
+	end
 
-		GetPrestige()
-		GetCrave()
-	end, function()
-		return S.ArePlayersSeated() == true
-	end)
+	initCustomButtons()
 
+	Wait.time(Initialize, 2)
+end
 
+function Initialize()
+	GetPrestige()
+	GetCrave()
 end
 
 function Dud() return end

@@ -1,7 +1,7 @@
 -- #region IMPORTS ~
 local DIR = require("kingsdilemma.core.director")
 local P = require("kingsdilemma.core.players")
--- local O = require("kingsdilemma.lib.objects")
+local O = require("kingsdilemma.lib.objects")
 local C = require("kingsdilemma.lib.constants")
 local U = require("lib.utilities")
 local S = require("kingsdilemma.core.state")
@@ -34,6 +34,7 @@ local TESTFUNCS = {
 	-- 		end)
 	-- 	end)
 	-- end,
+	Stickers = function() log(DIR.GetStickerData()) end,
 	Fetcher = function(button)
 
 	end
@@ -52,11 +53,27 @@ function InitTestFuncButtons()
 	TESTFUNCS = U.getValues(TESTFUNCS)
 end
 
-
-
--- #endregion
+function UpdatePhaseDisplay()
+	local mode, phase = S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
+	UI.setValue("currentGameModeDisplay", mode)
+	if mode ~= phase then
+		UI.setValue("currentGamePhaseDisplay", phase)
+		MSG.Show("currentGamePhaseContainer")
+	else
+		MSG.Hide("currentGamePhaseContainer")
+	end
+	local nextMode, nextPhase = S.getNextPhase()
+	UI.setValue("nextGameModeDisplay", nextMode)
+	if nextMode ~= nextPhase then
+		UI.setValue("nextGamePhaseDisplay", nextPhase)
+		MSG.Show("nextGamePhaseContainer")
+	else
+		MSG.Hide("nextGamePhaseContainer")
+	end
+end
 
 -- #region Primary UI Event Functions
+local captureRow = -1
 local function toggleXmlElement(elemID, button)
 	-- log("Toggling " .. elemID)
 	if elemID == "stateDisplayPanel" then
@@ -67,10 +84,11 @@ local function toggleXmlElement(elemID, button)
 		toggleXmlElement("stateDisplayPanel_4", button)
 		return
 	end
+
 	if string.lower(UI.getAttribute(elemID, "active")) == "false" then
 		UI.setAttribute(elemID, "active", "true")
 		if elemID == "debugControls" then
-			UI.hide("splashScreen")
+			MSG.Hide("splashScreen")
 			if button ~= "-2" then
 				Lighting.ambient_intensity = 1.5
 				Lighting.ambient_type = 1
@@ -198,6 +216,23 @@ function HUD_Click(player, button, id)
 		DIR.PromptForEnvelope(U.getHost())
 	elseif id == "setNextKing" then
 		DIR.PromptForKingName(P.GetWinners())
+	elseif id == "captureNext" then
+		if button == "-2" then
+			captureRow = 0
+		else
+			captureRow = captureRow + 1
+		end
+		if captureRow > 6 then
+			U.forEach(getObjectsWithTag("Capture"), function(obj) obj.destruct() end)
+			player.setCameraMode("ThirdPerson")
+			P.SetCamera("BehindScreen", player)
+		else
+			local cameraData = U.clone(C.CameraAngles.ScreenCapture)
+			cameraData.cameraMode = nil
+			cameraData.position = Vector(C.CameraAngles.ScreenCapture.position):add(Vector(0, 0, C.CaptureCoords.cameraZoneZShift):scale(1, 1, captureRow + (captureRow == 0 and 0 or 0.25)))
+			player.lookAt(cameraData)
+			player.setCameraMode("TopDown")
+		end
 	elseif id == "setChronicleType" then
 		DIR.SetChronicleType(true)
 	elseif string.match(id, "^debug_testFunc") then
@@ -209,8 +244,7 @@ function HUD_Click(player, button, id)
 		local tokenData = DIR.GetTokenPositionsFromBoard()
 		local scoreData = DIR.GetFinalStandings()
 		-- log({tokenData = tokenData, scoreData = scoreData})
-		local storedData = S.RecordFinishedGame(scoreData, tokenData)
-		log(JSON.encode_pretty(storedData))
+		S.RecordFinishedGame(scoreData, tokenData)
 	elseif id == "debug_logScores" then
 		log(JSON.encode_pretty(DIR.GetFinalStandings()))
 	elseif id == "debug_resetState" then
@@ -282,7 +316,9 @@ function HUD_HoverOff(player, returnString, id)
 		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFF44")
 	end
 end
+-- #endregion
 
+-- #region House HUD~
 function House_HUD_Click(player, _, id)
 	local _, _, houseName = unpack(U.split(id, "_"))
 	DIR.HouseHUDClick(player, houseName)
@@ -297,7 +333,9 @@ function House_HUD_HoverOff(player, _, id)
 	local _, _, buttonRef = unpack(U.split(id, "_"))
 	DIR.HouseHUDHoverOff(player, buttonRef)
 end
+-- #endregion
 
+-- #region Turn HUD~
 function Turn_HUD_Click(_, _, id)
 	local _, action, color = unpack(U.split(id, "_"))
 	DIR.TurnHUDClick(action, color)
@@ -330,12 +368,14 @@ function Turn_HUD_HoverOff(_, _, id)
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
 	end
 end
+-- #endregion
 
+-- #region Consequence HUD~
 function Consequence_HUD_Click(_, button, id)
 	local _, outcome, conType, resource, color = unpack(U.split(id, "_"))
-	UI.hide(id)
+	MSG.Hide(id)
 	if conType ~= "O" then
-		UI.hide(string.gsub(string.gsub(id, "consequence", "conDisplay"), "_" .. color, ""))
+		MSG.Hide(string.gsub(string.gsub(id, "consequence", "conDisplay"), "_" .. color, ""))
 	end
 	if button == "-2" then
 		conType = "O"
@@ -343,9 +383,9 @@ function Consequence_HUD_Click(_, button, id)
 		conType = ({O = "P", P = "N", N = "O"})[conType]
 	end
 	S.setStateVal(conType, "roundState", "consequences", outcome, resource)
-	UI.show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource .. "_" .. color)
+	MSG.Show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource .. "_" .. color)
 	if conType ~= "O" then
-		UI.show("conDisplay_" .. outcome .. "_" .. conType .. "_" .. resource)
+		MSG.Show("conDisplay_" .. outcome .. "_" .. conType .. "_" .. resource)
 	end
 end
 
@@ -369,16 +409,21 @@ function Consequence_HUD_HoverOff(_, _, id)
 	elseif outcome == "N" then
 		UI.setAttribute(id, "color", "#DA19177F")
 	end
-
-
 end
+-- #endregion
 
+-- #region Input HUD~
 function InputHUD_Sticker(player, value)
 	DIR.ConfirmFetchSticker(player, value)
 end
 
 function InputHUD_Envelope(player, value)
 	DIR.ConfirmFetchEnvelope(player, value)
+end
+
+local curKingName
+function InputHUD_KingUpdate(player, value)
+	curKingName = value
 end
 
 function InputHUD_ToggleKingTitle(player)
@@ -390,12 +435,13 @@ function InputHUD_ToggleKingTitle(player)
 	UI.setValue("kingQuery_kingTitle_" .. player.color, S.getStateVal("gameState", "kingTitle"))
 end
 
-function InputHUD_King(player, value)
-	if not value or value == "" then return end
+function InputHUD_KingConfirm(player, _, id)
+	-- log({CLICKED = curKingName})
+	if not curKingName or #U.trim(U.ToString(curKingName)) < 3 then return end
 	local house = S.getPlayerHouse(player)
 	local houseName = S.getPlayerHouseName(player)
 	local parsedValue = U.join(U.map(U.filter(
-		U.split(U.trim(value), " "),
+		U.split(U.trim(curKingName), " "),
 		function(word) return
 			not string.match(string.lower(word), "^king$")
 			and not string.match(string.lower(word), "^queen$")
@@ -418,42 +464,46 @@ function InputHUD_King(player, value)
 		parsedValue = parsedValue .. " I"
 	end
 
-	-- U.AlertGM(P.GetPlayerName(player) .. " names the next " .. U.lCase(S.getStateVal("gameState", "kingTitle")) .. " '" .. S.getStateVal("gameState", "kingTitle") .. " " .. parsedValue .. " of House " .. S.getPlayerHouseName(player) .. "' from '" .. value .. "'")
-	UI.setAttributes("kingQuery_input_" .. player.color, {
-		text = parsedValue,
-		interactable = "false"
-	})
-	UI.setAttribute("kingQuery_inputImage_" .. player.color, "color", "#000000")
-	Wait.time(function()
-		UI.hide("kingQuery_" .. player.color)
-		MSG.Splash(parsedValue .. " of House " .. S.getPlayerHouseName(player) .. " Inherits the Throne!", nil, 4, {color = "#FFDD00"})
-	end, 4)
-	Wait.time(function()
-		S.setStateVal(parsedValue .. " of House " .. S.getPlayerHouseName(player), "gameState", "kingName")
-	end, 8)
+	local splashValue = string.gsub(parsedValue, " [IVXL]+$", "")
+	local splashTitle
+	if string.match(C.HousePrefixes[house], "Mark") then
+		if S.getStateVal("gameState", "kingTitle") == "Queen" then
+			splashTitle = "Marchioness"
+		else
+			splashTitle = "Marquise"
+		end
+	else
+		if S.getStateVal("gameState", "kingTitle") == "Queen" then
+			splashTitle = "Duchess"
+		else
+			splashTitle = "Duke"
+		end
+	end
+
+	MSG.Hide("kingQuery_" .. player.color)
+
+	local splashTime = 2
+	MSG.Splash(
+			splashTitle .. " " .. splashValue .. " " .. houseName .. " Will Inherit the Throne!",
+			"AllMid",
+			splashTime,
+			{color = "#FFDD00"}
+		)
+		Wait.time(function()
+			S.setStateVal(parsedValue .. " of House " .. S.getPlayerHouseName(player), "gameState", "kingName")
+		end, splashTime)
+
 end
+-- #endregion
 
-local howTo = [[
-	circular icon element
-	- onMouseEnter = hides other submenu nav panels, shows submenu nav panel
-submenu nav panel
-	- onMouseExit = hides submenu nav panel
-button bg
-	- onMouseEnter = sets alpha to 1; shows pop-up if there is one UNLESS any pop-up is locked visible via click
-	- onMouseExit = sets alpha to 0; hides pop-up UNLESS locked via click
-	- onClick = either activates function or locks pop-up, then sets alpha to 0 and hides submenu nav panel
-
-]]
-
+-- #region Reference HUD~
 local lockedPopupImage = {}
-
-
 local function hideActiveSubmenus(color, activeMenu)
 	U.forEach({"Help", "View", "Map", "Lore"}, function(param)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
-			UI.hide(targetMenuID)
+			MSG.Hide(targetMenuID)
 		end
 	end)
 end
@@ -466,13 +516,13 @@ function Ref_HUD_Click(player, _, id)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		if lockedPopupImage[player.color] == popupID then
 			lockedPopupImage[player.color] = nil
-			UI.hide(popupID)
+			MSG.Hide(popupID)
 			return
 		elseif lockedPopupImage[player.color] ~= nil then
-			UI.hide(lockedPopupImage[player.color])
+			MSG.Hide(lockedPopupImage[player.color])
 		end
 		UI.setAttribute(popupID, "active", "false")
-		UI.show(popupID)
+		MSG.Show(popupID)
 		lockedPopupImage[player.color] = popupID
 	elseif mode == "Camera" then
 		if param == "Screen" then
@@ -487,55 +537,194 @@ function Ref_HUD_Click(player, _, id)
 	end
 end
 
-
 function Ref_HUD_HoverOn(player, _, id)
 	local _, mode, param, color = unpack(U.split(id, "_"))
 
 	if mode == "Submenu" then
 		hideActiveSubmenus(player.color, param)
 		UI.setAttribute(id .. "_" .. player.color, "active", "false")
-		UI.show(id .. "_" .. player.color)
+		MSG.Show(id .. "_" .. player.color)
 		UI.setAttribute("refHUD_SubmenuContents_" .. param .. "_" .. player.color, "active", "false")
-		UI.show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
+		MSG.Show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		UI.setAttribute(popupID, "active", "false")
-		UI.show(popupID)
+		MSG.Show(popupID)
 	end
-
 end
 
 function Ref_HUD_HoverOff(player, _, id)
 	local _, mode, param, color = unpack(U.split(id, "_"))
 	if mode == "Submenu" then
-		UI.hide(id .. "_" .. player.color)
+		MSG.Hide(id .. "_" .. player.color)
 	elseif mode == "SubmenuContents" then
-		UI.hide(id)
-		UI.hide(string.gsub(id, "Contents", ""))
+		MSG.Hide(id)
+		MSG.Hide(string.gsub(id, "Contents", ""))
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
-		UI.hide(popupID)
+		MSG.Hide(popupID)
 	end
+end
+-- #endregion
+
+-- #region Map Light HUD~
+function MapHUD_Update(_, value, id)
+	local _, _, index = unpack(U.split(id, "_"))
+	local x, z, rc = string.match(value, "(%d+)x, (%d+)y,? ?(%w?%w?)")
+	if x == nil or z == nil then
+		S.setStateVal({}, "gameState", "mapLights", "mapInputs", index)
+		return
+	end
+	if rc == nil then rc = "" end
+	x = x * 1; z = z * 1
+
+	S.setStateVal({Vector(x, 0, z), rc}, "gameState", "mapLights", "mapInputs", index)
 end
 
-function UpdatePhaseDisplay()
-	local mode, phase = S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
-	UI.setValue("currentGameModeDisplay", mode)
-	if mode ~= phase then
-		UI.setValue("currentGamePhaseDisplay", phase)
-		UI.show("currentGamePhaseContainer")
-	else
-		UI.hide("currentGamePhaseContainer")
+function MapHUD_Confirm()
+	local coordsA, rcA = unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "A") or {})
+	local coordsB, rcB = unpack(S.getStateVal("gameState", "mapLights", "mapInputs", "B") or {})
+
+	-- don't need to separate lights between maps, just have one be for first coord and second for second
+	-- only one coord AND it's on AnkistMap?  show same location on WorldMap, scaling light properly
+	-- only one coord AND it's on WorldMap?  Dim or turn off Ankist map light entirely
+
+	if coordsA == nil then
+		if coordsB == nil then return end
+		coordsA = Vector(coordsB)
+		rcA = rcB
+		coordsB = nil
+		rcB = nil
 	end
-	local nextMode, nextPhase = S.getNextPhase()
-	UI.setValue("nextGameModeDisplay", nextMode)
-	if nextMode ~= nextPhase then
-		UI.setValue("nextGamePhaseDisplay", nextPhase)
-		UI.show("nextGamePhaseContainer")
-	else
-		UI.hide("nextGamePhaseContainer")
+
+	if coordsB == nil then
+		coordsB = Vector(coordsA)
+		rcB = nil
 	end
+
+	local isDerivingWorld = false
+	if coordsA.x == coordsB.x and coordsA.z == coordsB.z then
+		local rA = (string.match(rcA or "", "(%d)") or "1") * 1
+		local cA = string.match(rcA or "", "(%a)") or "x"
+		local rB = string.match(rcB or "", "(%d)") or ""
+		local cB = string.match(rcB or "", "(%a)") or ""
+
+		if cB == "" then cB = cA end
+		if rB == "" then
+			isDerivingWorld = true
+			rB = rA
+		end
+
+		rcB = cB .. rB
+	end
+
+	-- S.setStateVal({mapInputs = {}, lightData = {}}, "gameState", "mapLights")
+
+	-- lua aMap = getObjectFromGUID("ec2fcc"); wMap = getObjectFromGUID("378389")
+	local function ankistToWorld(ankistLightData)
+
+		local ankistBounds = {
+			x = {min = -0.966, max = 0.994},
+			z = {min = -0.953, max = 0.964}
+		}
+
+		local ankistWorldBounds = {
+			x = {min = -0.28, max = 0.535},
+			z = {min = -0.58, max = 0.191}
+		}
+
+		local ankistDeltas = {
+			x = ankistBounds.x.max - ankistBounds.x.min,
+			z = ankistBounds.z.max - ankistBounds.z.min
+		}
+
+		local ankistWorldDeltas = {
+			x = ankistWorldBounds.x.max - ankistWorldBounds.x.min,
+			z = ankistWorldBounds.z.max - ankistWorldBounds.z.min
+		}
+
+		local lightRatios = {
+			x = (ankistLightData.localPos.x - ankistBounds.x.min) / ankistDeltas.x,
+			z = (ankistLightData.localPos.z - ankistBounds.z.min) / ankistDeltas.z
+		}
+
+		local ankistWorldCoords = {
+			x = ankistWorldBounds.x.min + (lightRatios.x * ankistWorldDeltas.x),
+			z = ankistWorldBounds.z.min + (lightRatios.z * ankistWorldDeltas.z)
+		}
+
+		local ankistWorldLightData = U.clone(ankistLightData)
+		ankistWorldLightData.localPos = Vector(
+			ankistWorldCoords.x,
+			ankistLightData.localPos.y,
+			ankistWorldCoords.z
+		)
+
+		ankistWorldLightData.worldPos = O.Maps.MapWorld().positionToWorld(ankistWorldLightData.localPos):setAt("z", 75)
+		ankistWorldLightData.mapRef = "MapWorld"
+		-- ankistWorldLightData.map = O.Maps.MapWorld()
+
+		if ankistWorldLightData.rangeRef > 0 then
+			ankistWorldLightData.rangeRef = ankistWorldLightData.rangeRef - 1
+		end
+
+		return ankistWorldLightData
+	end
+
+	local function parseInputData(coords, rc, isDerivingWorld)
+		if coords == nil then return {} end
+
+		local mapRef
+		if coords.x > 1000 then
+			coords:setAt("x", coords.x - 1000)
+			mapRef = "MapWorld"
+		else
+			mapRef = isDerivingWorld and "MapWorld" or "MapAnkist"
+		end
+
+		-- convert to local coordinates
+		coords:scale(Vector(-0.002, 1, 0.002)):add(Vector(1, 0, -1))
+
+		-- get range number and color reference
+		local r = (string.match(rc or "", "(%d)") or "1") * 1
+		local c = string.match(rc or "", "(%a)") or "x"
+
+		-- get world coordinates
+		local map = O.Maps[mapRef]()
+		local worldPos = map.positionToWorld(coords):setAt("z", 75)
+
+		return {
+			localPos = coords,
+			worldPos = worldPos,
+			mapRef = mapRef,
+			-- map = map,
+			colorRef = c,
+			rangeRef = r,
+			isWorldDerived = mapRef == "MapWorld" and isDerivingWorld
+		}
+	end
+
+	local lightDataA, lightDataB = parseInputData(coordsA, rcA), parseInputData(coordsB, rcB, isDerivingWorld)
+	local mapAnkistMode, mapWorldMode = "off", "off"
+
+	if U.isIn("MapAnkist", {lightDataA.mapRef, lightDataB.mapRef}) then mapAnkistMode = "dim" end
+	if U.isIn("MapWorld", {lightDataA.mapRef, lightDataB.mapRef}) then mapWorldMode = "dim" end
+
+	if isDerivingWorld or (lightDataA.mapRef == "MapAnkist" and lightDataB.mapRef == nil) then
+		lightDataB = ankistToWorld(lightDataA)
+		mapWorldMode = "dim"
+	end
+
+	S.setStateVal(lightDataA, "gameState", "mapLights", "lightData", "A")
+	S.setStateVal(lightDataB, "gameState", "mapLights", "lightData", "B")
+
+	L.SetLightMode("lightMapAnkist", mapAnkistMode)
+	L.SetLightMode("lightMapWorld", mapWorldMode)
+	L.SetLightMode({"lightMapFocusA", "lightMapFocusB"}, "on")
 end
+
+
+
 -- #endregion

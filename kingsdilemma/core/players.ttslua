@@ -143,17 +143,11 @@ function P.AssignPlayerColors(isNotShuffling)
 			end,
 			function()
 				return U.sequence(U.map(players, function(player)
-					local pID
-					if string.match(player.steam_name, "^Player ") then
-						pID = player.steam_name
-						local storedColor = S.getStateVal("playerStorage", pID, "curColor")
-						if storedColor == nil then
-							error("Must first transfer player data before you can assign colors to test players.")
-						end
-					else
-						pID = player.steam_id
+					local storedColor = S.getPlayerVal(player, "curColor")
+					if storedColor == nil then
+						return error("Colors must be stored in state before they can be reassigned mid-game!")
 					end
-					return function() player.changeColor(S.getStateVal("playerStorage", pID, "curColor")) end
+					return function() player.changeColor(storedColor) end
 				end), 0.75)
 			end
 		})
@@ -330,42 +324,33 @@ function P.ActivatePlayerScreenHUD(playerRef)
 	return 0.5
 end
 
-
-function P.SpawnPower(playerRef, numPower)
-	local powerZone = P.GetPlayerZone(playerRef, "Power")
-	local seqFuncs = {}
-
-	while math.floor(numPower / 10) > 0 and numPower > 10 do
-		numPower = numPower - 10
-		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 10) end)
-	end
-	while math.floor(numPower / 5) > 0 and numPower > 5 do
-		numPower = numPower - 5
-		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 5) end)
-	end
-	while numPower > 0 do
-		numPower = numPower - 1
-		table.insert(seqFuncs, 1, function() return OU.SpawnToken(powerZone, "Power", 1) end)
-	end
-
-	return U.RunSequence(seqFuncs, nil, 1)
+function P.InitPlayerHouseCards(playerRef)
+	if playerRef == nil then return U.map(S.getPlayers(), P.InitPlayerHouseCards) end
+	local houseCard = P.GetPlayerCard(playerRef)
+	if houseCard == nil then return 0 end
+	houseCard.call("Initialize")
+	return 0.5
 end
 
-function P.SpawnCoins(playerRef, numCoins)
-	local coinZone = P.GetPlayerZone(playerRef, "Coin")
-
-	local seqFuncs = {}
-
-	while math.floor(numCoins / 5) > 0 and numCoins > 5 do
-		numCoins = numCoins - 5
-		table.insert(seqFuncs, 1, function() return OU.SpawnToken(coinZone, "Coin", 5) end)
-	end
-	while numCoins > 0 do
-		numCoins = numCoins - 1
-		table.insert(seqFuncs, 1, function() return OU.SpawnToken(coinZone, "Coin", 1) end)
-	end
-
-	return U.RunSequence(seqFuncs, nil, 1)
+function P.SpawnPower(playerRef, numPower) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Power"), numPower, "PowerToken") end
+function P.TakePower(playerRef, numPower) return OU.TakeValue(P.GetPlayerZone(playerRef, "Power"), numPower, "PowerToken") end
+function P.SpawnCoins(playerRef, numCoins) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Coin"), numCoins, "CoinToken") end
+function P.TakeCoins(playerRef, numCoins) return OU.TakeValue(P.GetPlayerZone(playerRef, "Coin"), numCoins, "CoinToken") end
+function P.TransferPower(fromPlayerRef, toPlayerRef, numPower)
+	return OU.TransferValue(
+		P.GetPlayerZone(fromPlayerRef, "Power"),
+		P.GetPlayerZone(toPlayerRef, "Power"),
+		numPower,
+		"PowerToken"
+	)
+end
+function P.TransferCoins(fromPlayerRef, toPlayerRef, numCoins)
+	return OU.TransferValue(
+		P.GetPlayerZone(fromPlayerRef, "Coin"),
+		P.GetPlayerZone(toPlayerRef, "Coin"),
+		numCoins,
+		"CoinToken"
+	)
 end
 
 return P

@@ -44,6 +44,8 @@
 		<!-- <Button id="prompt_assignHouseName">Name House</Button> -->
 		<!-- <Button id="prompt_simClick">Sim Click</Button> -->
 		<Text class="spacer_10"></Text>
+		<Button id="clearPlayers">Clear Players</Button>
+		<Button id="resetTable">Reset Table</Button>
 		<Button id="debug_resetPlayers">Reset ALL</Button>
 	</VerticalLayout>
 </HorizontalLayout>

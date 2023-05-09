@@ -22,14 +22,14 @@ C.SeatColors = {"Brown", "Red", "Orange", "Yellow", "Green"}
 C.Houses = {"Allwed", "Blodyn", "Coden", "Crann", "Dualak", "Gamam", "Natar", "Olwyn", "Solad", "Tiryll", "Tork", "Wylio"}
 C.HousePrefixes = {
 	Allwed = "the Mark of",
-	Blodyn = "the Dutchy of",
-	Coden = "the Dutchy of",
+	Blodyn = "the Duchy of",
+	Coden = "the Duchy of",
 	Crann = "the Mark of",
 	Dualak = "the Mark of",
-	Gamam = "the Dutchy of",
-	Natar = "the Dutchy of",
-	Olwyn = "the Dutchy of",
-	Solad = "the Dutchy of",
+	Gamam = "the Duchy of",
+	Natar = "the Duchy of",
+	Olwyn = "the Duchy of",
+	Solad = "the Duchy of",
 	Tiryll = "the Mark of",
 	Tork = "the Mark of",
 	Wylio = "the Mark of"
@@ -239,6 +239,7 @@ C.CaptureCoords = {
 	columnXShift = 3.55,
 	stackYShift = 0.05,
 	rowZShift = -4.9,
+	cameraZoneZShift = -16,
 	Dilemma = {
 		numColumns = 6,
 		startXDelta = -8.67,
@@ -910,6 +911,23 @@ C.Spots = {
 			rotation = Vector({83.90, 0, 0}),
 			scale = Vector({2, 1.00, 2})
 		}
+	}
+}
+
+C.Decals = {
+	BlackBox = {
+		name = "z Black Box",
+		url = "http://cloud-3.steamusercontent.com/ugc/2065507029337283063/B7141B38D24D9CA328392F9032080B5B543E2787/",
+		rotation = Vector(90, 180, 0),
+		scale = Vector(0.17, 0.17, 0.17)
+	}
+}
+
+C.ObjectSpots = {
+	ChronicleSticker = {
+		Vector(1.695, 0.125, -0.247),
+		Vector(1.695, 0.125, 0.062),
+		Vector(1.695, 0.125, 0.356)
 	}
 }
 

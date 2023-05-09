@@ -42,7 +42,8 @@
 		"spawnObject",
 		"startLuaCoroutine",
 		"logStyle",
-		"onPlayerTurnStart"
+		"onPlayerTurnStart",
+		"saved_data"
 	],
 	"Lua.completion.enable": false,
 	"Lua.workspace.ignoreDir": [

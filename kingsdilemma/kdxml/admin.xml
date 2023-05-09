@@ -18,6 +18,48 @@
 		outline = "Black"
 		preferredHeight = "25"
 		font = "Fonts/FrizB" />
+
+	<VerticalLayout class="map-light-control-container"
+		width = "380"
+		height = "80"
+		rectAlignment = "UpperLeft"
+		offsetXY = "50 -10"
+		padding = "0 0 0 0"
+		scale = "0.5 0.5 0.5"
+		spacing = "0" />
+
+	<Image class="map-light-confirm"
+		ignoreLayout = "true"
+		preserveAspect = "false"
+		rectAlignment = "MiddleRight"
+		raycastTarget = "true"
+		onMouseDown = "MapHUD_Confirm"
+		offsetXY = "60 0"
+		color = "#FFF2CC"
+		height = "40"
+		width = "50" />
+
+	<Text class="map-light-confirm"
+		font = "Fonts/FrizB"
+		fontSize = "30"
+		height = "50"
+		width = "50"
+		color = "#000000"
+		outline = ""
+		shadow = ""
+		ignoreLayout = "true"
+		pivot = "0.5 0.5"
+		alignment = "MiddleCenter"
+		rectAlignment = "MiddleRight"
+		offsetXY = "35 0" />
+
+	<InputField class="map-light-input"
+		scale = "1 1 1"
+		preferredHeight = "40" flexibleHeight = "0" minHeight = "40"
+		preferredWidth = "300" flexibleWidth = "0" minWidth = "300"
+		font = "Fonts/FrizB"
+		fontSize = "20"
+		onValueChanged = "MapHUD_Update" />
 </Defaults>
 
 <VerticalLayout class="adminContainer" visibility="Host">
@@ -45,12 +87,15 @@
 	</HorizontalLayout>
 
 	<HorizontalLayout class="buttonPanel">
-		<Button id="toggleElem_adminControls" class="buttonPanelToggle">►</Button>
-		<VerticalLayout id="adminControls" class="buttonBar" active="False">
-			<Button id="clearPlayers">Clear Players</Button>
-			<Button id="resetTable">Reset Table</Button>
-			<Text class="spacer_10"></Text>
-			<Button id="logGameToStorage">Record Game Results</Button>
+		<Button id="toggleElem_lightControls" class="buttonPanelToggle">►</Button>
+		<VerticalLayout id="lightControls" class="map-light-control-container" visibility="Host" active="false">
+			<InputField id="mapHUD_LightCoords_A" class="map-light-input" />
+			<InputField id="mapHUD_LightCoords_B" class="map-light-input" />
+		<Text class="spacer_10"></Text>
+		<Text class="spacer_10"></Text>
+			<Button id="captureNext" scale="2 2 2">Capture</Button>
+			<Image id="debugLightImage" class="map-light-confirm" />
+			<Text id="debugLightText" class="map-light-confirm">OK</Text>
 		</VerticalLayout>
 	</HorizontalLayout>
 </VerticalLayout>
