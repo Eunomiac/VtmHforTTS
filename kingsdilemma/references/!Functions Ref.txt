@@ -1,0 +1,20 @@
+***********************************************
+lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods")
+***********************************************
+
+DIR.JumpToStatePhase("PLAY", "StartRound", isInitializing)
+    isInitializing = true -- runs INITFUNCS for the phase
+    isInitializing = false -- does NOTHING except update mode and phase
+    isInitializing = nil -- runs resync logic after setting mode/phase
+
+P.AssignLeader("Brown")
+P.AssignModerator("Red")
+
+S.setPlayerTurnVal(3, "Green", "powerCommitted")
+S.setPlayerTurnVal("Aye/Nay/Pass/PassMod"/false, "Brown", "vote")
+
+S.setStateVal("Aye", "roundState", "voteResult")
+S.setStateVal(3, "roundState", "ayeTotal/nayTotal")
+S.setStateVal("Yellow", "roundState", "currentTurn") -- (won't take effect until turn is passed)
+
+MSG.HideAll()

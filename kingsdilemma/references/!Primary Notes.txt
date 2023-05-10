@@ -6,17 +6,11 @@ lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods")
 
 
 
+- figure out score graphic for Discord
+- fix tie notification to moderator's tiebreaking vote
+- turn pass card into a 'transfer' zone, with buttons to delete & to transfer contents to others
+  - Splash message alerts all to whatever happened
 
 
-
-
-
-
-
-
-
-
-
-
-
-fix tie notification to moderator's tiebreaking vote
+CTRL-K CTRL-0 -- Fold All
+CTRL-K CTRL-J -- Unfold All
