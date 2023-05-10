@@ -56,7 +56,11 @@ function MSG.QueryResponse(index)
 	if currentQuery ~= nil then
 		Wait.time(function() currentQuery.response = currentQuery[U.getKeys(currentQuery)[index]] end, 0.25)
 	end
-	UI.hide("splashQuery_" .. currentQuery.player.color)
+	if currentQuery == nil then
+		MSG.HideAll("splashQuery_")
+	else
+		UI.hide("splashQuery_" .. currentQuery.player.color)
+	end
 end
 
 function MSG.SplashQuery(query, displayName, responseObj, playerRef)
@@ -102,13 +106,12 @@ function MSG.Hide(id)
 	Wait.time(function() UI.setAttribute(id, "active", "false") end, 2)
 end
 
-function MSG.HideAll()
+function MSG.HideAll(elemPrefix)
 	local elemIDs = {}
-	U.forEach({
-		"splashPanel_",
-		"consequencesQuery_",
-		"turnHUD_"
-	}, function(prefix)
+	local elemPrefixes
+	if elemPrefix == nil then elemPrefixes = {"splashPanel_", "consequencesQuery_", "turnHUD_"}
+	else elemPrefixes = {elemPrefix} end
+	U.forEach(elemPrefixes, function(prefix)
 		U.forEach(C.SeatColors, function(color)
 			table.insert(elemIDs, prefix .. color)
 		end)

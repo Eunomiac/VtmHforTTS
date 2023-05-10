@@ -126,7 +126,6 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="turn-HUD-container" visibility="Red">
 	<VerticalLayout id="turnHUD_Red" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
@@ -157,7 +156,6 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="turn-HUD-container" visibility="Orange">
 	<VerticalLayout id="turnHUD_Orange" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
@@ -188,7 +186,6 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="turn-HUD-container" visibility="Yellow">
 	<VerticalLayout id="turnHUD_Yellow" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
@@ -219,7 +216,6 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-
 <Panel class="turn-HUD-container" visibility="Green">
 	<VerticalLayout id="turnHUD_Green" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">

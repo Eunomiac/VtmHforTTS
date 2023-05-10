@@ -1,45 +1,22 @@
-
-Make a panel for
-	showing and hiding huds (one button, right click to hide)
-	dialog option: dropdown list of
-		... players
-		... all the possible controls they could click
-	dialog option: change state value
-		... enter, e.g. "turnState,Orange,powerCommitted = 5" and it'll parse it properly
-
-make Reference hud use 'normal' UI hiding commands
+***********************************************
+lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods")
+***********************************************
 
 
-Make sure consequences display disappears
-Make buttons for spawning coin and power
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 fix tie notification to moderator's tiebreaking vote
-if I can't fix turn hud, make all buttons visible
-is aye button showing up underneath?
-
-code up open agendas
-add buttons for controlling appearance of UI elements in case they fuck up again
-- consider coding a general light config for each player, highlighting territory with one light and focusing on capital with another
-
-
-
-TEST
-* Make moderator the one to toggle the buttons
-* add zone that converts story cards to event cards when they're added to the event area
-* add snapping to story cards when they're drawn
-* add camera angles for signing stickers and story cards
-* allow tagging cards "Trigger" and they're automatically handled when drawn
-
-DONE
-* configure map focus lights (instructions under LIGHTMODES)
-* code in the ability to name the next king
-* did the game end one card too early?
-* check why crave isn't updating - check to make sure it's accurate in state, and that it remains on their screens
-
-
-
-FUNCTION PREPARATION FOR HUD CONTROL (two steps):
-lua key={b="Brown",r="Red",o="Orange",y="Yellow",g="Green"}
-lua function hide(c) UI.hide("consequencesQuery_" .. key[string.lower(c)]) end; function aye(c) UI.show("turnHUD_voteAye_container_" .. key[string.lower(c)]) end; function nay(c) UI.show("turnHUD_voteNay_container_" .. key[string.lower(c)]) end
-
-hide("b"), aye("R"), nay("g")

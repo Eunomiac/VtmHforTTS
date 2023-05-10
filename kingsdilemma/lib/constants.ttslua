@@ -122,7 +122,8 @@ C.Phases = {
 		MainBoard = "MainBoard", -- Auto
 		LeaderModerator = "LeaderModerator", -- Auto
 		LegacySetup = "LegacySetup", -- Auto
-		SecretAgendas = "SecretAgendas" -- MANUAL ADVANCE (but auto in END phase)
+		SecretAgendas = "SecretAgendas", -- MANUAL ADVANCE (but auto in END phase)
+		PrepareFirstRound = "PrepareFirstRound" -- Auto
 	},
 	PLAY = {
 		StartRound = "StartRound", -- Auto
@@ -346,7 +347,7 @@ C.SnapPoints = {
 			tags = {"EventCard", "StoryCard", "TriggerCard"}
 		},
 		{
-			position = Vector({10.46, 1.46, -23.19}),
+			position = Vector({20.46, 1.46, -23.19}),
 			rotation = Vector({0, 180, 0}),
 			rotation_snap = false,
 			tags = {"EventCard", "StoryCard", "TriggerCard"}
@@ -907,7 +908,7 @@ C.Spots = {
 			rotation = Vector({87.76, 0.00, 45.00})
 		},
 		DilemmaSpot = {
-			position = Vector({0.00, 8.27, 41.30}),
+			position = Vector({0.00, 8.27, 41.00}),
 			rotation = Vector({83.90, 0, 0}),
 			scale = Vector({2, 1.00, 2})
 		}

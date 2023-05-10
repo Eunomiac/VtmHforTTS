@@ -334,7 +334,7 @@ function P.RefreshPlayerScreenHUD(playerRef)
 			return 1
 		end,
 		function()
-			houseScreen.call("Activate")
+			houseScreen.call("Refresh")
 			return 0.5
 		end
 	})
@@ -360,10 +360,10 @@ function P.GetOpenAgendas(playerRef)
 	return oData
 end
 
-function P.SpawnPower(playerRef, numPower) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Power"), numPower, "PowerToken") end
-function P.TakePower(playerRef, numPower) return OU.TakeValue(P.GetPlayerZone(playerRef, "Power"), numPower, "PowerToken") end
-function P.SpawnCoins(playerRef, numCoins) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Coin"), numCoins, "CoinToken") end
-function P.TakeCoins(playerRef, numCoins) return OU.TakeValue(P.GetPlayerZone(playerRef, "Coin"), numCoins, "CoinToken") end
+function P.SpawnPower(playerRef, numPower) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Power"), numPower * 1, "PowerToken") end
+function P.TakePower(playerRef, numPower) return OU.TakeValue(P.GetPlayerZone(playerRef, "Power"), numPower * 1, "PowerToken") end
+function P.SpawnCoins(playerRef, numCoins) return OU.SpawnValue(P.GetPlayerZone(playerRef, "Coin"), numCoins * 1, "CoinToken") end
+function P.TakeCoins(playerRef, numCoins) return OU.TakeValue(P.GetPlayerZone(playerRef, "Coin"), numCoins * 1, "CoinToken") end
 function P.TransferPower(fromPlayerRef, toPlayerRef, numPower)
 	return OU.TransferValue(
 		P.GetPlayerZone(fromPlayerRef, "Power"),

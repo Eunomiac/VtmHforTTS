@@ -133,12 +133,12 @@ function OU.GetUpValueData(objs, tag)
 			coinToken1 = totalValue - (5 * math.floor(totalValue / 5))
 		}
 	elseif tag == "PowerToken" then
-		log({
-			totalValue = totalValue,
-			powerToken10 = math.floor(totalValue / 10),
-			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
-			powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
-		})
+		-- log({
+		-- 	totalValue = totalValue,
+		-- 	powerToken10 = math.floor(totalValue / 10),
+		-- 	powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
+		-- 	powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
+		-- })
 		return {
 			powerToken10 = math.floor(totalValue / 10),
 			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
@@ -253,13 +253,15 @@ function OU.SplitObjByValue(obj)
 	}
 
 	for i = 1, obj.value / newValue do
-		table.insert(seqFuncs, function()
-			OU.SpawnFromSourceObj(spawnSource, tags, {
-				position = U.getScatterPosition(Vector(position), 1, 1),
-				rotation = spawnSource.getRotation(),
-				scale = spawnSource.getScale()
-			})
-		end)
+		if spawnSource ~= nil then
+			table.insert(seqFuncs, function()
+				OU.SpawnFromSourceObj(spawnSource, tags, {
+					position = U.getScatterPosition(Vector(position), 1, 1),
+					rotation = spawnSource.getRotation(),
+					scale = spawnSource.getScale()
+				})
+			end)
+		end
 	end
 
 	return U.sequence(seqFuncs, 0.15)
@@ -324,7 +326,7 @@ end
 function OU.SpawnValue(toZones, amount, tag)
 	if U.Type(toZones) == "table" then
 		if #toZones == 0 then return 0 end
-		if #toZones > 1 then return U.RunSequence(U.iMap(toZones, function(toZone) return OU.SpawnValue(toZone, amount, tag) end)) end
+		if #toZones > 1 then return U.RunSequence(U.iMap(toZones, function(toZone) return function() OU.SpawnValue(toZone, amount, tag) end end)) end
 		toZones = toZones[1]
 	end
 	U.Assert("OU.SpawnValue", toZones, U.Type(toZones) == "userdata")

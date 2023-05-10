@@ -220,7 +220,7 @@ L.LIGHTMODES = {
 			end
 
 			local finalLData = U.merge(lData, rangeData)
-			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+			-- log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
 
 			return U.merge(lData, rangeData)
 		end
@@ -250,8 +250,8 @@ L.LIGHTMODES = {
 				rangeData.intensity = 0.5 * rangeData.intensity
 			end
 
-			local finalLData = U.merge(lData, rangeData)
-			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+			-- local finalLData = U.merge(lData, rangeData)
+			-- log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
 
 			return U.merge(lData, rangeData)
 		end
@@ -928,6 +928,7 @@ function L.ResetLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
+			if light == nil then return end
 			local lComp = getComp(light)
 			if lComp == nil then return end
 			lComp.set("enabled", false)
@@ -940,6 +941,7 @@ function L.PrimeLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
+			if light == nil then return end
 			local lComp = getComp(light)
 			if lComp == nil then return end
 			lComp.set("enabled", false)

@@ -95,6 +95,7 @@ function DimmerOff() SetAlpha({global = 1}) end
 function Update() UpdateXMLTable() end
 
 function Activate()	return self.UI.show("rootPanel") end
+function Refresh() return self.UI.setAttribute("rootPanel", "active", "true") end
 
 local function parseScale(val) return U.join({U.ToString(val), U.ToString(val), U.ToString(val)}, " ") end
 local function getRootPanelXML(children)

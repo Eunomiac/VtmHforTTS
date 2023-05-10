@@ -745,6 +745,38 @@ function U.findColorTag(obj)
 	return U.find(Player.getAvailableColors(), function(color) return obj.hasTag(color) end)
 end
 
+function U.getDecalNames(obj)
+	U.Assert("U.getDecalNames", obj, "userdata")
+	U.Assert("U.getDecalNames", obj.getDecals, "function")
+	local dData = obj.getDecals()
+	if dData == nil then return end
+	return U.iMap(dData, function(data) return data.name end)
+end
+
+function U.hasDecal(obj, decalRef, isStrict)
+	if isStrict == nil then isStrict = false end
+	local decalNames = U.getDecalNames(obj)
+	if decalNames == nil then return false end
+	if isStrict then
+		return U.find(decalNames, function(name) return name == decalRef end) ~= nil
+	else
+		return U.find(decalNames, function(name) return string.match(name, "%f[%w]" .. decalRef .. "%f[%W]") end) ~= nil
+	end
+end
+
+function U.removeDecal(obj, decalRef, isStrict)
+	if not U.hasDecal(obj, decalRef, isStrict) then return end
+	if isStrict == nil then isStrict = false end
+	local decalData = obj.getDecals()
+	local decalIndex
+	if isStrict then
+		U.pluck(decalData, function(dData) return dData.name == decalRef end)
+	else
+		U.pluck(decalData, function(dData) return string.match(dData.name, "%f[%w]" .. decalRef .. "%f[%W]") end)
+	end
+	obj.setDecals(decalData)
+end
+
 local UIDS = {}
 function U.getUID(length)
 	if length == nil then length = 10 end

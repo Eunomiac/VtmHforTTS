@@ -68,7 +68,6 @@
 		preferredWidth = "5000" minWidth = "5000" flexibleWidth = "0"
 		scale = "1 1 1" />
 </Defaults>
-
 <Defaults> <!-- Splash Screen Defaults -->
 	<Panel class="splash-screen"
 		offsetXY = "0 0"
@@ -90,6 +89,7 @@
 
 
 </Defaults>
+
 <Panel id="splashScreen" class="splash-panel splash-screen" active="true">
 	<VerticalLayout class="splash-root">
 		<VerticalLayout class="splash-image-container">
@@ -108,6 +108,7 @@
 	<Panel class="splash-hud" offsetXY = "-50 -50" />
 	<Panel class="splash-visibility" minHeight="185" />
 </Defaults>
+
 <Panel id="splashHUD" class="splash-panel splash-hud">
 	<Panel class="splash-visibility">
 		<VerticalLayout id="splashPanel_All" class="splash-root" active="false">
@@ -459,7 +460,8 @@
 		height = "400"
 		width = "700"
 		rectAlignment = "MiddleCenter"
-		offsetXY = "0 350" />
+		animationDuration = "1"
+		offsetXY = "0 0" />
 
 	<Image class="story-arc-image"
 		preserveAspect = "true"
@@ -468,14 +470,14 @@
 		hideAnimation = "FadeOut"
 		animationDuration = "2"
 		preferredHeight = "300" />
-	<Image class="story-stickers" width = "900" animationDuration = "2" />
+	<Image class="story-stickers" width = "900" animationDuration = "1" />
 
 	<Text class="story-arc-text"
 		alignment = "UpperLeft"
 		fontSize = "35"
 		preferredWidth = "1200"
-		color = "#FFFFFF"
-		font = "Fonts/FrizBI"
+		color = "#AAAAAA"
+		font = "Fonts/FrizB"
 		horizontalOverflow = "Wrap"
 		verticalOverflow = "Overflow"
 		showAnimation = "FadeIn"
@@ -493,10 +495,9 @@
 		showAnimation = "FadeIn"
 		showAnimationDelay = "0"
 		hideAnimation = "FadeOut"
-		animationDuration = "2" />
+		animationDuration = "1" />
 
 </Defaults>
-
 
 <Panel id="storyHUD" class="story-panel story-arcs" active = "false">
 	<VerticalLayout id="storyHUD_Arc1" class="story-panel story-arcs" active="false">

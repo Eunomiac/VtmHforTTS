@@ -20,9 +20,7 @@ function DIR.ShowManualAdvance() UI.hide("autoAdvanceGamePhase"); UI.show("advan
 function DIR.ToggleAdvanceControls()
 	local mode, phase = S.getCurrentPhase()
 	-- modes/phases that definitely require manual-advancing:
-	if U.isIn(phase, {C.Phases.NONE, C.Phases.CHRONSETUP, C.Phases.PLAY.DrawDilemma, C.Phases.PLAY.DisplayOutcome, C.Phases.PLAY.ApplyChanges, C.Phases.END.Score, C.Phases.END.Realm, C.Phases.END.Achievements, C.Phases.END.Alignments}) then
-		return DIR.ShowManualAdvance()
-	elseif mode == C.Modes.GAMESETUP and phase == C.Phases.GAMESETUP.SecretAgendas then
+	if U.isIn(phase, {C.Phases.NONE, C.Phases.CHRONSETUP, C.Phases.PLAY.DrawDilemma, C.Phases.PLAY.DisplayOutcome, C.Phases.PLAY.ApplyChanges, C.Phases.END.Score}) then
 		return DIR.ShowManualAdvance()
 	end
 	return DIR.ShowAutoAdvance()
@@ -226,7 +224,7 @@ INITFUNCS = {
 				return DIR.FetchEnvelope(queryResponse.response)
 			end
 		}
-	end, -- a = function() log("a") end; nA = a; a = function() log("b"); nA() end; a()
+	end,
 	GAMESETUP = {
 		InitializeState = function()
 			return {
@@ -244,8 +242,6 @@ INITFUNCS = {
 			return {
 				function()
 					P.SetCamera("MainBoard")
-					DIR.AddToDilemmaDeck()
-					DIR.GetDilemmaDeck().shuffle()
 					L.SetLightMode({ "lightMainTop", "lightMainBottom" }, "ambient")
 					L.SetLightMode("lightFeature", "on")
 					return MSG.Splash("Board Setup")
@@ -287,7 +283,7 @@ INITFUNCS = {
 						return L.SetLightMode("lightModerator", "on", nil, 0.5)
 					end,
 					P.AssignModerator,
-					-- DIR.ADVANCE
+					DIR.ADVANCE
 				}
 			end
 		end,
@@ -353,6 +349,7 @@ INITFUNCS = {
 				end,
 				function()
 					P.SetCamera("BehindScreen")
+					L.SetLightMode("lightFront", "dim")
 					MSG.Splash("Power Legacy")
 					return 1
 				end,
@@ -366,22 +363,21 @@ INITFUNCS = {
 								stickerObj.highlightOn(statusColor)
 								UI.show("storyHUD_Sticker")
 								UI.setValue("storyHUD_Sticker_Text", stickerObj.getDescription())
-								return 0.5
+								return 1.5
 							end,
 							function()
 								L.PulseLight("lightFront", S.getPlayerOfHouse(sData.house), statusColor)
-								-- L.PulseLight("lightBehind", S.getPlayerOfHouse(sData.house), statusColor)
 								if sData.status == "Pos" then
 									P.SpawnPower(player, 1)
 								else
 									P.TakePower(player, 1)
 								end
-								return 2
+								return 1
 							end,
 							function()
 								stickerObj.highlightOff()
 								UI.hide("storyHUD_Sticker")
-								return 2
+								return 1
 							end
 						})
 					end
@@ -392,6 +388,7 @@ INITFUNCS = {
 					end))
 				end,
 				function()
+					L.SetLightMode("lightFront", "ambient")
 					MSG.Splash("Open Agendas")
 					return 1
 				end,
@@ -437,9 +434,6 @@ INITFUNCS = {
 						end
 						table.insert(stickersByResource[key], sData)
 					end)
-					log(stickersByResource.Wealth_Pos)
-					log(stickersByResource.Welfare_Neg)
-					log(stickersByResource.Knowledge_Pos)
 					U.forEach(U.getKeys(stickersByResource), function(key)
 						table.sort(stickersByResource[key], function(a, b) return a.age > b.age end)
 					end)
@@ -471,12 +465,14 @@ INITFUNCS = {
 		end,
 		PrepareFirstRound = function()
 			return {
+				DIR.AddToDilemmaDeck,
 				function()
 					S.setStateVal(0, "roundState", "roundNum")
 					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
 					DIR.GetDilemmaDeck().shuffle()
-					return DIR.ADVANCE()
-				end
+					return 0.5
+				end,
+				DIR.ADVANCE
 			}
 		end
 	},
@@ -513,6 +509,9 @@ INITFUNCS = {
 				end,
 				function()
 					displayCard = getObjectsWithTag("OnDisplay")[1]
+					if UI.getAttribute("lightControls", "active") == "false" then
+						Global.call("HUD_Click", {player = U.getHost(), id = "toggleElem_lightControls"})
+					end
 					if displayCard.hasTag("Dilemma") then
 						DIR.InitConsequencesQuery()
 						DIR.SpawnReferenceDilemmas(displayCard)
@@ -540,6 +539,9 @@ INITFUNCS = {
 								)
 							end,
 							function()
+								if UI.getAttribute("lightControls", "active") == "true" then
+									Global.call("HUD_Click", {player = U.getHost(), id = "toggleElem_lightControls"})
+								end
 								return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.DisplayOutcome)
 							end
 						})
@@ -557,6 +559,9 @@ INITFUNCS = {
 			local queryResponse = { Yes = "true", No = "false" }
 			return {
 				function()
+					if UI.getAttribute("lightControls", "active") == "true" then
+						Global.call("HUD_Click", {player = U.getHost(), id = "toggleElem_lightControls"})
+					end
 					U.forEach(S.getPlayers(), function(player)
 						-- if string.lower(UI.getAttribute("consequencesQuery_" .. player.color, "active")) == "true" then
 						MSG.Hide("consequencesQuery_" .. player.color)
@@ -910,7 +915,7 @@ INITFUNCS = {
 								return U.RunSequence({
 									function()
 										resourceTokens[resource].flip()
-										DIR.UpdateTokenLight(resource, tokenMomentums[resource])
+										DIR.UpdateTokenLight(resource, S.getStateVal("roundState", "boardTokens", "momentum", resource))
 										return resourceTokens[resource]
 									end
 								})
@@ -1058,11 +1063,13 @@ INITFUNCS = {
 						return U.RunSequence({
 							function()
 								displayCard.setLock(false)
+								local coverCard = O.Pieces.CoverCard()
 								return {
 									U.setPositionSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.position, 1),
 									U.setRotationSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.rotation, 1),
 									U.setScaleSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.scale, 1),
-									displayCard
+									displayCard,
+									function() return #U.findAboveObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end) == 1 end
 								}
 							end,
 							DIR.AddToDilemmaDeck,
@@ -1351,9 +1358,11 @@ function DIR.InitSession(isNotShuffling)
 		isFirstCall = false
 		table.insert(seqFuncs, function()
 			MSG.HideAll()
-			UI.hide("splashScreen")
 			if S.isInMode(C.Modes.NONE) then
 				UI.show("storyHUD")
+				Wait.time(function() UI.hide("splashScreen") end, 2)
+			else
+				UI.hide("splashScreen")
 			end
 			return 2
 		end)
@@ -1392,6 +1401,9 @@ function DIR.InitSession(isNotShuffling)
 						UI.hide("storyHUD")
 						UI.hide("sessionInitDisplay")
 						UI.show("gameStatusDisplay")
+						if S.isInMode(C.Modes.NONE) then
+							DIR.ShowAutoAdvance()
+						end
 						return 3
 					end,
 					function()
@@ -1408,6 +1420,7 @@ function DIR.InitSession(isNotShuffling)
 					function()
 						P.InitPlayerHouseCards()
 						DIR.InitCountZones()
+						DIR.InitControlPanel()
 						return P.SetCamera("BehindScreen")
 					end,
 					function()
@@ -1439,6 +1452,7 @@ function DIR.InitSession(isNotShuffling)
 					function()
 						P.InitPlayerHouseCards()
 						DIR.InitCountZones()
+						DIR.InitControlPanel()
 						return P.SetCamera("BehindScreen")
 					end,
 					function()
@@ -1487,6 +1501,17 @@ function DIR.InitCountZones()
 		balanceZone.call("SetIconColor", Color(C.RootColors.Amber):setAt("a", 0.6))
 		balanceZone.call("Activate")
 	end
+end
+
+function DIR.InitControlPanel()
+	U.forEach(S.getPlayers(), function(player)
+		UI.setValue("HUDControl_ToggleRowLabel_" .. player.color, S.getPlayerHouseName(player) .. " — ")
+		UI.setValue("HUDControl_ClickRowLabel_" .. player.color, S.getPlayerHouseName(player) .. " — ")
+		UI.setValue("HUDControl_QueryRowLabel_" .. player.color, S.getPlayerHouseName(player) .. " — ")
+		UI.setAttribute("HUDControl_ToggleRowLabel_" .. player.color, "color", U.GetHex(Color[player.color]:lerp(Color.White, 0.5)))
+		UI.setAttribute("HUDControl_ClickRowLabel_" .. player.color, "color", U.GetHex(Color[player.color]:lerp(Color.White, 0.5)))
+		UI.setAttribute("HUDControl_QueryRowLabel_" .. player.color, "color", U.GetHex(Color[player.color]:lerp(Color.White, 0.5)))
+	end)
 end
 
 local advanceThrottle = false
@@ -1923,8 +1948,8 @@ function DIR.EndSecretAgendas()
 		U.forEach(DIR.GetAssignedAgendas(), function(agenda, pColor)
 			S.setPlayerVal(agenda, pColor, "PreAssignedSecretAgenda")
 		end)
-		Wait.time(DIR.ADVANCE, 4)
 	end
+	Wait.time(DIR.ADVANCE, 4)
 end
 
 function DIR.RecallSecretAgendas()
@@ -1979,7 +2004,10 @@ end
 -- #region Game Round~
 
 -- #region Player Prompting: Stickers, Envelopes, King Name~
-function DIR.PromptForSticker(player)
+local isSimpleFetchingSticker = false
+function DIR.PromptForSticker(player, isSimpleFetch)
+	isSimpleFetchingSticker = isSimpleFetch == true
+	DIR.ShowManualAdvance()
 	UI.setAttribute("stickerQuery_" .. player.color, "active", "false")
 	MSG.Show("stickerQuery_" .. player.color)
 	UI.setAttribute("stickerQuery_" .. player.color, "text", " ")
@@ -1999,15 +2027,23 @@ function DIR.ConfirmFetchSticker(player, stickerKey)
 		end,
 		function()
 			if query.response == "true" then
-				return DIR.FetchSticker(stickerKey)
+				if isSimpleFetchingSticker then
+					isSimpleFetchingSticker = false
+					return DIR.FetchStickerSimple(stickerKey)
+				else
+					return DIR.FetchSticker(stickerKey)
+				end
 			else
-				return DIR.PromptForSticker(player)
+				return DIR.PromptForSticker(player, isSimpleFetchingSticker)
 			end
 		end
 	})
 end
 
-function DIR.PromptForEnvelope(player)
+local isSimpleFetchingEnvelope = false
+function DIR.PromptForEnvelope(player, isSimpleFetch)
+	isSimpleFetchingEnvelope = isSimpleFetch == true
+	DIR.ShowManualAdvance()
 	UI.setAttribute("envelopeQuery_" .. player.color, "active", "false")
 	MSG.Show("envelopeQuery_" .. player.color)
 	UI.setAttribute("envelopeQuery_" .. player.color, "text", " ")
@@ -2027,9 +2063,14 @@ function DIR.ConfirmFetchEnvelope(player, envKey)
 		end,
 		function()
 			if query.response == "true" then
-				return DIR.FetchEnvelope(envKey)
+				if isSimpleFetchingEnvelope then
+					isSimpleFetchingEnvelope = false
+					return DIR.FetchEnvelopeSimple(envKey)
+				else
+					return DIR.FetchEnvelope(envKey)
+				end
 			else
-				return DIR.PromptForEnvelope(player)
+				return DIR.PromptForEnvelope(player, isSimpleFetchingEnvelope)
 			end
 		end
 	})
@@ -2057,6 +2098,29 @@ end
 
 
 -- #region Fetching: Stickers, Envelopes~
+function DIR.FetchStickerSimple(stickerKey)
+
+	local stickerContainer = O.SecretContainers.Stickers()
+	local stickerGUID = OU.FindContainedObjGUID(stickerContainer, function(objData)
+		return string.lower(objData.name) == string.lower(stickerKey)
+	end)
+
+	if not stickerGUID then
+		U.Alert("Sticker '" .. stickerKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0))
+		return
+	end
+
+	stickerContainer.takeObject({
+		position = Vector(C.Spots.Staging.Sticker.Display.position):add(Vector(0, 5, 0)),
+		rotation = Vector(C.Spots.Staging.Sticker.Display.rotation),
+		guid = stickerGUID,
+		callback_function = function(obj)
+			obj.addTag("ChronicleSticker")
+			obj.setLock(false)
+		end
+	})
+end
+
 function DIR.FetchSticker(stickerKey)
 	local stickerContainer = O.SecretContainers.Stickers()
 	local stickerGUID = OU.FindContainedObjGUID(stickerContainer, function(objData)
@@ -2137,6 +2201,65 @@ function DIR.FetchSticker(stickerKey)
 	})
 end
 
+function DIR.FetchEnvelopeSimple(envKey)
+
+	U.Assert("DIR.FetchEnvelope", envKey, "string")
+	local envContainer = O.SecretContainers.Envelopes()
+	U.Assert("DIR.FetchEnvelope", envContainer, "Object")
+
+	local envGUID = OU.FindContainedObjGUID(envContainer, function(objData)
+		return string.lower(objData.name) == string.lower(envKey)
+	end)
+
+	if not envGUID then return U.Alert("Envelope '" .. envKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0)) end
+
+	local envDeck, storyCard
+
+	return U.RunSequence({
+		function()
+			envContainer.takeObject({
+				position = C.Spots.Staging.Lectern.Display.position,
+				rotation = C.Spots.Staging.Lectern.Display.rotation,
+				guid = envGUID,
+				callback_function = function(obj)
+					envDeck = obj
+					envDeck.setLock(true)
+				end
+			})
+			return function() return envDeck ~= nil end
+		end,
+		function()
+			envDeck.takeObject({
+				position = C.Spots.Staging.Lectern.TopCard.position,
+				rotation = C.Spots.Staging.Lectern.TopCard.rotation,
+				callback_function = function(obj)
+					storyCard = obj
+					storyCard.setTags({ "StoryCard" })
+					storyCard.setLock(true)
+					storyCard.use_hands = false
+					storyCard.use_snap_points = true
+					storyCard.sticky = false
+				end
+			})
+			return function() return storyCard ~= nil end
+		end,
+		function()
+			storyCard.setPositionSmooth(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0)))
+			storyCard.setRotationSmooth(Vector(C.Spots.Staging.StoryCard.Display.rotation))
+			storyCard.setLock(false)
+			return {storyCard, 1.5}
+		end,
+		function()
+			local coverCard = O.Pieces.CoverCard()
+			coverCard.setLock(true)
+			coverCard.setPositionSmooth(coverCard.getPosition():add(Vector(0, 1, 0)))
+			envDeck.setPositionSmooth(C.Spots.Main.Dilemma.aboveDeck.position)
+			envDeck.setRotationSmooth(C.Spots.Main.Dilemma.aboveDeck.rotation)
+			envDeck.setLock(false)
+		end
+	})
+
+end
 function DIR.FetchEnvelope(envKey)
 	U.Assert("DIR.FetchEnvelope", envKey, "string")
 	local envContainer = O.SecretContainers.Envelopes()
@@ -2165,7 +2288,7 @@ function DIR.FetchEnvelope(envKey)
 						U.setScaleSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. outcome .. "Shrink"].scale, 0.5),
 						L.SetLightMode("lightLectern", "spotlightEnvelope", nil, 0.25)
 					}
-				elseif displayCard.hasTag("Trigger") then
+				elseif displayCard.hasTag("TriggerCard") then
 					return {
 						U.setPositionSlow(displayCard, C.Spots.Main.Trigger.faceUpShrink.position, 0.5),
 						U.setScaleSlow(displayCard, C.Spots.Main.Trigger.faceUpShrink.scale, 0.5),
@@ -2313,15 +2436,22 @@ function DIR.SpawnReferenceDilemmas(dilemmaCard)
 	end)
 end
 
-function DIR.AddToDilemmaDeck(dilemmas)
+
+function DIR.AddToDilemmaDeck(dilemmas, isSecondTry)
+	if isSecondTry == nil then isSecondTry = false end
 	local coverCard = O.Pieces.CoverCard()
 	U.Assert("DIR.AddToDilemmaDeck", coverCard, "Object")
 
 	local seqFuncs = {}
 
 	if dilemmas == nil then
-		dilemmas = U.findAboveObject(coverCard, function(obj) return obj.type == "Deck" or obj.type == "Card" end,
-			{ box = true })
+		dilemmas = U.findAboveObject(coverCard, function(obj) return obj.type == "Deck" or obj.type == "Card" end, { box = true })
+		if #dilemmas > 1 and not isSecondTry then
+			return U.RunSequence({
+				function() return 2 end,
+				function() return DIR.AddToDilemmaDeck(nil, true) end
+			})
+		end
 		U.Val("DIR.AddToDilemmaDeck", dilemmas, #dilemmas <= 1,
 			"Multiple sources of dilemmas found above Cover Card. Consolidate them into a deck.")
 		dilemmas = dilemmas[1]
@@ -2358,8 +2488,8 @@ function DIR.AddToDilemmaDeck(dilemmas)
 				rotation = dilemmaCardDestRot,
 				callback_function = function(obj)
 					obj.use_hands = false
-					if obj.hasTag("TriggerCard") then
-						obj.setTags({ "TriggerCard" })
+					if U.hasDecal(obj, "Trigger") then
+						obj.setTags({"TriggerCard"})
 					else
 						obj.setTags({ "Dilemma" })
 					end
@@ -2375,7 +2505,7 @@ function DIR.AddToDilemmaDeck(dilemmas)
 			U.RunSequence({
 				function()
 					dilemmas.use_hands = false
-					if dilemmas.hasTag("TriggerCard") then
+					if U.hasDecal(dilemmas, "Trigger") then
 						dilemmas.setTags({ "TriggerCard" })
 					else
 						dilemmas.setTags({ "Dilemma" })
@@ -2509,7 +2639,7 @@ end
 
 -- #region Momentum & Stability~
 function DIR.UpdateTokenLight(resource, momentum)
-	if resource == nil then return U.iMap(U.concat({ "Stability" }, C.Resources), DIR.UpdateTokenLight) end
+	if resource == nil then return U.iMap(U.concat({ "Stability" }, C.Resources), function(tokenRef) return DIR.UpdateTokenLight(tokenRef) end) end
 	if resource == "Stability" then
 		return L.SetLightMode("lightStability", "on", nil, 0.5)
 	end

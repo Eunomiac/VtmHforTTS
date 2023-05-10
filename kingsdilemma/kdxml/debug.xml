@@ -6,7 +6,7 @@
 		width = "550"
 		spacing = "12" />
 	<HorizontalLayout class="debugButtonPanel"
-		offsetXY = "0 -350" />
+		offsetXY = "0 -450" />
 
 	<Panel class = "codeDisplayPanel"
 		color = "rgba(0, 0, 0, 0.5)"

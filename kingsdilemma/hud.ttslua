@@ -14,43 +14,26 @@ local MSG = require("kingsdilemma.core.messaging")
 
 MessageQueue, QueueStatus = {}, {}
 
-local TESTFUNCS = {
-	-- OpAgendas = function(button)
-	-- 	local isNegative = button == "-2"
-	-- 	local player = U.getHost()
-	-- 	local playerOptions = U.iMap(S.getPlayers(), function(player) return player.color end)
-	-- 	local resOptions = C.Resources
-	-- 	player.showOptionsDialog("Which Player?", playerOptions, 1, function(_, i)
-	-- 		local targetPlayer = S.getPlayer(playerOptions[i])
-	-- 		player.showOptionsDialog(isNegative and "Which Negative Agenda?" or "Which Positive Agenda?", resOptions, 1, function(_, i)
-	-- 			local targetRes = resOptions[i]
-	-- 			local openAgendas = S.getPlayerVal(targetPlayer, "openAgendas")
-	-- 			if openAgendas == nil then openAgendas = {positive = {}, negative = {}} end
-	-- 			if openAgendas[isNegative and "negative" or "positive"] == nil then
-	-- 				openAgendas[isNegative and "negative" or "positive"] = {}
-	-- 			end
-	-- 			table.insert(openAgendas[isNegative and "negative" or "positive"], targetRes)
-	-- 			S.setPlayerVal(openAgendas, targetPlayer, "openAgendas")
-	-- 		end)
-	-- 	end)
-	-- end,
-	Stickers = function() log(DIR.GetStickerData()) end,
-	Fetcher = function(button)
-
-	end
+local TESTFUNCDEFS = {
+	ControlHUD = DIR.InitControlPanel
 }
-
+local TESTFUNCS = {}
 function InitTestFuncButtons()
-	local count = 0
-	for i, name in ipairs(U.getKeys(TESTFUNCS)) do
-		count = count + 1
-		UI.setAttributes("debug_testFunc" .. count, {
-			text = "  T: " .. name,
-			colors = "#666666|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)",
-			textAlignment = "MiddleLeft"
-		})
+	local testFuncNames = U.getKeys(TESTFUNCDEFS)
+	for i = 1, 5 do
+		local funcName = testFuncNames[i]
+		if funcName == nil then
+			UI.setAttribute("debug_testFunc" .. i, "active", "false")
+		else
+			UI.setAttributes("debug_testFunc" .. i, {
+				active = "true",
+				text = "  T: " .. funcName,
+				colors = "#666666|#AAAAAA|#FFFFFF|rgba(0.5, 0.5, 0.5, 0.5)",
+				textAlignment = "MiddleLeft"
+			})
+		end
 	end
-	TESTFUNCS = U.getValues(TESTFUNCS)
+	TESTFUNCS = U.getValues(TESTFUNCDEFS)
 end
 
 function UpdatePhaseDisplay()
@@ -103,6 +86,24 @@ local function toggleXmlElement(elemID, button)
 		UI.setAttribute("toggleElem_" .. elemID, "text", "►")
 	end
 end
+
+local function getPlayerList(excludePlayerRefs)
+	if excludePlayerRefs == nil then excludePlayerRefs = {} end
+	excludePlayerRefs = U.map(excludePlayerRefs, function(playerRef)
+		if U.isIn(playerRef, Player.getColors()) then
+			return playerRef
+		else
+			local player = S.getPlayer(playerRef)
+			if player then return player.color end
+			return playerRef
+		end
+	end)
+	local players = U.filter(S.getPlayers(), function(player) return not U.isIn(player.color, excludePlayerRefs) end)
+	return U.iMap(players, function(pl, i)
+		return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
+	end)
+end
+
 local function promptSimClick(player, button)
 	local players = S.getPlayers()
 	if button == "-2" then
@@ -117,10 +118,7 @@ local function promptSimClick(player, button)
 			House_HUD_Click(Player[col], "-1", clickElemID)
 		end
 	else
-		local playerOptions = U.map(players, function(pl, i)
-			return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
-		end)
-		player.showOptionsDialog("Which player is clicking?", playerOptions, 1, function(_, i)
+		player.showOptionsDialog("Which player is clicking?", getPlayerList(), 1, function(_, i)
 			local targetPlayer = players[i]
 			player.showOptionsDialog("Which territory?", C.Houses, 1, function(houseName)
 				if houseName == nil then return end
@@ -131,17 +129,50 @@ local function promptSimClick(player, button)
 		end)
 	end
 end
+local function promptGivePower()
+	local players = S.getPlayers()
+	U.getHost().showOptionsDialog("Give Power to Which Player?", getPlayerList(), 1, function(_, i)
+		local targetPlayer = players[i]
+		U.getHost().showInputDialog(
+			"How much Power?",
+			"",
+			function(amount)
+				if amount == "" then return end
+				amount = amount * 1
+				if amount <= 0 then return end
+				MSG.Splash("Giving " .. amount .. " Power to House " .. S.getPlayerHouseName(targetPlayer))
+				P.SpawnPower(targetPlayer, amount)
+			end
+		)
+	end
+	)
+end
+local function promptGiveCoin()
+	local players = S.getPlayers()
+	U.getHost().showOptionsDialog("Give Coin to Which Player?", getPlayerList(), 1, function(_, i)
+		local targetPlayer = players[i]
+		U.getHost().showInputDialog(
+			"How much Coin?",
+			"",
+			function(amount)
+				if amount == "" then return end
+				amount = amount * 1
+				if amount <= 0 then return end
+				MSG.Splash("Giving " .. amount .. " Coin to House " .. S.getPlayerHouseName(targetPlayer))
+				P.SpawnCoins(targetPlayer, amount)
+			end
+		)
+	end
+	)
+end
 local function promptAssignHouseName(player)
 	local players = S.getPlayers()
-	local playerOptions = U.map(players, function(pl, i)
-		return "#" .. i .. " " .. pl.color .. " (" .. pl.steam_name .. ")"
-	end)
-	player.showOptionsDialog("Name which player's house?", playerOptions, 1, function(_, i)
+	player.showOptionsDialog("Name which player's house?", getPlayerList(), 1, function(_, i)
 		local targetPlayer = players[i]
 		player.showInputDialog(
 			"What is their House Name?",
 			S.getPlayerVal(targetPlayer, "house"),
-			function (houseName)
+			function(houseName)
 				S.setPlayerVal(houseName, targetPlayer, "houseName")
 				P.GetPlayerScreen(targetPlayer).call("UpdateXMLTable")
 				P.GetPlayerScreen(targetPlayer).call("Activate")
@@ -150,6 +181,11 @@ local function promptAssignHouseName(player)
 end
 
 function HUD_Click(player, button, id)
+	if U.Type(player) == "table" then
+		button = player.button
+		id = player.id
+		player = player.player
+	end
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^splashQuery_Option") then
 		local _, optionRef, color = table.unpack(U.split(id, "_"))
@@ -171,7 +207,8 @@ function HUD_Click(player, button, id)
 		P.ClearSeats()
 	elseif id == "transferToTestPlayers" then
 		local players = Player.getPlayers()
-		local storedData = U.filter(U.getValues(S.getStateVal("playerStorage")), function(sData) return not string.match(sData.id, "^Player") and sData.curColor ~= nil end)
+		local storedData = U.filter(U.getValues(S.getStateVal("playerStorage")),
+			function(sData) return not string.match(sData.id, "^Player") and sData.curColor ~= nil end)
 		U.RunSequence({
 			function()
 				U.forEach(getObjectsWithTag("HouseCard"), function(obj) obj.setRotation(obj.getRotation():setAt("z", 180)) end)
@@ -189,7 +226,8 @@ function HUD_Click(player, button, id)
 					error("No player named 'Eunomiac', 'Player 0', or 'Player 1' found to be Host.")
 				end
 				hostPlayer.changeColor(S.getStateVal("playerStorage", C.AdminID, "curColor"))
-				U.pluck(storedData, function(sData) return sData.curColor == S.getStateVal("playerStorage", C.AdminID, "curColor") end)
+				U.pluck(storedData,
+					function(sData) return sData.curColor == S.getStateVal("playerStorage", C.AdminID, "curColor") end)
 				if hostPlayer.steam_name ~= "Eunomiac" then
 					local sData = S.getStateVal("playerStorage", C.AdminID)
 					sData.id = hostPlayer.steam_name
@@ -198,22 +236,33 @@ function HUD_Click(player, button, id)
 				return 0.5
 			end,
 			function()
-				return U.sequence(U.iMap(players, function(player) return function()
-					local sData = U.shift(storedData)
-					sData.id = player.steam_name
-					player.changeColor(sData.curColor)
-					S.setStateVal(sData, "playerStorage", player.steam_name)
-				end end), 0.5)
+				return U.sequence(U.iMap(players, function(player)
+					return function()
+						local sData = U.shift(storedData)
+						sData.id = player.steam_name
+						player.changeColor(sData.curColor)
+						S.setStateVal(sData, "playerStorage", player.steam_name)
+					end
+				end), 0.5)
 			end
 		})
 	elseif id == "resetTable" then
 		DIR.RESET()
 	elseif id == "hideHouseCards" then
-		U.forEach(getObjectsWithTag("HouseCard"), function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
-	elseif id == "fetchSticker" then
-		DIR.PromptForSticker(U.getHost())
-	elseif id == "fetchEnvelope" then
-		DIR.PromptForEnvelope(U.getHost())
+		U.forEach(getObjectsWithTag("HouseCard"),
+			function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
+	elseif id == "adminFetch" then
+		if button == "-2" then
+			DIR.PromptForEnvelope(U.getHost(), true)
+		else
+			DIR.PromptForSticker(U.getHost(), true)
+		end
+	elseif id == "adminGivePowerCoin" then
+		if button == "-2" then
+			promptGiveCoin()
+		else
+			promptGivePower()
+		end
 	elseif id == "setNextKing" then
 		DIR.PromptForKingName(P.GetWinners())
 	elseif id == "captureNext" then
@@ -229,7 +278,8 @@ function HUD_Click(player, button, id)
 		else
 			local cameraData = U.clone(C.CameraAngles.ScreenCapture)
 			cameraData.cameraMode = nil
-			cameraData.position = Vector(C.CameraAngles.ScreenCapture.position):add(Vector(0, 0, C.CaptureCoords.cameraZoneZShift):scale(1, 1, captureRow + (captureRow == 0 and 0 or 0.25)))
+			cameraData.position = Vector(C.CameraAngles.ScreenCapture.position):add(Vector(0, 0,
+				C.CaptureCoords.cameraZoneZShift):scale(1, 1, captureRow + (captureRow == 0 and 0 or 0.25)))
 			player.lookAt(cameraData)
 			player.setCameraMode("TopDown")
 		end
@@ -316,8 +366,31 @@ function HUD_HoverOff(player, returnString, id)
 		UI.setAttribute("splashQueryText_" .. optionRef .. "_" .. color, "color", "#FFFFFF44")
 	end
 end
+
 -- #endregion
 
+--#region Emergency Control HUD
+function HUDControl_Click(player, button, id)
+	local _, mode, elemID = table.unpack(U.split(id, "-"))
+	if mode == "Toggle" then
+		if button == "-2" then
+			UI.hide(elemID)
+			UI.setAttribute(elemID, "active", "false")
+		else
+			UI.show(elemID)
+			UI.setAttribute(elemID, "active", "true")
+		end
+	elseif mode == "Click" then
+		local hudRef, actionRef, pColor = table.unpack(U.split(elemID, "_"))
+		if hudRef == "turnHUD" then
+			DIR.TurnHUDClick(actionRef, pColor)
+		elseif hudRef == "splashQuery" then
+			HUD_Click(pColor, "1", elemID)
+		end
+	end
+	toggleXmlElement("HUDControl")
+end
+--#endregion
 -- #region House HUD~
 function House_HUD_Click(player, _, id)
 	local _, _, houseName = table.unpack(U.split(id, "_"))
@@ -333,6 +406,7 @@ function House_HUD_HoverOff(player, _, id)
 	local _, _, buttonRef = table.unpack(U.split(id, "_"))
 	DIR.HouseHUDHoverOff(player, buttonRef)
 end
+
 -- #endregion
 
 -- #region Turn HUD~
@@ -368,6 +442,7 @@ function Turn_HUD_HoverOff(_, _, id)
 		UI.setAttribute(id, "color", "rgba(0.6, 0.47, 0,0.5)")
 	end
 end
+
 -- #endregion
 
 -- #region Consequence HUD~
@@ -380,7 +455,7 @@ function Consequence_HUD_Click(_, button, id)
 	if button == "-2" then
 		conType = "O"
 	else
-		conType = ({O = "P", P = "N", N = "O"})[conType]
+		conType = ({ O = "P", P = "N", N = "O" })[conType]
 	end
 	S.setStateVal(conType, "roundState", "consequences", outcome, resource)
 	MSG.Show("consequence_" .. outcome .. "_" .. conType .. "_" .. resource .. "_" .. color)
@@ -410,6 +485,7 @@ function Consequence_HUD_HoverOff(_, _, id)
 		UI.setAttribute(id, "color", "#DA19177F")
 	end
 end
+
 -- #endregion
 
 -- #region Input HUD~
@@ -441,21 +517,22 @@ function InputHUD_KingConfirm(player, _, id)
 	local house = S.getPlayerHouse(player)
 	local houseName = S.getPlayerHouseName(player)
 	local parsedValue = U.join(U.map(U.filter(
-		U.split(U.trim(curKingName), " "),
-		function(word) return
-			not string.match(string.lower(word), "^king$")
-			and not string.match(string.lower(word), "^queen$")
-			and not string.match(string.lower(word), "^house$")
-			and not string.match(string.lower(word), "^" .. U.lCase(house) .. "$")
-			and not string.match(string.lower(word), "^" .. U.lCase(houseName) .. "$")
-		end
+			U.split(U.trim(curKingName), " "),
+			function(word)
+				return
+						not string.match(string.lower(word), "^king$")
+						and not string.match(string.lower(word), "^queen$")
+						and not string.match(string.lower(word), "^house$")
+						and not string.match(string.lower(word), "^" .. U.lCase(house) .. "$")
+						and not string.match(string.lower(word), "^" .. U.lCase(houseName) .. "$")
+			end
 		),
-		function (word, i)
+		function(word, i)
 			if string.match(string.lower(word), "^of$")
-				or string.match(string.lower(word), "^the$")
-				or string.match(string.lower(word), "^and$") then
-					if i == 1 then return U.tCase(word) end
-					return U.lCase(word)
+					or string.match(string.lower(word), "^the$")
+					or string.match(string.lower(word), "^and$") then
+				if i == 1 then return U.tCase(word) end
+				return U.lCase(word)
 			end
 			if string.match(string.upper(word), "^[IVXL]+$") then return U.uCase(word) end
 			return U.tCase(word)
@@ -484,22 +561,22 @@ function InputHUD_KingConfirm(player, _, id)
 
 	local splashTime = 2
 	MSG.Splash(
-			splashTitle .. " " .. splashValue .. " " .. houseName .. " Will Inherit the Throne!",
-			"AllMid",
-			splashTime,
-			{color = "#FFDD00"}
-		)
-		Wait.time(function()
-			S.setStateVal(parsedValue .. " of House " .. S.getPlayerHouseName(player), "gameState", "kingName")
-		end, splashTime)
-
+		splashTitle .. " " .. splashValue .. " " .. houseName .. " Will Inherit the Throne!",
+		"AllMid",
+		splashTime,
+		{ color = "#FFDD00" }
+	)
+	Wait.time(function()
+		S.setStateVal(parsedValue .. " of House " .. S.getPlayerHouseName(player), "gameState", "kingName")
+	end, splashTime)
 end
+
 -- #endregion
 
 -- #region Reference HUD~
 local lockedPopupImage = {}
 local function hideActiveSubmenus(color, activeMenu)
-	U.forEach({"Help", "View", "Map", "Lore"}, function(param)
+	U.forEach({ "Help", "View", "Map", "Lore" }, function(param)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
@@ -573,6 +650,7 @@ function Ref_HUD_HoverOff(player, _, id)
 		UI.hide(popupID)
 	end
 end
+
 -- #endregion
 
 -- #region Map Light HUD~
@@ -586,7 +664,25 @@ function MapHUD_Update(_, value, id)
 	if rc == nil then rc = "" end
 	x = x * 1; z = z * 1
 
-	S.setStateVal({Vector(x, 0, z), rc}, "gameState", "mapLights", "mapInputs", index)
+	S.setStateVal({ Vector(x, 0, z), rc }, "gameState", "mapLights", "mapInputs", index)
+
+	if x < 0 or x > 2000 or z < 0 or z > 1000 then
+		UI.setAttribute("mapHUD_ConfirmBG", "active", "false")
+		UI.setAttribute("mapHUD_ConfirmText", "color", "#FF0000")
+		UI.setValue("mapHUD_ConfirmText", "X")
+	else
+		UI.setAttribute("mapHUD_ConfirmBG", "active", "true")
+		UI.setAttribute("mapHUD_ConfirmText", "color", "#000000")
+		UI.setValue("mapHUD_ConfirmText", "OK")
+	end
+
+	if index == "A" then
+		if x > 1000 then
+			UI.setAttribute("mapHUD_ConfirmBG", "color", "#FF0000")
+		else
+			UI.setAttribute("mapHUD_ConfirmBG", "color", "#FFF2CC")
+		end
+	end
 end
 
 function MapHUD_Confirm()
@@ -630,15 +726,14 @@ function MapHUD_Confirm()
 
 	-- lua aMap = getObjectFromGUID("ec2fcc"); wMap = getObjectFromGUID("378389")
 	local function ankistToWorld(ankistLightData)
-
 		local ankistBounds = {
-			x = {min = -0.966, max = 0.994},
-			z = {min = -0.953, max = 0.964}
+			x = { min = -0.966, max = 0.994 },
+			z = { min = -0.953, max = 0.964 }
 		}
 
 		local ankistWorldBounds = {
-			x = {min = -0.28, max = 0.535},
-			z = {min = -0.58, max = 0.191}
+			x = { min = -0.28, max = 0.535 },
+			z = { min = -0.58, max = 0.191 }
 		}
 
 		local ankistDeltas = {
@@ -715,8 +810,8 @@ function MapHUD_Confirm()
 	local lightDataA, lightDataB = parseInputData(coordsA, rcA), parseInputData(coordsB, rcB, isDerivingWorld)
 	local mapAnkistMode, mapWorldMode = "off", "off"
 
-	if U.isIn("MapAnkist", {lightDataA.mapRef, lightDataB.mapRef}) then mapAnkistMode = "dim" end
-	if U.isIn("MapWorld", {lightDataA.mapRef, lightDataB.mapRef}) then mapWorldMode = "dim" end
+	if U.isIn("MapAnkist", { lightDataA.mapRef, lightDataB.mapRef }) then mapAnkistMode = "dim" end
+	if U.isIn("MapWorld", { lightDataA.mapRef, lightDataB.mapRef }) then mapWorldMode = "dim" end
 
 	if isDerivingWorld or (lightDataA.mapRef == "MapAnkist" and lightDataB.mapRef == nil) then
 		lightDataB = ankistToWorld(lightDataA)
@@ -728,9 +823,7 @@ function MapHUD_Confirm()
 
 	L.SetLightMode("lightMapAnkist", mapAnkistMode)
 	L.SetLightMode("lightMapWorld", mapWorldMode)
-	L.SetLightMode({"lightMapFocusA", "lightMapFocusB"}, "on")
+	L.SetLightMode({ "lightMapFocusA", "lightMapFocusB" }, "on")
 end
-
-
 
 -- #endregion

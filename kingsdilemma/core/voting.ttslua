@@ -347,30 +347,30 @@ function V.UpdateHUD(player, isForcing)
 		elemText.voteNay = "Add Power"
 	end
 
-	local elemVisibilityReport = {[player.color] = elemVisibility}
-	elemVisibilityReport[player.color].actions = ""
+	-- local elemVisibilityReport = {[player.color] = elemVisibility}
+	-- elemVisibilityReport[player.color].actions = ""
 	U.forEach(elemVisibility, function(isVisible, elemRef)
 		if isVisible then
 			UI.setValue("turnHUD_" .. elemRef .. "_Text_" .. player.color, elemText[elemRef])
-			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
+-- 			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
 
-Showing 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
+-- Showing 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
 			MSG.Show("turnHUD_" .. elemRef .. "_container_" .. player.color)
 			-- UI.setAttribute("turnHUD_" .. elemRef .. "_container_" .. player.color, "active", "true")
 		else
-			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
+-- 			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
 
-HIDING 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
+-- HIDING 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
 			MSG.Hide("turnHUD_" .. elemRef .. "_container_" .. player.color)
 		end
 	end)
-	log([[
+-- 	log([[
 
-=============================
-]] .. JSON.encode_pretty(elemVisibilityReport) .. [[
-==============================
+-- =============================
+-- ]] .. JSON.encode_pretty(elemVisibilityReport) .. [[
+-- ==============================
 
-]])
+-- ]])
 end
 
 local function updateAyeTotal(addedPower)

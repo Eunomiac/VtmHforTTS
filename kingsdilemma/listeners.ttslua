@@ -96,23 +96,32 @@ function tryObjectEnterContainer(container, object)
 end
 
 function onObjectEnterZone(zone, obj)
+	-- log({hasEvent = U.hasDecal(obj, "Event"), hasEve = U.hasDecal(obj, "Eve")})
 	if zone.hasTag("EventCard") and obj.type == "Card" and U.hasAnyTag(obj, {"EventCard", "StoryCard"}) then
+		if obj.hasTag("StoryCard") and not U.hasDecal(obj, "Event") then return end
 		obj.drop()
 		U.waitUntil(
 			function()
-				if obj.hasTag("NotPlayed") then
-					obj.setTags({"EventCard", "NotPlayed"})
-				else
-					obj.setTags({"EventCard", "Played"})
-				end
-				local playedEventCards = U.filter(getObjectsWithAllTags({"EventCard", "Played"}), function(o) return not o.hasTag("NotPlayed") end)
-				local snapSpot = U.filter(C.SnapPoints.Global, function(sPoint) return U.isIn("EventCard", sPoint.tags) end)[#playedEventCards]
+				local playedEventCards = U.filter(zone.getObjects(), function(o) return o.hasTag("EventCard") and o.guid ~= obj.guid end)
+				local snapSpot = U.filter(C.SnapPoints.Global, function(sPoint) return U.isIn("EventCard", sPoint.tags) end)[#playedEventCards + 1]
 
 				U.setPositionSlow(obj, snapSpot.position, 1, nil, false)
 				U.setRotationSlow(obj, Vector(snapSpot.rotation):setAt("z", U.pAngle(obj.getRotation().z, 90)), 1, nil, false)
+				obj.setTags({"EventCard"})
+				Wait.time(function()
+					obj.setPosition(snapSpot.position)
+					obj.setRotation(Vector(snapSpot.rotation):setAt("z", U.pAngle(obj.getRotation().z, 90)))
+				end, 1.1)
 			end,
 			{0.3, obj}
 		)
+	end
+end
+
+function onObjectLeaveZone(zone, obj)
+	if zone.hasTag("EventCard") and obj.type == "Card" and obj.hasTag("EventCard") then
+		if U.hasDecal(obj, "Event") then U.removeDecal(obj, "Event") end
+		obj.setTags({"StoryCard"})
 	end
 end
 

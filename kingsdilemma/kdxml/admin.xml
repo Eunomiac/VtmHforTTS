@@ -19,6 +19,10 @@
 		preferredHeight = "25"
 		font = "Fonts/FrizB" />
 
+	<Button class="admin-button"
+		scale = "2 2 2"
+		preferredWidth = "150" />
+
 	<VerticalLayout class="map-light-control-container"
 		width = "380"
 		height = "80"
@@ -34,7 +38,7 @@
 		rectAlignment = "MiddleRight"
 		raycastTarget = "true"
 		onMouseDown = "MapHUD_Confirm"
-		offsetXY = "60 0"
+		offsetXY = "40 95"
 		color = "#FFF2CC"
 		height = "40"
 		width = "50" />
@@ -51,7 +55,7 @@
 		pivot = "0.5 0.5"
 		alignment = "MiddleCenter"
 		rectAlignment = "MiddleRight"
-		offsetXY = "35 0" />
+		offsetXY = "15 95" />
 
 	<InputField class="map-light-input"
 		scale = "1 1 1"
@@ -60,6 +64,11 @@
 		font = "Fonts/FrizB"
 		fontSize = "20"
 		onValueChanged = "MapHUD_Update" />
+	<Text class="admin-warning"
+		alignment = "LowerCenter"
+		color = "#FF0000"
+		fontSize = "18" />
+
 </Defaults>
 
 <VerticalLayout class="adminContainer" visibility="Host">
@@ -86,20 +95,233 @@
 			<Text id="nextGamePhaseDisplay" class="gameStatusDisplay"></Text>
 		</HorizontalLayout>
 	</HorizontalLayout>
-
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
+	<Text class="spacer_10"></Text>
 	<HorizontalLayout class="buttonPanel">
 		<Button id="toggleElem_lightControls" class="buttonPanelToggle">►</Button>
 		<VerticalLayout id="lightControls" class="map-light-control-container" visibility="Host" active="false">
+			<Text class="admin-warning">Confirm AutoHotPie Won't Lock System!</Text>
 			<InputField id="mapHUD_LightCoords_A" class="map-light-input" />
 			<InputField id="mapHUD_LightCoords_B" class="map-light-input" />
+			<Image id="mapHUD_ConfirmBG" class="map-light-confirm" />
+			<Text id="mapHUD_ConfirmText" class="map-light-confirm">OK</Text>
 			<Text class="spacer_10"></Text>
 			<Text class="spacer_10"></Text>
 			<Text class="spacer_10"></Text>
-			<Button id="forceAdvanceGamePhase">Advance</Button>
+			<Button id="adminFetch" class="admin-button">Fetch Sticker/Envelope</Button>
 			<Text class="spacer_10"></Text>
-			<Button id="captureNext" scale="2 2 2">Capture</Button>
-			<Image id="debugLightImage" class="map-light-confirm" />
-			<Text id="debugLightText" class="map-light-confirm">OK</Text>
+			<Text class="spacer_10"></Text>
+			<Button id="adminGivePowerCoin" class="admin-button">Give Power/Coin</Button>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Button id="forceAdvanceGamePhase" class="admin-button">Advance</Button>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Text class="spacer_10"></Text>
+			<Button id="captureNext" class="admin-button">Capture</Button>
 		</VerticalLayout>
 	</HorizontalLayout>
 </VerticalLayout>
+
+<Defaults>
+	<VerticalLayout class="hud-control-root"
+		width = "800"
+		spacing = "10"
+		padding = "0 0 0 0"
+		rectAlignment = "UpperCenter"
+		offsetXY = "150 -50" />
+	<GridLayout class="hud-control-grid"
+		cellSize = "100 25"
+		constraint = "FixedColumnCount"
+		childAlignment = "MiddleRight"
+		childForceExpandWidth = "false"
+		constraintCount = "8" />
+
+	<Text class="player-label"
+		font = "Fonts/Friz"
+		alignment = "MiddleRight"
+		horizontalOverflow = "Overflow"
+		fontSize = "20" />
+	<Button class="hud-control-toggle"
+		rectAlignment = "UpperCenter"
+		offsetXY = "-325 -20"
+		width = "25" />
+
+	<Button class="hud-control-button"
+		onClick = "HUDControl_Click" />
+	<Button class="button-Brown" textColor = "#777777FF" color = "#703a16ff|#b79c8aff|#dbcdc4ff|#777777FF" />
+	<Button class="button-Red" color = "#da1917ff|#ec8c8bff|#f5c5c5ff|#777777FF" />
+	<Button class="button-Orange" color = "#f3631cff|#f9b18dff|#fcd8c6ff|#777777FF" />
+	<Button class="button-Yellow" color = "#e6e42bff|#f2f195ff|#f8f8caff|#777777FF" />
+	<Button class="button-Green" color = "#30b22aff|#97d894ff|#cbebc9ff|#777777FF" />
+	<Button class="button-small" preferredWidth = "75" flexibleWidth = "0" minWidth = "75" width = "75" font = "Fonts/Friz" />
+
+</Defaults>
+<!-- (normalColor|highlightedColor|pressedColor|disabledColor) -->
+<Panel visibility="Host">
+	<Button id="toggleElem_HUDControl" class="buttonPanelToggle hud-control-toggle">►</Button>
+	<VerticalLayout id="HUDControl" class="hud-control-root" active = "false">
+		<GridLayout class="hud-control-grid">
+			<Text id="HUDControl_ToggleRowLabel_Brown" class="player-label label-Brown"></Text>
+			<Button id="HUDControl-Toggle-consequencesQuery_Brown" class="hud-control-button button-Brown">Conseq. HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_Brown" class="hud-control-button button-Brown">Turn HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_pass_container_Brown" class="hud-control-button button-Brown button-small">Pass</Button>
+			<Button id="HUDControl-Toggle-turnHUD_passMod_container_Brown" class="hud-control-button button-Brown button-small">PassMod</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteAye_container_Brown" class="hud-control-button button-Brown button-small">Aye</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteNay_container_Brown" class="hud-control-button button-Brown button-small">Nay</Button>
+			<Button id="HUDControl-Toggle-turnHUD_stay_container_Brown" class="hud-control-button button-Brown button-small">Stay</Button>
+
+			<Text id="HUDControl_ToggleRowLabel_Red" class="player-label"></Text>
+			<Button id="HUDControl-Toggle-consequencesQuery_Red" class="hud-control-button button-Red">Conseq. HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_Red" class="hud-control-button button-Red">Turn HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_pass_container_Red" class="hud-control-button button-Red button-small">Pass</Button>
+			<Button id="HUDControl-Toggle-turnHUD_passMod_container_Red" class="hud-control-button button-Red button-small">PassMod</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteAye_container_Red" class="hud-control-button button-Red button-small">Aye</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteNay_container_Red" class="hud-control-button button-Red button-small">Nay</Button>
+			<Button id="HUDControl-Toggle-turnHUD_stay_container_Red" class="hud-control-button button-Red button-small">Stay</Button>
+
+			<Text id="HUDControl_ToggleRowLabel_Orange" class="player-label"></Text>
+			<Button id="HUDControl-Toggle-consequencesQuery_Orange" class="hud-control-button button-Orange">Conseq. HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_Orange" class="hud-control-button button-Orange">Turn HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_pass_container_Orange" class="hud-control-button button-Orange button-small">Pass</Button>
+			<Button id="HUDControl-Toggle-turnHUD_passMod_container_Orange" class="hud-control-button button-Orange button-small">PassMod</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteAye_container_Orange" class="hud-control-button button-Orange button-small">Aye</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteNay_container_Orange" class="hud-control-button button-Orange button-small">Nay</Button>
+			<Button id="HUDControl-Toggle-turnHUD_stay_container_Orange" class="hud-control-button button-Orange button-small">Stay</Button>
+
+			<Text id="HUDControl_ToggleRowLabel_Yellow" class="player-label"></Text>
+			<Button id="HUDControl-Toggle-consequencesQuery_Yellow" class="hud-control-button button-Yellow">Conseq. HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_Yellow" class="hud-control-button button-Yellow">Turn HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_pass_container_Yellow" class="hud-control-button button-Yellow button-small">Pass</Button>
+			<Button id="HUDControl-Toggle-turnHUD_passMod_container_Yellow" class="hud-control-button button-Yellow button-small">PassMod</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteAye_container_Yellow" class="hud-control-button button-Yellow button-small">Aye</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteNay_container_Yellow" class="hud-control-button button-Yellow button-small">Nay</Button>
+			<Button id="HUDControl-Toggle-turnHUD_stay_container_Yellow" class="hud-control-button button-Yellow button-small">Stay</Button>
+
+			<Text id="HUDControl_ToggleRowLabel_Green" class="player-label"></Text>
+			<Button id="HUDControl-Toggle-consequencesQuery_Green" class="hud-control-button button-Green">Conseq. HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_Green" class="hud-control-button button-Green">Turn HUD</Button>
+			<Button id="HUDControl-Toggle-turnHUD_pass_container_Green" class="hud-control-button button-Green button-small">Pass</Button>
+			<Button id="HUDControl-Toggle-turnHUD_passMod_container_Green" class="hud-control-button button-Green button-small">PassMod</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteAye_container_Green" class="hud-control-button button-Green button-small">Aye</Button>
+			<Button id="HUDControl-Toggle-turnHUD_voteNay_container_Green" class="hud-control-button button-Green button-small">Nay</Button>
+			<Button id="HUDControl-Toggle-turnHUD_stay_container_Green" class="huControlHUDControld-control-button button-Green button-small">Stay</Button>
+		</GridLayout>
+
+		<GridLayout class="hud-control-grid">
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_ClickRowLabel_Brown" class="player-label"></Text>
+			<Button id="HUDControl-Click-turnHUD_pass_Brown" class="hud-control-button button-Brown button-small">Pass</Button>
+			<Button id="HUDControl-Click-turnHUD_passMod_Brown" class="hud-control-button button-Brown button-small">PassMod</Button>
+			<Button id="HUDControl-Click-turnHUD_voteAye_Brown" class="hud-control-button button-Brown button-small">Aye</Button>
+			<Button id="HUDControl-Click-turnHUD_voteNay_Brown" class="hud-control-button button-Brown button-small">Nay</Button>
+			<Button id="HUDControl-Click-turnHUD_stay_Brown" class="hud-control-button button-Brown button-small">Stay</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_ClickRowLabel_Red" class="player-label"></Text>
+			<Button id="HUDControl-Click-turnHUD_pass_Red" class="hud-control-button button-Red button-small">Pass</Button>
+			<Button id="HUDControl-Click-turnHUD_passMod_Red" class="hud-control-button button-Red button-small">PassMod</Button>
+			<Button id="HUDControl-Click-turnHUD_voteAye_Red" class="hud-control-button button-Red button-small">Aye</Button>
+			<Button id="HUDControl-Click-turnHUD_voteNay_Red" class="hud-control-button button-Red button-small">Nay</Button>
+			<Button id="HUDControl-Click-turnHUD_stay_Red" class="hud-control-button button-Red button-small">Stay</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_ClickRowLabel_Orange" class="player-label"></Text>
+			<Button id="HUDControl-Click-turnHUD_pass_Orange" class="hud-control-button button-Orange button-small">Pass</Button>
+			<Button id="HUDControl-Click-turnHUD_passMod_Orange" class="hud-control-button button-Orange button-small">PassMod</Button>
+			<Button id="HUDControl-Click-turnHUD_voteAye_Orange" class="hud-control-button button-Orange button-small">Aye</Button>
+			<Button id="HUDControl-Click-turnHUD_voteNay_Orange" class="hud-control-button button-Orange button-small">Nay</Button>
+			<Button id="HUDControl-Click-turnHUD_stay_Orange" class="hud-control-button button-Orange button-small">Stay</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_ClickRowLabel_Yellow" class="player-label"></Text>
+			<Button id="HUDControl-Click-turnHUD_pass_Yellow" class="hud-control-button button-Yellow button-small">Pass</Button>
+			<Button id="HUDControl-Click-turnHUD_passMod_Yellow" class="hud-control-button button-Yellow button-small">PassMod</Button>
+			<Button id="HUDControl-Click-turnHUD_voteAye_Yellow" class="hud-control-button button-Yellow button-small">Aye</Button>
+			<Button id="HUDControl-Click-turnHUD_voteNay_Yellow" class="hud-control-button button-Yellow button-small">Nay</Button>
+			<Button id="HUDControl-Click-turnHUD_stay_Yellow" class="hud-control-button button-Yellow button-small">Stay</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_ClickRowLabel_Green" class="player-label"></Text>
+			<Button id="HUDControl-Click-turnHUD_pass_Green" class="hud-control-button button-Green button-small">Pass</Button>
+			<Button id="HUDControl-Click-turnHUD_passMod_Green" class="hud-control-button button-Green button-small">PassMod</Button>
+			<Button id="HUDControl-Click-turnHUD_voteAye_Green" class="hud-control-button button-Green button-small">Aye</Button>
+			<Button id="HUDControl-Click-turnHUD_voteNay_Green" class="hud-control-button button-Green button-small">Nay</Button>
+			<Button id="HUDControl-Click-turnHUD_stay_Green" class="hud-control-button button-Green button-small">Stay</Button>
+		</GridLayout>
+
+		<GridLayout class="hud-control-grid">
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_QueryRowLabel_Brown" class="player-label"></Text>
+			<Button id="HUDControl-Click-splashQuery_Option1_Brown" class="hud-control-button button-Brown">1 (Yes/Aye)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option2_Brown" class="hud-control-button button-Brown">2 (No/Nay)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option3_Brown" class="hud-control-button button-Brown button-small">3</Button>
+			<Button id="HUDControl-Click-splashQuery_Option4_Brown" class="hud-control-button button-Brown button-small">4</Button>
+			<Button id="HUDControl-Click-splashQuery_Option5_Brown" class="hud-control-button button-Brown button-small">5</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_QueryRowLabel_Red" class="player-label"></Text>
+			<Button id="HUDControl-Click-splashQuery_Option1_Red" class="hud-control-button button-Red">1 (Yes/Aye)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option2_Red" class="hud-control-button button-Red">2 (No/Nay)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option3_Red" class="hud-control-button button-Red button-small">3</Button>
+			<Button id="HUDControl-Click-splashQuery_Option4_Red" class="hud-control-button button-Red button-small">4</Button>
+			<Button id="HUDControl-Click-splashQuery_Option5_Red" class="hud-control-button button-Red button-small">5</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_QueryRowLabel_Orange" class="player-label"></Text>
+			<Button id="HUDControl-Click-splashQuery_Option1_Orange" class="hud-control-button button-Orange">1 (Yes/Aye)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option2_Orange" class="hud-control-button button-Orange">2 (No/Nay)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option3_Orange" class="hud-control-button button-Orange button-small">3</Button>
+			<Button id="HUDControl-Click-splashQuery_Option4_Orange" class="hud-control-button button-Orange button-small">4</Button>
+			<Button id="HUDControl-Click-splashQuery_Option5_Orange" class="hud-control-button button-Orange button-small">5</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_QueryRowLabel_Yellow" class="player-label"></Text>
+			<Button id="HUDControl-Click-splashQuery_Option1_Yellow" class="hud-control-button button-Yellow">1 (Yes/Aye)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option2_Yellow" class="hud-control-button button-Yellow">2 (No/Nay)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option3_Yellow" class="hud-control-button button-Yellow button-small">3</Button>
+			<Button id="HUDControl-Click-splashQuery_Option4_Yellow" class="hud-control-button button-Yellow button-small">4</Button>
+			<Button id="HUDControl-Click-splashQuery_Option5_Yellow" class="hud-control-button button-Yellow button-small">5</Button>
+
+			<Text class="spacer"></Text>
+			<Text class="spacer"></Text>
+			<Text id="HUDControl_QueryRowLabel_Green" class="player-label"></Text>
+			<Button id="HUDControl-Click-splashQuery_Option1_Green" class="hud-control-button button-Green">1 (Yes/Aye)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option2_Green" class="hud-control-button button-Green">2 (No/Nay)</Button>
+			<Button id="HUDControl-Click-splashQuery_Option3_Green" class="hud-control-button button-Green button-small">3</Button>
+			<Button id="HUDControl-Click-splashQuery_Option4_Green" class="hud-control-button button-Green button-small">4</Button>
+			<Button id="HUDControl-Click-splashQuery_Option5_Green" class="hud-control-button button-Green button-small">5</Button>
+
+		</GridLayout>
+
+	</VerticalLayout>
+</Panel>
