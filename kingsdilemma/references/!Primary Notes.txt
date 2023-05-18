@@ -1,16 +1,60 @@
-***********************************************
+--== BEFORE GAME BEGINS ==--
+
+** CONFIRM AUTOHOTPIE IS **CLOSED**
+** RUN "Grab Map Coordinate" SCRIPT
+** OPEN "REFERENCES" LINK (MAP ON SECOND SCREEN)
+** OPEN VSC to KD PLAY
+** CLOSE ALL WEB BROWSERS
+** CLOSE DIRECTORY OPUS
+
+** START TTS
+
+--== IN TABLETOP SIMULATOR ==--
+
+** RUN CONSOLE++ IN VSC
+** LOAD FUNCTIONS INTO LUA:
+
 lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods")
-***********************************************
+
+
+KONFURTAH COORDS
+1520x, 863y 3w
+1471x, 859y 4a
+
+Error in Script (Global) function : Global:(1498,43-68): table index is nil
+Error in Script (Global) function : Global:(6473,7-24): [SecretAgendas] Validation Failed [VAL = 'Card(Clone) (LuaGameObjectScript)'] (Card)
 
 
 
 
+- ended at 12:25 PM for time stamp
+- give Hedwyn the name of the king
+
+
+- add a check to scoring that waits until all power and coin behind people's screens are in the scoring zones
+- fix Trigger card being shuffled itno deck, and what happens to its tags if it's moved to the event area?
+- when does stability update? Need a better way to account for "off the board" movement
+- why did consequence hud button disappear on Cory? Add a double-check
+- legacy effects to handle multiple open agendas
 
 - figure out score graphic for Discord
 - fix tie notification to moderator's tiebreaking vote
 - turn pass card into a 'transfer' zone, with buttons to delete & to transfer contents to others
   - Splash message alerts all to whatever happened
 
+TEST
+- fix ending issue (see errors above)
+- speed up apply momentum
+- why did the seventh dilemma move to the sixth dilemma's slot?
+- remove double-check thingy so huds more responsive
 
-CTRL-K CTRL-0 -- Fold All
-CTRL-K CTRL-J -- Unfold All
+
+DISCORD
+- update house card graphics
+- update game details
+  - dilemmas
+  - score card
+  - chronicle stickers
+- update story arcs
+  - banners
+  - card captures

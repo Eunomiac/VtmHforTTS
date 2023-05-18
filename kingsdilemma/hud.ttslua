@@ -248,6 +248,16 @@ function HUD_Click(player, button, id)
 		})
 	elseif id == "resetTable" then
 		DIR.RESET()
+	elseif id == "concealHouseCards" then
+		U.forEach(getObjectsWithTag("HouseCard"),
+			function(obj)
+				obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 80))
+				obj.setPosition(obj.getPosition():setAt("y", button == "-2" and 7.52 or 3.7))
+			end)
+		U.forEach(getObjectsWithAllTags({"SecretAgenda", "Private"}),
+			function(card)
+				card.setPosition(card.getPosition():setAt("y", button == "-2" and 7 or -1))
+			end)
 	elseif id == "hideHouseCards" then
 		U.forEach(getObjectsWithTag("HouseCard"),
 			function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)

@@ -496,7 +496,7 @@ INITFUNCS = {
 				return DIR.FetchEnvelope(queryResponse.response)
 			end
 		}
-	end, -- a = function() log("a") end; nA = a; a = function() log("b"); nA() end; a()
+	end,
 	GAMESETUP = {
 		InitializeState = function()
 			return {
@@ -635,7 +635,7 @@ INITFUNCS = {
 								stickerObj.highlightOn(statusColor)
 								UI.show("storyHUD_Sticker")
 								UI.setValue("storyHUD_Sticker_Text", stickerObj.getDescription())
-								return 0.5
+								return 1.5
 							end,
 							function()
 								L.PulseLight("lightFront", S.getPlayerOfHouse(sData.house), statusColor)
@@ -644,12 +644,12 @@ INITFUNCS = {
 								else
 									P.TakePower(player, 1)
 								end
-								return 2
+								return 1
 							end,
 							function()
 								stickerObj.highlightOff()
 								UI.hide("storyHUD_Sticker")
-								return 2
+								return 1
 							end
 						})
 					end
@@ -706,9 +706,6 @@ INITFUNCS = {
 						end
 						table.insert(stickersByResource[key], sData)
 					end)
-					log(stickersByResource.Wealth_Pos)
-					log(stickersByResource.Welfare_Neg)
-					log(stickersByResource.Knowledge_Pos)
 					U.forEach(U.getKeys(stickersByResource), function(key)
 						table.sort(stickersByResource[key], function(a, b) return a.age > b.age end)
 					end)
@@ -1190,7 +1187,7 @@ INITFUNCS = {
 								return U.RunSequence({
 									function()
 										resourceTokens[resource].flip()
-										DIR.UpdateTokenLight(resource, tokenMomentums[resource])
+										DIR.UpdateTokenLight(resource, S.getStateVal("roundState", "boardTokens", "momentum", resource))
 										return resourceTokens[resource]
 									end
 								})
@@ -1338,11 +1335,13 @@ INITFUNCS = {
 						return U.RunSequence({
 							function()
 								displayCard.setLock(false)
+								local coverCard = O.Pieces.CoverCard()
 								return {
 									U.setPositionSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.position, 1),
 									U.setRotationSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.rotation, 1),
 									U.setScaleSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.scale, 1),
-									displayCard
+									displayCard,
+									function() return #U.findAboveObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end) == 1 end
 								}
 							end,
 							DIR.AddToDilemmaDeck,
@@ -2277,7 +2276,9 @@ end
 -- #region Game Round~
 
 -- #region Player Prompting: Stickers, Envelopes, King Name~
-function DIR.PromptForSticker(player)
+local isSimpleFetchingSticker = false
+function DIR.PromptForSticker(player, isSimpleFetch)
+	isSimpleFetchingSticker = isSimpleFetch == true
 	DIR.ShowManualAdvance()
 	UI.setAttribute("stickerQuery_" .. player.color, "active", "false")
 	MSG.Show("stickerQuery_" .. player.color)
@@ -2298,15 +2299,22 @@ function DIR.ConfirmFetchSticker(player, stickerKey)
 		end,
 		function()
 			if query.response == "true" then
-				return DIR.FetchSticker(stickerKey)
+				if isSimpleFetchingSticker then
+					isSimpleFetchingSticker = false
+					return DIR.FetchStickerSimple(stickerKey)
+				else
+					return DIR.FetchSticker(stickerKey)
+				end
 			else
-				return DIR.PromptForSticker(player)
+				return DIR.PromptForSticker(player, isSimpleFetchingSticker)
 			end
 		end
 	})
 end
 
-function DIR.PromptForEnvelope(player)
+local isSimpleFetchingEnvelope = false
+function DIR.PromptForEnvelope(player, isSimpleFetch)
+	isSimpleFetchingEnvelope = isSimpleFetch == true
 	DIR.ShowManualAdvance()
 	UI.setAttribute("envelopeQuery_" .. player.color, "active", "false")
 	MSG.Show("envelopeQuery_" .. player.color)
@@ -2327,9 +2335,14 @@ function DIR.ConfirmFetchEnvelope(player, envKey)
 		end,
 		function()
 			if query.response == "true" then
-				return DIR.FetchEnvelope(envKey)
+				if isSimpleFetchingEnvelope then
+					isSimpleFetchingEnvelope = false
+					return DIR.FetchEnvelopeSimple(envKey)
+				else
+					return DIR.FetchEnvelope(envKey)
+				end
 			else
-				return DIR.PromptForEnvelope(player)
+				return DIR.PromptForEnvelope(player, isSimpleFetchingEnvelope)
 			end
 		end
 	})
@@ -2357,6 +2370,29 @@ end
 
 
 -- #region Fetching: Stickers, Envelopes~
+function DIR.FetchStickerSimple(stickerKey)
+
+	local stickerContainer = O.SecretContainers.Stickers()
+	local stickerGUID = OU.FindContainedObjGUID(stickerContainer, function(objData)
+		return string.lower(objData.name) == string.lower(stickerKey)
+	end)
+
+	if not stickerGUID then
+		U.Alert("Sticker '" .. stickerKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0))
+		return
+	end
+
+	stickerContainer.takeObject({
+		position = Vector(C.Spots.Staging.Sticker.Display.position):add(Vector(0, 5, 0)),
+		rotation = Vector(C.Spots.Staging.Sticker.Display.rotation),
+		guid = stickerGUID,
+		callback_function = function(obj)
+			obj.addTag("ChronicleSticker")
+			obj.setLock(false)
+		end
+	})
+end
+
 function DIR.FetchSticker(stickerKey)
 	local stickerContainer = O.SecretContainers.Stickers()
 	local stickerGUID = OU.FindContainedObjGUID(stickerContainer, function(objData)
@@ -2437,6 +2473,65 @@ function DIR.FetchSticker(stickerKey)
 	})
 end
 
+function DIR.FetchEnvelopeSimple(envKey)
+
+	U.Assert("DIR.FetchEnvelope", envKey, "string")
+	local envContainer = O.SecretContainers.Envelopes()
+	U.Assert("DIR.FetchEnvelope", envContainer, "Object")
+
+	local envGUID = OU.FindContainedObjGUID(envContainer, function(objData)
+		return string.lower(objData.name) == string.lower(envKey)
+	end)
+
+	if not envGUID then return U.Alert("Envelope '" .. envKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0)) end
+
+	local envDeck, storyCard
+
+	return U.RunSequence({
+		function()
+			envContainer.takeObject({
+				position = C.Spots.Staging.Lectern.Display.position,
+				rotation = C.Spots.Staging.Lectern.Display.rotation,
+				guid = envGUID,
+				callback_function = function(obj)
+					envDeck = obj
+					envDeck.setLock(true)
+				end
+			})
+			return function() return envDeck ~= nil end
+		end,
+		function()
+			envDeck.takeObject({
+				position = C.Spots.Staging.Lectern.TopCard.position,
+				rotation = C.Spots.Staging.Lectern.TopCard.rotation,
+				callback_function = function(obj)
+					storyCard = obj
+					storyCard.setTags({ "StoryCard" })
+					storyCard.setLock(true)
+					storyCard.use_hands = false
+					storyCard.use_snap_points = true
+					storyCard.sticky = false
+				end
+			})
+			return function() return storyCard ~= nil end
+		end,
+		function()
+			storyCard.setPositionSmooth(Vector(C.Spots.Staging.StoryCard.Display.position):add(Vector(0, 5, 0)))
+			storyCard.setRotationSmooth(Vector(C.Spots.Staging.StoryCard.Display.rotation))
+			storyCard.setLock(false)
+			return {storyCard, 1.5}
+		end,
+		function()
+			local coverCard = O.Pieces.CoverCard()
+			coverCard.setLock(true)
+			coverCard.setPositionSmooth(coverCard.getPosition():add(Vector(0, 1, 0)))
+			envDeck.setPositionSmooth(C.Spots.Main.Dilemma.aboveDeck.position)
+			envDeck.setRotationSmooth(C.Spots.Main.Dilemma.aboveDeck.rotation)
+			envDeck.setLock(false)
+		end
+	})
+
+end
 function DIR.FetchEnvelope(envKey)
 	U.Assert("DIR.FetchEnvelope", envKey, "string")
 	local envContainer = O.SecretContainers.Envelopes()
@@ -2613,7 +2708,9 @@ function DIR.SpawnReferenceDilemmas(dilemmaCard)
 	end)
 end
 
-function DIR.AddToDilemmaDeck(dilemmas)
+
+function DIR.AddToDilemmaDeck(dilemmas, isSecondTry)
+	if isSecondTry == nil then isSecondTry = false end
 	local coverCard = O.Pieces.CoverCard()
 	U.Assert("DIR.AddToDilemmaDeck", coverCard, "Object")
 
@@ -2621,6 +2718,12 @@ function DIR.AddToDilemmaDeck(dilemmas)
 
 	if dilemmas == nil then
 		dilemmas = U.findAboveObject(coverCard, function(obj) return obj.type == "Deck" or obj.type == "Card" end, { box = true })
+		if #dilemmas > 1 and not isSecondTry then
+			return U.RunSequence({
+				function() return 2 end,
+				function() return DIR.AddToDilemmaDeck(nil, true) end
+			})
+		end
 		U.Val("DIR.AddToDilemmaDeck", dilemmas, #dilemmas <= 1,
 			"Multiple sources of dilemmas found above Cover Card. Consolidate them into a deck.")
 		dilemmas = dilemmas[1]
@@ -2808,7 +2911,7 @@ end
 
 -- #region Momentum & Stability~
 function DIR.UpdateTokenLight(resource, momentum)
-	if resource == nil then return U.iMap(U.concat({ "Stability" }, C.Resources), DIR.UpdateTokenLight) end
+	if resource == nil then return U.iMap(U.concat({ "Stability" }, C.Resources), function(tokenRef) return DIR.UpdateTokenLight(tokenRef) end) end
 	if resource == "Stability" then
 		return L.SetLightMode("lightStability", "on", nil, 0.5)
 	end
@@ -3524,7 +3627,7 @@ local ObjectData = {
 			source = O.SpawnSources.HouseCards,
 			isSpawning = false,
 			position = {0.00, 7.52, 40.95},
-			rotation = {83.90, 0.00, 0.00},
+			rotation = {83.90, 0.00, 0},
 			scale = {3.75, 1.00, 3.75},
 			data = {
 				Tags = {"HouseCard"}
@@ -4334,12 +4437,12 @@ function OU.GetUpValueData(objs, tag)
 			coinToken1 = totalValue - (5 * math.floor(totalValue / 5))
 		}
 	elseif tag == "PowerToken" then
-		log({
-			totalValue = totalValue,
-			powerToken10 = math.floor(totalValue / 10),
-			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
-			powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
-		})
+		-- log({
+		-- 	totalValue = totalValue,
+		-- 	powerToken10 = math.floor(totalValue / 10),
+		-- 	powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
+		-- 	powerToken1 = totalValue - 5 * math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5) - 10 * math.floor(totalValue / 10)
+		-- })
 		return {
 			powerToken10 = math.floor(totalValue / 10),
 			powerToken5 = math.floor((totalValue - (10 * math.floor(totalValue / 10))) / 5),
@@ -4454,13 +4557,15 @@ function OU.SplitObjByValue(obj)
 	}
 
 	for i = 1, obj.value / newValue do
-		table.insert(seqFuncs, function()
-			OU.SpawnFromSourceObj(spawnSource, tags, {
-				position = U.getScatterPosition(Vector(position), 1, 1),
-				rotation = spawnSource.getRotation(),
-				scale = spawnSource.getScale()
-			})
-		end)
+		if spawnSource ~= nil then
+			table.insert(seqFuncs, function()
+				OU.SpawnFromSourceObj(spawnSource, tags, {
+					position = U.getScatterPosition(Vector(position), 1, 1),
+					rotation = spawnSource.getRotation(),
+					scale = spawnSource.getScale()
+				})
+			end)
+		end
 	end
 
 	return U.sequence(seqFuncs, 0.15)
@@ -4525,7 +4630,7 @@ end
 function OU.SpawnValue(toZones, amount, tag)
 	if U.Type(toZones) == "table" then
 		if #toZones == 0 then return 0 end
-		if #toZones > 1 then return U.RunSequence(U.iMap(toZones, function(toZone) return OU.SpawnValue(toZone, amount, tag) end)) end
+		if #toZones > 1 then return U.RunSequence(U.iMap(toZones, function(toZone) return function() OU.SpawnValue(toZone, amount, tag) end end)) end
 		toZones = toZones[1]
 	end
 	U.Assert("OU.SpawnValue", toZones, U.Type(toZones) == "userdata")
@@ -4836,11 +4941,6 @@ O.SpawnSources = {
 	coinToken1 = generateGetterFunction("be3cd3"),
 	coinToken5 = generateGetterFunction("5dce57"),
 }
-
--- lua getObjectFromGUID("05b53a").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
--- lua getObjectFromGUID("9bfae4").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
--- lua getObjectFromGUID("65fb31").getChildren()[1].getChildren()[2].getComponents()[2].set("intensity", 0)
--- lua log(getObjectFromGUID("05b53a").getTags()); log(getObjectFromGUID("9bfae4").getTags()); log(getObjectFromGUID("65fb31").getTags())
 
 O.Leader = {
 	Figure = generateGetterFunction("215a29"),
@@ -5788,7 +5888,7 @@ C.Spots = {
 			rotation = Vector({87.76, 0.00, 45.00})
 		},
 		DilemmaSpot = {
-			position = Vector({0.00, 8.27, 41.30}),
+			position = Vector({0.00, 8.27, 41.00}),
 			rotation = Vector({83.90, 0, 0}),
 			scale = Vector({2, 1.00, 2})
 		}
@@ -8281,7 +8381,7 @@ L.LIGHTMODES = {
 			end
 
 			local finalLData = U.merge(lData, rangeData)
-			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+			-- log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
 
 			return U.merge(lData, rangeData)
 		end
@@ -8311,8 +8411,8 @@ L.LIGHTMODES = {
 				rangeData.intensity = 0.5 * rangeData.intensity
 			end
 
-			local finalLData = U.merge(lData, rangeData)
-			log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
+			-- local finalLData = U.merge(lData, rangeData)
+			-- log{["FocusLight" .. lightRef] = JSON.encode_pretty(finalLData)}
 
 			return U.merge(lData, rangeData)
 		end
@@ -8989,6 +9089,7 @@ function L.ResetLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
+			if light == nil then return end
 			local lComp = getComp(light)
 			if lComp == nil then return end
 			lComp.set("enabled", false)
@@ -9001,6 +9102,7 @@ function L.PrimeLights()
 	U.forEach(L.LIGHTMODES, function(modes, name)
 		if modes.loadRotation then
 			local light = getLight(name)
+			if light == nil then return end
 			local lComp = getComp(light)
 			if lComp == nil then return end
 			lComp.set("enabled", false)
@@ -9396,30 +9498,30 @@ function V.UpdateHUD(player, isForcing)
 		elemText.voteNay = "Add Power"
 	end
 
-	local elemVisibilityReport = {[player.color] = elemVisibility}
-	elemVisibilityReport[player.color].actions = ""
+	-- local elemVisibilityReport = {[player.color] = elemVisibility}
+	-- elemVisibilityReport[player.color].actions = ""
 	U.forEach(elemVisibility, function(isVisible, elemRef)
 		if isVisible then
 			UI.setValue("turnHUD_" .. elemRef .. "_Text_" .. player.color, elemText[elemRef])
-			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
+-- 			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
 
-Showing 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
+-- Showing 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
 			MSG.Show("turnHUD_" .. elemRef .. "_container_" .. player.color)
 			-- UI.setAttribute("turnHUD_" .. elemRef .. "_container_" .. player.color, "active", "true")
 		else
-			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
+-- 			elemVisibilityReport[player.color].actions = elemVisibilityReport[player.color].actions .. [[
 
-HIDING 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
+-- HIDING 'turnHUD_]] .. elemRef .. "_container_" .. player.color .. "'"
 			MSG.Hide("turnHUD_" .. elemRef .. "_container_" .. player.color)
 		end
 	end)
-	log([[
+-- 	log([[
 
-=============================
-]] .. JSON.encode_pretty(elemVisibilityReport) .. [[
-==============================
+-- =============================
+-- ]] .. JSON.encode_pretty(elemVisibilityReport) .. [[
+-- ==============================
 
-]])
+-- ]])
 end
 
 local function updateAyeTotal(addedPower)
@@ -9495,6 +9597,9 @@ function V.EndTurn(isPassMod)
 				end
 			})
 		elseif isPassMod then
+			if S.getStateVal("roundState", "passModClaimed") == true then
+				return V.EndTurn(false)
+			end
 			S.setStateVal("PassMod", "turnState", player.color, "vote")
 			S.setStateVal(true, "roundState", "passModClaimed")
 			V.InitCountZones(player)
@@ -9826,9 +9931,9 @@ function HUD_Click(player, button, id)
 			function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
 	elseif id == "adminFetch" then
 		if button == "-2" then
-			DIR.PromptForEnvelope(U.getHost())
+			DIR.PromptForEnvelope(U.getHost(), true)
 		else
-			DIR.PromptForSticker(U.getHost())
+			DIR.PromptForSticker(U.getHost(), true)
 		end
 	elseif id == "adminGivePowerCoin" then
 		if button == "-2" then
@@ -10238,6 +10343,24 @@ function MapHUD_Update(_, value, id)
 	x = x * 1; z = z * 1
 
 	S.setStateVal({ Vector(x, 0, z), rc }, "gameState", "mapLights", "mapInputs", index)
+
+	if x < 0 or x > 2000 or z < 0 or z > 1000 then
+		UI.setAttribute("mapHUD_ConfirmBG", "active", "false")
+		UI.setAttribute("mapHUD_ConfirmText", "color", "#FF0000")
+		UI.setValue("mapHUD_ConfirmText", "X")
+	else
+		UI.setAttribute("mapHUD_ConfirmBG", "active", "true")
+		UI.setAttribute("mapHUD_ConfirmText", "color", "#000000")
+		UI.setValue("mapHUD_ConfirmText", "OK")
+	end
+
+	if index == "A" then
+		if x > 1000 then
+			UI.setAttribute("mapHUD_ConfirmBG", "color", "#FF0000")
+		else
+			UI.setAttribute("mapHUD_ConfirmBG", "color", "#FFF2CC")
+		end
+	end
 end
 
 function MapHUD_Confirm()

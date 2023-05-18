@@ -25,7 +25,8 @@
 	<VerticalLayout id="debugControls" class="buttonBar" active="False">
 		<Button id="debug_logState">Log State</Button>
 		<Button id="debug_logScores">Log Scores</Button>
-		<Button id="hideHouseCards">Hide Houses</Button>
+		<Button id="hideHouseCards">Hide Cards</Button>
+		<Button id="concealHouseCards">Conceal Cards</Button>
 		<Button id="transferToTestPlayers">Transfer</Button>
 		<Text class="spacer_10"></Text>
 		<Button id="debug_resetState">Reset State</Button>

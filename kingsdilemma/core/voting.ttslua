@@ -446,6 +446,9 @@ function V.EndTurn(isPassMod)
 				end
 			})
 		elseif isPassMod then
+			if S.getStateVal("roundState", "passModClaimed") == true then
+				return V.EndTurn(false)
+			end
 			S.setStateVal("PassMod", "turnState", player.color, "vote")
 			S.setStateVal(true, "roundState", "passModClaimed")
 			V.InitCountZones(player)

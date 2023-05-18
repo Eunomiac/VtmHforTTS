@@ -100,9 +100,13 @@ function MSG.Show(id)
 	-- Wait.time(function() UI.setAttribute(id, "active", "true") end, 1)
 end
 
+-- MSG.HIDE(id) - Hides element with provided id.
 function MSG.Hide(id)
+	-- hide via UI.hide, running animation
 	UI.hide(id)
+	-- wait one second, set it active = false
 	Wait.time(function() UI.setAttribute(id, "active", "false") end, 1)
+	-- wait two seconds, set it active = false again
 	Wait.time(function() UI.setAttribute(id, "active", "false") end, 2)
 end
 

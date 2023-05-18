@@ -1,6 +1,5 @@
-***********************************************
-lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods")
-***********************************************
+
+
 
 DIR.JumpToStatePhase("PLAY", "StartRound", isInitializing)
     isInitializing = true -- runs INITFUNCS for the phase

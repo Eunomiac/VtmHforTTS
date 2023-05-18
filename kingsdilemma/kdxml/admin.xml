@@ -115,7 +115,6 @@
 	<HorizontalLayout class="buttonPanel">
 		<Button id="toggleElem_lightControls" class="buttonPanelToggle">►</Button>
 		<VerticalLayout id="lightControls" class="map-light-control-container" visibility="Host" active="false">
-			<Text class="admin-warning">Confirm AutoHotPie Won't Lock System!</Text>
 			<InputField id="mapHUD_LightCoords_A" class="map-light-input" />
 			<InputField id="mapHUD_LightCoords_B" class="map-light-input" />
 			<Image id="mapHUD_ConfirmBG" class="map-light-confirm" />

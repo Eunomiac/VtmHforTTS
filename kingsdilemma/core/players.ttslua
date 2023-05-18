@@ -344,7 +344,8 @@ function P.InitPlayerHouseCards(playerRef)
 	if playerRef == nil then return U.map(S.getPlayers(), P.InitPlayerHouseCards) end
 	local houseCard = P.GetPlayerCard(playerRef)
 	if houseCard == nil then return 0 end
-	houseCard.call("Initialize")
+	Wait.time(function() houseCard.call("Initialize") end, 2)
+	-- houseCard.call("Initialize")
 	return 0.5
 end
 

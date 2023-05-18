@@ -389,12 +389,6 @@ C.SnapPoints = {
 			tags = {"Dilemma"}
 		},
 		{
-			position = Vector({-7.4, 1.46, -14.08}),
-			rotation = Vector({0, 270, 0}),
-			rotation_snap = false,
-			tags = {"Dilemma"}
-		},
-		{
 			position = Vector({-7.4, 1.46, -18.50}),
 			rotation = Vector({0, 270, 0}),
 			rotation_snap = false,

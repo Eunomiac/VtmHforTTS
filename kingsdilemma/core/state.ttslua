@@ -629,6 +629,7 @@ function S.RecordFinishedGame(scores, tokenPositions)
 	if scores == nil then
 		return
 	end
+	S.LogGameEndTime()
 	local gData = {
 		gameNum = S.getStateVal("gameState", "gameCount"),
 		kingName = S.getStateVal("gameState", "kingName"),
@@ -640,9 +641,7 @@ function S.RecordFinishedGame(scores, tokenPositions)
 		gameEnd = S.getStateVal("gameState", "endTime"),
 		gameDuration = S.getStateVal("gameState", "gameDuration")
 	}
-	local gameStorage = S.getStateVal("gameStorage")
-	gData.gameStorage = gameStorage or {}
-	S.setStateVal(gameStorage, "gameStorage")
+	S.setStateVal(gData, "gameStorage")
 	log([[
 
 ======== GAME ]] .. gData.gameNum .. [[ RECORD ========

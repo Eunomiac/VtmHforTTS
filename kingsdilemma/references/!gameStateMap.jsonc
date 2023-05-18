@@ -231,6 +231,8 @@
 		}
 	},
 	"IMPORTANT": {
+
+		// *** "gameState" ***
 		"gameState": {
 			"gameMode": "END", "gamePhase": "Alignments",
 			"leader": "Brown", "moderator": "Red",
@@ -238,6 +240,8 @@
 			"kingTitle": "King", "kingName": "Harald V",
 			"endState": "Death"
 		},
+
+		// *** "roundState" ***
 		"roundState": {
 			"currentTurn": "Yellow",
 			"passModClaimed": false,
@@ -254,20 +258,16 @@
 				}
 			}
 		},
+
+		// *** "turnState" ***
 		"turnState": {
 			"Brown": {
 				"powerCommitted": 2,
 				"vote": "Aye" // "Aye", "Nay", false, "Pass" or "PassMod"
 			}
 		},
-		"playerData": {
-			"Brown": {
-				"id": "76561198071469619",
-				"angle": 60,
-				"color": "Brown",
-				"num": 1
-			}
-		},
+
+		// *** "playerStorage" ***
 		"playerStorage": {
 			"76561198002132577": { // Eunomiac
 				"id": "76561198002132577",
@@ -281,6 +281,17 @@
 			"76561198074782853": { }, // Cory
 			"76561198847347865": { }, // Callie
 			"76561199015564654": { } // Roarshack
+		},
+
+
+		// *** "playerData" ***
+		"playerData": {
+			"Brown": {
+				"id": "76561198071469619",
+				"angle": 60,
+				"color": "Brown",
+				"num": 1
+			}
 		}
 	}
 }

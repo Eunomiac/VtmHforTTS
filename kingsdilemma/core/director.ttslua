@@ -107,9 +107,16 @@ end
 -- #endregion
 
 -- #region INITIALIZATION FUNCTIONS
-local agendaDeck, agendaCard
-local displayCard
 local queryResponse
+local memo_displayCard, memo_agendaDeck
+local function agendaDeck()
+	if memo_agendaDeck == nil then memo_agendaDeck = getObjectsWithTag("SecretAgenda")[1] end
+	return memo_agendaDeck
+end
+local function displayCard()
+	if memo_displayCard == nil then memo_displayCard = getObjectsWithTag("OnDisplay")[1] end
+	return memo_displayCard
+end
 
 INITFUNCS = {
 	NONE = function()
@@ -508,26 +515,25 @@ INITFUNCS = {
 					return DIR.DrawDilemmaCard()
 				end,
 				function()
-					displayCard = getObjectsWithTag("OnDisplay")[1]
 					if UI.getAttribute("lightControls", "active") == "false" then
 						Global.call("HUD_Click", {player = U.getHost(), id = "toggleElem_lightControls"})
 					end
-					if displayCard.hasTag("Dilemma") then
+					if displayCard().hasTag("Dilemma") then
 						DIR.InitConsequencesQuery()
-						DIR.SpawnReferenceDilemmas(displayCard)
+						DIR.SpawnReferenceDilemmas(displayCard())
 					end
 					L.SetLightMode("lightLectern", "off", nil, 0.5)
 					L.SetLightMode("lightDilemmaMain", "on", nil, 2)
 					L.SetLightMode("lightDilemmaRef", "on")
 
 					return {
-						U.setPositionSlow(displayCard, C.Spots.Main.Dilemma.faceDown.position, 2, "speedUp"),
-						U.setRotationSlow(displayCard, C.Spots.Main.Dilemma.faceDown.rotation, 2, "speedUp"),
-						U.setScaleSlow(displayCard, C.Spots.Main.Dilemma.faceDown.scale, 2, "speedUp")
+						U.setPositionSlow(displayCard(), C.Spots.Main.Dilemma.faceDown.position, 2, "speedUp"),
+						U.setRotationSlow(displayCard(), C.Spots.Main.Dilemma.faceDown.rotation, 2, "speedUp"),
+						U.setScaleSlow(displayCard(), C.Spots.Main.Dilemma.faceDown.scale, 2, "speedUp")
 					}
 				end,
 				function()
-					if displayCard.hasTag("TriggerCard") then
+					if displayCard().hasTag("TriggerCard") then
 						queryResponse = {Yes = "true"}
 						U.RunSequence({
 							function()
@@ -799,16 +805,13 @@ INITFUNCS = {
 			return {
 				function()
 					V.InitCountZones()
-					displayCard = getObjectsWithTag("OnDisplay")
-					if #displayCard > 1 then return U.AlertGM("Too Many 'OnDisplay' Cards!") end
-					displayCard = displayCard[1]
-					if displayCard == nil then return U.AlertGM("No Card Displayed!") end
+					if displayCard() == nil then return U.AlertGM("No Card Displayed!") end
 
 					L.SetLightMode("lightDilemmaAye", "off", nil, 0.5)
 					L.SetLightMode("lightDilemmaNay", "off", nil, 0.5)
 
 					if S.getStateVal("roundState", "displayedCardType") == "dilemma" then
-						U.Assert("Displayed Card is a Dilemma?", displayCard.hasTag("Dilemma"))
+						U.Assert("Displayed Card is a Dilemma?", displayCard().hasTag("Dilemma"))
 
 						local voteResult = S.getStateVal("roundState", "voteResult")
 						if voteResult == nil then
@@ -820,18 +823,18 @@ INITFUNCS = {
 						L.SetLightMode("lightDilemmaMain", voteResult or "off", nil, 2)
 
 						if voteResult == "Nay" then
-							displayCard.alt_view_angle = Vector(0, 180, 180)
+							displayCard().alt_view_angle = Vector(0, 180, 180)
 						else
-							displayCard.alt_view_angle = Vector(0, 0, 0)
+							displayCard().alt_view_angle = Vector(0, 0, 0)
 						end
 
 						return {
-							U.setPositionSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].position, 0.5),
-							U.setRotationSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. voteResult].rotation, 0.5),
-							displayCard
+							U.setPositionSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult].position, 0.5),
+							U.setRotationSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult].rotation, 0.5),
+							displayCard()
 						}
 					elseif S.getStateVal("roundState", "displayedCardType") == "trigger" then
-						U.Assert("Displayed Card is a Trigger Card?", displayCard.hasTag("TriggerCard"))
+						U.Assert("Displayed Card is a Trigger Card?", displayCard().hasTag("TriggerCard"))
 
 						P.SetCamera("DilemmaDraw")
 						L.SetLightMode("lightDilemmaMain", "on", nil, 2)
@@ -842,9 +845,9 @@ INITFUNCS = {
 
 
 						return {
-							U.setPositionSlow(displayCard, C.Spots.Main.Trigger.faceUp.position, 0.5),
-							U.setRotationSlow(displayCard, C.Spots.Main.Trigger.faceUp.rotation, 0.5),
-							displayCard
+							U.setPositionSlow(displayCard(), C.Spots.Main.Trigger.faceUp.position, 0.5),
+							U.setRotationSlow(displayCard(), C.Spots.Main.Trigger.faceUp.rotation, 0.5),
+							displayCard()
 						}
 					end
 				end
@@ -854,8 +857,8 @@ INITFUNCS = {
 			return {
 				function()
 					local voteResult = S.getStateVal("roundState", "voteResult")
-					U.setPositionSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].position, 2)
-					U.setRotationSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].rotation, 2)
+					U.setPositionSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].position, 2)
+					U.setRotationSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].rotation, 2)
 					return MSG.Splash("Apply Changes to Resources")
 				end
 			}
@@ -888,9 +891,8 @@ INITFUNCS = {
 					tokenPositionsFromBoard = DIR.GetTokenPositionsFromBoard()
 					unboundPosAfterMomentum = U.clone(tokenPositionsFromBoard)
 					resourceDeltas = getTokenPositionDeltas(tokenPositionsFromState, tokenPositionsFromBoard)
-					return MSG.Splash("Applying Momentum")
-				end,
-				function()
+					MSG.Splash("Applying Momentum")
+
 					local tokenMomentums = getTokenMomentums()
 
 					U.iForEach(C.Resources, function(resource)
@@ -912,13 +914,9 @@ INITFUNCS = {
 							return function()
 								S.setStateVal(resourceDeltas[resource] > 0 and 1 or -1, "roundState", "boardTokens",
 									"momentum", resource)
-								return U.RunSequence({
-									function()
-										resourceTokens[resource].flip()
-										DIR.UpdateTokenLight(resource, S.getStateVal("roundState", "boardTokens", "momentum", resource))
-										return resourceTokens[resource]
-									end
-								})
+								resourceTokens[resource].flip()
+								DIR.UpdateTokenLight(resource, S.getStateVal("roundState", "boardTokens", "momentum", resource))
+								return resourceTokens[resource]
 							end
 						else
 							-- Token moved in same direction to momentum: bump by momentum, bump stability, set momentum to 2
@@ -992,17 +990,15 @@ INITFUNCS = {
 		EndRound = function()
 			return {
 				function()
-					displayCard = getObjectsWithTag("OnDisplay")[1]
-					if displayCard == nil then return U.AlertGM("No Card Displayed!") end
 
 					L.SetLightMode({ "lightMapAnkist", "lightLectern", "lightMapWorld" }, "ambient")
 					L.SetLightMode({ "lightMapFocusA", "lightMapFocusB", "lightDilemmaMain" }, "off", nil, 2)
 
-					displayCard.removeTag("OnDisplay")
-					displayCard.addTag("Played")
+					displayCard().removeTag("OnDisplay")
+					displayCard().addTag("Played")
 
 					if S.getStateVal("roundState", "displayedCardType") == "dilemma" then
-						U.Assert("Displayed Card is a Dilemma?", displayCard.hasTag("Dilemma"))
+						U.Assert("Displayed Card is a Dilemma?", displayCard().hasTag("Dilemma"))
 						DIR.AddToDilemmaDeck()
 
 						local voteResult = S.getStateVal("roundState", "voteResult")
@@ -1011,18 +1007,18 @@ INITFUNCS = {
 
 						return U.RunSequence({
 							function()
-								displayCard.setLock(false)
+								displayCard().setLock(false)
 								return {
-									U.setPositionSlow(displayCard,
+									U.setPositionSlow(displayCard(),
 										Vector(dilemmaTransform.position):add(Vector(-3, 0, 0)), 2),
-									U.setRotationSlow(displayCard, dilemmaTransform.rotation, 2),
-									U.setScaleSlow(displayCard, dilemmaTransform.scale, 1),
-									displayCard
+									U.setRotationSlow(displayCard(), dilemmaTransform.rotation, 2),
+									U.setScaleSlow(displayCard(), dilemmaTransform.scale, 1),
+									displayCard()
 								}
 							end,
 							function()
-								displayCard.setLock(true)
-								return U.setPositionSlow(displayCard,
+								displayCard().setLock(true)
+								return U.setPositionSlow(displayCard(),
 									Vector(dilemmaTransform.position):setAt("y", C.TableHeight), 1)
 							end,
 							function()
@@ -1058,17 +1054,17 @@ INITFUNCS = {
 							end
 						})
 					elseif S.getStateVal("roundState", "displayedCardType") == "trigger" then
-						U.Assert("Displayed Card is a Trigger Card?", displayCard.hasTag("TriggerCard"))
+						U.Assert("Displayed Card is a Trigger Card?", displayCard().hasTag("TriggerCard"))
 
 						return U.RunSequence({
 							function()
-								displayCard.setLock(false)
+								displayCard().setLock(false)
 								local coverCard = O.Pieces.CoverCard()
 								return {
-									U.setPositionSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.position, 1),
-									U.setRotationSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.rotation, 1),
-									U.setScaleSlow(displayCard, C.Spots.Main.Trigger.aboveDeck.scale, 1),
-									displayCard,
+									U.setPositionSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.position, 1),
+									U.setRotationSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.rotation, 1),
+									U.setScaleSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.scale, 1),
+									displayCard(),
 									function() return #U.findAboveObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end) == 1 end
 								}
 							end,
@@ -1099,7 +1095,7 @@ INITFUNCS = {
 						return MSG.Splash("Popular Unrest Forces the King " .. kingName .. " to Abdicate!", "AllMid", 3)
 					else
 						S.setStateVal("Death", "gameState", "endState")
-						return MSG.Splash("King " .. kingName .. "  Is Dead!", "AllMid", 3)
+						return MSG.Splash("King " .. kingName .. "  Is Dead", "AllMid", 3)
 					end
 				end,
 				function()
@@ -1176,7 +1172,6 @@ INITFUNCS = {
 			return {
 				function()
 					MSG.Splash("Cleanup")
-					S.LogGameEndTime()
 					local tokenData = DIR.GetTokenPositionsFromBoard()
 					local scoreData = DIR.GetFinalStandings()
 					S.RecordFinishedGame(scoreData, tokenData)
@@ -1208,7 +1203,7 @@ INITFUNCS = {
 					}
 				end,
 				function()
-					local storyCards = getObjectsWithTag("StoryCard")
+					local storyCards = U.filter(getObjectsWithTag("StoryCard"), function(obj) return obj.type == "Card" end)
 					table.sort(storyCards, function(a, b) return a.getPosition().y < b.getPosition().y end)
 					local storyCardSpots = U.iMap(U.slice(U.clone(C.SnapPoints.Global), 1, 6),
 						function(tData) return Vector(tData.position) end)
@@ -1220,7 +1215,7 @@ INITFUNCS = {
 							end)
 						}
 					end)
-					-- log(storyCardDatas)
+					log(storyCardDatas)
 					local storyArcs = {}
 					U.iForEach(storyCardDatas, function(sData)
 						if storyArcs[sData.spot] == nil then storyArcs[sData.spot] = 0 end
@@ -1292,6 +1287,7 @@ INITFUNCS = {
 					}
 				end,
 				function()
+					UI.hide("scoringHUD")
 					return MSG.Splash("See You Next Week!", "AllMid")
 				end,
 				function()
@@ -1710,8 +1706,7 @@ end
 function DIR.InitSecretAgendas()
 	return U.RunSequence({
 		function()
-			agendaDeck = getObjectsWithTag("SecretAgenda")[1]
-			U.Val("SecretAgendas", agendaDeck, U.isGameObject(agendaDeck) and agendaDeck.type == "Deck")
+			U.Val("SecretAgendas", agendaDeck(), U.isGameObject(agendaDeck()) and agendaDeck().type == "Deck")
 			P.SetCamera("Lectern")
 			if S.isInMode(C.Modes.END) then
 				return MSG.Splash("Preassigning Secret Agendas")
@@ -1720,39 +1715,39 @@ function DIR.InitSecretAgendas()
 			end
 		end,
 		function()
-			agendaDeck.setLock(true)
+			agendaDeck().setLock(true)
 			L.SetLightMode("lightLectern", "spotlightDilemmaDeck", nil, 1)
 			return {
-				U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.position), 1),
-				U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
+				U.setPositionSlow(agendaDeck(), Vector(C.Spots.Staging.SecretAgenda.High.position), 1),
+				U.setRotationSlow(agendaDeck(), Vector(C.Spots.Staging.SecretAgenda.High.rotation), 1)
 			}
 		end,
 		function()
-			U.setPositionSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
-			U.setRotationSlow(agendaDeck, Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
+			U.setPositionSlow(agendaDeck(), Vector(C.Spots.Staging.SecretAgenda.Low.position), 0.5)
+			U.setRotationSlow(agendaDeck(), Vector(C.Spots.Staging.SecretAgenda.Low.rotation), 0.5)
 			return 0.25
 		end,
 		function()
-			agendaDeck.shuffle()
+			agendaDeck().shuffle()
 			return 0.5
 		end,
-		function() return DIR.BurnTopAgenda(agendaDeck) end,
+		function() return DIR.BurnTopAgenda() end,
 		function()
 			P.SetCamera("BehindScreen")
 			L.SetLightMode("lightLectern", "off")
 			L.SetLightMode("lightFront", "dim")
 			return 1
 		end,
-		function() return DIR.DealSecretAgendas(P.GetLeastPrestigious(), agendaDeck) end
+		function() return DIR.DealSecretAgendas(P.GetLeastPrestigious(), agendaDeck()) end
 	})
 end
 
-function DIR.BurnTopAgenda(agendaDeck)
+function DIR.BurnTopAgenda()
 	local agendaCard
 	return U.RunSequence({
 		function()
 			local isSpawned = false
-			agendaCard = agendaDeck.takeObject({
+			agendaCard = agendaDeck().takeObject({
 				position = Vector({ -0.01, 6.95, 24.41 }),
 				rotation = Vector({ 0, 0, 180 }),
 				callback_function = function(obj)
@@ -2075,7 +2070,7 @@ function DIR.ConfirmFetchEnvelope(player, envKey)
 		end
 	})
 end
-
+-- lua S.setStateVal("King", "gameState", "kingTitle"); MSG.Hide("kingQuery_Orange"); S.setStateVal("Drake I of House Hedwyn", "gameState", "kingName")
 function DIR.PromptForKingName()
 	local player = S.getPlayer(U.sample(S.getStateVal("gameState", "winners")))
 	S.setStateVal(nil, "gameState", "kingName")
@@ -2271,27 +2266,25 @@ function DIR.FetchEnvelope(envKey)
 
 	if not envGUID then return U.Alert("Envelope '" .. envKey .. "' Not Found! Check Case & Spelling", Color(1, 0, 0)) end
 
-	local displayCard = getObjectsWithTag("OnDisplay")[1]
-
 	local envDeck, storyCard
 
 	return U.RunSequence({
 		function()
 			P.SetCamera("Lectern")
-			if displayCard ~= nil then
-				if displayCard.hasTag("Dilemma") then
-					local yRot = displayCard.getRotation().y
+			if displayCard() ~= nil then
+				if displayCard().hasTag("Dilemma") then
+					local yRot = displayCard().getRotation().y
 					local outcome = yRot > 170 and "Nay" or "Aye"
 					return {
-						U.setPositionSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. outcome .. "Shrink"].position,
+						U.setPositionSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. outcome .. "Shrink"].position,
 							0.5),
-						U.setScaleSlow(displayCard, C.Spots.Main.Dilemma["faceUp" .. outcome .. "Shrink"].scale, 0.5),
+						U.setScaleSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. outcome .. "Shrink"].scale, 0.5),
 						L.SetLightMode("lightLectern", "spotlightEnvelope", nil, 0.25)
 					}
-				elseif displayCard.hasTag("TriggerCard") then
+				elseif displayCard().hasTag("TriggerCard") then
 					return {
-						U.setPositionSlow(displayCard, C.Spots.Main.Trigger.faceUpShrink.position, 0.5),
-						U.setScaleSlow(displayCard, C.Spots.Main.Trigger.faceUpShrink.scale, 0.5),
+						U.setPositionSlow(displayCard(), C.Spots.Main.Trigger.faceUpShrink.position, 0.5),
+						U.setScaleSlow(displayCard(), C.Spots.Main.Trigger.faceUpShrink.scale, 0.5),
 						L.SetLightMode("lightLectern", "spotlightEnvelope", nil, 0.25)
 					}
 				end
