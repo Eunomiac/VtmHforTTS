@@ -65,6 +65,7 @@ local function toggleXmlElement(elemID, button)
 		toggleXmlElement("stateDisplayPanel_2", button)
 		toggleXmlElement("stateDisplayPanel_3", button)
 		toggleXmlElement("stateDisplayPanel_4", button)
+		toggleXmlElement("stateDisplayPanel_5", button)
 		return
 	end
 
@@ -249,7 +250,8 @@ function HUD_Click(player, button, id)
 	elseif id == "resetTable" then
 		DIR.RESET()
 	elseif id == "concealHouseCards" then
-		U.forEach(getObjectsWithTag("HouseCard"),
+		local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil end)
+		U.forEach(houseCards,
 			function(obj)
 				obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 80))
 				obj.setPosition(obj.getPosition():setAt("y", button == "-2" and 7.52 or 3.7))
@@ -259,7 +261,8 @@ function HUD_Click(player, button, id)
 				card.setPosition(card.getPosition():setAt("y", button == "-2" and 7 or -1))
 			end)
 	elseif id == "hideHouseCards" then
-		U.forEach(getObjectsWithTag("HouseCard"),
+		local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil end)
+		U.forEach(houseCards,
 			function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
 	elseif id == "adminFetch" then
 		if button == "-2" then
@@ -276,15 +279,24 @@ function HUD_Click(player, button, id)
 	elseif id == "setNextKing" then
 		DIR.PromptForKingName(P.GetWinners())
 	elseif id == "captureNext" then
+		Lighting.ambient_intensity = 0
+		Lighting.light_intensity = 0.662
+		Lighting.reflection_intensity = 0
 		if button == "-2" then
 			captureRow = 0
 		else
 			captureRow = captureRow + 1
 		end
-		if captureRow > 6 then
+		if captureRow == 7 then
 			U.forEach(getObjectsWithTag("Capture"), function(obj) obj.destruct() end)
+			P.SetCamera("CaptureStickers", player)
+			player.setCameraMode("TopDown")
+		elseif captureRow > 7 then
 			player.setCameraMode("ThirdPerson")
 			P.SetCamera("BehindScreen", player)
+			Lighting.light_intensity = 0
+			Lighting.reflection_intensity = 0.48
+			captureRow = -1
 		else
 			local cameraData = U.clone(C.CameraAngles.ScreenCapture)
 			cameraData.cameraMode = nil
@@ -384,11 +396,10 @@ function HUDControl_Click(player, button, id)
 	local _, mode, elemID = table.unpack(U.split(id, "-"))
 	if mode == "Toggle" then
 		if button == "-2" then
-			UI.hide(elemID)
-			UI.setAttribute(elemID, "active", "false")
+			MSG.Hide(elemID)
+
 		else
-			UI.show(elemID)
-			UI.setAttribute(elemID, "active", "true")
+			MSG.Show(elemID)
 		end
 	elseif mode == "Click" then
 		local hudRef, actionRef, pColor = table.unpack(U.split(elemID, "_"))
@@ -567,7 +578,7 @@ function InputHUD_KingConfirm(player, _, id)
 		end
 	end
 
-	MSG.Hide("kingQuery_" .. player.color)
+	MSG.HideAll("kingQuery_")
 
 	local splashTime = 2
 	MSG.Splash(
@@ -590,7 +601,7 @@ local function hideActiveSubmenus(color, activeMenu)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
-			UI.hide(targetMenuID)
+			MSG.Hide(targetMenuID)
 		end
 	end)
 end
@@ -603,13 +614,12 @@ function Ref_HUD_Click(player, _, id)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		if lockedPopupImage[player.color] == popupID then
 			lockedPopupImage[player.color] = nil
-			UI.hide(popupID)
+			MSG.Hide(popupID)
 			return
 		elseif lockedPopupImage[player.color] ~= nil then
-			UI.hide(lockedPopupImage[player.color])
+			MSG.Hide(lockedPopupImage[player.color])
 		end
-		UI.setAttribute(popupID, "active", "false")
-		UI.show(popupID)
+		MSG.Show(popupID)
 		lockedPopupImage[player.color] = popupID
 	elseif mode == "Camera" then
 		if param == "Screen" then
@@ -635,29 +645,24 @@ function Ref_HUD_HoverOn(player, _, id)
 
 	if mode == "Submenu" then
 		hideActiveSubmenus(player.color, param)
-		UI.setAttribute(id .. "_" .. player.color, "active", "false")
-		UI.show(id .. "_" .. player.color)
-		UI.setAttribute("refHUD_SubmenuContents_" .. param .. "_" .. player.color, "active", "false")
-		UI.show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
+		MSG.Show(id .. "_" .. player.color)
+		MSG.Show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
-		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
-		UI.setAttribute(popupID, "active", "false")
-		UI.show(popupID)
+		MSG.Show("refHUD_PopupImage_" .. param .. "_" .. player.color)
 	end
 end
 
 function Ref_HUD_HoverOff(player, _, id)
 	local _, mode, param, color = table.unpack(U.split(id, "_"))
 	if mode == "Submenu" then
-		UI.hide(id .. "_" .. player.color)
+		MSG.Hide(id .. "_" .. player.color)
 	elseif mode == "SubmenuContents" then
-		UI.hide(id)
-		UI.hide(string.gsub(id, "Contents", ""))
+		MSG.Hide(id)
+		MSG.Hide(string.gsub(id, "Contents", ""))
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
-		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
-		UI.hide(popupID)
+		MSG.Hide("refHUD_PopupImage_" .. param .. "_" .. player.color)
 	end
 end
 

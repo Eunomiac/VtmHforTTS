@@ -65,7 +65,7 @@
 	<Image id="houseHUD_Overlay_Tork" class="house-hud house-hud-fade" image="zz 2-colorizer-Tork" />
 	<Image id="houseHUD_Overlay_Wylio" class="house-hud house-hud-fade" image="zz 2-colorizer-Wylio" />
 
-	<Panel id="houseHUD_Brown" class="house-hud" visibility="Brown">
+	<Panel id="houseHUD_Brown" class="house-hud" visibility="Host|Brown">
 		<Image id="houseHUD_Bright_Allwed_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
 		<Image id="houseHUD_Bright_Aontas_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
 		<Image id="houseHUD_Bright_Blodyn_Brown" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
@@ -107,7 +107,7 @@
 		<Image id="houseHUD_Info_Tork_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
 		<Image id="houseHUD_Info_Wylio_Brown" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
-	<Panel id="houseHUD_Red" class="house-hud" visibility="Red">
+	<Panel id="houseHUD_Red" class="house-hud" visibility="Host|Red">
 		<Image id="houseHUD_Bright_Allwed_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
 		<Image id="houseHUD_Bright_Aontas_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
 		<Image id="houseHUD_Bright_Blodyn_Red" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
@@ -149,7 +149,7 @@
 		<Image id="houseHUD_Info_Tork_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
 		<Image id="houseHUD_Info_Wylio_Red" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
-	<Panel id="houseHUD_Orange" class="house-hud" visibility="Orange">
+	<Panel id="houseHUD_Orange" class="house-hud" visibility="Host|Orange">
 		<Image id="houseHUD_Bright_Allwed_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
 		<Image id="houseHUD_Bright_Aontas_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
 		<Image id="houseHUD_Bright_Blodyn_Orange" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
@@ -191,7 +191,7 @@
 		<Image id="houseHUD_Info_Tork_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
 		<Image id="houseHUD_Info_Wylio_Orange" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
-	<Panel id="houseHUD_Yellow" class="house-hud" visibility="Yellow">
+	<Panel id="houseHUD_Yellow" class="house-hud" visibility="Host|Yellow">
 		<Image id="houseHUD_Bright_Allwed_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
 		<Image id="houseHUD_Bright_Aontas_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
 		<Image id="houseHUD_Bright_Blodyn_Yellow" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />
@@ -233,7 +233,7 @@
 		<Image id="houseHUD_Info_Tork_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Tork" />
 		<Image id="houseHUD_Info_Wylio_Yellow" class="house-hud house-hud-fade" image="zz 4-infoScreen-Wylio" />
 	</Panel>
-	<Panel id="houseHUD_Green" class="house-hud" visibility="Green">
+	<Panel id="houseHUD_Green" class="house-hud" visibility="Host|Green">
 		<Image id="houseHUD_Bright_Allwed_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Allwed" />
 		<Image id="houseHUD_Bright_Aontas_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Aontas" />
 		<Image id="houseHUD_Bright_Blodyn_Green" class="house-hud house-hud-fade" image="zz 1-brightColor-Blodyn" />

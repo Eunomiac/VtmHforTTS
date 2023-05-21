@@ -108,6 +108,7 @@ function GetPrestige()
 	if GetHouseNum() == nil then return nil end
 	if GetPlayer() == nil then return nil end
 
+
 	local prestigeCount = #U.filter(self.getButtons(), function(bData)
 		return bData.label
 			and bData.click_function
@@ -392,6 +393,11 @@ function onLoad(saved_data)
 end
 
 function Initialize()
+	if self.getButtons() == nil then
+		log(self.getName() .. " Waiting for Buttons ...")
+		Wait.time(Initialize, 2)
+		return
+	end
 	GetPrestige()
 	GetCrave()
 end

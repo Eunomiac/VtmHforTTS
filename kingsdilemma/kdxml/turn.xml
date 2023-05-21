@@ -96,7 +96,7 @@
 
 </Defaults>
 
-<Panel class="turn-HUD-container" visibility="Brown">
+<Panel class="turn-HUD-container" visibility="Host|Brown">
 	<VerticalLayout id="turnHUD_Brown" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Brown" class="turn-HUD" active="false">
@@ -126,7 +126,7 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="turn-HUD-container" visibility="Red">
+<Panel class="turn-HUD-container" visibility="Host|Red">
 	<VerticalLayout id="turnHUD_Red" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Red" class="turn-HUD" active="false">
@@ -156,7 +156,7 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="turn-HUD-container" visibility="Orange">
+<Panel class="turn-HUD-container" visibility="Host|Orange">
 	<VerticalLayout id="turnHUD_Orange" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Orange" class="turn-HUD" active="false">
@@ -186,7 +186,7 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="turn-HUD-container" visibility="Yellow">
+<Panel class="turn-HUD-container" visibility="Host|Yellow">
 	<VerticalLayout id="turnHUD_Yellow" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Yellow" class="turn-HUD" active="false">
@@ -216,7 +216,7 @@
 		</HorizontalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="turn-HUD-container" visibility="Green">
+<Panel class="turn-HUD-container" visibility="Host|Green">
 	<VerticalLayout id="turnHUD_Green" class="turn-HUD" active="false">
 		<HorizontalLayout class="turn-HUD">
 			<Panel id="turnHUD_voteAye_container_Green" class="turn-HUD" active="false">

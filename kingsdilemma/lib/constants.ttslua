@@ -138,6 +138,7 @@ C.Phases = {
 		EndRound = "EndRound" -- Auto
 	},
 	END = {
+		Ending = "Ending", -- Manual IF TOKENS OUT OF ZONES
 		Score = "Score", -- Manual
 		Realm = "Realm", -- Manual
 		Achievements = "Achievements", -- Manual
@@ -223,6 +224,13 @@ C.CameraAngles = {
 		pitch = 90,
 		yaw = 0,
 		distance = 5.2
+	},
+	CaptureStickers = { -- lua Player.Yellow.lookAt({position = Vector(0, 15, 16.5), pitch = 90, yaw = 0, distance = 12}); Player.Yellow.setCameraMode("TopDown")
+		cameraMode = "TopDown",
+		position = Vector(0, 15, 16.5),
+		pitch = 90,
+		yaw = 0,
+		distance = 12
 	}
 	-- STORY CARD SCREENSHOT POSITIONS FOR ENDGAME
 	-- spread story cards out with x-values: 9.16, 12.66, 16.16, 19.66
@@ -424,7 +432,7 @@ C.SnapPoints = {
 C.Spots = {
 	Storage = {
 		HouseCard = {
-			position = Vector({104.00, 29.25, -2.25}),
+			position = Vector({0, -20.30, -1.17}),
 			rotation = Vector({71.10, 180.00, 180.00}),
 			scale = Vector({0.30, 1.00, 0.30})
 		},

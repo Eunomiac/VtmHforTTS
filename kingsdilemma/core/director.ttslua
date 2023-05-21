@@ -13,9 +13,10 @@ local DIR = {}
 local HOUSE_SELECTION, newPlayerColors = {}, {}
 
 local ISDEBUGGING = false
+local isFirstCall = true
 
-function DIR.ShowAutoAdvance() UI.show("autoAdvanceGamePhase"); UI.hide("advanceGamePhase") end
-function DIR.ShowManualAdvance() UI.hide("autoAdvanceGamePhase"); UI.show("advanceGamePhase") end
+function DIR.ShowAutoAdvance() MSG.Show("autoAdvanceGamePhase"); MSG.Hide("advanceGamePhase") end
+function DIR.ShowManualAdvance() MSG.Hide("autoAdvanceGamePhase"); MSG.Show("advanceGamePhase") end
 
 function DIR.ToggleAdvanceControls()
 	local mode, phase = S.getCurrentPhase()
@@ -40,6 +41,10 @@ local function getBoardTokens()
 	tokens.resource.Welfare = rTokens[4]
 	tokens.resource.Knowledge = rTokens[5]
 	return tokens
+end
+
+function DIR.GetStabilityPositionFromBoard()
+	return OU.FindNearestSnapPoint(getObjectsWithTag("StabilityMarker")[1], O.UninteractableObjs.Board())
 end
 
 function DIR.GetTokenPositionsFromBoard()
@@ -100,7 +105,13 @@ end
 
 function DIR.GetStickerData()
 	local stickerData = U.map(getObjectsWithTag("ChronicleSticker"), function(obj) return getStickerData(obj) end)
-	table.sort(stickerData, function(a, b) return a.snapSlot < b.snapSlot end)
+	table.sort(stickerData, function(a, b)
+		local aRow, bRow = math.ceil(a.snapSlot / 3), math.ceil(b.snapSlot / 3)
+		local aAge, bAge = a.age, b.age
+		local aPos, bPos = 3 - ((a.snapSlot - 1) % 3), 3 - ((b.snapSlot - 1) % 3)
+		local aScore, bScore = aRow + aAge/10 + aPos/100, bRow + bAge/10 + bPos/100
+		return aScore < bScore
+	end)
 	return stickerData
 end
 
@@ -108,7 +119,7 @@ end
 
 -- #region INITIALIZATION FUNCTIONS
 local queryResponse
-local memo_displayCard, memo_agendaDeck
+local memo_displayCard, memo_agendaDeck, memo_dilemmaDeck
 local function agendaDeck()
 	if memo_agendaDeck == nil then memo_agendaDeck = getObjectsWithTag("SecretAgenda")[1] end
 	return memo_agendaDeck
@@ -117,6 +128,15 @@ local function displayCard()
 	if memo_displayCard == nil then memo_displayCard = getObjectsWithTag("OnDisplay")[1] end
 	return memo_displayCard
 end
+local function dilemmaDeck()
+	if memo_dilemmaDeck == nil then
+		local coverCard = O.Pieces.CoverCard()
+		U.Assert("dilemmaDeck()", coverCard, "Object")
+		memo_dilemmaDeck = U.findBelowObject(coverCard, function(obj) return obj.type == "Deck" end)[1]
+	end
+	return memo_dilemmaDeck
+end
+
 
 INITFUNCS = {
 	NONE = function()
@@ -136,8 +156,8 @@ INITFUNCS = {
 	SESSIONINIT = {
 		SeatPlayers = function()
 			return {
-				S.UpdatedSeatedPlayerData,
 				function()
+					S.UpdatedSeatedPlayerData()
 					U.forEach(getObjectsWithTag("Capture"), function(obj) obj.destruct() end)
 					return 0.5
 				end,
@@ -167,7 +187,7 @@ INITFUNCS = {
 						S.setPlayerVal(houseName, player, "house")
 						S.setPlayerVal(nil, player, "houseName")
 					end)
-					UI.setAttribute("houseSelectionHUD", "active", "false")
+					MSG.Hide("houseSelectionHUD")
 					MSG.Splash("Setting Up Play Spaces", nil, 5)
 					return 0.5
 				end,
@@ -302,10 +322,7 @@ INITFUNCS = {
 					stickerData = DIR.GetStickerData()
 					return MSG.Splash("Legacy Effects")
 				end,
-				function()
-					MSG.Splash("Chronicle Aging")
-					return 1
-				end,
+				function() return MSG.Splash("Chronicle Aging") end,
 				function()
 					local function ageChronicleSticker(sData)
 						local stickerObj = sData.obj
@@ -328,37 +345,23 @@ INITFUNCS = {
 				end,
 				function()
 					P.SetCamera("MainBoard")
-					MSG.Splash("Resource Legacy", "AllLow")
-					return 1
+					return MSG.Splash("Resource Legacy", "AllLow")
 				end,
 				function()
 					local function applyResourceLegacy(sData)
 						local stickerObj = sData.obj
-						return U.RunSequence({
-							function()
-								stickerObj.highlightOn(sData.status == "Pos" and Color.Blue or Color.Red)
-								return 0.5
-							end,
-							function()
-								return DIR.BumpToken(sData.resource, sData.status == "Pos" and 1 or -1)
-							end,
-							function()
-								stickerObj.highlightOff()
-								return 0.5
-							end
-						})
+						stickerObj.highlightOn(sData.status == "Pos" and Color.Blue or Color.Red, 0.5)
+						DIR.BumpToken(sData.resource, sData.status == "Pos" and 1 or -1)
+						return 0.75
 					end
 					return U.RunSequence(U.iMap(stickerData, function(sData)
-						return function()
-							return applyResourceLegacy(sData)
-						end
+						return function() return applyResourceLegacy(sData) end
 					end))
 				end,
 				function()
 					P.SetCamera("BehindScreen")
 					L.SetLightMode("lightFront", "dim")
-					MSG.Splash("Power Legacy")
-					return 1
+					return MSG.Splash("Power Legacy")
 				end,
 				function()
 					local function applyPowerLegacy(sData)
@@ -367,24 +370,21 @@ INITFUNCS = {
 						local player = S.getPlayerOfHouse(sData.house)
 						return U.RunSequence({
 							function()
-								stickerObj.highlightOn(statusColor)
-								UI.show("storyHUD_Sticker")
+								stickerObj.highlightOn(statusColor, 1)
+								MSG.Show("storyHUD_Sticker")
 								UI.setValue("storyHUD_Sticker_Text", stickerObj.getDescription())
-								return 1.5
-							end,
-							function()
+								UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(statusColor))
 								L.PulseLight("lightFront", S.getPlayerOfHouse(sData.house), statusColor)
 								if sData.status == "Pos" then
 									P.SpawnPower(player, 1)
 								else
 									P.TakePower(player, 1)
 								end
-								return 1
+								return 2
 							end,
 							function()
-								stickerObj.highlightOff()
-								UI.hide("storyHUD_Sticker")
-								return 1
+								MSG.Hide("storyHUD_Sticker")
+								return 0.75
 							end
 						})
 					end
@@ -400,13 +400,12 @@ INITFUNCS = {
 					return 1
 				end,
 				function()
-					local function assignOpenAgenda(rowData)
-						local topSticker = U.shift(rowData)
-						local status = topSticker.status == "Pos" and "positive" or "negative"
+					local function assignOpenAgenda(sData)
+						local status = sData.status == "Pos" and "positive" or "negative"
 						local statusColor = ({positive = Color.Blue, negative = Color.Red})[status]
-						local resource = topSticker.resource
-						local stickerObj = topSticker.obj
-						local player = S.getPlayerOfHouse(topSticker.house)
+						local resource = sData.resource
+						local stickerObj = sData.obj
+						local player = S.getPlayerOfHouse(sData.house)
 						local openAgendas = S.getPlayerVal(player, "openAgendas")
 						if openAgendas == nil then openAgendas = {positive = {}, negative = {}} end
 						if openAgendas[status] == nil then openAgendas[status] = {} end
@@ -414,18 +413,14 @@ INITFUNCS = {
 						S.setPlayerVal(openAgendas, player, "openAgendas")
 						return U.RunSequence({
 							function()
-								stickerObj.highlightOn(statusColor)
-								return 0.5
-							end,
-							function()
+								stickerObj.highlightOn(statusColor, 0.5)
 								L.PulseLight("lightFront", player, statusColor)
 								P.RefreshPlayerScreenHUD(player)
-								if topSticker.status == "Pos" then
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Positive Open Agenda for " .. resource)
+								if sData.status == "Pos" then
+									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Positive Open Agenda for " .. resource, nil, nil, {color = U.GetHex(Color.Blue)})
 								else
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Negative Open Agenda for " .. resource)
+									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Negative Open Agenda for " .. resource, nil, nil, {color = U.GetHex(Color.Red)})
 								end
-
 							end,
 							function()
 								stickerObj.highlightOff()
@@ -442,13 +437,23 @@ INITFUNCS = {
 						table.insert(stickersByResource[key], sData)
 					end)
 					U.forEach(U.getKeys(stickersByResource), function(key)
-						table.sort(stickersByResource[key], function(a, b) return a.age > b.age end)
+						table.sort(stickersByResource[key], function(a, b) return a.age < b.age end)
 					end)
-					return U.RunSequence(U.iMap(U.getValues(stickersByResource), function(rowData)
-						return function()
-							return assignOpenAgenda(rowData)
+
+					local seqFuncs = {}
+
+					U.iForEach(U.getKeys(stickersByResource), function(key)
+						local posOA = U.find(stickersByResource[key], function(sData) return  sData.status == "Pos" end)
+						if posOA then
+							table.insert(seqFuncs, function() return assignOpenAgenda(posOA) end)
 						end
-					end))
+						local negOA = U.find(stickersByResource[key], function(sData) return  sData.status == "Neg" end)
+						if negOA then
+							table.insert(seqFuncs, function() return assignOpenAgenda(negOA) end)
+						end
+					end)
+
+					return U.RunSequence(seqFuncs)
 				end,
 				DIR.ADVANCE
 			}
@@ -1079,14 +1084,13 @@ INITFUNCS = {
 		end
 	},
 	END = {
-		Score = function()
-			local scoreData, tokenData
+		Ending = function()
 			return {
 				function()
-					tokenData = DIR.GetTokenPositionsFromBoard()
-					local stabilityPos = tokenData.Stability
+					local balanceZone = getObjectsWithTag("zoneBalance")[1]
+					U.forEach(balanceZone.getObjects(), function(obj) obj.destruct() end)
+					local stabilityPos = DIR.GetStabilityPositionFromBoard()
 					local kingName = S.getStateVal("gameState", "kingName")
-
 					if stabilityPos == 19 then
 						S.setStateVal("AbdicatedTop", "gameState", "endState")
 						return MSG.Splash("A Treasonous Plot Forces King " .. kingName .. " to Abdicate!", "AllMid", 3)
@@ -1099,6 +1103,40 @@ INITFUNCS = {
 					end
 				end,
 				function()
+					-- Check to ensure ALL non-SourceObj Power and Coin on board is in a private player zone
+					local tokensOutOfZone = U.concat(
+						U.filter(
+							getObjectsWithTag("PowerToken"),
+							function(obj)
+								return obj.getName() == "Power"
+									and not obj.hasTag("SourceObj")
+									and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivatePower" end)
+							end
+						),
+						U.filter(
+							getObjectsWithTag("CoinToken"),
+							function(obj)
+								return obj.getName() == "Coin"
+								and not obj.hasTag("SourceObj")
+								and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivatePower" end)
+							end
+						)
+					)
+					if #tokensOutOfZone > 0 then
+						U.forEach(tokensOutOfZone, function(obj) obj.highlightOn(Color.Red) end)
+						DIR.ShowManualAdvance()
+						return MSG.Splash("Move Highlighted Power & Coin Into Personal Zones")
+					else
+						return DIR.ADVANCE()
+					end
+				end
+			}
+		end,
+		Score = function()
+			local scoreData, tokenData
+			return {
+				function()
+					tokenData = DIR.GetTokenPositionsFromBoard()
 					scoreData = DIR.GetFinalStandings()
 					S.RecordFinishedGame(scoreData, tokenData)
 					MSG.Show("scoringSplashScreen")
@@ -1117,7 +1155,6 @@ INITFUNCS = {
 				end,
 				function()
 					UI.setAttributes("scoringHUD", {
-						active = "false",
 						scale = "0.4 0.4 0.4",
 						color = "Clear",
 						offsetXY = "300 450"
@@ -1175,9 +1212,6 @@ INITFUNCS = {
 					local tokenData = DIR.GetTokenPositionsFromBoard()
 					local scoreData = DIR.GetFinalStandings()
 					S.RecordFinishedGame(scoreData, tokenData)
-					return 0.5
-				end,
-				function()
 					local playedDilemmaCards = getObjectsWithAllTags({ "Dilemma", "Played" })
 					local numPlayedDilemmas = #playedDilemmaCards
 					table.sort(playedDilemmaCards, function(a, b) return a.getPosition().z < b.getPosition().z end)
@@ -1203,6 +1237,10 @@ INITFUNCS = {
 					}
 				end,
 				function()
+					local triggerCards = U.filter(getObjectsWithTag("TriggerCard"), function(obj) return obj.type == "Card" end)
+					if #triggerCards > 0 then
+						U.forEach(triggerCards, function(card) dilemmaDeck().putObject(card) end)
+					end
 					local storyCards = U.filter(getObjectsWithTag("StoryCard"), function(obj) return obj.type == "Card" end)
 					table.sort(storyCards, function(a, b) return a.getPosition().y < b.getPosition().y end)
 					local storyCardSpots = U.iMap(U.slice(U.clone(C.SnapPoints.Global), 1, 6),
@@ -1215,7 +1253,7 @@ INITFUNCS = {
 							end)
 						}
 					end)
-					log(storyCardDatas)
+					-- log(storyCardDatas)
 					local storyArcs = {}
 					U.iForEach(storyCardDatas, function(sData)
 						if storyArcs[sData.spot] == nil then storyArcs[sData.spot] = 0 end
@@ -1251,7 +1289,10 @@ INITFUNCS = {
 					S.setStateVal(nil, "gameState", "leader")
 					S.setStateVal(nil, "gameState", "moderator")
 				end,
-				DIR.RecallSecretAgendas,
+				function()
+					dilemmaDeck().shuffle()
+					return DIR.RecallSecretAgendas()
+				end,
 				DIR.PromptForKingName,
 				DIR.ADVANCE
 			}
@@ -1280,18 +1321,13 @@ INITFUNCS = {
 					end), 1)
 				end,
 				function()
-					return {
-						L.SetLightMode(
-						{ "lightMainTop", "lightMainBottom", "lightLectern", "lightMapAnkist", "lightMapWorld",
-							"lightMapFocusA", "lightMapFocusB", "lightFeature" }, "off", nil, 2)
-					}
-				end,
-				function()
-					UI.hide("scoringHUD")
+					MSG.Hide("scoringHUD")
+					MSG.HideAll()
+					isFirstCall = true
+					L.SetLightMode(
+					{ "lightMainTop", "lightMainBottom", "lightLectern", "lightMapAnkist", "lightMapWorld",
+						"lightMapFocusA", "lightMapFocusB", "lightFeature" }, "off", nil, 2)
 					return MSG.Splash("See You Next Week!", "AllMid")
-				end,
-				function()
-					return MSG.HideAll()
 				end,
 				DIR.ADVANCE
 			}
@@ -1341,13 +1377,15 @@ function DIR.InitPreflight()
 		However, to the common people of Ankist, they saw an additional grand display involving their King as he accepted a sword made from red iron as a gift from "merchants" of another kingdom. This blade, known as the Scarlet Tide, became a symbol for our nation's military might, with only the most elite soldiers being allowed to wield equipment forged from the miraculously strong metal.]],
 		storyHUD_Arc2 = [[Merchants from distant Konfurtah brought rumors of the hiding place of the fabled Golden Map, prompting us to send an expedition into the Ivory Desert to retrieve it. We discovered it within the ancient temple of Chalice Peak, amidst the dessicated corpses of Sand Priestesses—an opulent version of the Cult of the Mother—along with references to the ancient "Sun Empire", known only from legends dating back to the ages before Ommad, the First King.
 
-		Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]]
+		Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]],
+		storyHUD_Arc3 = [[The knights of the army are now roaming the Hedgehog Woods in northern Dualak, looking for the alleged "Witch of the Wilds."
+
+		Rumors about her incredible ability to bend the laws of nature are becoming more common, and the knights are determined to find her before the situation escalates. Yet, those paths are narrow and murky, and those ancient woods hide many dangers ...]]
 }
 	storyKeys = U.getKeys(storyArcs)
 end
 
 local keyIndex = 1
-local isFirstCall = true
 function DIR.InitSession(isNotShuffling)
 	local seqFuncs = {}
 	if isFirstCall then
@@ -1355,10 +1393,10 @@ function DIR.InitSession(isNotShuffling)
 		table.insert(seqFuncs, function()
 			MSG.HideAll()
 			if S.isInMode(C.Modes.NONE) then
-				UI.show("storyHUD")
-				Wait.time(function() UI.hide("splashScreen") end, 2)
+				MSG.Show("storyHUD")
+				Wait.time(function() MSG.Hide("splashScreen") end, 2)
 			else
-				UI.hide("splashScreen")
+				MSG.Hide("splashScreen")
 			end
 			return 2
 		end)
@@ -1371,13 +1409,13 @@ function DIR.InitSession(isNotShuffling)
 						function()
 							local id = storyKeys[keyIndex - 1]
 							-- log("Hiding " .. id)
-							UI.hide(id)
+							MSG.Hide(id)
 							return 2
 						end,
 						function()
 							local id = storyKeys[keyIndex]
 							-- log("Showing " .. id)
-							UI.show(id)
+							MSG.Show(id)
 							UI.setValue(id .. "_Text", storyArcs[id])
 							keyIndex = keyIndex + 1
 							return 3
@@ -1386,7 +1424,7 @@ function DIR.InitSession(isNotShuffling)
 				else
 					local id = storyKeys[keyIndex]
 					-- log("Showing " .. id)
-					UI.show(id)
+					MSG.Show(id)
 						UI.setValue(id .. "_Text", storyArcs[id])
 					keyIndex = keyIndex + 1
 					return 3
@@ -1394,9 +1432,9 @@ function DIR.InitSession(isNotShuffling)
 			else
 				return U.RunSequence({
 					function()
-						UI.hide("storyHUD")
-						UI.hide("sessionInitDisplay")
-						UI.show("gameStatusDisplay")
+						MSG.Hide("storyHUD")
+						MSG.Hide("sessionInitDisplay")
+						MSG.Show("gameStatusDisplay")
 						if S.isInMode(C.Modes.NONE) then
 							DIR.ShowAutoAdvance()
 						end
@@ -1432,9 +1470,9 @@ function DIR.InitSession(isNotShuffling)
 		table.insert(seqFuncs, function()
 			return U.RunSequence({
 					function()
-						UI.hide("storyHUD")
-						UI.hide("sessionInitDisplay")
-						UI.show("gameStatusDisplay")
+						MSG.Hide("storyHUD")
+						MSG.Hide("sessionInitDisplay")
+						MSG.Show("gameStatusDisplay")
 						MSG.Splash("Seating Players", nil, 3)
 						return P.AssignPlayerColors(isNotShuffling)
 					end,
@@ -1520,7 +1558,8 @@ function DIR.ADVANCE(waitFunc, isThrottling)
 	else
 		isThrottling = false
 	end
-	UI.hide("autoAdvanceGamePhase"); UI.hide("advanceGamePhase")
+	MSG.Hide("autoAdvanceGamePhase")
+	MSG.Hide("advanceGamePhase")
 	local mode, phase = S.getNextPhase()
 	local function startPhase()
 		S.setStateVal(mode, "gameState", "gameMode")
@@ -2057,6 +2096,7 @@ function DIR.ConfirmFetchEnvelope(player, envKey)
 			)
 		end,
 		function()
+			-- MSG.HideAll("splashQuery_")
 			if query.response == "true" then
 				if isSimpleFetchingEnvelope then
 					isSimpleFetchingEnvelope = false
@@ -2428,7 +2468,6 @@ function DIR.SpawnReferenceDilemmas(dilemmaCard)
 		OU.SpawnFromSourceObj(dilemmaCard, tags, targetTransform, nil, nil, true)
 	end)
 end
-
 
 function DIR.AddToDilemmaDeck(dilemmas, isSecondTry)
 	if isSecondTry == nil then isSecondTry = false end

@@ -129,6 +129,10 @@ function S.resetGameState()
 
 	U.forEach(U.getKeys(newState.playerStorage), function(id)
 		newState.playerStorage[id].curColor = nil
+		newState.playerStorage[id].openAgendas = {
+			positive = {},
+			negative = {}
+		}
 	end)
 
 	newState.gameState.chronicleType = state.gameState.chronicleType
@@ -173,10 +177,10 @@ function S.refreshStateDebug(stateData)
 	if (stateData == nil) then
 		stateData = Global.getTable("gameState")
 	end
-	UI.setValue("stateDisplay_1",
-		parseCode(stateData, { "lights", "playerData", "playerStorage", "gameState", "roundState", "turnState" }))
+	UI.setValue("stateDisplay_1", parseCode({
+		gameState = stateData.gameState
+	}))
 	UI.setValue("stateDisplay_2", parseCode({
-		gameState = stateData.gameState,
 		roundState = stateData.roundState,
 		turnState = stateData.turnState
 	}))
@@ -187,6 +191,7 @@ function S.refreshStateDebug(stateData)
 	UI.setValue("stateDisplay_4", parseCode({
 		playerStorage = stateData.playerStorage
 	}))
+	UI.setValue("stateDisplay_5", parseCode(stateData, { "lights", "playerData", "playerStorage", "gameStorage", "gameState", "roundState", "turnState" }))
 end
 
 -- #endregion
@@ -615,15 +620,49 @@ end
 
 -- #endregion
 
+function S.SafeShow(elemID)
+	if (S.getStateVal("ui", elemID) == "true") then
+		UI.setAttribute(elemID, "active", "true")
+	else
+		S.setStateVal("true", "ui", elemID)
+		UI.show(elemID)
+		S.CheckElemStatus(elemID)
+	end
+end
+
+function S.SafeHide(elemID)
+	if (S.getStateVal("ui", elemID) == "false") then
+		UI.setAttribute(elemID, "active", "false")
+	else
+		S.setStateVal("false", "ui", elemID)
+		UI.hide(elemID)
+		S.CheckElemStatus(elemID)
+	end
+end
+
+function S.CheckElemStatus(elemID)
+	Wait.time(function()
+		if S.getStateVal("ui", elemID) ~= UI.getAttribute(elemID, "active") then
+			UI.setAttribute(elemID, "active", S.getStateVal("ui", elemID))
+		end
+	end, 0.5)
+end
+
 function S.LogGameStartTime()
 	S.setStateVal(os.time(), "gameState", "startTime")
 end
 
 function S.LogGameEndTime()
 	S.setStateVal(os.time(), "gameState", "endTime")
-	S.setStateVal(U.round((S.getStateVal("gameState", "endTime") - S.getStateVal("gameState", "startTime")) / 3600, 1),
+	S.setStateVal(U.round((S.getStateVal("gameState", "endTime") - S.getStateVal("gameState", "startTime")) / 3600, 2),
 		"gameState", "gameDuration")
 end
+
+
+-- "gameStart": 1684333608.09378,
+-- "gameEnd": 1684340709.82089,
+
+-- lua U.round((1684340709.82089 - 1684333608.09378) / 3600, 1)
 
 function S.RecordFinishedGame(scores, tokenPositions)
 	if scores == nil then

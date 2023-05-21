@@ -50,7 +50,7 @@
 
 </Defaults>
 
-<Panel class="ref-hud-images" visibility="Brown">
+<Panel class="ref-hud-images" visibility="Host|Brown">
 	<Image id="refHUD_PopupImage_CouncilAndJustice_Brown" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
 	<Image id="refHUD_PopupImage_TheFiveClasses_Brown" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Brown" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
@@ -65,7 +65,7 @@
 	<Image id="refHUD_PopupImage_EndGameRewards_Brown" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Brown" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
-<Panel class="ref-hud-images" visibility="Red">
+<Panel class="ref-hud-images" visibility="Host|Red">
 	<Image id="refHUD_PopupImage_CouncilAndJustice_Red" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
 	<Image id="refHUD_PopupImage_TheFiveClasses_Red" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Red" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
@@ -80,7 +80,7 @@
 	<Image id="refHUD_PopupImage_EndGameRewards_Red" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Red" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
-<Panel class="ref-hud-images" visibility="Orange">
+<Panel class="ref-hud-images" visibility="Host|Orange">
 	<Image id="refHUD_PopupImage_CouncilAndJustice_Orange" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
 	<Image id="refHUD_PopupImage_TheFiveClasses_Orange" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Orange" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
@@ -95,7 +95,7 @@
 	<Image id="refHUD_PopupImage_EndGameRewards_Orange" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Orange" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
-<Panel class="ref-hud-images" visibility="Yellow">
+<Panel class="ref-hud-images" visibility="Host|Yellow">
 	<Image id="refHUD_PopupImage_CouncilAndJustice_Yellow" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
 	<Image id="refHUD_PopupImage_TheFiveClasses_Yellow" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Yellow" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
@@ -110,7 +110,7 @@
 	<Image id="refHUD_PopupImage_EndGameRewards_Yellow" class="ref-hud-image" height="70%" image="ref-endGameRewards" />
 	<Image id="refHUD_PopupImage_SpecialAbilityIcons_Yellow" class="ref-hud-image" image="ref-specialAbilityIcons" />
 </Panel>
-<Panel class="ref-hud-images" visibility="Green">
+<Panel class="ref-hud-images" visibility="Host|Green">
 	<Image id="refHUD_PopupImage_CouncilAndJustice_Green" height="70%" class="ref-hud-image" image="ref-councilAndJustice" />
 	<Image id="refHUD_PopupImage_TheFiveClasses_Green" offsetXY = "-150 0" class="ref-hud-image" image="ref-fiveClasses" />
 	<Image id="refHUD_PopupImage_TheCultOfTheMother_Green" height="75%" class="ref-hud-image" image="ref-cultOfTheMother" />
@@ -145,7 +145,7 @@
 			<Image id="refHUD_Submenu_Help" class="ref-hud-button ref-hud-control" image="ref-iconHelp-fg" />
 		</Panel>
 	</HorizontalLayout>
-	<HorizontalLayout class="ref-hud-controls" visibility="Brown">
+	<HorizontalLayout class="ref-hud-controls" visibility="Host|Brown">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Brown" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Brown" class="ref-hud-submenu">
@@ -296,7 +296,7 @@
 		</Panel>
 	</HorizontalLayout>
 
-	<HorizontalLayout class="ref-hud-controls" visibility="Red">
+	<HorizontalLayout class="ref-hud-controls" visibility="Host|Red">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Red" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Red" class="ref-hud-submenu">
@@ -447,7 +447,7 @@
 		</Panel>
 	</HorizontalLayout>
 
-	<HorizontalLayout class="ref-hud-controls" visibility="Orange">
+	<HorizontalLayout class="ref-hud-controls" visibility="Host|Orange">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Orange" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Orange" class="ref-hud-submenu">
@@ -598,7 +598,7 @@
 		</Panel>
 	</HorizontalLayout>
 
-	<HorizontalLayout class="ref-hud-controls" visibility="Yellow">
+	<HorizontalLayout class="ref-hud-controls" visibility="Host|Yellow">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Yellow" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Yellow" class="ref-hud-submenu">
@@ -749,7 +749,7 @@
 		</Panel>
 	</HorizontalLayout>
 
-	<HorizontalLayout class="ref-hud-controls" visibility="Green">
+	<HorizontalLayout class="ref-hud-controls" visibility="Host|Green">
 		<Panel class="ref-hud-button-base">
 			<Image id="refHUD_Submenu_Lore_Green" class="ref-hud-button ref-hud-fade" image="ref-iconLore-fg" />
 			<Panel id="refHUD_SubmenuContents_Lore_Green" class="ref-hud-submenu">

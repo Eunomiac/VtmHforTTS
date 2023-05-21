@@ -286,8 +286,8 @@ local HOUSE_SELECTION, newPlayerColors = {}, {}
 
 local ISDEBUGGING = false
 
-function DIR.ShowAutoAdvance() UI.show("autoAdvanceGamePhase"); UI.hide("advanceGamePhase") end
-function DIR.ShowManualAdvance() UI.hide("autoAdvanceGamePhase"); UI.show("advanceGamePhase") end
+function DIR.ShowAutoAdvance() UI.show("autoAdvanceGamePhase"); MSG.Hide("advanceGamePhase") end
+function DIR.ShowManualAdvance() MSG.Hide("autoAdvanceGamePhase"); UI.show("advanceGamePhase") end
 
 function DIR.ToggleAdvanceControls()
 	local mode, phase = S.getCurrentPhase()
@@ -648,7 +648,7 @@ INITFUNCS = {
 							end,
 							function()
 								stickerObj.highlightOff()
-								UI.hide("storyHUD_Sticker")
+								MSG.Hide("storyHUD_Sticker")
 								return 1
 							end
 						})
@@ -1632,9 +1632,9 @@ function DIR.InitSession(isNotShuffling)
 			MSG.HideAll()
 			if S.isInMode(C.Modes.NONE) then
 				UI.show("storyHUD")
-				Wait.time(function() UI.hide("splashScreen") end, 2)
+				Wait.time(function() MSG.Hide("splashScreen") end, 2)
 			else
-				UI.hide("splashScreen")
+				MSG.Hide("splashScreen")
 			end
 			return 2
 		end)
@@ -1647,7 +1647,7 @@ function DIR.InitSession(isNotShuffling)
 						function()
 							local id = storyKeys[keyIndex - 1]
 							-- log("Hiding " .. id)
-							UI.hide(id)
+							MSG.Hide(id)
 							return 2
 						end,
 						function()
@@ -1670,8 +1670,8 @@ function DIR.InitSession(isNotShuffling)
 			else
 				return U.RunSequence({
 					function()
-						UI.hide("storyHUD")
-						UI.hide("sessionInitDisplay")
+						MSG.Hide("storyHUD")
+						MSG.Hide("sessionInitDisplay")
 						UI.show("gameStatusDisplay")
 						if S.isInMode(C.Modes.NONE) then
 							DIR.ShowAutoAdvance()
@@ -1708,8 +1708,8 @@ function DIR.InitSession(isNotShuffling)
 		table.insert(seqFuncs, function()
 			return U.RunSequence({
 					function()
-						UI.hide("storyHUD")
-						UI.hide("sessionInitDisplay")
+						MSG.Hide("storyHUD")
+						MSG.Hide("sessionInitDisplay")
 						UI.show("gameStatusDisplay")
 						MSG.Splash("Seating Players", nil, 3)
 						return P.AssignPlayerColors(isNotShuffling)
@@ -1796,7 +1796,7 @@ function DIR.ADVANCE(waitFunc, isThrottling)
 	else
 		isThrottling = false
 	end
-	UI.hide("autoAdvanceGamePhase"); UI.hide("advanceGamePhase")
+	MSG.Hide("autoAdvanceGamePhase"); MSG.Hide("advanceGamePhase")
 	local mode, phase = S.getNextPhase()
 	local function startPhase()
 		S.setStateVal(mode, "gameState", "gameMode")
@@ -6875,7 +6875,7 @@ function U.splashUIElement(elemID, duration, delay)
   if (duration == nil) then duration = 5 end
   if (delay == nil or delay == 0) then
     UI.show(elemID)
-    Wait.time(function() UI.hide(elemID) end, duration)
+    Wait.time(function() MSG.Hide(elemID) end, duration)
   else
     Wait.time(function() U.splashUIElement(elemID, duration, 0) end, delay)
   end
@@ -7517,7 +7517,7 @@ function S.resetGameState()
 	S.UpdatedSeatedPlayerData()
 	S.refreshStateDebug()
 	Global.call("UpdatePhaseDisplay")
-	UI.hide("gameStatusDisplay")
+	MSG.Hide("gameStatusDisplay")
 	UI.show("sessionInitDisplay")
 	UI.show("splashScreen")
 	UI.setValue("gameNumText", "")
@@ -8054,7 +8054,7 @@ local function showPanel(panelID, displayTime)
 	return displayTime
 end
 
-local function hidePanel(panelID, displayBuffer) UI.hide(panelID); return displayBuffer + 0.5 end
+local function hidePanel(panelID, displayBuffer) MSG.Hide(panelID); return displayBuffer + 0.5 end
 
 function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 	attributes = U.merge(defaultTextAttributes, attributes or {})
@@ -8093,7 +8093,7 @@ function MSG.QueryResponse(index)
 	if currentQuery == nil then
 		MSG.HideAll("splashQuery_")
 	else
-		UI.hide("splashQuery_" .. currentQuery.player.color)
+		MSG.Hide("splashQuery_" .. currentQuery.player.color)
 	end
 end
 
@@ -8135,7 +8135,7 @@ function MSG.Show(id)
 end
 
 function MSG.Hide(id)
-	UI.hide(id)
+	MSG.Hide(id)
 	Wait.time(function() UI.setAttribute(id, "active", "false") end, 1)
 	Wait.time(function() UI.setAttribute(id, "active", "false") end, 2)
 end
@@ -10052,7 +10052,7 @@ function HUDControl_Click(player, button, id)
 	local _, mode, elemID = table.unpack(U.split(id, "-"))
 	if mode == "Toggle" then
 		if button == "-2" then
-			UI.hide(elemID)
+			MSG.Hide(elemID)
 			UI.setAttribute(elemID, "active", "false")
 		else
 			UI.show(elemID)
@@ -10258,7 +10258,7 @@ local function hideActiveSubmenus(color, activeMenu)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
-			UI.hide(targetMenuID)
+			MSG.Hide(targetMenuID)
 		end
 	end)
 end
@@ -10271,10 +10271,10 @@ function Ref_HUD_Click(player, _, id)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		if lockedPopupImage[player.color] == popupID then
 			lockedPopupImage[player.color] = nil
-			UI.hide(popupID)
+			MSG.Hide(popupID)
 			return
 		elseif lockedPopupImage[player.color] ~= nil then
-			UI.hide(lockedPopupImage[player.color])
+			MSG.Hide(lockedPopupImage[player.color])
 		end
 		UI.setAttribute(popupID, "active", "false")
 		UI.show(popupID)
@@ -10318,14 +10318,14 @@ end
 function Ref_HUD_HoverOff(player, _, id)
 	local _, mode, param, color = table.unpack(U.split(id, "_"))
 	if mode == "Submenu" then
-		UI.hide(id .. "_" .. player.color)
+		MSG.Hide(id .. "_" .. player.color)
 	elseif mode == "SubmenuContents" then
-		UI.hide(id)
-		UI.hide(string.gsub(id, "Contents", ""))
+		MSG.Hide(id)
+		MSG.Hide(string.gsub(id, "Contents", ""))
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
-		UI.hide(popupID)
+		MSG.Hide(popupID)
 	end
 end
 

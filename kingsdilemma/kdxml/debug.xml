@@ -3,7 +3,7 @@
 	  rectAlignment = "UpperRight"
 		offsetXY = "0 -125"
 		height = "1100"
-		width = "550"
+		width = "850"
 		spacing = "12" />
 	<HorizontalLayout class="debugButtonPanel"
 		offsetXY = "0 -450" />
@@ -55,14 +55,17 @@
 	<Panel id="stateDisplayPanel_1" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_1" class="codeDisplay"></Text>
 	</Panel>
-		<Panel id="stateDisplayPanel_2" class="codeDisplayPanel" active="False">
+	<Panel id="stateDisplayPanel_2" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_2" class="codeDisplay"></Text>
 	</Panel>
-		<Panel id="stateDisplayPanel_3" class="codeDisplayPanel" active="False">
+	<Panel id="stateDisplayPanel_3" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_3" class="codeDisplay"></Text>
 	</Panel>
-		<Panel id="stateDisplayPanel_4" class="codeDisplayPanel" active="False">
+	<Panel id="stateDisplayPanel_4" class="codeDisplayPanel" active="False">
 		<Text id="stateDisplay_4" class="codeDisplay"></Text>
+	</Panel>
+	<Panel id="stateDisplayPanel_5" class="codeDisplayPanel" active="False">
+		<Text id="stateDisplay_5" class="codeDisplay"></Text>
 	</Panel>
 	<Button id="toggleElem_stateDisplayPanel" class="buttonPanelToggle  debugStateToggle">►</Button>
 </HorizontalLayout>

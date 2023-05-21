@@ -14,14 +14,6 @@ local defaultTextAttributes = {
 	alignment = "MiddleCenter"
 }
 
-local function showPanel(panelID, displayTime)
-	UI.setAttribute(panelID, "active", "false")
-	UI.show(panelID)
-	return displayTime
-end
-
-local function hidePanel(panelID, displayBuffer) UI.hide(panelID); return displayBuffer + 0.5 end
-
 function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 	attributes = U.merge(defaultTextAttributes, attributes or {})
 	local dTime, dBuffer = displayTime or DefaultDisplayTime, DefaultDisplayBuffer
@@ -43,10 +35,10 @@ function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 			if attributes then
 				UI.setAttributes(textID, attributes)
 			end
-			return showPanel(panelID, dTime)
+			return MSG.Show(panelID, dTime)
 		end,
 		function()
-			return hidePanel(panelID, dBuffer)
+			return MSG.Hide(panelID, dBuffer)
 		end
 	})
 end
@@ -59,7 +51,7 @@ function MSG.QueryResponse(index)
 	if currentQuery == nil then
 		MSG.HideAll("splashQuery_")
 	else
-		UI.hide("splashQuery_" .. currentQuery.player.color)
+		MSG.Hide("splashQuery_" .. currentQuery.player.color)
 	end
 end
 
@@ -70,7 +62,6 @@ function MSG.SplashQuery(query, displayName, responseObj, playerRef)
 	local player = S.getPlayer(playerRef)
 	-- log({query=query, displayName = displayName, responseObj = responseObj, playerRef = playerRef, player = player, pColor = player.color})
 
-	UI.setAttribute("splashQuery_" .. player.color, "active", "false")
 	UI.setValue("splashQueryPlayerPrompt_" .. player.color, displayName .. ":")
 	UI.setAttribute("splashQueryPlayerPrompt_" .. player.color, "color", U.GetHex(Color[player.color]:lerp(Color.White, 0.5)))
 	UI.setValue("splashQueryPrompt_" .. player.color, query)
@@ -87,27 +78,21 @@ function MSG.SplashQuery(query, displayName, responseObj, playerRef)
 		UI.setValue("splashQueryText_Option" .. i .. "_" .. player.color, "")
 	end
 
-	UI.show("splashQuery_" .. player.color)
+	MSG.Show("splashQuery_" .. player.color)
 
 	currentQuery.player = player
 
 	return function() return currentQuery.response ~= nil end
 end
 
-function MSG.Show(id)
-	UI.setAttribute(id, "active", "false")
-	UI.show(id)
-	-- Wait.time(function() UI.setAttribute(id, "active", "true") end, 1)
+function MSG.Show(id, waitTime)
+	S.SafeShow(id)
+	return waitTime or 0.5
 end
 
--- MSG.HIDE(id) - Hides element with provided id.
-function MSG.Hide(id)
-	-- hide via UI.hide, running animation
-	UI.hide(id)
-	-- wait one second, set it active = false
-	Wait.time(function() UI.setAttribute(id, "active", "false") end, 1)
-	-- wait two seconds, set it active = false again
-	Wait.time(function() UI.setAttribute(id, "active", "false") end, 2)
+function MSG.Hide(id, waitTime)
+	S.SafeHide(id)
+	return waitTime or 0.5
 end
 
 function MSG.HideAll(elemPrefix)
