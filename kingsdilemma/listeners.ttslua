@@ -47,6 +47,18 @@ local DIR = require("kingsdilemma.core.director")
 -- alias pFocus exec -q "`set pFocus Turns/turn_color; echo Focus changed; ls pFocus"
 function onLoad(save_data)
 	S.InitializeGameState(save_data)
+
+	log("Overriding King Name to 'Eglamore I of House Hedwyn'")
+	S.setStateVal("Eglamore I of House Hedwyn", "gameState", "kingName")
+	log("Adding 'Played' tag to Event Zone #79c7ed")
+	getObjectFromGUID("79c7ed").addTag("Played")
+	log("Overriding Description on Chronicle Sticker #647c28")
+	getObjectFromGUID("647c28").setDescription("Ankist remembers House Lunargent for bringing lucrative trade in a novel style of abstract art to the kingdom.")
+	log("Overriding Description on Chronicle Sticker #9388aa")
+	getObjectFromGUID("9388aa").setDescription("Ankist remembers House Hedwyn for its strength enforcing the law - causing crime in the kingdom to plummet.")
+	log("Overriding Description on Chronicle Sticker #f7e870")
+	getObjectFromGUID("f7e870").setDescription("Ankist remembers House Silverlight for their emancipation of every Konfurtahn slave to reach the kingdom.")
+
 	DIR.InitPreflight()
 end
 
@@ -56,7 +68,7 @@ function onSave() return JSON.encode(S.getGameState()) end
 
 function onPlayerTurnStart(pColor)
 
-	P.SetCamera("BehindScreen", pColor, "Brown")
+	P.SetCamera("BehindScreen", pColor, U.getHost())
 end
 
 function onPlayerAction(player, action, targets)
@@ -96,18 +108,21 @@ function tryObjectEnterContainer(container, object)
 end
 
 function onObjectEnterZone(zone, obj)
-	-- log({hasEvent = U.hasDecal(obj, "Event"), hasEve = U.hasDecal(obj, "Eve")})
-	if zone.hasTag("EventCard") and obj.type == "Card" and U.hasAnyTag(obj, {"EventCard", "StoryCard"}) then
+	if zone.hasTag("EventCard") and obj.type == "Card" and U.hasAnyTag(obj, {"EventCard", "StoryCard", "TriggerCard", "Dilemma"}) then
 		if obj.hasTag("StoryCard") and not U.hasDecal(obj, "Event") then return end
 		obj.drop()
 		U.waitUntil(
 			function()
-				local playedEventCards = U.filter(zone.getObjects(), function(o) return o.hasTag("EventCard") and o.guid ~= obj.guid end)
+				local playedEventCards = U.filter(zone.getObjects(), function(o) return U.hasAnyTag(o, {"EventCard", "TriggerCard", "StoryCard", "Dilemma"}) and o.guid ~= obj.guid end)
 				local snapSpot = U.filter(C.SnapPoints.Global, function(sPoint) return U.isIn("EventCard", sPoint.tags) end)[#playedEventCards + 1]
 
 				U.setPositionSlow(obj, snapSpot.position, 1, nil, false)
 				U.setRotationSlow(obj, Vector(snapSpot.rotation):setAt("z", U.pAngle(obj.getRotation().z, 90)), 1, nil, false)
-				obj.setTags({"EventCard"})
+				if U.hasDecal(obj, "Trigger") then
+					obj.setTags({"TriggerCard", "Played"})
+				elseif obj.hasDecal("Event") then
+					obj.setTags({"EventCard"})
+				end
 				Wait.time(function()
 					obj.setPosition(snapSpot.position)
 					obj.setRotation(Vector(snapSpot.rotation):setAt("z", U.pAngle(obj.getRotation().z, 90)))
@@ -142,6 +157,7 @@ function onObjectDrop(pColor, obj)
 		if U.find(handObjs, function(o) return o.guid == obj.guid end) then return end
 		DIR.AssignSecretAgenda(player, obj)
 	elseif obj.hasTag("StabilityMarker") then
+
 		U.RunSequence({
 			function()
 				return {obj, 0.1}

@@ -594,6 +594,8 @@ function S.getCurrentPhase()
 	return S.getStateVal("gameState", "gameMode"), S.getStateVal("gameState", "gamePhase")
 end
 
+function S.getFirstPhaseOfMode(mode) return U.getValues(C.Phases[mode])[1] end
+
 function S.getNextPhase(curMode, curPhase)
 	if curMode == nil then
 		curMode = S.getStateVal("gameState", "gameMode")

@@ -14,6 +14,15 @@ local defaultTextAttributes = {
 	alignment = "MiddleCenter"
 }
 
+function MSG.RefreshAll()
+	local uiStates = S.getStateVal("ui")
+	if uiStates == nil then return end
+
+	U.forEach(uiStates, function(state, id)
+		UI.setAttribute(id, "active", state)
+	end)
+end
+
 function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 	attributes = U.merge(defaultTextAttributes, attributes or {})
 	local dTime, dBuffer = displayTime or DefaultDisplayTime, DefaultDisplayBuffer

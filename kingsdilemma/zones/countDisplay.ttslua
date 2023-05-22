@@ -257,6 +257,7 @@ end
 
 local function zoneUpdate(zone, token)
 	if isActive and zone.guid == self.guid and token and countTag and token.hasTag(countTag) then
+		token.highlightOff()
 		UpdateCount()
 	end
 end

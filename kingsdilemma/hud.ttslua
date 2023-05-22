@@ -190,6 +190,7 @@ function HUD_Click(player, button, id)
 	-- log({player = player, button = button, id = id})
 	if string.match(id, "^splashQuery_Option") then
 		local _, optionRef, color = table.unpack(U.split(id, "_"))
+		player = S.getPlayer(color)
 		local stringIndex = string.gsub(optionRef, "Option", "")
 		MSG.QueryResponse(tonumber(stringIndex))
 	elseif string.match(id, "^toggleElem_") then
@@ -510,20 +511,28 @@ end
 -- #endregion
 
 -- #region Input HUD~
-function InputHUD_Sticker(player, value)
+function InputHUD_Sticker(...)
+	-- log({...}, "InputHUD_Sticker")
+	local player, value = table.unpack({...})
 	DIR.ConfirmFetchSticker(player, value)
 end
 
-function InputHUD_Envelope(player, value)
+function InputHUD_Envelope(...)
+	-- log({...})
+	local player, value = table.unpack({...})
 	DIR.ConfirmFetchEnvelope(player, value)
 end
 
 local curKingName
-function InputHUD_KingUpdate(player, value)
+function InputHUD_KingUpdate(...)
+	-- log({...})
+	local player, value = table.unpack({...})
 	curKingName = value
 end
 
-function InputHUD_ToggleKingTitle(player)
+function InputHUD_ToggleKingTitle(...)
+	-- log({...})
+	local player, value = table.unpack({...})
 	if S.getStateVal("gameState", "kingTitle") == "Queen" then
 		S.setStateVal("King", "gameState", "kingTitle")
 	else
@@ -532,7 +541,9 @@ function InputHUD_ToggleKingTitle(player)
 	UI.setValue("kingQuery_kingTitle_" .. player.color, S.getStateVal("gameState", "kingTitle"))
 end
 
-function InputHUD_KingConfirm(player, _, id)
+function InputHUD_KingConfirm(...)
+	-- log({...})
+	local player, _, id = table.unpack({...})
 	-- log({CLICKED = curKingName})
 	if not curKingName or #U.trim(U.ToString(curKingName)) < 3 then return end
 	local house = S.getPlayerHouse(player)
@@ -601,7 +612,7 @@ local function hideActiveSubmenus(color, activeMenu)
 		if param == activeMenu then return end
 		local targetMenuID = "refHUD_SubmenuContents_" .. param .. "_" .. color
 		if string.lower(UI.getAttribute(targetMenuID, "active") or "true") == "true" then
-			MSG.Hide(targetMenuID)
+			UI.hide(targetMenuID)
 		end
 	end)
 end
@@ -614,12 +625,12 @@ function Ref_HUD_Click(player, _, id)
 		local popupID = "refHUD_PopupImage_" .. param .. "_" .. player.color
 		if lockedPopupImage[player.color] == popupID then
 			lockedPopupImage[player.color] = nil
-			MSG.Hide(popupID)
+			UI.hide(popupID)
 			return
 		elseif lockedPopupImage[player.color] ~= nil then
-			MSG.Hide(lockedPopupImage[player.color])
+			UI.hide(lockedPopupImage[player.color])
 		end
-		MSG.Show(popupID)
+		UI.show(popupID)
 		lockedPopupImage[player.color] = popupID
 	elseif mode == "Camera" then
 		if param == "Screen" then
@@ -645,24 +656,24 @@ function Ref_HUD_HoverOn(player, _, id)
 
 	if mode == "Submenu" then
 		hideActiveSubmenus(player.color, param)
-		MSG.Show(id .. "_" .. player.color)
-		MSG.Show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
+		UI.show(id .. "_" .. player.color)
+		UI.show("refHUD_SubmenuContents_" .. param .. "_" .. player.color)
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
-		MSG.Show("refHUD_PopupImage_" .. param .. "_" .. player.color)
+		UI.show("refHUD_PopupImage_" .. param .. "_" .. player.color)
 	end
 end
 
 function Ref_HUD_HoverOff(player, _, id)
 	local _, mode, param, color = table.unpack(U.split(id, "_"))
 	if mode == "Submenu" then
-		MSG.Hide(id .. "_" .. player.color)
+		UI.hide(id .. "_" .. player.color)
 	elseif mode == "SubmenuContents" then
-		MSG.Hide(id)
-		MSG.Hide(string.gsub(id, "Contents", ""))
+		UI.hide(id)
+		UI.hide(string.gsub(id, "Contents", ""))
 	elseif mode == "Popup" then
 		if lockedPopupImage[player.color] ~= nil then return end
-		MSG.Hide("refHUD_PopupImage_" .. param .. "_" .. player.color)
+		UI.hide("refHUD_PopupImage_" .. param .. "_" .. player.color)
 	end
 end
 

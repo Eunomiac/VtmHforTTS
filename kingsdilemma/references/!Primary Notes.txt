@@ -97,15 +97,15 @@ KONFURTAH COORDS
 1520x, 863y 3w
 1471x, 859y 4a
 
-- give Hedwyn the name of the king
 
-- add a check to scoring that waits until all power and coin behind people's screens are in the scoring zones
+
+- whoa, fix big error where if Trigger Card is drawn, it will pull a dilemma out of the played zone!
 - fix Trigger card being shuffled itno deck, and what happens to its tags if it's moved to the event area?
   - trigger card moved to table, splash message to put above deck if it should be shuffled in
   - trigger cards in event area at end of game are shuffled into dilemma deck
 - when does stability update? Need a better way to account for "off the board" movement
-- why did consequence hud button disappear on Cory? Add a double-check
-- legacy effects to handle multiple open agendas
+
+
 
 - figure out score graphic for Discord
 - fix tie notification to moderator's tiebreaking vote
@@ -122,10 +122,8 @@ Replace: visibility="$1"
 
 
 TEST
-- fix ending issue (see errors above)
-- speed up apply momentum
 - why did the seventh dilemma move to the sixth dilemma's slot?
-- remove double-check thingy so huds more responsive
+- add a check to scoring that waits until all power and coin behind people's screens are in the scoring zones
 
 
 DISCORD

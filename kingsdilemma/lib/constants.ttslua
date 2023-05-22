@@ -540,6 +540,13 @@ C.Spots = {
 		DilemmaDraw = {
 			position = Vector({0.00, 7.05, 24.61}),
 			rotation = Vector({25.36, 180, 0})
+		},
+		EventCard = {
+			DropOff = {
+				position = Vector({7.33, 6.00, -16.52}),
+				rotation = Vector({0.00, 180.00, 0.00}),
+				scale = Vector({1.59, 1.00, 1.59})
+			}
 		}
 	},
 	Main = {

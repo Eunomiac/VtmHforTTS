@@ -28,19 +28,12 @@ function DIR.ToggleAdvanceControls()
 end
 
 -- #region Token Object Getters~
-local function getBoardTokens()
-	local tokens = {
-		Stability = getObjectsWithTag("StabilityMarker")[1],
-		resource = {}
-	}
-	local rTokens = getObjectsWithTag("ResourceMarker")
-	table.sort(rTokens, function(a, b) return a.getPosition().x < b.getPosition().x end)
-	tokens.resource.Influence = rTokens[1]
-	tokens.resource.Wealth = rTokens[2]
-	tokens.resource.Morale = rTokens[3]
-	tokens.resource.Welfare = rTokens[4]
-	tokens.resource.Knowledge = rTokens[5]
-	return tokens
+local function getBoardToken(tokenRef)
+	if tokenRef == "Stability" then
+		return getObjectsWithTag("StabilityMarker")[1]
+	else
+		return getObjectsWithAllTags({"ResourceMarker", tokenRef})[1]
+	end
 end
 
 function DIR.GetStabilityPositionFromBoard()
@@ -49,25 +42,22 @@ end
 
 function DIR.GetTokenPositionsFromBoard()
 	local board = O.UninteractableObjs.Board()
-	local boardTokens = getBoardTokens()
 	return {
-		Stability = OU.FindNearestSnapPoint(boardTokens.Stability, board),
-		Influence = OU.FindNearestSnapPoint(boardTokens.resource.Influence, board),
-		Wealth = OU.FindNearestSnapPoint(boardTokens.resource.Wealth, board),
-		Morale = OU.FindNearestSnapPoint(boardTokens.resource.Morale, board),
-		Welfare = OU.FindNearestSnapPoint(boardTokens.resource.Welfare, board),
-		Knowledge = OU.FindNearestSnapPoint(boardTokens.resource.Knowledge, board)
+		Stability = OU.FindNearestSnapPoint(getBoardToken("Stability"), board),
+		Influence = OU.FindNearestSnapPoint(getBoardToken("Influence"), board),
+		Wealth = OU.FindNearestSnapPoint(getBoardToken("Wealth"), board),
+		Morale = OU.FindNearestSnapPoint(getBoardToken("Morale"), board),
+		Welfare = OU.FindNearestSnapPoint(getBoardToken("Welfare"), board),
+		Knowledge = OU.FindNearestSnapPoint(getBoardToken("Knowledge"), board)
 	}
 end
 
 local function getTokenMomentums()
-	local boardTokens = getBoardTokens()
 	local function getTokenMomentum(resource)
 		local startTurnData = S.getStateVal("roundState", "boardTokens")
 		if startTurnData == nil or startTurnData.momentum == nil or startTurnData.momentum[resource] == nil then
-			local token = boardTokens.resource[resource]
 			-- U.Assert("getTokenMomentum", token, "Object")
-			return U.isFlipped(token) and -1 or 1
+			return U.isFlipped(getBoardToken(resource)) and -1 or 1
 		else
 			return startTurnData.momentum[resource]
 		end
@@ -125,7 +115,9 @@ local function agendaDeck()
 	return memo_agendaDeck
 end
 local function displayCard()
-	if memo_displayCard == nil then memo_displayCard = getObjectsWithTag("OnDisplay")[1] end
+	if memo_displayCard == nil or not memo_displayCard.hasTag("OnDisplay") then
+		memo_displayCard = getObjectsWithTag("OnDisplay")[1]
+	end
 	return memo_displayCard
 end
 local function dilemmaDeck()
@@ -477,7 +469,6 @@ INITFUNCS = {
 		end,
 		PrepareFirstRound = function()
 			return {
-				DIR.AddToDilemmaDeck,
 				function()
 					S.setStateVal(0, "roundState", "roundNum")
 					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
@@ -491,6 +482,7 @@ INITFUNCS = {
 	PLAY = {
 		StartRound = function()
 			return {
+				DIR.AddToDilemmaDeck,
 				function()
 					S.setStateVal(S.getStateVal("roundState", "roundNum") + 1, "roundState", "roundNum")
 					S.setStateVal(DIR.GetTokenPositionsFromBoard(), "roundState", "boardTokens", "positions")
@@ -886,6 +878,10 @@ INITFUNCS = {
 
 			return {
 				function()
+					MSG.Splash("Applying Momentum")
+					return 0
+				end,
+				function()
 					tokenPositionsFromState = {
 						Influence = S.getStateVal("roundState", "boardTokens", "positions", "Influence"),
 						Wealth = S.getStateVal("roundState", "boardTokens", "positions", "Wealth"),
@@ -896,7 +892,6 @@ INITFUNCS = {
 					tokenPositionsFromBoard = DIR.GetTokenPositionsFromBoard()
 					unboundPosAfterMomentum = U.clone(tokenPositionsFromBoard)
 					resourceDeltas = getTokenPositionDeltas(tokenPositionsFromState, tokenPositionsFromBoard)
-					MSG.Splash("Applying Momentum")
 
 					local tokenMomentums = getTokenMomentums()
 
@@ -908,7 +903,6 @@ INITFUNCS = {
 						end
 					end)
 
-					resourceTokens = getBoardTokens().resource
 					resourceBumps = getTokenPositionDeltas(tokenPositionsFromBoard, unboundPosAfterMomentum)
 					stabilityBumps = getTokenPositionDeltas(tokenPositionsFromBoard, unboundPosAfterMomentum)
 
@@ -917,11 +911,15 @@ INITFUNCS = {
 						if resourceBumps[resource] == 0 then
 							-- Token moved, but opposite direction to momentum: flip momentum
 							return function()
+								local token = getBoardToken(resource)
 								S.setStateVal(resourceDeltas[resource] > 0 and 1 or -1, "roundState", "boardTokens",
 									"momentum", resource)
-								resourceTokens[resource].flip()
+								token.flip()
 								DIR.UpdateTokenLight(resource, S.getStateVal("roundState", "boardTokens", "momentum", resource))
-								return resourceTokens[resource]
+								return {
+									token,
+									0.5
+								}
 							end
 						else
 							-- Token moved in same direction to momentum: bump by momentum, bump stability, set momentum to 2
@@ -934,7 +932,8 @@ INITFUNCS = {
 											DIR.BumpToken("Stability", stabilityBumps[resource]),
 											DIR.BumpToken(resource, resourceBumps[resource]),
 											DIR.UpdateTokenLight(resource, tokenMomentum),
-											DIR.UpdateTokenLight("Stability")
+											DIR.UpdateTokenLight("Stability"),
+											0.5
 										}
 									end,
 									-- function()
@@ -949,6 +948,7 @@ INITFUNCS = {
 						end
 					end))
 				end,
+				function() return 1 end,
 				DIR.ADVANCE
 			}
 		end,
@@ -999,12 +999,13 @@ INITFUNCS = {
 					L.SetLightMode({ "lightMapAnkist", "lightLectern", "lightMapWorld" }, "ambient")
 					L.SetLightMode({ "lightMapFocusA", "lightMapFocusB", "lightDilemmaMain" }, "off", nil, 2)
 
-					displayCard().removeTag("OnDisplay")
-					displayCard().addTag("Played")
+					local dCard = displayCard()
+
+					dCard.removeTag("OnDisplay")
+					dCard.addTag("Played")
 
 					if S.getStateVal("roundState", "displayedCardType") == "dilemma" then
-						U.Assert("Displayed Card is a Dilemma?", displayCard().hasTag("Dilemma"))
-						DIR.AddToDilemmaDeck()
+						U.Assert("Displayed Card is a Dilemma?", dCard.hasTag("Dilemma"))
 
 						local voteResult = S.getStateVal("roundState", "voteResult")
 						local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
@@ -1012,18 +1013,18 @@ INITFUNCS = {
 
 						return U.RunSequence({
 							function()
-								displayCard().setLock(false)
+								dCard.setLock(false)
 								return {
-									U.setPositionSlow(displayCard(),
+									U.setPositionSlow(dCard,
 										Vector(dilemmaTransform.position):add(Vector(-3, 0, 0)), 2),
-									U.setRotationSlow(displayCard(), dilemmaTransform.rotation, 2),
-									U.setScaleSlow(displayCard(), dilemmaTransform.scale, 1),
-									displayCard()
+									U.setRotationSlow(dCard, dilemmaTransform.rotation, 2),
+									U.setScaleSlow(dCard, dilemmaTransform.scale, 1),
+									dCard
 								}
 							end,
 							function()
-								displayCard().setLock(true)
-								return U.setPositionSlow(displayCard(),
+								dCard.setLock(true)
+								return U.setPositionSlow(dCard,
 									Vector(dilemmaTransform.position):setAt("y", C.TableHeight), 1)
 							end,
 							function()
@@ -1059,23 +1060,21 @@ INITFUNCS = {
 							end
 						})
 					elseif S.getStateVal("roundState", "displayedCardType") == "trigger" then
-						U.Assert("Displayed Card is a Trigger Card?", displayCard().hasTag("TriggerCard"))
-
+						U.Assert("Displayed Card is a Trigger Card?", dCard.hasTag("TriggerCard"))
+						dCard.setLock(false)
 						return U.RunSequence({
 							function()
-								displayCard().setLock(false)
-								local coverCard = O.Pieces.CoverCard()
 								return {
-									U.setPositionSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.position, 1),
-									U.setRotationSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.rotation, 1),
-									U.setScaleSlow(displayCard(), C.Spots.Main.Trigger.aboveDeck.scale, 1),
-									displayCard(),
-									function() return #U.findAboveObject(coverCard, function(obj) return obj.type == "Card" or obj.type == "Deck" end) == 1 end
+									U.setPositionSlow(dCard, Vector(C.Spots.Staging.StoryCard.Display.position):setAt("y", 4), 1),
+									U.setRotationSlow(dCard, C.Spots.Staging.StoryCard.Display.rotation, 1),
+									U.setScaleSlow(dCard, C.Spots.Staging.StoryCard.Display.scale, 1),
+									dCard
 								}
 							end,
-							DIR.AddToDilemmaDeck,
 							function()
-								return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.StartRound)
+								S.setStateVal(C.Modes.GAMESETUP, "gameState", "gameMode")
+								S.setStateVal(C.Phases.GAMESETUP.PrepareFirstRound, "gameState", "gamePhase")
+								DIR.ShowManualAdvance()
 							end
 						})
 					end
@@ -1091,15 +1090,22 @@ INITFUNCS = {
 					U.forEach(balanceZone.getObjects(), function(obj) obj.destruct() end)
 					local stabilityPos = DIR.GetStabilityPositionFromBoard()
 					local kingName = S.getStateVal("gameState", "kingName")
+					local kingTitle = S.getStateVal("gameState", "kingTitle")
 					if stabilityPos == 19 then
 						S.setStateVal("AbdicatedTop", "gameState", "endState")
-						return MSG.Splash("A Treasonous Plot Forces King " .. kingName .. " to Abdicate!", "AllMid", 3)
+						return MSG.Splash({
+							"A Treasonous Plot Forces " .. kingTitle,
+							kingName .. " to Abdicate!"
+						}, "AllMid", 3)
 					elseif stabilityPos == 1 then
 						S.setStateVal("AbdicatedBottom", "gameState", "endState")
-						return MSG.Splash("Popular Unrest Forces the King " .. kingName .. " to Abdicate!", "AllMid", 3)
+						return MSG.Splash({
+							"Popular Unrest Forces " .. kingTitle,
+							kingName .. " to Abdicate!"
+						}, "AllMid", 3)
 					else
 						S.setStateVal("Death", "gameState", "endState")
-						return MSG.Splash("King " .. kingName .. "  Is Dead", "AllMid", 3)
+						return MSG.Splash(kingTitle .. " " .. kingName .. "  Is Dead", "AllMid", 3)
 					end
 				end,
 				function()
@@ -1118,7 +1124,7 @@ INITFUNCS = {
 							function(obj)
 								return obj.getName() == "Coin"
 								and not obj.hasTag("SourceObj")
-								and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivatePower" end)
+								and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivateCoin" end)
 							end
 						)
 					)
@@ -1239,7 +1245,10 @@ INITFUNCS = {
 				function()
 					local triggerCards = U.filter(getObjectsWithTag("TriggerCard"), function(obj) return obj.type == "Card" end)
 					if #triggerCards > 0 then
-						U.forEach(triggerCards, function(card) dilemmaDeck().putObject(card) end)
+						U.forEach(triggerCards, function(card)
+							card.removeTag("Played")
+							dilemmaDeck().putObject(card)
+						end)
 					end
 					local storyCards = U.filter(getObjectsWithTag("StoryCard"), function(obj) return obj.type == "Card" end)
 					table.sort(storyCards, function(a, b) return a.getPosition().y < b.getPosition().y end)
@@ -1265,9 +1274,7 @@ INITFUNCS = {
 					local oldDilemmaDeck = getObjectsWithTag("DilemmaOld")[1]
 					oldDilemmaDeck.setName("Game " .. S.getStateVal("gameState", "gameCount") .. " Dilemmas")
 					O.MainStorage().putObject(oldDilemmaDeck)
-					local tokens = getBoardTokens()
-					tokens.Stability.destruct()
-					U.forEach(tokens.resource, function(token) token.destruct() end)
+
 					U.forEach(U.filter(getObjects(), function(obj)
 						return U.hasAnyTag(obj, { "PowerToken", "CoinToken" }) and obj.type == "Generic" and
 							not obj.hasTag("SourceObj")
@@ -1275,7 +1282,10 @@ INITFUNCS = {
 							not obj.hasTag("SourceObj")
 					end), function(token) token.destruct() end)
 					U.forEach({ "Stability", table.unpack(C.Resources) },
-						function(lightRef) L.SetLightMode("light" .. lightRef, "off", nil, 0.5) end)
+						function(resName)
+							-- getBoardToken(resName).destruct()
+							L.SetLightMode("light" .. resName, "off", nil, 0.5)
+						end)
 					V.LowerBalance()
 					U.setPositionSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.position, 1)
 					U.setRotationSlow(O.Leader.Figure(), C.Spots.Storage.LeaderFigure.rotation, 1)
@@ -1321,7 +1331,6 @@ INITFUNCS = {
 					end), 1)
 				end,
 				function()
-					MSG.Hide("scoringHUD")
 					MSG.HideAll()
 					isFirstCall = true
 					L.SetLightMode(
@@ -1391,7 +1400,7 @@ function DIR.InitSession(isNotShuffling)
 	if isFirstCall then
 		isFirstCall = false
 		table.insert(seqFuncs, function()
-			MSG.HideAll()
+			MSG.RefreshAll(true)
 			if S.isInMode(C.Modes.NONE) then
 				MSG.Show("storyHUD")
 				Wait.time(function() MSG.Hide("splashScreen") end, 2)
@@ -1595,7 +1604,11 @@ function DIR.JumpToStatePhase(mode, phase, isInitializing)
 	end
 	if mode ~= nil then
 		S.setStateVal(mode, "gameState", "gameMode")
-		S.setStateVal(mode, "gameState", "gamePhase")
+		if type(C.Phases[mode]) == "string" then
+			S.setStateVal(mode, "gameState", "gamePhase")
+		else
+			S.setStateVal(S.getFirstPhaseOfMode(mode), "gameState", "gamePhase")
+		end
 	end
 	if phase ~= nil then
 		S.setStateVal(phase, "gameState", "gamePhase")
@@ -1727,7 +1740,7 @@ function DIR.SpawnBoardTokens()
 					)
 				end,
 				function()
-					local tk = getBoardTokens().resource[resName]
+					local tk = getBoardToken(resName)
 					tk.setRotation(Vector(0, 180, U.randBetween(0, 1, true) * 180))
 					tk.addForce(Vector(-0.07, 30, 0), 3)
 					tk.addTorque(Vector(0, 0, 1.9), 3)
@@ -2478,6 +2491,7 @@ function DIR.AddToDilemmaDeck(dilemmas, isSecondTry)
 
 	if dilemmas == nil then
 		dilemmas = U.findAboveObject(coverCard, function(obj) return obj.type == "Deck" or obj.type == "Card" end, { box = true })
+		if #dilemmas == 0 then return 0 end
 		if #dilemmas > 1 and not isSecondTry then
 			return U.RunSequence({
 				function() return 2 end,
@@ -2688,14 +2702,13 @@ function DIR.GetStabilityBump()
 		local prevPos = S.getStateVal("roundState", "boardTokens", "positions", resource)
 		local curPos = curPositions[resource]
 		local deltaPos = curPos - prevPos
-		stabilityPos = math.max(math.min(stabilityPos + deltaPos, 19), 1)
+		stabilityPos = stabilityPos + deltaPos
 	end)
 	local boardStabilityPos = curPositions.Stability
-	return stabilityPos - boardStabilityPos
+	return math.max(math.min(stabilityPos, 19), 1) - boardStabilityPos
 end
 
 function DIR.BumpToken(tokenName, count)
-	local boardTokens = getBoardTokens()
 
 	local function bumpToken(token, unitForceVector, count, lightName)
 		local forceVector = Vector(unitForceVector):scale(count > 0 and Vector(1, 1, 1) or Vector(1, 1, -1))
@@ -2704,7 +2717,8 @@ function DIR.BumpToken(tokenName, count)
 			if lightName then
 				Wait.time(function() DIR.UpdateTokenLight(lightName) end, 0.6)
 			end
-			return token.addForce(Vector(forceVector):scale(Vector(1, 1, math.abs(count))), 3)
+			token.addForce(Vector(forceVector):scale(Vector(1, 1, math.abs(count))), 3)
+			return {token, 0.75}
 		else
 			local seqFuncs = {}
 			while absCount >= 3 do
@@ -2731,7 +2745,7 @@ function DIR.BumpToken(tokenName, count)
 	count = math.max(math.min(count, max - tokenPos[tokenName]), min - tokenPos[tokenName])
 
 	return bumpToken(
-		tokenName == "Stability" and boardTokens.Stability or boardTokens.resource[tokenName],
+		getBoardToken(tokenName),
 		Vector(0, 15, 3.5),
 		count,
 		tokenName
@@ -2743,7 +2757,7 @@ end
 -- #endregion
 
 -- #region End of Game~
-function DIR.EndGame() return DIR.JumpToStatePhase(C.Modes.END, C.Phases.END.Score) end
+function DIR.EndGame() return DIR.JumpToStatePhase(C.Modes.END) end
 
 function DIR.GetSecretAgenda(playerRef)
 	local player = S.getPlayer(playerRef)
