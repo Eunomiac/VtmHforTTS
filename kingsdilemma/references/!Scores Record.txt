@@ -1,0 +1,64 @@
+*** GAME ONE ***
+
+
+FIRST - SILVERLIGHT
+  Coin: 4 (2nd, 19)  Power: 1 (2nd, 8)
+  Open Agendas:   0 ()
+  Secret Agenda:  14 (Opulent)
+  Total: 19
+
+SECOND - PROTOSIA
+  Coin: 4 (1st, 24)  Power: 0 (3rd, 5)
+  Open Agendas:   0 ()
+  Secret Agenda: Extremist (11)
+  Total: 15
+
+THIRD - LUNARGENT
+  Coin: 4 (3rd, 17)  Power: 2 (1st, 12)
+  Open Agendas:   0 ()
+  Secret Agenda: Greedy (7)
+  Total: 13
+
+THIRD - CONCORDIA
+  Coin: 0 (4th, 11)  Power: 0 (3rd, 5)
+  Open Agendas:   0 ()
+  Secret Agenda: Moderate (13)
+  Total: 13
+
+LAST - HEDWYN
+  Coin: 0 (5th, 2)  Power: 1 (2nd, 8)
+  Open Agendas:   0 ()
+  Secret Agenda: Rebel (9)
+  Total: 10
+
+*** GAME TWO ***
+
+FIRST - HEDWYN
+  Coin: 0 (5th, 3)  Power: 1 (2nd, 10)
+  Open Agendas:   0 ()
+  Secret Agenda:  19 (Rebel)
+  Total: 20
+
+SECOND - LUNARGENT
+  Coin: 6 (1st, 40)  Power: 2 (1st, 11)
+  Open Agendas:   0 ()
+  Secret Agenda:  7 (Opportunist)
+  Total: 15
+
+THIRD - PROTOSIA
+  Coin: 2 (3rd, 15)  Power: 1 (2nd, 10)
+  Open Agendas:   0 ()
+  Secret Agenda:  10 (Opulent)
+  Total: 13
+
+FOURTH - SILVERLIGHT
+  Coin: 6 (2nd, 35)  Power: 0 (4th, 2)
+  Open Agendas:   0 ()
+  Secret Agenda:  4 (Greedy)
+  Total: 10
+
+LAST - CONCORDIA
+  Coin: 0 (4th, 4)  Power: 0 (3rd, 8)
+  Open Agendas:   0 ()
+  Secret Agenda:  7 (Moderate)
+  Total: 7

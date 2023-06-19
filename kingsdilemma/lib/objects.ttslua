@@ -38,7 +38,7 @@ O.Maps = {
 O.MainStorage = generateGetterFunction("138cbd")
 
 O.SpawnSources = {
-	chronicleCard = generateGetterFunction("10939d"),
+	-- chronicleCard = generateGetterFunction("10939d"),
 	screenFlapLeft = generateGetterFunction("d5842d"),
 	screenCenter = generateGetterFunction("1b818a"),
 	screenFlapRight = generateGetterFunction("dd1534"),
@@ -99,7 +99,13 @@ O.Pieces = {
 }
 
 O.Zones = {
-	TriggerCards = generateGetterFunction("79c7ed")
+	TriggerCards = generateGetterFunction("79c7ed"),
+	StoryArcA = generateGetterFunction("28a2f6"),
+	StoryArcB = generateGetterFunction("e77df1"),
+	StoryArcC = generateGetterFunction("c9df44"),
+	StoryArcD = generateGetterFunction("c05f09"),
+	StoryArcE = generateGetterFunction("859fd5"),
+	StoryArcF = generateGetterFunction("00b6d2")
 }
 
 O.Get = memoGetFromGUID

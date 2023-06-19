@@ -126,14 +126,80 @@ local focusLightColorKey = {
 	g = Color.Green
 }
 local focusLightRangeKey = {
-	{range = 50, angle = 15, intensity = 3},
-	{range = 50, angle = 30, intensity = 2},
-	{range = 50, angle = 60, intensity = 1.5},
-	{range = 50, angle = 90, intensity = 1},
-	{range = 50, angle = 120, intensity = 1}
+	{range = 50, angle = 15, intensity = 2.5},
+	{range = 50, angle = 30, intensity = 2.5},
+	{range = 50, angle = 60, intensity = 2},
+	{range = 50, angle = 90, intensity = 1.5},
+	{range = 50, angle = 120, intensity = 1.5}
 }
 
 L.LIGHTMODES = {
+	lightStoryArcA = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
+	lightStoryArcB = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
+	lightStoryArcC = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
+	lightStoryArcD = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
+	lightStoryArcE = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
+	lightStoryArcF = {
+		default = "off",
+		off = { enabled = false },
+		on = {
+			enabled = true,
+			color = C.RootColors.Amber,
+			range = 50,
+			angle = 40,
+			intensity = 4
+		}
+	},
 	lightMapAnkist = {
 		default = "ambient",
 		off = {

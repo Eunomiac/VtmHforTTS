@@ -35,6 +35,7 @@ function MSG.Splash(messageLines, playerRef, displayTime, attributes)
 	if U.Type(panelRef) ~= "string" or not string.match(panelRef, "^All") then
 		panelRef = S.getPlayer(playerRef).color
 	end
+	if #messageLines > 1 then panelRef = panelRef .. "Double" end
 	local panelID, textID = "splashPanel_" .. panelRef, "splashText_" .. panelRef
 
 	return U.RunSequence({

@@ -21,10 +21,16 @@
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
 		padding = "0 0 65 65"
 		animationDuration = "0.5" />
+	<VerticalLayout class="splash-root-double"
+		padding = "0 0 105 105" />
 	<VerticalLayout class="splash-root-mid"
-		padding = "0 0 165 65"
+		padding = "0 0 195 65"
 		scale = "1.4 1.4 1.4" />
-	<VerticalLayout class="splash-root-low" padding = "0 0 565 65" />
+	<VerticalLayout class="splash-root-mid-double"
+		padding = "0 0 245 105" />
+	<VerticalLayout class="splash-root-low" padding = "0 0 595 65" />
+	<VerticalLayout class="splash-root-low-double"
+		padding = "0 0 645 105" />
 
 	<VerticalLayout class="splash"
 		preferredWidth = "650" flexibleWidth = "0" minWidth = "650"
@@ -33,7 +39,7 @@
 
 	<VerticalLayout class="splash-image-container"
 		ignoreLayout = "true"
-		childAlignment = "UpperCenter"
+		childAlignment = "MiddleCenter"
 		position = "MiddleCenter"
 		spacing = "-1"
 		height = "100%"
@@ -52,6 +58,10 @@
 		preferredWidth = "1000" flexibleWidth = "0" minWidth = "1000"
 		preserveAspect = "false"
 		image = "splash-bg" />
+	<Image class="splash-image-double"
+		preferredWidth = "850" flexibleWidth = "0" minWidth = "850"
+		preferredHeight = "85" flexibleHeight = "0" minHeight = "85" />
+
 
 	<Text class="splash"
 		alignment = "MiddleCenter"
@@ -64,7 +74,6 @@
 		verticalOverflow = "Overflow"
 		horizontalOverflow = "Wrap"
 		fontSize = "50"
-		preferredHeight = "50" minHeight = "50" flexibleHeight = "0"
 		preferredWidth = "5000" minWidth = "5000" flexibleWidth = "0"
 		scale = "1 1 1" />
 </Defaults>
@@ -107,6 +116,7 @@
 <Defaults> <!-- Splash HUD Defaults -->
 	<Panel class="splash-hud" offsetXY = "-50 -50" />
 	<Panel class="splash-visibility" minHeight="185" />
+	<Panel class="splash-visibility-double" minHeight="290" />
 </Defaults>
 
 <Panel id="splashHUD" class="splash-panel splash-hud">
@@ -118,7 +128,21 @@
 				<Image class="splash-bottom" />
 			</VerticalLayout>
 			<VerticalLayout class="splash">
-				<Text id="splashText_All" class="splash">A Line Of Text</Text>
+				<Text id="splashText_All" class="splash">The Moderator will Cast the Deciding Vote.</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+	<Panel class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_AllDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_AllDouble" class="splash">Tie
+				The Moderator will Cast the Deciding Vote.</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
@@ -136,6 +160,20 @@
 		</VerticalLayout>
 	</Panel>
 
+	<Panel class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_AllMidDouble" class="splash-root splash-root-mid splash-root-mid-double" active="false">
+			<VerticalLayout id="debugMid" class="splash-image-container splash-mid">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_AllMidDouble" class="splash">Tie
+				The Moderator will Cast the Deciding Vote.</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
 	<Panel class="splash-visibility">
 		<VerticalLayout id="splashPanel_AllLow" class="splash-root splash-root-low" active="false">
 			<VerticalLayout class="splash-image-container splash-low">
@@ -145,6 +183,20 @@
 			</VerticalLayout>
 			<VerticalLayout class="splash">
 				<Text id="splashText_AllLow" class="splash">A Line Of Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+	<Panel class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_AllLowDouble" class="splash-root splash-root-low splash-root-low-double" active="false">
+			<VerticalLayout class="splash-image-container splash-low">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_AllLowDouble" class="splash">Tie
+				The Moderator will Cast the Deciding Vote.</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
@@ -162,6 +214,19 @@
 		</VerticalLayout>
 	</Panel>
 
+	<Panel visibility="Host|Brown" class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_BrownDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_BrownDouble" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
 	<Panel visibility="Host|Red" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Red" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
@@ -170,7 +235,20 @@
 				<Image class="splash-bottom" />
 			</VerticalLayout>
 			<VerticalLayout class="splash">
-				<Text id="splashText_Red" class="splash">A Line Of Text</Text>
+				<Text id="splashText_Red" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+	<Panel visibility="Host|Red" class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_RedDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_RedDouble" class="splash">A Line Oyf Text</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
@@ -183,7 +261,20 @@
 				<Image class="splash-bottom" />
 			</VerticalLayout>
 			<VerticalLayout class="splash">
-				<Text id="splashText_Orange" class="splash">A Line Of Text</Text>
+				<Text id="splashText_Orange" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+	<Panel visibility="Host|Orange" class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_OrangeDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_OrangeDouble" class="splash">A Line Oyf Text</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
@@ -196,7 +287,20 @@
 				<Image class="splash-bottom" />
 			</VerticalLayout>
 			<VerticalLayout class="splash">
-				<Text id="splashText_Yellow" class="splash">A Line Of Text</Text>
+				<Text id="splashText_Yellow" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+	<Panel visibility="Host|Yellow" class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_YellowDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_YellowDouble" class="splash">A Line Oyf Text</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
@@ -209,10 +313,25 @@
 				<Image class="splash-bottom" />
 			</VerticalLayout>
 			<VerticalLayout class="splash">
-				<Text id="splashText_Green" class="splash">A Line Of Text</Text>
+				<Text id="splashText_Green" class="splash">A Line Oyf Text</Text>
 			</VerticalLayout>
 		</VerticalLayout>
 	</Panel>
+
+	<Panel visibility="Host|Green" class="splash-visibility-double">
+		<VerticalLayout id="splashPanel_GreenDouble" class="splash-root splash-root-double" active="false">
+			<VerticalLayout class="splash-image-container">
+				<Image class="splash-top splash-image-double" />
+				<Image class="splash-bg" />
+				<Image class="splash-bottom splash-image-double" />
+			</VerticalLayout>
+			<VerticalLayout class="splash">
+				<Text id="splashText_GreenDouble" class="splash">A Line Oyf Text</Text>
+			</VerticalLayout>
+		</VerticalLayout>
+	</Panel>
+
+
 </Panel>
 
 <Defaults> <!-- Splash Query Defaults -->
@@ -486,7 +605,7 @@
 
 	<Text class="story-sticker-text"
 		alignment = "MiddleLeft"
-		fontSize = "30"
+		fontSize = "40"
 		width = "100%"
 		color = "#FFFFFF"
 		font = "Fonts/FrizBI"

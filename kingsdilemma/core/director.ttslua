@@ -52,16 +52,17 @@ function DIR.GetTokenPositionsFromBoard()
 	}
 end
 
-local function getTokenMomentums()
-	local function getTokenMomentum(resource)
-		local startTurnData = S.getStateVal("roundState", "boardTokens")
-		if startTurnData == nil or startTurnData.momentum == nil or startTurnData.momentum[resource] == nil then
-			-- U.Assert("getTokenMomentum", token, "Object")
-			return U.isFlipped(getBoardToken(resource)) and -1 or 1
-		else
-			return startTurnData.momentum[resource]
-		end
+local function getTokenMomentum(resource)
+	local startTurnData = S.getStateVal("roundState", "boardTokens")
+	if startTurnData == nil or startTurnData.momentum == nil or startTurnData.momentum[resource] == nil then
+		-- U.Assert("getTokenMomentum", token, "Object")
+		return U.isFlipped(getBoardToken(resource)) and -1 or 1
+	else
+		return startTurnData.momentum[resource]
 	end
+end
+
+local function getTokenMomentums()
 	return {
 		Influence = getTokenMomentum("Influence"),
 		Wealth = getTokenMomentum("Wealth"),
@@ -106,6 +107,43 @@ function DIR.GetStickerData()
 end
 
 -- #endregion
+
+STORYABILITIES = {
+	[2] = {
+		function()
+			L.SetLightMode("lightStoryArcB", "on")
+			MSG.Show("storyHUD_Sticker")
+			UI.setValue("storyHUD_Sticker_Text", "Knowledge begins with double- negative momentum.")
+			UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(C.RootColors.Amber))
+			local knowledgeToken = getBoardToken("Knowledge")
+			S.setStateVal(-2, "roundState", "boardTokens", "Knowledge")
+			if not U.isFlipped(knowledgeToken) then
+				knowledgeToken.flip()
+			end
+			return DIR.UpdateTokenLight("Knowledge", -2)
+		end,
+		function()
+			MSG.Hide("storyHUD_Sticker")
+			return L.SetLightMode("lightStoryArcB", "off")
+		end
+	},
+	[3] = {
+		function()
+			L.SetLightMode("lightStoryArcC", "on")
+			MSG.Show("storyHUD_Sticker")
+			UI.setValue("storyHUD_Sticker_Text", "Adding 8 Coin to the Fountain of Gold.")
+			UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(C.RootColors.Amber))
+			return U.sequence({
+				function() OU.SpawnValue(O.Zones.StoryArcC(), 4, "CoinToken") end,
+				function() OU.SpawnValue(O.Zones.StoryArcC(), 4, "CoinToken") end
+			});
+		end,
+		function()
+			MSG.Hide("storyHUD_Sticker")
+			return L.SetLightMode("lightStoryArcC", "off")
+		end
+	}
+}
 
 -- #region INITIALIZATION FUNCTIONS
 local queryResponse
@@ -302,7 +340,7 @@ INITFUNCS = {
 						return L.SetLightMode("lightModerator", "on", nil, 0.5)
 					end,
 					P.AssignModerator,
-					DIR.ADVANCE
+					-- DIR.ADVANCE
 				}
 			end
 		end,
@@ -314,8 +352,8 @@ INITFUNCS = {
 					stickerData = DIR.GetStickerData()
 					return MSG.Splash("Legacy Effects")
 				end,
-				function() return MSG.Splash("Chronicle Aging") end,
 				function()
+					MSG.Splash("Chronicle Aging")
 					local function ageChronicleSticker(sData)
 						local stickerObj = sData.obj
 						local curAge = math.floor(sData.age)
@@ -337,7 +375,8 @@ INITFUNCS = {
 				end,
 				function()
 					P.SetCamera("MainBoard")
-					return MSG.Splash("Resource Legacy", "AllLow")
+					MSG.Splash("Resource Legacy", "AllLow")
+					return 0
 				end,
 				function()
 					local function applyResourceLegacy(sData)
@@ -349,6 +388,12 @@ INITFUNCS = {
 					return U.RunSequence(U.iMap(stickerData, function(sData)
 						return function() return applyResourceLegacy(sData) end
 					end))
+				end,
+				function()
+					return MSG.Splash("Story Abilities")
+				end,
+				function()
+					return U.RunSequence(U.concat(table.unpack(U.getValues(STORYABILITIES))))
 				end,
 				function()
 					P.SetCamera("BehindScreen")
@@ -409,14 +454,10 @@ INITFUNCS = {
 								L.PulseLight("lightFront", player, statusColor)
 								P.RefreshPlayerScreenHUD(player)
 								if sData.status == "Pos" then
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Positive Open Agenda for " .. resource, nil, nil, {color = U.GetHex(Color.Blue)})
+									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " has Championed " .. resource, "AllLow", nil, {color = U.GetHex(Color.Blue)})
 								else
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " takes the Negative Open Agenda for " .. resource, nil, nil, {color = U.GetHex(Color.Red)})
+									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " has Neglected " .. resource, "AllLow", nil, {color = U.GetHex(Color.Red)})
 								end
-							end,
-							function()
-								stickerObj.highlightOff()
-								return 0
 							end
 						})
 					end
@@ -1384,9 +1425,12 @@ function DIR.InitPreflight()
 		storyHUD_Arc1 = [[The crowning of King Harald V was a dramatic one, attracting diplomats from all over the world. Underscoring this however was the King's own doubt in himself, which he only expressed to us, behind closed doors.
 
 		However, to the common people of Ankist, they saw an additional grand display involving their King as he accepted a sword made from red iron as a gift from "merchants" of another kingdom. This blade, known as the Scarlet Tide, became a symbol for our nation's military might, with only the most elite soldiers being allowed to wield equipment forged from the miraculously strong metal.]],
-		storyHUD_Arc2 = [[Merchants from distant Konfurtah brought rumors of the hiding place of the fabled Golden Map, prompting us to send an expedition into the Ivory Desert to retrieve it. We discovered it within the ancient temple of Chalice Peak, amidst the dessicated corpses of Sand Priestesses—an opulent version of the Cult of the Mother—along with references to the ancient "Sun Empire", known only from legends dating back to the ages before Ommad, the First King.
+		-- storyHUD_Arc2_old = [[Merchants from distant Konfurtah brought rumors of the hiding place of the fabled Golden Map, prompting us to send an expedition into the Ivory Desert to retrieve it. We discovered it within the ancient temple of Chalice Peak, amidst the dessicated corpses of Sand Priestesses—an opulent version of the Cult of the Mother—along with references to the ancient "Sun Empire", known only from legends dating back to the ages before Ommad, the First King.
 
-		Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]],
+		-- Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]],
+		storyHUD_Arc2 = [[In the pursuit of the Golden Map, vital aid and supplies ensured the expedition's survival and success, despite the absence of the fabled fountain of gold. The Golden Temple's gilded walls held valuable knowledge. Amidst treacherous swamps, a sinister revelation emerged—the deadly "Glass Wasps," feasting on their hosts' brains and emerging from their eyes. Swift action was taken to eliminate them and raise awareness.
+
+		Having secured the Golden Temple, the High Commander opted to strengthen the army with upgraded equipment and improved rations, enhancing their energy and combat effectiveness. Rumors of more "Golden Cities" were dismissed, deeming further expeditions costly and risky.]],
 		storyHUD_Arc3 = [[The knights of the army are now roaming the Hedgehog Woods in northern Dualak, looking for the alleged "Witch of the Wilds."
 
 		Rumors about her incredible ability to bend the laws of nature are becoming more common, and the knights are determined to find her before the situation escalates. Yet, those paths are narrow and murky, and those ancient woods hide many dangers ...]]
@@ -1966,7 +2010,8 @@ function DIR.DealPreassignedSecretAgendas(agendaData)
 		end,
 		function()
 			return U.sequence(seqFuncs, 1)
-		end
+		end,
+		DIR.ADVANCE
 	})
 end
 
@@ -2595,6 +2640,9 @@ end
 
 function DIR.InitConsequencesQuery(playerRef)
 	local player = playerRef == nil and P.GetModerator() or S.getPlayer(playerRef)
+	if P.GetLeader().color == P.GetModerator().color then
+		player = S.getNextPlayer(player)
+	end
 	U.forEach({ "Sticker", table.unpack(C.Resources) }, function(resource)
 		U.forEach({ "P", "N" }, function(outcome)
 			local stateVal = S.getStateVal("roundState", "consequences", outcome, resource) or "O"
