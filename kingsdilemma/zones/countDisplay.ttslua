@@ -135,7 +135,7 @@ function UpdateCount(isRecounting)
 
 	updateValue()
 
-	if isRecounting then Wait.time(function() UpdateCount(false) end, 2) end
+	if isRecounting then Wait.time(function() UpdateCount() end, 2) end
 end
 
 local function getVisibility()

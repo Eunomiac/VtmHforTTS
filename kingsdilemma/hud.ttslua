@@ -15,6 +15,19 @@ local MSG = require("kingsdilemma.core.messaging")
 MessageQueue, QueueStatus = {}, {}
 
 local TESTFUNCDEFS = {
+	LowerScreens = function(button)
+		if (button == "-2") then
+			P.SetHouseCards("UPRIGHT")
+		else
+			P.SetHouseCards("LOWERED")
+		end
+
+
+
+
+
+
+	end,
 	ControlHUD = DIR.InitControlPanel
 }
 local TESTFUNCS = {}
@@ -251,20 +264,38 @@ function HUD_Click(player, button, id)
 	elseif id == "resetTable" then
 		DIR.RESET()
 	elseif id == "concealHouseCards" then
-		local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil end)
-		U.forEach(houseCards,
-			function(obj)
-				obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 80))
-				obj.setPosition(obj.getPosition():setAt("y", button == "-2" and 7.52 or 3.7))
-			end)
-		U.forEach(getObjectsWithAllTags({"SecretAgenda", "Private"}),
-			function(card)
-				card.setPosition(card.getPosition():setAt("y", button == "-2" and 7 or -1))
-			end)
+		if (button == "-2") then
+			P.SetHouseCards("UPRIGHT")
+		else
+			P.SetHouseCards("CONCEALED")
+		end
+		-- local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil end)
+		-- U.forEach(houseCards,
+		-- 	function(obj)
+		-- 		obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 80))
+		-- 		obj.setPosition(obj.getPosition():setAt("y", button == "-2" and 7.52 or 3.7))
+		-- 	end)
+		-- U.forEach(getObjectsWithAllTags({"SecretAgenda", "Private"}),
+		-- 	function(card)
+		-- 		card.setPosition(card.getPosition():setAt("y", button == "-2" and 7 or -1))
+		-- 	end)
 	elseif id == "hideHouseCards" then
-		local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil end)
-		U.forEach(houseCards,
-			function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
+		if (button == "-2") then
+			P.SetHouseCards("UPRIGHT")
+		else
+			P.SetHouseCards("HIDDEN")
+		end
+
+		-- P.HideHouseCards()
+		-- local houseCards = U.filter(getObjectsWithTag("HouseCard"), function(obj) return U.findColorTag(obj) ~= nil and U.findColorTag(obj) ~= U.getHost().color end)
+		-- U.forEach(houseCards,
+		-- 	function(obj) obj.setRotation(obj.getRotation():setAt("z", button == "-2" and 0 or 180)) end)
+		-- U.forEach(getObjectsWithAllTags({"SecretAgenda", "Private"}),
+		-- function(card)
+		-- 	if not card.hasTag(U.getHost().color) then
+		-- 		card.setPosition(card.getPosition():setAt("y", button == "-2" and 7 or -1))
+		-- 	end
+		-- end)
 	elseif id == "adminFetch" then
 		if button == "-2" then
 			DIR.PromptForEnvelope(U.getHost(), true)

@@ -284,7 +284,7 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 local DIR = {}
 local HOUSE_SELECTION, newPlayerColors = {}, {}
 
-local ISDEBUGGING = false
+local IsDebugging = false
 
 function DIR.ShowAutoAdvance() UI.show("autoAdvanceGamePhase"); MSG.Hide("advanceGamePhase") end
 function DIR.ShowManualAdvance() MSG.Hide("autoAdvanceGamePhase"); UI.show("advanceGamePhase") end
@@ -1597,7 +1597,7 @@ function DIR.InitPreflight()
 
 	-- #region DEBUG
 	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
-	if ISDEBUGGING then
+	if IsDebugging then
 		console.load()
 	end
 	-- #endregion

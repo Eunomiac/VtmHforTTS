@@ -452,6 +452,22 @@ function S.getOtherColors(playerRef)
 	end)
 end
 
+function S.getPrevPlayer(playerRef)
+	local player = S.getPlayer(playerRef)
+	if player == nil then
+		return
+	end
+	local playerColors = Player.getAvailableColors()
+	local playerIndex = U.findIndex(playerColors, function(color)
+		return color == player.color
+	end)
+	if playerIndex == 1 then
+		return S.getPlayer(playerColors[#playerColors])
+	else
+		return S.getPlayer(playerIndex - 1)
+	end
+end
+
 function S.getNextPlayer(playerRef)
 	local player = S.getPlayer(playerRef)
 	if player == nil then

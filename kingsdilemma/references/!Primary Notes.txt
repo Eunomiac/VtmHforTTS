@@ -23,12 +23,11 @@ KONFURTAH COORDS
 1520x, 863y 3w
 1471x, 859y 4a
 
+DIR.AdjustStability(-2)
+V.SwapVote("Red")
+
 ** HANDLE 'TOO MANY OPEN AGENDAS' ***
 
-- change flow of game so proper people are prompted
-  - make vote prompt go to last person to speak during Discussion
-  - advance to momentum goes to leader
-  - reveal resource consequences = leader
 - auto-reduce coin scoring if no money on fountain of gold
 - 'quick undo' for votes, or at least switching from aye to nay
 - when does stability update? Need a better way to account for "off the board" movement
@@ -45,7 +44,11 @@ Replace: visibility="Host|$1"
 Search: visibility *= *"Host\|(Brown|Orange|Red|Yellow|Green)"
 Replace: visibility="$1"
 
-- if leader is moderator, then player to right does consequences
+- change flow of game so proper people are prompted
+  - make vote prompt go to last person to speak during Discussion
+  - advance to momentum goes to leader
+  - reveal resource consequences = leader
+  - if leader is moderator, then player to right does consequences
 - automatic application of top witch-story card
 - auto-set-up of the story card money bank thing
 - fix tie notification to moderator's tiebreaking vote

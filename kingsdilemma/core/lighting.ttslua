@@ -134,74 +134,68 @@ local focusLightRangeKey = {
 }
 
 L.LIGHTMODES = {
-	lightStoryArcA = {
+	lightStoryArc = {
 		default = "off",
-		off = { enabled = false },
-		on = {
+		off = {
+			enabled = false
+		},
+		A = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
-		}
-	},
-	lightStoryArcB = {
-		default = "off",
-		off = { enabled = false },
-		on = {
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.A.position):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
+		},
+		B = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
-		}
-	},
-	lightStoryArcC = {
-		default = "off",
-		off = { enabled = false },
-		on = {
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.B.position):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
+		},
+		C = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
-		}
-	},
-	lightStoryArcD = {
-		default = "off",
-		off = { enabled = false },
-		on = {
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.C.position):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
+		},
+		D = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
-		}
-	},
-	lightStoryArcE = {
-		default = "off",
-		off = { enabled = false },
-		on = {
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.D.position):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
+		},
+		E = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
-		}
-	},
-	lightStoryArcF = {
-		default = "off",
-		off = { enabled = false },
-		on = {
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.E.position):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
+		},
+		F = {
 			enabled = true,
 			color = C.RootColors.Amber,
 			range = 50,
-			angle = 40,
-			intensity = 4
+			angle = 30,
+			intensity = 4,
+			position = Vector(C.Spots.Board.StoryCards.F):setAt("x", 11.51):setAt("y", 16.9),
+			rotation = Vector({0, 0, 350.61})
 		}
 	},
 	lightMapAnkist = {
-		default = "ambient",
+		default = "off",
 		off = {
 			enabled = false
 		},
@@ -231,7 +225,7 @@ L.LIGHTMODES = {
 		}
 	},
 	lightMapWorld = {
-		default = "ambient",
+		default = "off",
 		off = {
 			enabled = false
 		},

@@ -8,7 +8,7 @@
 		childForceExpandHeight = "false"
 		childAlignment = "UpperLeft"
 		padding = "5 5 5 5"
-		offsetXY = "-400 300"
+		offsetXY = "-400 0"
 		scale = "0.4 0.4 0.4" />
 
 	<VerticalLayout class="conseqs-query"

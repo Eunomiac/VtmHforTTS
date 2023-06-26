@@ -400,6 +400,28 @@ function V.CheckForLeaderChange(playerRef)
 	})
 end
 
+function V.SwapVote(playerRef)
+	local player = S.getPlayer(playerRef)
+	local powerCommitted = S.getStateVal("turnState", player.color, "powerCommitted")
+	local vote = S.getStateVal("turnState", player.color, "vote")
+	local publicZone = P.GetPlayerZone(player, "Public")
+	if powerCommitted > 0 then
+		if vote == "Aye" then
+			S.setStateVal("Nay", "turnState", player.color, "vote")
+			S.setStateVal(S.getStateVal("roundState", "ayeTotal") - powerCommitted, "roundState", "ayeTotal")
+			S.setStateVal(S.getStateVal("roundState", "nayTotal") + powerCommitted, "roundState", "nayTotal")
+		else
+			S.setStateVal("Aye", "turnState", player.color, "vote")
+			S.setStateVal(S.getStateVal("roundState", "ayeTotal") + powerCommitted, "roundState", "ayeTotal")
+			S.setStateVal(S.getStateVal("roundState", "nayTotal") - powerCommitted, "roundState", "nayTotal")
+		end
+		V.SetVotingLights(player)
+		V.CheckForLeaderChange(player)
+		V.InitCountZones(player)
+		-- if publicZone then publicZone.call("Activate") end
+	end
+end
+
 function V.EndTurn(isPassMod)
 	local player = S.getPlayer(S.getStateVal("roundState", "currentTurn"))
 	local ayeZone, nayZone, publicZone, ayeCard, nayCard, passCard = getVoteObjects(player)

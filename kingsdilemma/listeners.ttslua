@@ -67,8 +67,10 @@ function onSave() return JSON.encode(S.getGameState()) end
 -- function onUpdate() console.update() end
 
 function onPlayerTurnStart(pColor)
+	if U.IsDebugging() then
 
-	P.SetCamera("BehindScreen", pColor, U.getHost())
+		P.SetCamera("BehindScreen", pColor, U.getHost())
+	end
 end
 
 function onPlayerAction(player, action, targets)

@@ -12,8 +12,24 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 local DIR = {}
 local HOUSE_SELECTION, newPlayerColors = {}, {}
 
-local ISDEBUGGING = false
+local IsDebugging = false
 local isFirstCall = true
+
+STORYARCS = {
+	storyHUD_Arc1 = [[King Harald's reign began with some hesitancy, but also with establishment of a powerful military symbol. Smugglers from Skaram offered Ankist a large quantity of "red iron", a strange yet incredibly durable metal. The military took the lion's share of this resource, using it to forge weapons and arms for elite troopers, while the smugglers forged their own sword specifically for the King.
+
+	This blade, known as the Scarlet Tide, would become an influential symbol, so influential in fact that a Codenian merchant would offer to pay handsomely for a replica of it. The crown would refuse this however, not wanting to devalue the image of the Scarlet Tide. In more recent times, the small share of red iron has began being used to create medical tools and equipment to save lives.]],
+	storyHUD_Arc2 = [[In the City of Tents, trader Morano sought a trade agreement for a slave concubine connected to the Golden Map. We secured the deal, learned about the map, and reignited scholars' interest with tales of the City. Suspecting merchants prompted us to redirect our expedition to Chalice Peak's Temple, revealing ruins, inscriptions, and hidden treasure clues. Ancient texts validated the secret history of the Mother's war against the Sun Empire. In a secret chamber, we discovered a collection of golden artifacts, including the Golden Map.
+
+	Navigating a perilous swamp, we reached a grand temple, exterminated "Glass Wasps," translucent insects found during the swamp expeditions. The temple's discovery brought gold, reinforcing our military defenses. However, a southward expedition in search of more cities was rejected.
+
+	Deserter Braccus faced execution while scholars uncovered an ancient blood-to-gold ritual, sparking debates and, ultimately, success on refining it with criminals for efficiency.]],
+	storyHUD_Arc3 = [[In Three Trunks, a small village within the Mark of Dualak, rumors abounded about a witch dwelling in the nearby Hedgehog Woods. Whispers spoke of her mastery over nature's laws, instilling fear among the villagers. As tales of her extraordinary abilities grew, a group of knights embarked on a search for her. They captured a malnourished poacher, who claimed the witch had cursed his family, but he was executed despite his pleas for mercy.
+
+	Within the woods, the knights encountered Hysadora, a woman who professed to be the witch. However, she disclaimed supernatural powers, relying solely on her intellect to solve problems. Hysadora offered her wisdom to the court, but the King rejected her, exiling her from the kingdom. Weeks later, miraculous accounts emerged from Dualak—healings, abundant harvests, and joyous births—all attributed to Hysadora. Skepticism arose regarding the young girl's capacity for such magical feats.
+
+	Inspired by Hysadora, another woman proclaimed herself a witch and drew the ire of religious zealots. To protect the kingdom's wood supply, guards intervened, averting the mob's attempt to burn the woods. Frightened by the ordeal, the woman chose to depart, never to return.]]
+}
 
 function DIR.ShowAutoAdvance() MSG.Show("autoAdvanceGamePhase"); MSG.Hide("advanceGamePhase") end
 function DIR.ShowManualAdvance() MSG.Hide("autoAdvanceGamePhase"); MSG.Show("advanceGamePhase") end
@@ -94,8 +110,14 @@ local function getStickerData(stickerObj)
 	-- x = 1.695, y = 0.125, z = -0.247, 0.062, 0.356
 end
 
-function DIR.GetStickerData()
+function DIR.GetStickerData(isExcludingAbsent)
+	if isExcludingAbsent == nil then isExcludingAbsent = false end
 	local stickerData = U.map(getObjectsWithTag("ChronicleSticker"), function(obj) return getStickerData(obj) end)
+	if isExcludingAbsent then
+		stickerData = U.filter(stickerData, function(sData)
+			return S.getPlayer(S.getPlayerOfHouse(sData.house)) ~= nil
+		end)
+	end
 	table.sort(stickerData, function(a, b)
 		local aRow, bRow = math.ceil(a.snapSlot / 3), math.ceil(b.snapSlot / 3)
 		local aAge, bAge = a.age, b.age
@@ -111,7 +133,7 @@ end
 STORYABILITIES = {
 	[2] = {
 		function()
-			L.SetLightMode("lightStoryArcB", "on")
+			L.SetLightMode("lightStoryArc", "B")
 			MSG.Show("storyHUD_Sticker")
 			UI.setValue("storyHUD_Sticker_Text", "Knowledge begins with double- negative momentum.")
 			UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(C.RootColors.Amber))
@@ -124,12 +146,12 @@ STORYABILITIES = {
 		end,
 		function()
 			MSG.Hide("storyHUD_Sticker")
-			return L.SetLightMode("lightStoryArcB", "off")
+			return L.SetLightMode("lightStoryArc", "off")
 		end
 	},
 	[3] = {
 		function()
-			L.SetLightMode("lightStoryArcC", "on")
+			L.SetLightMode("lightStoryArc", "C")
 			MSG.Show("storyHUD_Sticker")
 			UI.setValue("storyHUD_Sticker_Text", "Adding 8 Coin to the Fountain of Gold.")
 			UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(C.RootColors.Amber))
@@ -140,13 +162,12 @@ STORYABILITIES = {
 		end,
 		function()
 			MSG.Hide("storyHUD_Sticker")
-			return L.SetLightMode("lightStoryArcC", "off")
+			return L.SetLightMode("lightStoryArc", "off")
 		end
 	}
 }
 
 -- #region INITIALIZATION FUNCTIONS
-local queryResponse
 local memo_displayCard, memo_agendaDeck, memo_dilemmaDeck
 local function agendaDeck()
 	if memo_agendaDeck == nil then memo_agendaDeck = getObjectsWithTag("SecretAgenda")[1] end
@@ -238,7 +259,7 @@ INITFUNCS = {
 				function()
 					P.InitPlayerHouseCards()
 					P.ActivatePlayerScreenHUD()
-					L.LoadLights({ "lightFront", "lightMapAnkist", "lightMapWorld" }, "ambient")
+					L.LoadLights({ "lightFront" }, "ambient")
 					return 2
 				end,
 				DIR.ADVANCE
@@ -246,14 +267,14 @@ INITFUNCS = {
 		end
 	},
 	CHRONSETUP = function()
+		local query = { Prologue = "D1", ["Main Story"] = "0" }
 		return {
 			function()
 				U.Assert("INITFUNCS.CHRONSETUP", S.getStateVal("gameState", "gameCount") == 0)
-				queryResponse = { Prologue = "D1", ["Main Story"] = "0" }
 				return MSG.SplashQuery(
 					"How do you want to start your\nChronicle of The King's Dilemma?",
 					"Host",
-					queryResponse,
+					query,
 					U.getHost()
 				)
 			end,
@@ -273,12 +294,12 @@ INITFUNCS = {
 				return MSG.Splash("Chronicle Setup")
 			end,
 			function()
-				S.setStateVal(queryResponse.response, "gameState", "chronicleType")
+				S.setStateVal(query.response, "gameState", "chronicleType")
 				S.setStateVal(({
 					["D1"] = "Harald IV",
 					["0"] = "Harald V"
-				})[queryResponse.response], "gameState", "kingName")
-				return DIR.FetchEnvelope(queryResponse.response)
+				})[query.response], "gameState", "kingName")
+				return DIR.FetchEnvelope(query.response)
 			end
 		}
 	end,
@@ -290,9 +311,11 @@ INITFUNCS = {
 					L.SetLightMode("lightLectern", "default")
 					S.LogGameStartTime()
 					S.setStateVal(S.getStateVal("gameState", "gameCount") + 1, "gameState", "gameCount")
+					-- if U.IsDebugging() then
+
 					return 0
 				end,
-				DIR.ADVANCE
+				DIR.ADVANCEUNLESSDEBUG
 			}
 		end,
 		MainBoard = function()
@@ -340,7 +363,7 @@ INITFUNCS = {
 						return L.SetLightMode("lightModerator", "on", nil, 0.5)
 					end,
 					P.AssignModerator,
-					-- DIR.ADVANCE
+					DIR.ADVANCEUNLESSDEBUG
 				}
 			end
 		end,
@@ -398,6 +421,7 @@ INITFUNCS = {
 				function()
 					P.SetCamera("BehindScreen")
 					L.SetLightMode("lightFront", "dim")
+					stickerData = DIR.GetStickerData(true)
 					return MSG.Splash("Power Legacy")
 				end,
 				function()
@@ -488,12 +512,29 @@ INITFUNCS = {
 
 					return U.RunSequence(seqFuncs)
 				end,
-				DIR.ADVANCE
+				DIR.ADVANCEUNLESSDEBUG
 			}
 		end,
 		SecretAgendas = function()
 			return {
 				function()
+					local assignedCount = 0
+					U.forEach(S.getStateVal("playerStorage"), function(data)
+						if U.find(C.SecretAgendas, function(sa) return sa == data.PreAssignedSecretAgenda end) ~= nil then
+							assignedCount = assignedCount + 1;
+						end
+					end);
+					if assignedCount ~= #S.getPlayers() then
+						return U.RunSequence({
+							function()
+								U.forEach(S.getStateVal("playerStorage"), function(data)
+									S.setStateVal(nil, "playerStorage", data.id, "PreassignedSecretAgenda")
+								end);
+								return MSG.Splash({"Player count doesn't match previous game.", "Ignoring preassigned Secret Agendas."})
+							end,
+							DIR.InitSecretAgendas
+						})
+					end
 					local assignedSAs = U.map(S.getPlayers(), function(player)
 						return {
 							color = player.color,
@@ -516,7 +557,7 @@ INITFUNCS = {
 					DIR.GetDilemmaDeck().shuffle()
 					return 0.5
 				end,
-				DIR.ADVANCE
+				DIR.ADVANCEUNLESSDEBUG
 			}
 		end
 	},
@@ -535,7 +576,7 @@ INITFUNCS = {
 						S.setPlayerTurnVal(false, player, "vote")
 						S.setPlayerTurnVal(0, player, "powerCommitted")
 					end)
-					return DIR.ADVANCE()
+					return DIR.ADVANCEUNLESSDEBUG()
 				end
 			}
 		end,
@@ -557,6 +598,7 @@ INITFUNCS = {
 						Global.call("HUD_Click", {player = U.getHost(), id = "toggleElem_lightControls"})
 					end
 					if displayCard().hasTag("Dilemma") then
+						L.SetLightMode({"lightMapAnkist", "lightMapWorld"}, "ambient")
 						DIR.InitConsequencesQuery()
 						DIR.SpawnReferenceDilemmas(displayCard())
 					end
@@ -571,14 +613,14 @@ INITFUNCS = {
 					}
 				end,
 				function()
+					local query = {Yes = "true"}
 					if displayCard().hasTag("TriggerCard") then
-						queryResponse = {Yes = "true"}
-						U.RunSequence({
+						return U.RunSequence({
 							function()
 								return MSG.SplashQuery(
 									"Reveal Trigger Card Back?",
 									P.GetLeaderName(),
-									queryResponse,
+									query,
 									P.GetLeader()
 								)
 							end,
@@ -590,17 +632,25 @@ INITFUNCS = {
 							end
 						})
 					else
-						MSG.Splash(P.GetLeaderName() .. ", the Dilemma Card is Yours", P.GetLeader())
-						return {
-							L.SetLightMode("lightDilemmaAye", "on", nil, 1),
-							L.SetLightMode("lightDilemmaNay", "on", nil, 1)
-						}
+						local leader = P.GetLeader()
+						MSG.Splash(P.GetLeaderName() .. ", the Dilemma Card is Yours", leader)
+						L.SetLightMode("lightDilemmaAye", "on", nil, 1)
+						L.SetLightMode("lightDilemmaNay", "on", nil, 1)
+						local lastPlayer = S.getPrevPlayer(leader)
+						local query = { Continue = "true" }
+						return MSG.SplashQuery(
+							"When discussion is over, click to proceed.",
+							P.GetPlayerName(lastPlayer),
+							query,
+							lastPlayer
+						)
 					end
-				end
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		Vote = function()
-			local queryResponse = { Yes = "true", No = "false" }
+			local query = { Yes = "true", No = "false" }
 			return {
 				function()
 					if UI.getAttribute("lightControls", "active") == "true" then
@@ -616,12 +666,12 @@ INITFUNCS = {
 					return MSG.SplashQuery(
 						"Is a vote required this round?",
 						P.GetLeaderName(),
-						queryResponse,
+						query,
 						P.GetLeader()
 					)
 				end,
 				function()
-					if queryResponse.response == "true" then
+					if query.response == "true" then
 						return U.RunSequence({
 							function()
 								MSG.Splash("The Vote")
@@ -634,7 +684,8 @@ INITFUNCS = {
 							end
 						})
 					else
-						return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.EndRound)
+						DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.EndRound)
+						return DIR.ADVANCE()
 					end
 				end
 			}
@@ -717,25 +768,25 @@ INITFUNCS = {
 							local tiedPlayers = U.filter(winningPlayers,
 								function(player) return S.getPlayerPowerCommitted(player) ==
 									S.getPlayerPowerCommitted(winningPlayers[1]) end)
-							local queryResponse = {}
-							U.forEach(tiedPlayers, function(player) queryResponse[P.GetPlayerName(player)] = player end)
+							local query = {}
+							U.forEach(tiedPlayers, function(player) query[P.GetPlayerName(player)] = player end)
 							return U.RunSequence({
 								function()
 									return MSG.SplashQuery(
 										"Pass Leadership to which player?",
 										P.GetModeratorName(),
-										queryResponse,
+										query,
 										P.GetModerator()
 									)
 								end,
 								function()
-									if P.GetModeratorName() == P.GetPlayerName(queryResponse.response) then
+									if P.GetModeratorName() == P.GetPlayerName(query.response) then
 										MSG.Splash(P.GetModeratorName() .. " retains Leadership.")
 									else
 										MSG.Splash(P.GetModeratorName() ..
-										" assigns Leadership to " .. P.GetPlayerName(queryResponse.response) .. ".")
+										" assigns Leadership to " .. P.GetPlayerName(query.response) .. ".")
 									end
-									return P.AssignLeader(queryResponse.response)
+									return P.AssignLeader(query.response)
 								end
 							})
 						else
@@ -840,6 +891,7 @@ INITFUNCS = {
 			}
 		end,
 		DisplayOutcome = function()
+			local continuePrompt
 			return {
 				function()
 					V.InitCountZones()
@@ -849,6 +901,7 @@ INITFUNCS = {
 					L.SetLightMode("lightDilemmaNay", "off", nil, 0.5)
 
 					if S.getStateVal("roundState", "displayedCardType") == "dilemma" then
+						continuePrompt = "Click to reveal resource changes."
 						U.Assert("Displayed Card is a Dilemma?", displayCard().hasTag("Dilemma"))
 
 						local voteResult = S.getStateVal("roundState", "voteResult")
@@ -872,6 +925,7 @@ INITFUNCS = {
 							displayCard()
 						}
 					elseif S.getStateVal("roundState", "displayedCardType") == "trigger" then
+						continuePrompt = "Click once Trigger Card is resolved."
 						U.Assert("Displayed Card is a Trigger Card?", displayCard().hasTag("TriggerCard"))
 
 						P.SetCamera("DilemmaDraw")
@@ -888,7 +942,17 @@ INITFUNCS = {
 							displayCard()
 						}
 					end
-				end
+				end,
+				function()
+					local query = { Continue = "true" }
+					return MSG.SplashQuery(
+						continuePrompt,
+						P.GetLeaderName(),
+						query,
+						P.GetLeader()
+					)
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		ApplyChanges = function()
@@ -898,7 +962,17 @@ INITFUNCS = {
 					U.setPositionSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].position, 2)
 					U.setRotationSlow(displayCard(), C.Spots.Main.Dilemma["faceUp" .. voteResult .. "Resolve"].rotation, 2)
 					return MSG.Splash("Apply Changes to Resources")
-				end
+				end,
+				function()
+					local query = { Continue = "true" }
+					return MSG.SplashQuery(
+						"Click to apply momentum.",
+						P.GetLeaderName(),
+						query,
+						P.GetLeader()
+					)
+				end,
+				DIR.ADVANCE
 			}
 		end,
 		ApplyMomentum = function()
@@ -994,19 +1068,19 @@ INITFUNCS = {
 			}
 		end,
 		StickerCheck = function()
+			local query = { Yes = "true", No = "false" }
 			return {
 				function()
 					MSG.Splash("Checking for Chronicle Stickers")
-					queryResponse = { Yes = "true", No = "false" }
 					return MSG.SplashQuery(
 						"Unlock a Chronicle Sticker?",
 						P.GetLeaderName(),
-						queryResponse,
+						query,
 						P.GetLeader()
 					)
 				end,
 				function()
-					if queryResponse.response == "true" then
+					if query.response == "true" then
 						return DIR.PromptForSticker(P.GetLeader())
 					end
 					return DIR.ADVANCE()
@@ -1014,19 +1088,19 @@ INITFUNCS = {
 			}
 		end,
 		EnvelopeCheck = function()
+			local query = { Yes = "true", No = "false" }
 			return {
 				function()
 					MSG.Splash("Checking for Chronicle Envelopes")
-					queryResponse = { Yes = "true", No = "false" }
 					return MSG.SplashQuery(
 						"Unlock a Chronicle Envelope?",
 						P.GetLeaderName(),
-						queryResponse,
+						query,
 						P.GetLeader()
 					)
 				end,
 				function()
-					if queryResponse.response == "true" then
+					if query.response == "true" then
 						return DIR.PromptForEnvelope(P.GetLeader())
 					end
 					return DIR.ADVANCE()
@@ -1036,8 +1110,9 @@ INITFUNCS = {
 		EndRound = function()
 			return {
 				function()
+					L.SetLightMode({"lightMapAnkist", "lightMapWorld"}, "off")
 
-					L.SetLightMode({ "lightMapAnkist", "lightLectern", "lightMapWorld" }, "ambient")
+					L.SetLightMode({ "lightLectern"}, "ambient")
 					L.SetLightMode({ "lightMapFocusA", "lightMapFocusB", "lightDilemmaMain" }, "off", nil, 2)
 
 					local dCard = displayCard()
@@ -1078,18 +1153,18 @@ INITFUNCS = {
 								local playedDilemmas = getObjectsWithAllTags({ "Dilemma", "Played" })
 								if #playedDilemmas == 11 then return DIR.EndGame() end
 								if #playedDilemmas > 6 then
-									local queryResponse = { Yes = "true", No = "false" }
+									local query = { Yes = "true", No = "false" }
 									return U.RunSequence({
 										function()
 											return MSG.SplashQuery(
 												"Does the dilemma bear a skull icon?",
 												P.GetLeaderName(),
-												queryResponse,
+												query,
 												P.GetLeader()
 											)
 										end,
 										function()
-											if queryResponse.response == "true" then
+											if query.response == "true" then
 												return DIR.EndGame()
 											end
 											return DIR.JumpToStatePhase(C.Modes.PLAY, C.Phases.PLAY.StartRound)
@@ -1387,7 +1462,7 @@ INITFUNCS = {
 -- #endregion
 
 -- #region Session Setup & Phase Control~
-local storyArcs, storyKeys
+local storyKeys
 function DIR.InitPreflight()
 	MSG.Hide("sessionPreflightDisplay")
 	MSG.Show("sessionInitDisplay")
@@ -1400,14 +1475,15 @@ function DIR.InitPreflight()
 		end
 	end)
 	L.PrimeLights()
-	U.forEach(O.UninteractableObjs, function(oFunc)
-		oFunc().interactable = false
-		oFunc().gizmo_selectable = false
-	end)
-
+	if not U.IsDebugging() then
+		U.forEach(O.UninteractableObjs, function(oFunc)
+			oFunc().interactable = false
+			oFunc().gizmo_selectable = false
+		end)
+	end
 	-- #region DEBUG
 	Global.call("InitTestFuncButtons") -- Assign names to test function buttons
-	if ISDEBUGGING then
+	if U.IsDebugging() then
 		console.load()
 	end
 	-- #endregion
@@ -1419,28 +1495,15 @@ function DIR.InitPreflight()
 	UI.setValue("gameNumText",
 		"~ During the Reign of " ..
 		S.getStateVal("gameState", "kingTitle") .. " " .. S.getStateVal("gameState", "kingName") .. " ~")
-	storyArcs = S.getStateVal("storyArcs")
+	-- STORYARCS = S.getStateVal("storyArcs")
 	-- NOTE: Story Arc numbers correspond to display order, not necessarily to board slot.
-	storyArcs = {
-		storyHUD_Arc1 = [[The crowning of King Harald V was a dramatic one, attracting diplomats from all over the world. Underscoring this however was the King's own doubt in himself, which he only expressed to us, behind closed doors.
-
-		However, to the common people of Ankist, they saw an additional grand display involving their King as he accepted a sword made from red iron as a gift from "merchants" of another kingdom. This blade, known as the Scarlet Tide, became a symbol for our nation's military might, with only the most elite soldiers being allowed to wield equipment forged from the miraculously strong metal.]],
-		-- storyHUD_Arc2_old = [[Merchants from distant Konfurtah brought rumors of the hiding place of the fabled Golden Map, prompting us to send an expedition into the Ivory Desert to retrieve it. We discovered it within the ancient temple of Chalice Peak, amidst the dessicated corpses of Sand Priestesses—an opulent version of the Cult of the Mother—along with references to the ancient "Sun Empire", known only from legends dating back to the ages before Ommad, the First King.
-
-		-- Those legends claimed that the Golden Map leads to an endless fountain of liquid gold, but our expedition struggled to interpret its ancient writings. Ultimately a choice was made, sending our expedition into a deadly swamp filled with the vestiges of a lost civilization.]],
-		storyHUD_Arc2 = [[In the pursuit of the Golden Map, vital aid and supplies ensured the expedition's survival and success, despite the absence of the fabled fountain of gold. The Golden Temple's gilded walls held valuable knowledge. Amidst treacherous swamps, a sinister revelation emerged—the deadly "Glass Wasps," feasting on their hosts' brains and emerging from their eyes. Swift action was taken to eliminate them and raise awareness.
-
-		Having secured the Golden Temple, the High Commander opted to strengthen the army with upgraded equipment and improved rations, enhancing their energy and combat effectiveness. Rumors of more "Golden Cities" were dismissed, deeming further expeditions costly and risky.]],
-		storyHUD_Arc3 = [[The knights of the army are now roaming the Hedgehog Woods in northern Dualak, looking for the alleged "Witch of the Wilds."
-
-		Rumors about her incredible ability to bend the laws of nature are becoming more common, and the knights are determined to find her before the situation escalates. Yet, those paths are narrow and murky, and those ancient woods hide many dangers ...]]
-}
-	storyKeys = U.getKeys(storyArcs)
+	storyKeys = U.getKeys(STORYARCS)
 end
 
 local keyIndex = 1
 function DIR.InitSession(isNotShuffling)
 	local seqFuncs = {}
+	S.setStateVal("true", "ui", "splashScreen")
 	if isFirstCall then
 		isFirstCall = false
 		table.insert(seqFuncs, function()
@@ -1469,7 +1532,7 @@ function DIR.InitSession(isNotShuffling)
 							local id = storyKeys[keyIndex]
 							-- log("Showing " .. id)
 							MSG.Show(id)
-							UI.setValue(id .. "_Text", storyArcs[id])
+							UI.setValue(id .. "_Text", STORYARCS[id])
 							keyIndex = keyIndex + 1
 							return 3
 						end
@@ -1478,7 +1541,7 @@ function DIR.InitSession(isNotShuffling)
 					local id = storyKeys[keyIndex]
 					-- log("Showing " .. id)
 					MSG.Show(id)
-						UI.setValue(id .. "_Text", storyArcs[id])
+						UI.setValue(id .. "_Text", STORYARCS[id])
 					keyIndex = keyIndex + 1
 					return 3
 				end
@@ -1602,6 +1665,7 @@ function DIR.InitControlPanel()
 end
 
 local advanceThrottle = false
+
 function DIR.ADVANCE(waitFunc, isThrottling)
 	if isThrottling == nil then isThrottling = false end
 	if isThrottling == true then
@@ -1624,6 +1688,15 @@ function DIR.ADVANCE(waitFunc, isThrottling)
 		U.waitUntil(startPhase, waitFunc, false)
 	else
 		startPhase()
+	end
+end
+ISDRESSREHEARSAL = true
+function DIR.ADVANCEUNLESSDEBUG()
+	if U.IsDebugging() and not ISDRESSREHEARSAL then
+		DIR.ShowManualAdvance()
+		return 0
+	else
+		return DIR.ADVANCE()
 	end
 end
 
@@ -2011,7 +2084,7 @@ function DIR.DealPreassignedSecretAgendas(agendaData)
 		function()
 			return U.sequence(seqFuncs, 1)
 		end,
-		DIR.ADVANCE
+		DIR.ADVANCEUNLESSDEBUG
 	})
 end
 
@@ -2041,7 +2114,7 @@ function DIR.EndSecretAgendas()
 			S.setPlayerVal(agenda, pColor, "PreAssignedSecretAgenda")
 		end)
 	end
-	Wait.time(DIR.ADVANCE, 4)
+	Wait.time(DIR.ADVANCEUNLESSDEBUG, 4)
 end
 
 function DIR.RecallSecretAgendas()
@@ -2743,6 +2816,16 @@ function DIR.UpdateTokenLight(resource, momentum)
 	return L.SetLightMode("light" .. resource, "momentum" .. dir .. momentum, nil, 0.5)
 end
 
+function DIR.AdjustStability(stabilityDelta)
+	local curStartPos = S.getStateVal("roundState", "boardTokens", "positions", "Stability")
+	local newStartPos = math.max(1, math.min(19, curStartPos + stabilityDelta))
+	S.setStateVal(newStartPos, "roundState", "boardTokens", "positions", "Stability")
+	local stabilityBump = DIR.GetStabilityBump()
+	if stabilityBump ~= 0 then
+		DIR.BumpToken("Stability", stabilityBump)
+	end
+end
+
 function DIR.GetStabilityBump()
 	local stabilityPos = S.getStateVal("roundState", "boardTokens", "positions", "Stability")
 	local curPositions = DIR.GetTokenPositionsFromBoard()
@@ -2847,6 +2930,7 @@ function DIR.GetCoinStandings()
 end
 
 function DIR.GetSecretAgendaScore(playerRef, tokenPositions, coinStandings)
+	local storyArc3Total = OU.GetTotalValue(O.Zones.StoryArcC(), "CoinToken")
 	local player = S.getPlayer(playerRef)
 	local secretAgendaData = C.SecretAgendaData[DIR.GetSecretAgenda(playerRef)]
 	local scoreReport = {}
@@ -2863,6 +2947,9 @@ function DIR.GetSecretAgendaScore(playerRef, tokenPositions, coinStandings)
 	scoreReport.coinPlacement = coinStandings.placement
 	if coinStandings.placement <= 3 then
 		scoreReport.coin = secretAgendaData.coinPoints[coinStandings.placement]
+		if storyArc3Total == 0 then
+			scoreReport.coin = math.max(0, scoreReport.coin - 2)
+		end
 	else
 		scoreReport.coin = 0
 	end
@@ -3153,6 +3240,9 @@ function DIR.InitScoringHUD(scores)
 	table.insert(seqFuncs, function()
 		return U.sequence(U.iMap({ 1, 2, 3, 4, 5 }, function(row)
 			return function()
+				if row > #S.getPlayers() or imageRefs[row] == nil then
+					return
+				end
 				local id = "scoringHUD_" .. row .. "_Reward_" .. imageRefs[row]
 				MSG.Show(id)
 				-- log("Showing '" .. id .. '". = 1_Reward_)

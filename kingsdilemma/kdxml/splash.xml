@@ -571,6 +571,7 @@
 	<VerticalLayout class="story-arcs"
 		height = "800"
 		width = "1200"
+		offsetXY = "0 100"
 		childAlignment = "UpperCenter"
 		childForceExpandHeight = "false"
 		childForceExpandWidth = "false"
@@ -593,7 +594,7 @@
 
 	<Text class="story-arc-text"
 		alignment = "UpperLeft"
-		fontSize = "35"
+		fontSize = "30"
 		preferredWidth = "1200"
 		color = "#AAAAAA"
 		font = "Fonts/FrizB"
