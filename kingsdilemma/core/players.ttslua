@@ -149,7 +149,42 @@ function P.SetHouseCards(mode, playerRef)
 				scale = Vector({1.59, 1.00, 1.59})
 			},
 			RefDilemma = {
-				position = Vector({0.00, 8.27, 41.00}),
+				position = Vector({0.00, 8.27, 41.20}),
+				rotation = Vector({83.90, 0, 0}),
+				scale = Vector({2, 1.00, 2})
+			}
+		},
+		HIDDEN = {
+			screenFlapLeft = {
+				position = {9.10, 6.47, 41.09},
+				rotation = {87.76, 180.00, 45.00},
+				scale = {5, 1, 5}
+			},
+			screenFlapRight = {
+				position = {-9.26, 6.47, 40.97},
+				rotation = {87.76, 180.00, 135.00},
+				scale = {5, 1, 5}
+			},
+			screenCenter = {
+				position = {0.00, 6.51, 40.00},
+				rotation = {87.76, 180.00, 0.00},
+				scale = {5, 1, 5},
+				uiPosition = "0 -100 -100",
+				uiRotation = "12 0 180"
+			},
+			HouseCard = {
+				position = {0.00, 7.52, 40.95},
+				rotation = {83.90, 180, 0},
+				scale = {3.75, 1.00, 3.75}
+			},
+			agendaCard = {
+				tags = {"Private", "SecretAgenda"},
+				position = Vector({10.00, -7.00, 42.50}),
+				rotation = Vector({87.76, 0.00, 45.00}),
+				scale = Vector({1.59, 1.00, 1.59})
+			},
+			RefDilemma = {
+				position = Vector({0.00, 8.27, 41.20}),
 				rotation = Vector({83.90, 0, 0}),
 				scale = Vector({2, 1.00, 2})
 			}
@@ -185,7 +220,7 @@ function P.SetHouseCards(mode, playerRef)
 				scale = Vector({1.59, 1.00, 1.59})
 			},
 			referenceDilemma = {
-				position = Vector({0.00, 8.27, 41.00}),
+				position = Vector({0.00, 8.27, 41.20}),
 				rotation = Vector({83.90, 0, 0}),
 				scale = Vector({2, 1.00, 2})
 			}

@@ -12,7 +12,6 @@ local HouseScreen = require("kingsdilemma.objs.p3screen")
 local DIR = {}
 local HOUSE_SELECTION, newPlayerColors = {}, {}
 
-local IsDebugging = false
 local isFirstCall = true
 
 STORYARCS = {
@@ -138,11 +137,11 @@ STORYABILITIES = {
 			UI.setValue("storyHUD_Sticker_Text", "Knowledge begins with double- negative momentum.")
 			UI.setAttribute("storyHUD_Sticker_Text", "color", U.GetHex(C.RootColors.Amber))
 			local knowledgeToken = getBoardToken("Knowledge")
-			S.setStateVal(-2, "roundState", "boardTokens", "Knowledge")
+			S.setStateVal(-2, "roundState", "boardTokens", "momentum", "Knowledge")
 			if not U.isFlipped(knowledgeToken) then
 				knowledgeToken.flip()
 			end
-			return DIR.UpdateTokenLight("Knowledge", -2)
+			return DIR.UpdateTokenLight("Knowledge")
 		end,
 		function()
 			MSG.Hide("storyHUD_Sticker")
@@ -253,12 +252,16 @@ INITFUNCS = {
 				end,
 				function() return 2 end,
 				function()
-					L.LoadLights({ "lightBehind" }, "ambient", 1.5)
+					L.LoadLights({ "lightBehind" }, "ambient", 0.75)
 					return 0.75
 				end,
 				function()
 					P.InitPlayerHouseCards()
 					P.ActivatePlayerScreenHUD()
+					if (U.IsDebugging(true)) then
+						local nonHostPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVal(player, "house") ~= "Olwyn" end)
+						U.forEach(nonHostPlayers, function(player) P.SetHouseCards("HIDDEN", player) end)
+					end
 					L.LoadLights({ "lightFront" }, "ambient")
 					return 2
 				end,
@@ -477,10 +480,21 @@ INITFUNCS = {
 								stickerObj.highlightOn(statusColor, 0.5)
 								L.PulseLight("lightFront", player, statusColor)
 								P.RefreshPlayerScreenHUD(player)
+								-- Ankist remembers House Silverlight for
+								-- for being strong on Influence/Wealth/Morale/Welfare/Knowledge
+
+								-- Ankist sees House Concordia as strong on Influence.
+								-- for weakening the Kingdom's Influence.
 								if sData.status == "Pos" then
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " has Championed " .. resource, "AllLow", nil, {color = U.GetHex(Color.Blue)})
+									return MSG.Splash({
+										"Ankist remembers House " .. S.getPlayerHouseName(player),
+										"for being strong on " .. resource
+									}, "AllLow", nil, {color = U.GetHex(Color.Blue)})
 								else
-									return MSG.Splash("House " .. S.getPlayerHouseName(player) .. " has Neglected " .. resource, "AllLow", nil, {color = U.GetHex(Color.Red)})
+									return MSG.Splash({
+										"Ankist remembers House " .. S.getPlayerHouseName(player),
+										"for being weak on " .. resource
+									}, "AllLow", nil, {color = U.GetHex(Color.Red)})
 								end
 							end
 						})
@@ -552,6 +566,10 @@ INITFUNCS = {
 		PrepareFirstRound = function()
 			return {
 				function()
+					if (U.IsDebugging(true)) then
+						local nonHostPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVal(player, "house") ~= "Olwyn" end)
+						U.forEach(nonHostPlayers, function(player) P.SetHouseCards("HIDDEN", player) end)
+					end
 					S.setStateVal(0, "roundState", "roundNum")
 					S.setStateVal(getTokenMomentums(), "roundState", "boardTokens", "momentum")
 					DIR.GetDilemmaDeck().shuffle()
@@ -1240,7 +1258,7 @@ INITFUNCS = {
 							function(obj)
 								return obj.getName() == "Coin"
 								and not obj.hasTag("SourceObj")
-								and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivateCoin" end)
+								and not U.find(obj.getZones(), function(zone) return zone.getName() == "PrivateCoin" or zone.getName() == "StoryArcC" end)
 							end
 						)
 					)
@@ -1606,6 +1624,10 @@ function DIR.InitSession(isNotShuffling)
 						return P.SetCamera("BehindScreen")
 					end,
 					function()
+						if U.IsDebugging(true) then
+							local nonHostPlayers = U.filter(S.getPlayers(), function(player) return S.getPlayerVal(player, "house") ~= "Olwyn" end)
+							U.forEach(nonHostPlayers, function(player) P.SetHouseCards("HIDDEN", player) end)
+						end
 						if S.isInMode(C.Modes.NONE) then
 							return DIR.ADVANCE()
 						end
@@ -1690,9 +1712,9 @@ function DIR.ADVANCE(waitFunc, isThrottling)
 		startPhase()
 	end
 end
-ISDRESSREHEARSAL = true
+
 function DIR.ADVANCEUNLESSDEBUG()
-	if U.IsDebugging() and not ISDRESSREHEARSAL then
+	if U.IsDebugging() then
 		DIR.ShowManualAdvance()
 		return 0
 	else

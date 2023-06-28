@@ -23,18 +23,17 @@ KONFURTAH COORDS
 1520x, 863y 3w
 1471x, 859y 4a
 
-DIR.AdjustStability(-2)
-V.SwapVote("Red")
+lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods"); DIR.AdjustStability(-2)
+lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods"); V.SwapVote("Red")
 
-** HANDLE 'TOO MANY OPEN AGENDAS' ***
+lua U, C, O, OU, S, P, L, V, MSG, HouseScreen, DIR = Global.call("GetMods"); log(S.getStateVal("gameState"))
 
-- auto-reduce coin scoring if no money on fountain of gold
-- 'quick undo' for votes, or at least switching from aye to nay
-- when does stability update? Need a better way to account for "off the board" movement
+- handle 'TOO MANY OPEN AGENDAS'
 - figure out score graphic for Discord
-
 - turn pass card into a 'transfer' zone, with buttons to delete & to transfer contents to others
   - Splash message alerts all to whatever happened
+- more fluid/easily-accessible camera controls
+
 
 *** FOR DEBUGGING ***
 Search: visibility *= *"(Brown|Orange|Red|Yellow|Green)"
@@ -44,14 +43,8 @@ Replace: visibility="Host|$1"
 Search: visibility *= *"Host\|(Brown|Orange|Red|Yellow|Green)"
 Replace: visibility="$1"
 
-- change flow of game so proper people are prompted
-  - make vote prompt go to last person to speak during Discussion
-  - advance to momentum goes to leader
-  - reveal resource consequences = leader
-  - if leader is moderator, then player to right does consequences
-- automatic application of top witch-story card
-- auto-set-up of the story card money bank thing
-- fix tie notification to moderator's tiebreaking vote
+
+
 
 
 DISCORD

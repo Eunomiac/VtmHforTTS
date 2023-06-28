@@ -5,15 +5,15 @@ local P = require("kingsdilemma.core.players")
 
 local alphas = {
 	global = 1,
-	name = 1,
-	prestige = 1,
-	crave = 1,
+	name = 0.5,
+	prestige = 0.5,
+	crave = 0.5,
 	vote = 1,
 	score = 1
 }
 local scales = {
 	global = 1,
-	name = 1,
+	name = 0.6,
 	prestige = 1,
 	crave = 1,
 	vote = 1,

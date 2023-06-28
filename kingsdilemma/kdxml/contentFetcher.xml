@@ -160,7 +160,7 @@
 		width = "400" height = "60" />
 </Defaults>
 
-<Panel class="input-query" visibility="Host|Brown">
+<Panel class="input-query" visibility="Brown">
 	<VerticalLayout id="stickerQuery_Brown" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -174,7 +174,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Red">
+<Panel class="input-query" visibility="Red">
 	<VerticalLayout id="stickerQuery_Red" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -188,7 +188,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Orange">
+<Panel class="input-query" visibility="Orange">
 	<VerticalLayout id="stickerQuery_Orange" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -202,7 +202,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Yellow">
+<Panel class="input-query" visibility="Yellow">
 	<VerticalLayout id="stickerQuery_Yellow" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -216,7 +216,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Green">
+<Panel class="input-query" visibility="Green">
 	<VerticalLayout id="stickerQuery_Green" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -231,7 +231,7 @@
 	</VerticalLayout>
 </Panel>
 
-<Panel class="input-query" visibility="Host|Brown">
+<Panel class="input-query" visibility="Brown">
 	<VerticalLayout id="envelopeQuery_Brown" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -245,7 +245,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Red">
+<Panel class="input-query" visibility="Red">
 	<VerticalLayout id="envelopeQuery_Red" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -259,7 +259,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Orange">
+<Panel class="input-query" visibility="Orange">
 	<VerticalLayout id="envelopeQuery_Orange" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -273,7 +273,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Yellow">
+<Panel class="input-query" visibility="Yellow">
 	<VerticalLayout id="envelopeQuery_Yellow" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -287,7 +287,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query" visibility="Host|Green">
+<Panel class="input-query" visibility="Green">
 	<VerticalLayout id="envelopeQuery_Green" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -334,7 +334,7 @@
 
 	</Defaults>
 
-<Panel class="input-query king-query" visibility="Host|Brown">
+<Panel class="input-query king-query" visibility="Brown">
 	<VerticalLayout id="kingQuery_Brown" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -355,7 +355,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query king-query" visibility="Host|Red">
+<Panel class="input-query king-query" visibility="Red">
 	<VerticalLayout id="kingQuery_Red" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -376,7 +376,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query king-query" visibility="Host|Orange">
+<Panel class="input-query king-query" visibility="Orange">
 	<VerticalLayout id="kingQuery_Orange" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -397,7 +397,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query king-query" visibility="Host|Yellow">
+<Panel class="input-query king-query" visibility="Yellow">
 	<VerticalLayout id="kingQuery_Yellow" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">
@@ -418,7 +418,7 @@
 		<Image class="input-bottom" />
 	</VerticalLayout>
 </Panel>
-<Panel class="input-query king-query" visibility="Host|Green">
+<Panel class="input-query king-query" visibility="Green">
 	<VerticalLayout id="kingQuery_Green" class="input-query" active="false">
 		<Image class="input-top" />
 		<VerticalLayout class="input-query">

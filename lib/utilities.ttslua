@@ -794,8 +794,15 @@ function U.getUID(length)
 	end
 end
 
-function U.IsDebugging()
-	return U.find(Player.getPlayers(), function(player) return string.match(player.steam_name, "^Player ") end)
+function U.IsDebugging(isForcing)
+	if (U.find(Player.getPlayers(), function(player) return string.match(player.steam_name, "^Player ") end)) then
+		if (isForcing == true) then return true end
+		if (U.find(Player.getPlayers(), function(player) return player.steam_name == "Eunomiac" end)) then
+			return false
+		end
+		return true
+	end
+	return false
 end
 
 function U.getHost()

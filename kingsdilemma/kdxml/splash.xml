@@ -201,7 +201,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Brown" class="splash-visibility">
+	<Panel visibility="Brown" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Brown" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top" />
@@ -214,7 +214,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Brown" class="splash-visibility-double">
+	<Panel visibility="Brown" class="splash-visibility-double">
 		<VerticalLayout id="splashPanel_BrownDouble" class="splash-root splash-root-double" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top splash-image-double" />
@@ -227,7 +227,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Red" class="splash-visibility">
+	<Panel visibility="Red" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Red" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top" />
@@ -240,7 +240,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Red" class="splash-visibility-double">
+	<Panel visibility="Red" class="splash-visibility-double">
 		<VerticalLayout id="splashPanel_RedDouble" class="splash-root splash-root-double" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top splash-image-double" />
@@ -253,7 +253,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Orange" class="splash-visibility">
+	<Panel visibility="Orange" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Orange" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top" />
@@ -266,7 +266,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Orange" class="splash-visibility-double">
+	<Panel visibility="Orange" class="splash-visibility-double">
 		<VerticalLayout id="splashPanel_OrangeDouble" class="splash-root splash-root-double" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top splash-image-double" />
@@ -279,7 +279,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Yellow" class="splash-visibility">
+	<Panel visibility="Yellow" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Yellow" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top" />
@@ -292,7 +292,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Yellow" class="splash-visibility-double">
+	<Panel visibility="Yellow" class="splash-visibility-double">
 		<VerticalLayout id="splashPanel_YellowDouble" class="splash-root splash-root-double" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top splash-image-double" />
@@ -305,7 +305,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Green" class="splash-visibility">
+	<Panel visibility="Green" class="splash-visibility">
 		<VerticalLayout id="splashPanel_Green" class="splash-root" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top" />
@@ -318,7 +318,7 @@
 		</VerticalLayout>
 	</Panel>
 
-	<Panel visibility="Host|Green" class="splash-visibility-double">
+	<Panel visibility="Green" class="splash-visibility-double">
 		<VerticalLayout id="splashPanel_GreenDouble" class="splash-root splash-root-double" active="false">
 			<VerticalLayout class="splash-image-container">
 				<Image class="splash-top splash-image-double" />
@@ -383,7 +383,7 @@
 		scale = "0.6 0.6 0.6" />
 </Defaults>
 
-<Panel class="splash-panel splash-query" visibility="Host|Brown">
+<Panel class="splash-panel splash-query" visibility="Brown">
 	<VerticalLayout id="splashQuery_Brown" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -418,7 +418,7 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="splash-panel splash-query" visibility="Host|Red">
+<Panel class="splash-panel splash-query" visibility="Red">
 	<VerticalLayout id="splashQuery_Red" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -453,7 +453,7 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="splash-panel splash-query" visibility="Host|Orange">
+<Panel class="splash-panel splash-query" visibility="Orange">
 	<VerticalLayout id="splashQuery_Orange" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -488,7 +488,7 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="splash-panel splash-query" visibility="Host|Yellow">
+<Panel class="splash-panel splash-query" visibility="Yellow">
 	<VerticalLayout id="splashQuery_Yellow" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />
@@ -523,7 +523,7 @@
 		</VerticalLayout>
 	</VerticalLayout>
 </Panel>
-<Panel class="splash-panel splash-query" visibility="Host|Green">
+<Panel class="splash-panel splash-query" visibility="Green">
 	<VerticalLayout id="splashQuery_Green" class="splash-root" active="false">
 		<VerticalLayout class="splash-image-container">
 			<Image class="splash-top" />

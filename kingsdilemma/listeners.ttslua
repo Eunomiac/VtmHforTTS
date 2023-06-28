@@ -48,6 +48,18 @@ local DIR = require("kingsdilemma.core.director")
 function onLoad(save_data)
 	S.InitializeGameState(save_data)
 
+	log("Overriding Description on Chronicle Sticker #e4418e")
+	getObjectFromGUID("e4418e").setDescription("Ankist remembers House Concordia for spreading deadly rumors.")
+	log("Naming six story scripting zones.")
+	getObjectFromGUID("28a2f6").setName("StoryArcA")
+	getObjectFromGUID("e77df1").setName("StoryArcB")
+	getObjectFromGUID("c9df44").setName("StoryArcC")
+	getObjectFromGUID("c05f09").setName("StoryArcD")
+	getObjectFromGUID("859fd5").setName("StoryArcE")
+	getObjectFromGUID("00b6d2").setName("StoryArcF")
+	-- log("Overriding Description on Chronicle Sticker #e4418e")
+	-- getObjectFromGUID("e4418e").setDescription("Ankist remembers House Concordia for honouring a  national symbol.")
+
 	-- log("Overriding King Name to 'Eglamore I of House Hedwyn'")
 	-- S.setStateVal("Eglamore I of House Hedwyn", "gameState", "kingName")
 	-- log("Adding 'Played' tag to Event Zone #79c7ed")
@@ -67,8 +79,7 @@ function onSave() return JSON.encode(S.getGameState()) end
 -- function onUpdate() console.update() end
 
 function onPlayerTurnStart(pColor)
-	if U.IsDebugging() then
-
+	if U.IsDebugging(true) then
 		P.SetCamera("BehindScreen", pColor, U.getHost())
 	end
 end
